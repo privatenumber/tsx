@@ -1,0 +1,72 @@
+{
+	"name": "@esbuild-kit/esb",
+	"version": "0.0.0-semantic-release",
+	"description": "Node.js runtime enhanced with esbuild",
+	"keywords": [
+		"esbuild",
+		"runtime",
+		"node",
+		"cjs",
+		"commonjs",
+		"esm",
+		"typescript"
+	],
+	"license": "MIT",
+	"repository": "esbuild-kit/esb",
+	"author": {
+		"name": "Hiroki Osame",
+		"email": "hiroki.osame@gmail.com"
+	},
+	"type": "module",
+	"files": [
+		"dist"
+	],
+	"bin": {
+		"esb": "./dist/cli.js"
+	},
+	"scripts": {
+		"build": "pkgroll --target=node12.19",
+		"lint": "eslint .",
+		"pretest": "npm run build",
+		"test": "./dist/cli.js tests/index.ts"
+	},
+	"dependencies": {
+		"@esbuild-kit/cjs-loader": "github:esbuild-kit/cjs-loader#built/develop",
+		"@esbuild-kit/esm-loader": "github:esbuild-kit/esm-loader#built/develop"
+	},
+	"optionalDependencies": {
+		"fsevents": "~2.3.2"
+	},
+	"devDependencies": {
+		"@pvtnbr/eslint-config": "^0.20.2",
+		"@types/cross-spawn": "^6.0.2",
+		"@types/node": "^17.0.31",
+		"@types/semver": "^7.3.9",
+		"chokidar": "^3.5.3",
+		"cleye": "^1.2.0",
+		"cross-spawn": "^7.0.3",
+		"eslint": "^8.14.0",
+		"execa": "^6.1.0",
+		"get-node": "^12.1.0",
+		"manten": "^0.0.3",
+		"pkgroll": "^1.2.2",
+		"semver": "^7.3.7",
+		"typescript": "^4.6.4"
+	},
+	"eslintConfig": {
+		"extends": "@pvtnbr",
+		"ignorePatterns": [
+			"tests/fixtures"
+		],
+		"rules": {
+			"@typescript-eslint/no-shadow": [
+				"error",
+				{
+					"allow": [
+						"describe"
+					]
+				}
+			]
+		}
+	}
+}

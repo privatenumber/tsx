@@ -1,0 +1,17 @@
+{
+	"compilerOptions": {
+		"strict": true,
+		"isolatedModules": true,
+		"esModuleInterop": true,
+		"moduleResolution": "node",
+		"resolveJsonModule": true,
+		"outDir": "dist",
+
+		"module": "esnext",
+		"target": "es2019"
+	},
+	"include": [
+		"src",
+		"tests"
+	]
+}
