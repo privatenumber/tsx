@@ -20,8 +20,8 @@ specifiers:
   typescript: ^4.6.4
 
 dependencies:
-  '@esbuild-kit/cjs-loader': github.com/esbuild-kit/cjs-loader/44c99172758aa66e548adb7bbce73c05e85a4ddb
-  '@esbuild-kit/esm-loader': github.com/esbuild-kit/esm-loader/51931a1137eac0b690144b70f5cf45b4c6a521c7
+  '@esbuild-kit/cjs-loader': github.com/esbuild-kit/cjs-loader/a8e42641ff4789069079d16dd5e5c767b8e6d6c2
+  '@esbuild-kit/esm-loader': github.com/esbuild-kit/esm-loader/cabb42265dc9f77d576417679377a85c7ea680e7
 
 optionalDependencies:
   fsevents: 2.3.2
@@ -3473,8 +3473,8 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  github.com/esbuild-kit/cjs-loader/44c99172758aa66e548adb7bbce73c05e85a4ddb:
-    resolution: {commit: 44c99172758aa66e548adb7bbce73c05e85a4ddb, repo: git+ssh://git@github.com/esbuild-kit/cjs-loader.git, type: git}
+  github.com/esbuild-kit/cjs-loader/a8e42641ff4789069079d16dd5e5c767b8e6d6c2:
+    resolution: {commit: a8e42641ff4789069079d16dd5e5c767b8e6d6c2, repo: git+ssh://git@github.com/esbuild-kit/cjs-loader.git, type: git}
     name: '@esbuild-kit/cjs-loader'
     version: 0.0.0-semantic-release
     dependencies:
@@ -3490,8 +3490,8 @@ packages:
       esbuild: 0.14.38
     dev: false
 
-  github.com/esbuild-kit/esm-loader/51931a1137eac0b690144b70f5cf45b4c6a521c7:
-    resolution: {commit: 51931a1137eac0b690144b70f5cf45b4c6a521c7, repo: git+ssh://git@github.com/esbuild-kit/esm-loader.git, type: git}
+  github.com/esbuild-kit/esm-loader/cabb42265dc9f77d576417679377a85c7ea680e7:
+    resolution: {commit: cabb42265dc9f77d576417679377a85c7ea680e7, repo: git+ssh://git@github.com/esbuild-kit/esm-loader.git, type: git}
     name: '@esbuild-kit/esm-loader'
     version: 0.0.0-semantic-release
     dependencies:
