@@ -36,8 +36,6 @@ export function run(
 			'--loader',
 			require.resolve('@esbuild-kit/esm-loader'),
 
-			'--experimental-json-modules',
-
 			// Hook require() to transform to CJS
 			'--require',
 			require.resolve('@esbuild-kit/cjs-loader'),
