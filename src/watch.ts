@@ -35,6 +35,9 @@ export const watchCommand = command({
 			description: 'Disable caching',
 		},
 	},
+	help: {
+		description: 'Run the script and watch for changes',
+	},
 }, (argv) => {
 	const options = {
 		noCache: Boolean(argv.flags.noCache),

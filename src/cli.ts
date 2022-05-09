@@ -4,7 +4,7 @@ import { run } from './run';
 import { watchCommand } from './watch';
 
 cli({
-	name: 'esb',
+	name: 'tsx',
 	version,
 	parameters: ['[script path]'],
 	commands: [
@@ -17,7 +17,7 @@ cli({
 		},
 	},
 	help: {
-		description: 'esbuild-kit: enhance Node.js with esbuild',
+		description: 'Node.js runtime enhanced with esbuild for loading TypeScript & ESM',
 	},
 }, (argv) => {
 	run(argv._, {
