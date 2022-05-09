@@ -1,5 +1,5 @@
 {
-	"name": "@esbuild-kit/esb",
+	"name": "tsx",
 	"version": "0.0.0-semantic-release",
 	"description": "Node.js runtime enhanced with esbuild",
 	"keywords": [
@@ -12,7 +12,7 @@
 		"typescript"
 	],
 	"license": "MIT",
-	"repository": "esbuild-kit/esb",
+	"repository": "esbuild-kit/tsx",
 	"author": {
 		"name": "Hiroki Osame",
 		"email": "hiroki.osame@gmail.com"
@@ -22,7 +22,7 @@
 		"dist"
 	],
 	"bin": {
-		"esb": "./dist/cli.js"
+		"tsx": "./dist/cli.js"
 	},
 	"scripts": {
 		"build": "pkgroll --target=node12.19",

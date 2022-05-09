@@ -1,34 +1,33 @@
-# esb
+# tsx
 
-Node.js runtime that supports TypeScript & ESM for `module` and `commonjs` package types.
+Node.js runtime that can instantaneously load TypeScript & ESM, powered by [esbuild](https://esbuild.github.io/).
 
 ### Features
 - Transforms TypeScript & ESM -> to CJS or ESM (depending on [package type](https://nodejs.org/api/packages.html#type))
-- Supports new extensions `.cjs` + `.mjs` (and `.cts` &`.mts`)
+- Supports TS extensions `.cjs` + `.mjs` (and `.cts` & `.mts`)
+- Supports Node.js v12.20+
 - Handles `node:` import prefixes
-- Sourcemap support
-- Supports dynamic `import()`
 - Hides experimental feature warnings
 
 ## Install
 ```sh
-npm install --save-dev @esbuild-kit/esb
+npm install --save-dev tsx
 ```
 
 ### Install globally
 Install it globally to use it anywhere, outside of your npm project, without [npx](https://docs.npmjs.com/cli/v8/commands/npx).
 ```sh
-npm install --global @esbuild-kit/esb
+npm install --global tsx
 ```
 
 ## Usage
 
-> Note: Commands are prefixed with [`npx`](https://docs.npmjs.com/cli/v8/commands/npx) to execute the `esb` binary, but it's not necessary if globally installed or when using it in the `script` object in `package.json`
+> Note: Commands are prefixed with [`npx`](https://docs.npmjs.com/cli/v8/commands/npx) to execute the `tsx` binary, but it's not necessary if globally installed or when using it in the `script` object in `package.json`
 
 ### Run TypeScript / ESM / CJS module
 
 ```sh
-npx esb ./file.js
+npx tsx ./file.ts
 ```
 
 ### Watch mode
@@ -38,7 +37,7 @@ Automatically watches all JS/TS files, and ignores files from directories `node_
 Press <kbd>Return</kbd> to manually re-run.
 
 ```sh
-npx esb watch ./file.js
+npx tsx watch ./file.ts
 ```
 
 
@@ -53,7 +52,7 @@ Modules transformations are cached in the system cache directory ([`TMPDIR`](htt
 Set the `--no-cache` flag to disable the cache:
 
 ```sh
-npx esb --no-cache ./file.js
+npx tsx --no-cache ./file.ts
 ```
 
 ## Dependencies
