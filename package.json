@@ -1,7 +1,7 @@
 {
 	"name": "tsx",
 	"version": "0.0.0-semantic-release",
-	"description": "Node.js runtime enhanced with esbuild",
+	"description": "Node.js runtime enhanced with esbuild for loading TypeScript & ESM",
 	"keywords": [
 		"esbuild",
 		"runtime",
