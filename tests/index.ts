@@ -1,5 +1,5 @@
 import { describe } from 'manten';
-import { createNode } from './utils/esb';
+import { createNode } from './utils/tsx';
 import { createFixture } from './utils/create-fixture';
 
 const packageTypes = [

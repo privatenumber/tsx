@@ -10,12 +10,12 @@ type Options = {
 };
 
 const __dirname = fileURLToPath(import.meta.url);
-const esbPath = path.join(__dirname, '../../../dist/cli.js');
+const tsxPath = path.join(__dirname, '../../../dist/cli.js');
 
-export const esb = async (
+export const tsx = async (
 	options: Options,
 ) => await execaNode(
-	esbPath,
+	tsxPath,
 	options.args,
 	{
 		env: {
@@ -42,7 +42,7 @@ export async function createNode(
 				cwd?: string;
 			},
 		) {
-			return esb(
+			return tsx(
 				{
 					args: [filePath],
 					nodePath: node.path,
@@ -56,7 +56,7 @@ export async function createNode(
 				typescript?: boolean;
 			},
 		) {
-			return esb({
+			return tsx({
 				args: [
 					`./import-file${options?.typescript ? '.ts' : '.js'}`,
 					filePath,
@@ -71,7 +71,7 @@ export async function createNode(
 				typescript?: boolean;
 			},
 		) {
-			return esb({
+			return tsx({
 				args: [
 					`./require-file${options?.typescript ? '.ts' : '.js'}`,
 					filePath,

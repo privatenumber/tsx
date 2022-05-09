@@ -1,5 +1,5 @@
 import { testSuite, expect } from 'manten';
-import type { NodeApis } from '../../utils/esb';
+import type { NodeApis } from '../../utils/tsx';
 
 export default testSuite(async ({ describe }, node: NodeApis) => {
 	describe('Load ESM', ({ describe }) => {
