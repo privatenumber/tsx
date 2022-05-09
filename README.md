@@ -3,7 +3,7 @@
 Node.js runtime that can instantaneously load TypeScript & ESM, powered by [esbuild](https://esbuild.github.io/).
 
 ### Features
-- Transforms TypeScript & ESM -> to CJS or ESM (depending on [package type](https://nodejs.org/api/packages.html#type))
+- Transforms TypeScript & ESM → to CJS or ESM (depending on [package type](https://nodejs.org/api/packages.html#type))
 - Supports TS extensions `.cjs` + `.mjs` (and `.cts` & `.mts`)
 - Supports Node.js v12.20+
 - Handles `node:` import prefixes
