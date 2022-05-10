@@ -31,8 +31,8 @@
 		"test": "./dist/cli.js tests/index.ts"
 	},
 	"dependencies": {
-		"@esbuild-kit/cjs-loader": "github:esbuild-kit/cjs-loader#built/develop",
-		"@esbuild-kit/esm-loader": "github:esbuild-kit/esm-loader#built/develop"
+		"@esbuild-kit/cjs-loader": "^1.0.0",
+		"@esbuild-kit/esm-loader": "^1.0.0"
 	},
 	"optionalDependencies": {
 		"fsevents": "~2.3.2"
