@@ -1,5 +1,6 @@
 import type { StdioOptions } from 'child_process';
 import spawn from 'cross-spawn';
+import { pathToFileURL } from 'url';
 import { ignoreNodeWarnings } from './ignore-node-warnings';
 
 export function run(
@@ -34,7 +35,7 @@ export function run(
 			// Hook import/import() to transform to ESM
 			// Can be used in Node v12 to support dynamic `import()`
 			'--loader',
-			require.resolve('@esbuild-kit/esm-loader'),
+			pathToFileURL(require.resolve('@esbuild-kit/esm-loader')).toString(),
 
 			// Hook require() to transform to CJS
 			'--require',
