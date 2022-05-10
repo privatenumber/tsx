@@ -20,7 +20,7 @@ function isDependencyPath(
 
 export const watchCommand = command({
 	name: 'watch',
-	parameters: ['[script path]'],
+	parameters: ['<script path>'],
 	flags: {
 		noCache: {
 			type: Boolean,
