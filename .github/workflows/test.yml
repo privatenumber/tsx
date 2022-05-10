@@ -1,0 +1,33 @@
+name: Test
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [master, develop, next]
+jobs:
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    timeout-minutes: 10
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version-file: '.nvmrc'
+
+    - name: Install dependencies
+      run: npx ci
+
+    - name: Test
+      run: npm test
+
+    - name: Lint
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: npm run lint

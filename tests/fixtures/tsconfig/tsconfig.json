@@ -1,0 +1,7 @@
+{
+	"compilerOptions": {
+		"jsx": "react",
+		"jsxFactory": "console.log",
+		"jsxFragmentFactory": "null",
+	}
+}
