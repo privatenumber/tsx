@@ -1,6 +1,6 @@
 import type { StdioOptions } from 'child_process';
-import spawn from 'cross-spawn';
 import { pathToFileURL } from 'url';
+import spawn from 'cross-spawn';
 import { ignoreNodeWarnings } from './ignore-node-warnings';
 
 export function run(
