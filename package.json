@@ -28,7 +28,7 @@
 		"build": "pkgroll --target=node12.19",
 		"lint": "eslint .",
 		"pretest": "npm run build",
-		"test": "./dist/cli.js tests/index.ts"
+		"test": "node ./dist/cli.js tests/index.ts"
 	},
 	"dependencies": {
 		"@esbuild-kit/cjs-loader": "^1.0.0",
