@@ -46,6 +46,6 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 
 			expect(stdout).not.toMatch('Warning');
 			expect(stdout).toMatch('\u001Bc');
-		});
+		}, 1000);
 	});
 });
