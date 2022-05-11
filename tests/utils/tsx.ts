@@ -5,16 +5,16 @@ import getNode from 'get-node';
 
 type Options = {
 	args: string[];
-	nodePath: string;
+	nodePath?: string;
 	cwd?: string;
 };
 
 const __dirname = fileURLToPath(import.meta.url);
 const tsxPath = path.join(__dirname, '../../../dist/cli.js');
 
-export const tsx = async (
+export const tsx = (
 	options: Options,
-) => await execaNode(
+) => execaNode(
 	tsxPath,
 	options.args,
 	{
@@ -24,8 +24,9 @@ export const tsx = async (
 		nodePath: options.nodePath,
 		nodeOptions: [],
 		cwd: options.cwd,
+		reject: false,
 	},
-).catch(error => error);
+);
 
 export async function createNode(
 	nodeVersion: string,

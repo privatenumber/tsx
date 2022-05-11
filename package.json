@@ -62,7 +62,8 @@
 				"error",
 				{
 					"allow": [
-						"describe"
+						"describe",
+						"runTestSuite"
 					]
 				}
 			]
