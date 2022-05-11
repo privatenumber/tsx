@@ -5,7 +5,6 @@ import { watchCommand } from './watch';
 
 cli({
 	name: 'tsx',
-	version,
 	parameters: ['[script path]'],
 	commands: [
 		watchCommand,
@@ -15,12 +14,37 @@ cli({
 			type: Boolean,
 			description: 'Disable caching',
 		},
+		version: {
+			type: Boolean,
+			description: 'Show version',
+		},
+		help: {
+			type: Boolean,
+			alias: 'h',
+			description: 'Show help',
+		},
 	},
-	help: {
-		description: 'Node.js runtime enhanced with esbuild for loading TypeScript & ESM',
-	},
+	help: false,
 }, (argv) => {
-	run(argv._, {
+	if (argv._.length === 0) {
+		if (argv.flags.version) {
+			console.log(version);
+			return;
+		}
+
+		if (argv.flags.help) {
+			argv.showHelp({
+				description: 'Node.js runtime enhanced with esbuild for loading TypeScript & ESM',
+			});
+			return;
+		}
+	}
+
+	const args = process.argv.slice(2).filter(
+		argument => (argument !== '--no-cache' && argument !== '--noCache'),
+	);
+
+	run(args, {
 		noCache: Boolean(argv.flags.noCache),
 	}).on(
 		'close',
