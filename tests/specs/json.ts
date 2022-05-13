@@ -3,8 +3,6 @@ import type { NodeApis } from '../utils/tsx';
 
 export default testSuite(async ({ describe }, node: NodeApis) => {
 	describe('Load JSON', ({ describe }) => {
-		const output = '{"loaded":"json"}';
-
 		describe('full path', ({ test }) => {
 			const importPath = './lib/json/index.json';
 
@@ -16,13 +14,13 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 			test('Import', async () => {
 				const nodeProcess = await node.import(importPath);
-				expect(nodeProcess.stdout).toBe(`{"default":${output}}`);
+				expect(nodeProcess.stdout).toBe('{"default":{"loaded":"json"},"loaded":"json"}');
 				expect(nodeProcess.stderr).toBe('');
 			});
 
 			test('Require', async () => {
 				const nodeProcess = await node.require(importPath);
-				expect(nodeProcess.stdout).toBe(output);
+				expect(nodeProcess.stdout).toBe('{"loaded":"json"}');
 				expect(nodeProcess.stderr).toBe('');
 			});
 		});
@@ -38,13 +36,13 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 			test('Import', async () => {
 				const nodeProcess = await node.import(importPath);
-				expect(nodeProcess.stdout).toBe(`{"default":${output}}`);
+				expect(nodeProcess.stdout).toBe('{"default":{"loaded":"json"},"loaded":"json"}');
 				expect(nodeProcess.stderr).toBe('');
 			});
 
 			test('Require', async () => {
 				const nodeProcess = await node.require(importPath);
-				expect(nodeProcess.stdout).toBe(output);
+				expect(nodeProcess.stdout).toBe('{"loaded":"json"}');
 				expect(nodeProcess.stderr).toBe('');
 			});
 		});
@@ -60,13 +58,13 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 			test('Import', async () => {
 				const nodeProcess = await node.import(importPath);
-				expect(nodeProcess.stdout).toBe(`{"default":${output}}`);
+				expect(nodeProcess.stdout).toBe('{"default":{"loaded":"json"},"loaded":"json"}');
 				expect(nodeProcess.stderr).toBe('');
 			});
 
 			test('Require', async () => {
 				const nodeProcess = await node.require(importPath);
-				expect(nodeProcess.stdout).toBe(output);
+				expect(nodeProcess.stdout).toBe('{"loaded":"json"}');
 				expect(nodeProcess.stderr).toBe('');
 			});
 		});
