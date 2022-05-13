@@ -68,14 +68,8 @@ packages:
   /@esbuild-kit/cjs-loader/1.0.0:
     resolution: {integrity: sha512-6oPhu5QcuTsU5nO3hBCd6OdfeaGsheU6OZrQSAzBsXOiZQ+lB2Zy1bAeAPKqzVGz16kBbheW+OuL54gLD79HdA==}
     dependencies:
-      '@esbuild-kit/core-utils': 1.0.0
+      '@esbuild-kit/core-utils': 1.0.1
       get-tsconfig: 3.0.1
-    dev: false
-
-  /@esbuild-kit/core-utils/1.0.0:
-    resolution: {integrity: sha512-OpBaYYkCxIFnTjk46dYaZplHrLXkYZvw0FporqTEPEWNJV8k2/+LTIZ1U49NdEBB33A3Ke/78KG78EoDnLENcg==}
-    dependencies:
-      esbuild: 0.14.38
     dev: false
 
   /@esbuild-kit/core-utils/1.0.1:
