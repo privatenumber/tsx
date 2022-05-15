@@ -18,7 +18,13 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 			test('Import', async () => {
 				const nodeProcess = await node.import(importPath);
-				expect(nodeProcess.stdout).toBe(`${node.isCJS ? outputCjs : outputEsm}\n{"default":{"default":1234}}`);
+
+				if (node.isCJS) {
+					expect(nodeProcess.stdout).toBe(`${outputCjs}\n{"default":{"default":1234}}`);
+				} else {
+					expect(nodeProcess.stdout).toBe(`${outputEsm}\n{"default":1234}`);
+				}
+				expect(nodeProcess.stderr).toBe('');
 			});
 
 			test('Require', async () => {
@@ -41,7 +47,12 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 			test('Import', async () => {
 				const nodeProcess = await node.import(importPath);
-				expect(nodeProcess.stdout).toBe(`${node.isCJS ? outputCjs : outputEsm}\n{"default":{"default":1234}}`);
+
+				if (node.isCJS) {
+					expect(nodeProcess.stdout).toBe(`${outputCjs}\n{"default":{"default":1234}}`);
+				} else {
+					expect(nodeProcess.stdout).toBe(`${outputEsm}\n{"default":1234}`);
+				}
 				expect(nodeProcess.stderr).toBe('');
 			});
 
@@ -65,7 +76,12 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 			test('Import', async () => {
 				const nodeProcess = await node.import(importPath);
-				expect(nodeProcess.stdout).toBe(`${node.isCJS ? outputCjs : outputEsm}\n{"default":{"default":1234}}`);
+
+				if (node.isCJS) {
+					expect(nodeProcess.stdout).toBe(`${outputCjs}\n{"default":{"default":1234}}`);
+				} else {
+					expect(nodeProcess.stdout).toBe(`${outputEsm}\n{"default":1234}`);
+				}
 				expect(nodeProcess.stderr).toBe('');
 			});
 
