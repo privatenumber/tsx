@@ -13,10 +13,10 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 				expect(nodeProcess.stdout).toBe(output);
 			});
 
-			test('Import', async () => {
-				const nodeProcess = await node.import(importPath);
-				expect(nodeProcess.stdout).toBe(`${output}\n{"default":1234}`);
-			});
+			// test('Import', async () => {
+			// 	const nodeProcess = await node.import(importPath);
+			// 	expect(nodeProcess.stdout).toBe(`${output}\n{"default":1234}`);
+			// });
 
 			test('Require', async () => {
 				const nodeProcess = await node.require(importPath);
@@ -32,10 +32,10 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 				expect(nodeProcess.stderr).toMatch('Cannot find module');
 			});
 
-			test('Import', async () => {
-				const nodeProcess = await node.import(importPath, { typescript: true });
-				expect(nodeProcess.stdout).toBe(`${output}\n{"default":1234}`);
-			});
+			// test('Import', async () => {
+			// 	const nodeProcess = await node.import(importPath, { typescript: true });
+			// 	expect(nodeProcess.stdout).toBe(`${output}\n{"default":1234}`);
+			// });
 
 			test('Require', async () => {
 				const nodeProcess = await node.require(importPath, { typescript: true });
