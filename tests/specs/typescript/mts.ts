@@ -3,7 +3,7 @@ import type { NodeApis } from '../../utils/tsx';
 
 export default testSuite(async ({ describe }, node: NodeApis) => {
 	describe('.mts extension', ({ describe }) => {
-		const output = 'loaded ts-ext-mts/index.mts true true';
+		const output = 'loaded ts-ext-mts/index.mts true true undefined';
 
 		describe('full path', ({ test }) => {
 			const importPath = './lib/ts-ext-mts/index.mts';

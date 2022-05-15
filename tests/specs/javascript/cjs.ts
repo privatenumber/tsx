@@ -4,7 +4,7 @@ import type { NodeApis } from '../../utils/tsx';
 export default testSuite(async ({ describe }, node: NodeApis) => {
 	describe('Load CJS', ({ describe }) => {
 		describe('.cjs extension', ({ describe }) => {
-			const output = 'loaded cjs-ext-cjs/index.cjs true true';
+			const output = 'loaded cjs-ext-cjs/index.cjs true true string';
 
 			describe('full path', ({ test }) => {
 				const importPath = './lib/cjs-ext-cjs/index.cjs';
@@ -68,7 +68,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		});
 
 		describe('.js extension', ({ describe }) => {
-			const output = 'loaded cjs-ext-js/index.js true true';
+			const output = 'loaded cjs-ext-js/index.js true true string';
 
 			describe('full path', ({ test }) => {
 				const importPath = './lib/cjs-ext-js/index.js';

@@ -4,6 +4,7 @@ console.log(
 	'loaded ts-ext-mts/index.mts',
 	Boolean(fs),
 	/:6:16/.test((new Error()).stack),
+	typeof __dirname,
 );
 
 function valueNumber(value: number) {

@@ -4,6 +4,7 @@ console.log(
 	'loaded ts-ext-jsx/index.jsx',
 	Boolean(fs),
 	/:6:16/.test((new Error()).stack),
+	typeof __dirname,
 );
 
 const React = {
