@@ -63,7 +63,7 @@ export async function createNode(
 		) {
 			return tsx({
 				args: [
-					`./import-file${options?.typescript ? '.ts' : '.js'}`,
+					`./import-file${options?.typescript ? '.mts' : '.mjs'}`,
 					filePath,
 				],
 				nodePath: node.path,

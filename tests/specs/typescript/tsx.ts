@@ -16,11 +16,11 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 				expect(nodeProcess.stderr).toBe('');
 			});
 
-			// test('Import', async () => {
-			// 	const nodeProcess = await node.import(importPath);
-			// 	expect(nodeProcess.stdout).toBe(`${node.isCJS ? outputCjs : outputEsm}\n{"default":["div",null,"hello world"]}`);
-			// 	expect(nodeProcess.stderr).toBe('');
-			// });
+			test('Import', async () => {
+				const nodeProcess = await node.import(importPath);
+				expect(nodeProcess.stdout).toBe(`${node.isCJS ? outputCjs : outputEsm}\n{"default":{"default":["div",null,"hello world"]}}`);
+				expect(nodeProcess.stderr).toBe('');
+			});
 
 			test('Require', async () => {
 				const nodeProcess = await node.require(importPath);
@@ -40,11 +40,11 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 				expect(nodeProcess.stderr).toBe('');
 			});
 
-			// test('Import', async () => {
-			// 	const nodeProcess = await node.import(importPath);
-			// 	expect(nodeProcess.stdout).toBe(`${node.isCJS ? outputCjs : outputEsm}\n{"default":["div",null,"hello world"]}`);
-			// 	expect(nodeProcess.stderr).toBe('');
-			// });
+			test('Import', async () => {
+				const nodeProcess = await node.import(importPath);
+				expect(nodeProcess.stdout).toBe(`${node.isCJS ? outputCjs : outputEsm}\n{"default":{"default":["div",null,"hello world"]}}`);
+				expect(nodeProcess.stderr).toBe('');
+			});
 
 			test('Require', async () => {
 				const nodeProcess = await node.require(importPath);
@@ -64,11 +64,11 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 				expect(nodeProcess.stderr).toBe('');
 			});
 
-			// test('Import', async () => {
-			// 	const nodeProcess = await node.import(importPath);
-			// 	expect(nodeProcess.stdout).toBe(`${node.isCJS ? outputCjs : outputEsm}\n{"default":["div",null,"hello world"]}`);
-			// 	expect(nodeProcess.stderr).toBe('');
-			// });
+			test('Import', async () => {
+				const nodeProcess = await node.import(importPath);
+				expect(nodeProcess.stdout).toBe(`${node.isCJS ? outputCjs : outputEsm}\n{"default":{"default":["div",null,"hello world"]}}`);
+				expect(nodeProcess.stderr).toBe('');
+			});
 
 			test('Require', async () => {
 				const nodeProcess = await node.require(importPath);
