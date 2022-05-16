@@ -2,7 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@esbuild-kit/cjs-loader': ^1.0.0
-  '@esbuild-kit/esm-loader': ^1.1.0
+  '@esbuild-kit/esm-loader': github:esbuild-kit/esm-loader#built/handle-cjs-package
   '@pvtnbr/eslint-config': ^0.22.0
   '@types/cross-spawn': ^6.0.2
   '@types/node': ^17.0.31
