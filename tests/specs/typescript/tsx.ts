@@ -19,11 +19,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 			test('Import', async () => {
 				const nodeProcess = await node.import(importPath);
 
-				if (node.isCJS) {
-					expect(nodeProcess.stdout).toBe(`${outputCjs}\n{"default":{"default":["div",null,"hello world"]}}`);
-				} else {
-					expect(nodeProcess.stdout).toBe(`${outputEsm}\n{"default":["div",null,"hello world"]}`);
-				}
+				expect(nodeProcess.stdout).toBe(`${node.isCJS ? outputCjs : outputEsm}\n{"default":["div",null,"hello world"]}`);
 				expect(nodeProcess.stderr).toBe('');
 			});
 
@@ -47,12 +43,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 			test('Import', async () => {
 				const nodeProcess = await node.import(importPath);
-
-				if (node.isCJS) {
-					expect(nodeProcess.stdout).toBe(`${outputCjs}\n{"default":{"default":["div",null,"hello world"]}}`);
-				} else {
-					expect(nodeProcess.stdout).toBe(`${outputEsm}\n{"default":["div",null,"hello world"]}`);
-				}
+				expect(nodeProcess.stdout).toBe(`${node.isCJS ? outputCjs : outputEsm}\n{"default":["div",null,"hello world"]}`);
 				expect(nodeProcess.stderr).toBe('');
 			});
 
@@ -76,12 +67,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 			test('Import', async () => {
 				const nodeProcess = await node.import(importPath);
-
-				if (node.isCJS) {
-					expect(nodeProcess.stdout).toBe(`${outputCjs}\n{"default":{"default":["div",null,"hello world"]}}`);
-				} else {
-					expect(nodeProcess.stdout).toBe(`${outputEsm}\n{"default":["div",null,"hello world"]}`);
-				}
+				expect(nodeProcess.stdout).toBe(`${node.isCJS ? outputCjs : outputEsm}\n{"default":["div",null,"hello world"]}`);
 				expect(nodeProcess.stderr).toBe('');
 			});
 
