@@ -21,7 +21,7 @@ specifiers:
 
 dependencies:
   '@esbuild-kit/cjs-loader': 1.0.0
-  '@esbuild-kit/esm-loader': 1.1.0
+  '@esbuild-kit/esm-loader': github.com/esbuild-kit/esm-loader/94214cee3bdf1a918cc9b2e8913b5c81eee93d2e
 
 optionalDependencies:
   fsevents: 2.3.2
@@ -76,14 +76,6 @@ packages:
     resolution: {integrity: sha512-N9fE4afacf4+82Xygmoa5IXASoPHHPL/OF3E5OaDVWtdoi1rk3StLGV6Vl7rqFSJCetghho/O1jvU/VnMf2pLw==}
     dependencies:
       esbuild: 0.14.38
-    dev: false
-
-  /@esbuild-kit/esm-loader/1.1.0:
-    resolution: {integrity: sha512-EoEChLvXMAg/PXzUscMHxPjMM6kUWr0fcWuMchis+TxCGPPtpg5XQrO29HbLvP1uw/4AE+aZcfmRgVykGi6gPQ==}
-    dependencies:
-      '@esbuild-kit/core-utils': 1.0.1
-      es-module-lexer: 0.10.5
-      get-tsconfig: 3.0.1
     dev: false
 
   /@eslint/eslintrc/1.2.3:
@@ -3486,3 +3478,13 @@ packages:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
     dev: true
+
+  github.com/esbuild-kit/esm-loader/94214cee3bdf1a918cc9b2e8913b5c81eee93d2e:
+    resolution: {tarball: https://codeload.github.com/esbuild-kit/esm-loader/tar.gz/94214cee3bdf1a918cc9b2e8913b5c81eee93d2e}
+    name: '@esbuild-kit/esm-loader'
+    version: 0.0.0-semantic-release
+    dependencies:
+      '@esbuild-kit/core-utils': 1.0.1
+      es-module-lexer: 0.10.5
+      get-tsconfig: 3.0.1
+    dev: false
