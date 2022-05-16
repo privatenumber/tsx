@@ -21,6 +21,11 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 					expect(nodeProcess.stderr).toBe('');
 				});
 
+				test('TypeScript Import', async () => {
+					const nodeProcess = await node.import(importPath, { typescript: true });
+					expect(nodeProcess.stdout).toBe(`${output}\n{"default":1234}`);
+				});
+
 				test('Require', async () => {
 					const nodeProcess = await node.require(importPath);
 					expect(nodeProcess.stdout).toBe(`${output}\n1234`);
