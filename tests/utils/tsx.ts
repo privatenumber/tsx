@@ -20,7 +20,6 @@ export const tsx = (
 	{
 		env: {
 			ESBK_DISABLE_CACHE: '1',
-			// ESBK_TEST: '1',
 		},
 		nodePath: options.nodePath,
 		nodeOptions: [],
