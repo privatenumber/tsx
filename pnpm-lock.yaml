@@ -21,7 +21,7 @@ specifiers:
 
 dependencies:
   '@esbuild-kit/cjs-loader': 1.0.0
-  '@esbuild-kit/esm-loader': github.com/esbuild-kit/esm-loader/94214cee3bdf1a918cc9b2e8913b5c81eee93d2e
+  '@esbuild-kit/esm-loader': github.com/esbuild-kit/esm-loader/69bb1147b78aab380d975d79de237d116f5d123d
 
 optionalDependencies:
   fsevents: 2.3.2
@@ -3479,8 +3479,8 @@ packages:
     engines: {node: '>=12.20'}
     dev: true
 
-  github.com/esbuild-kit/esm-loader/94214cee3bdf1a918cc9b2e8913b5c81eee93d2e:
-    resolution: {tarball: https://codeload.github.com/esbuild-kit/esm-loader/tar.gz/94214cee3bdf1a918cc9b2e8913b5c81eee93d2e}
+  github.com/esbuild-kit/esm-loader/69bb1147b78aab380d975d79de237d116f5d123d:
+    resolution: {tarball: https://codeload.github.com/esbuild-kit/esm-loader/tar.gz/69bb1147b78aab380d975d79de237d116f5d123d}
     name: '@esbuild-kit/esm-loader'
     version: 0.0.0-semantic-release
     dependencies:
