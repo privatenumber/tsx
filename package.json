@@ -21,10 +21,10 @@
 	"files": [
 		"dist"
 	],
-	"bin": "./dist/cli.js",
 	"exports": {
 		"./repl": "./dist/repl.js"
 	},
+	"bin": "./dist/cli.js",
 	"scripts": {
 		"build": "pkgroll --target=node12.19 --minify",
 		"lint": "eslint --cache .",
