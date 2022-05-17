@@ -30,6 +30,24 @@ npm install --global tsx
 npx tsx ./file.ts
 ```
 
+### Run via loader/require hook
+You can also pass `tsx/loader` into the [`--loader`](https://nodejs.org/api/cli.html#--experimental-loadermodule) flag if using esm.
+```sh
+node --loader tsx/loader ./file.ts
+```
+
+Or pass `tsx/register` into the [`--require`](https://nodejs.org/api/cli.html#-r---require-module) flag if using cjs.
+```sh
+node -r tsx/register ./file.ts
+```
+
+This works well for tools that allow you to pass [Node.js CLI flags](https://nodejs.org/api/cli.html) but expose their own binary to run.
+For example for usage with [mocha](https://mochajs.org) you could run the following:
+```sh
+mocha -r tsx/register
+```
+
+
 ### Watch mode
 Run file and automatically re-run on changes.
 

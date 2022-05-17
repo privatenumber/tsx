@@ -22,6 +22,10 @@
 		"dist"
 	],
 	"bin": "./dist/cli.js",
+	"exports": {
+		"./loader": "./dist/loader.js",
+		"./register": "./dist/register.cjs"
+	},
 	"scripts": {
 		"build": "pkgroll --target=node12.19 --minify",
 		"lint": "eslint --cache .",
