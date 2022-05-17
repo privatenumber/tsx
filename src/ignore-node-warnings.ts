@@ -6,6 +6,7 @@ const nodeWarningPattern = /^\(node:\d+\) (.+)\n/m;
 export const ignoreNodeWarnings = () => {
 	const warningsToIgnore = [
 		'ExperimentalWarning: --experimental-loader is an experimental feature. This feature could change at any time',
+		'ExperimentalWarning: Custom ESM Loaders is an experimental feature. This feature could change at any time',
 		'ExperimentalWarning: Importing JSON modules is an experimental feature. This feature could change at any time',
 	];
 	let filterStderr = true;
