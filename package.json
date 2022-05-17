@@ -21,6 +21,9 @@
 	"files": [
 		"dist"
 	],
+	"exports": {
+		"./repl": "./dist/repl.js"
+	},
 	"bin": "./dist/cli.js",
 	"scripts": {
 		"build": "pkgroll --target=node12.19 --minify",
@@ -31,6 +34,7 @@
 	},
 	"dependencies": {
 		"@esbuild-kit/cjs-loader": "^2.0.0",
+		"@esbuild-kit/core-utils": "^1.1.0",
 		"@esbuild-kit/esm-loader": "^2.0.0"
 	},
 	"optionalDependencies": {

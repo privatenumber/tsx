@@ -38,6 +38,9 @@ cli({
 			});
 			return;
 		}
+
+		// Load REPL
+		process.argv.push(require.resolve('./repl'));
 	}
 
 	const args = process.argv.slice(2).filter(
