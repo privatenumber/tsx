@@ -30,7 +30,7 @@
 		"prepublishOnly": "npm test"
 	},
 	"dependencies": {
-		"@esbuild-kit/cjs-loader": "^1.0.0",
+		"@esbuild-kit/cjs-loader": "github:esbuild-kit/cjs-loader#built/transform-dynamic-import",
 		"@esbuild-kit/esm-loader": "github:esbuild-kit/esm-loader#built/handle-cjs-package"
 	},
 	"optionalDependencies": {
