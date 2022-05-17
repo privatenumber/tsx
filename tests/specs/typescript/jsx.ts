@@ -3,7 +3,7 @@ import type { NodeApis } from '../../utils/tsx';
 
 export default testSuite(async ({ describe }, node: NodeApis) => {
 	describe('.jsx extension', ({ describe }) => {
-		const output = 'loaded ts-ext-jsx/index.jsx true true';
+		const output = 'loaded ts-ext-jsx/index.jsx true true true';
 		const outputEsm = `${output} undefined`;
 		const outputCjs = `${output} string`;
 

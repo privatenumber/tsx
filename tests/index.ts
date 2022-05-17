@@ -14,7 +14,7 @@ const nodeVersions = [
 		process.env.CI
 			? [
 				'14.19.1',
-				'16.14.2',
+				'16.13.2',
 				'17.8.0',
 			]
 			: []

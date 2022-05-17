@@ -3,7 +3,8 @@ const fs = require('node:fs');
 console.log(
 	'loaded cjs-ext-js/index.js',
 	Boolean(fs),
-	/:6:16/.test((new Error()).stack),
+	Boolean(import('fs')),
+	/:7:16/.test((new Error()).stack),
 	typeof __dirname,
 );
 

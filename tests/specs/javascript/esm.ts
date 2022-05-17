@@ -4,7 +4,7 @@ import type { NodeApis } from '../../utils/tsx';
 export default testSuite(async ({ describe }, node: NodeApis) => {
 	describe('Load ESM', ({ describe }) => {
 		describe('.mjs extension', ({ describe }) => {
-			const output = 'loaded esm-ext-mjs/index.mjs true true';
+			const output = 'loaded esm-ext-mjs/index.mjs true true true';
 			const outputEsm = `${output} undefined`;
 			const outputCjs = `${output} string`;
 
@@ -78,7 +78,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		});
 
 		describe('.js extension', ({ describe }) => {
-			const output = 'loaded esm-ext-js/index.js true true';
+			const output = 'loaded esm-ext-js/index.js true true true';
 			const outputEsm = `${output} undefined`;
 			const outputCjs = `${output} string`;
 
