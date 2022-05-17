@@ -1,6 +1,6 @@
 # tsx
 
-Node.js runtime that can instantaneously load TypeScript & ESM, powered by [esbuild](https://esbuild.github.io/).
+Node.js enhanced with [esbuild](https://esbuild.github.io/) to run TypeScript & ESM
 
 ### Features
 - Transforms TypeScript & ESM → to CJS or ESM (depending on [package type](https://nodejs.org/api/packages.html#type))
@@ -26,6 +26,8 @@ npm install --global tsx
 > Note: Commands are prefixed with [`npx`](https://docs.npmjs.com/cli/v8/commands/npx) to execute the `tsx` binary, but it's not necessary if globally installed or when using it in the `script` object in `package.json`
 
 ### Run TypeScript / ESM / CJS module
+
+Pass in a file to run:
 
 ```sh
 npx tsx ./file.ts
@@ -61,6 +63,13 @@ Press <kbd>Return</kbd> to manually re-run.
 npx tsx watch ./file.ts
 ```
 
+### REPL
+Start a TypeScript REPL by running `tsx` with no arguments.
+
+```sh
+npx tsx
+```
+
 ### Cache
 Modules transformations are cached in the system cache directory ([`TMPDIR`](https://en.wikipedia.org/wiki/TMPDIR)). Transforms are cached by content hash so duplicate dependencies are not re-transformed.
 
@@ -75,3 +84,21 @@ npx tsx --no-cache ./file.ts
 - [@esbuild-kit/esm-loader](https://github.com/esbuild-kit/esm-loader) - Node.js Loader to transform TypeScript to ESM.
 
 - [@esbuild-kit/cjs-loader](https://github.com/esbuild-kit/cjs-loader) - Node.js `requie()` hook to transform TypeScript & ESM to CommonJS.
+
+
+## FAQ
+
+### Does it do type-checking?
+
+No, [esbuild does not support type checking](https://esbuild.github.io/faq/#:~:text=TypeScript%20type%20checking%20(just%20run%20tsc%20separately)).
+
+It's recommended to run TypeScript separately as a command (`tsc --noEmit`) or via [IDE IntelliSense](https://code.visualstudio.com/docs/languages/typescript).
+
+
+### How is `tsx` different from [`ts-node`](https://github.com/TypeStrong/ts-node)?
+
+They are both tools to run TypeScript files and start a TypeScript REPL.
+
+The main difference is that `tsx` is powered by [esbuild](https://esbuild.github.io/) for blazing fast compilation. But because it uses esbuild, it doesn't type check like ts-node.
+
+If you migrated from `ts-node`, please share your performance gains [here](https://github.com/esbuild-kit/tsx/discussions/10)!
