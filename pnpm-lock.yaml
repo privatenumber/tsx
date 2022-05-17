@@ -1,8 +1,8 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@esbuild-kit/cjs-loader': ^1.0.0
-  '@esbuild-kit/esm-loader': ^1.1.1
+  '@esbuild-kit/cjs-loader': ^2.0.0
+  '@esbuild-kit/esm-loader': ^2.0.0
   '@pvtnbr/eslint-config': ^0.22.0
   '@types/cross-spawn': ^6.0.2
   '@types/node': ^17.0.31
@@ -20,8 +20,8 @@ specifiers:
   typescript: ^4.6.4
 
 dependencies:
-  '@esbuild-kit/cjs-loader': 1.0.0
-  '@esbuild-kit/esm-loader': 1.1.1
+  '@esbuild-kit/cjs-loader': 2.0.0
+  '@esbuild-kit/esm-loader': 2.0.0
 
 optionalDependencies:
   fsevents: 2.3.2
@@ -65,23 +65,23 @@ packages:
       js-tokens: 4.0.0
     dev: true
 
-  /@esbuild-kit/cjs-loader/1.0.0:
-    resolution: {integrity: sha512-6oPhu5QcuTsU5nO3hBCd6OdfeaGsheU6OZrQSAzBsXOiZQ+lB2Zy1bAeAPKqzVGz16kBbheW+OuL54gLD79HdA==}
+  /@esbuild-kit/cjs-loader/2.0.0:
+    resolution: {integrity: sha512-1ijCpmiCQcOcr0dmwwwCpzv0inWpNtEgiXDWc74AL52AhvY108M26suhWe9PMDcF1esnPJf0YSeVBLLZS6SQvg==}
     dependencies:
-      '@esbuild-kit/core-utils': 1.0.1
+      '@esbuild-kit/core-utils': 1.1.0
       get-tsconfig: 3.0.1
     dev: false
 
-  /@esbuild-kit/core-utils/1.0.1:
-    resolution: {integrity: sha512-N9fE4afacf4+82Xygmoa5IXASoPHHPL/OF3E5OaDVWtdoi1rk3StLGV6Vl7rqFSJCetghho/O1jvU/VnMf2pLw==}
+  /@esbuild-kit/core-utils/1.1.0:
+    resolution: {integrity: sha512-BPWlYIrfxIrjV3wzHsfOOiXgDWbh3vrveB+kr/ASTctI9tLF/k6bFo9PBiHxMGlbZCyWn8Ry3aeOB15ceHeqFw==}
     dependencies:
       esbuild: 0.14.38
     dev: false
 
-  /@esbuild-kit/esm-loader/1.1.1:
-    resolution: {integrity: sha512-Dn+sfa0+QZE4xHv6tvDFYgMGxh0w35bDQaGmoZtMX//uEiq23RV0cleFJ0EC/1kGn/Y4pjexazNUGHM+vY4qIg==}
+  /@esbuild-kit/esm-loader/2.0.0:
+    resolution: {integrity: sha512-Z2wx8CF9N8lcZIL09z5HcIUbEFXzAyicNnPNhuxuDKgzwPqnXO+AjBmyGbrRdzuuLBHi512pJtl6Qi/Q2ZyYBg==}
     dependencies:
-      '@esbuild-kit/core-utils': 1.0.1
+      '@esbuild-kit/core-utils': 1.1.0
       es-module-lexer: 0.10.5
       get-tsconfig: 3.0.1
     dev: false

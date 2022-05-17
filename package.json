@@ -30,8 +30,8 @@
 		"prepublishOnly": "npm test"
 	},
 	"dependencies": {
-		"@esbuild-kit/cjs-loader": "^1.0.0",
-		"@esbuild-kit/esm-loader": "^1.1.1"
+		"@esbuild-kit/cjs-loader": "^2.0.0",
+		"@esbuild-kit/esm-loader": "^2.0.0"
 	},
 	"optionalDependencies": {
 		"fsevents": "~2.3.2"

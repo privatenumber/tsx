@@ -37,6 +37,9 @@ export async function createNode(
 	return {
 		version: node.version,
 		packageType: '',
+		get isCJS() {
+			return this.packageType === 'commonjs';
+		},
 		load(
 			filePath: string,
 			options?: {
@@ -74,7 +77,7 @@ export async function createNode(
 		) {
 			return tsx({
 				args: [
-					`./require-file${options?.typescript ? '.ts' : '.js'}`,
+					`./require-file${options?.typescript ? '.cts' : '.cjs'}`,
 					filePath,
 				],
 				nodePath: node.path,

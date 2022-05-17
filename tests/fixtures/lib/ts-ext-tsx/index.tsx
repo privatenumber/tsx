@@ -3,7 +3,9 @@ import fs from 'node:fs';
 console.log(
 	'loaded ts-ext-tsx/index.tsx',
 	Boolean(fs),
-	/:6:16/.test((new Error()).stack),
+	Boolean(import('fs')),
+	/:7:16/.test((new Error()).stack),
+	typeof __dirname,
 );
 
 const React = {

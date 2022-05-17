@@ -3,24 +3,28 @@ import type { NodeApis } from '../../utils/tsx';
 
 export default testSuite(async ({ describe }, node: NodeApis) => {
 	describe('.mts extension', ({ describe }) => {
-		const output = 'loaded ts-ext-mts/index.mts true true';
+		const output = 'loaded ts-ext-mts/index.mts true true true';
+		const outputEsm = `${output} undefined`;
+		const outputCjs = `${output} string`;
 
 		describe('full path', ({ test }) => {
 			const importPath = './lib/ts-ext-mts/index.mts';
 
 			test('Load', async () => {
 				const nodeProcess = await node.load(importPath);
-				expect(nodeProcess.stdout).toBe(output);
+				expect(nodeProcess.stdout).toBe(outputEsm);
 			});
 
 			test('Import', async () => {
 				const nodeProcess = await node.import(importPath);
-				expect(nodeProcess.stdout).toBe(`${output}\n{"default":1234}`);
+				expect(nodeProcess.stdout).toBe(`${outputEsm}\n{"default":1234}`);
 			});
 
 			test('Require', async () => {
 				const nodeProcess = await node.require(importPath);
-				expect(nodeProcess.stdout).toBe(`${output}\n{"default":1234}`);
+
+				// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
+				expect(nodeProcess.stdout).toBe(`${outputCjs}\n{"default":1234}`);
 			});
 		});
 
@@ -34,12 +38,12 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 			test('Import', async () => {
 				const nodeProcess = await node.import(importPath, { typescript: true });
-				expect(nodeProcess.stdout).toBe(`${output}\n{"default":1234}`);
+				expect(nodeProcess.stdout).toBe(`${outputEsm}\n{"default":1234}`);
 			});
 
 			test('Require', async () => {
 				const nodeProcess = await node.require(importPath, { typescript: true });
-				expect(nodeProcess.stdout).toBe(`${output}\n{"default":1234}`);
+				expect(nodeProcess.stdout).toBe(`${outputCjs}\n{"default":1234}`);
 			});
 		});
 
