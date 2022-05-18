@@ -9,5 +9,6 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		runTestSuite(import('./mts'), node);
 		runTestSuite(import('./cts'), node);
 		runTestSuite(import('./tsconfig'), node);
+		runTestSuite(import('./dependencies'), node);
 	});
 });
