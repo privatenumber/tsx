@@ -1,1 +1,1 @@
-import "@esbuild-kit/cjs-loader";
+import '@esbuild-kit/cjs-loader';

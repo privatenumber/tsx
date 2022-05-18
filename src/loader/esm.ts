@@ -1,3 +1,3 @@
-import { createRequire } from "module";
-export * from "@esbuild-kit/esm-loader";
-createRequire(import.meta.url)("@esbuild-kit/cjs-loader");
+import '@esbuild-kit/cjs-loader';
+
+export * from '@esbuild-kit/esm-loader';
