@@ -3,12 +3,13 @@
 Node.js enhanced with [esbuild](https://esbuild.github.io/) to run TypeScript & ESM
 
 ### Features
-- Transforms TypeScript & ESM → to CJS or ESM (depending on [package type](https://nodejs.org/api/packages.html#type))
-- Supports TS extensions `.cjs` & `.mjs` (`.cts` & `.mts`)
-- TypeScript REPL
-- Supports Node.js v12.20+
-- Handles `node:` import prefixes
+- Blazing fast on-demand TypeScript & ESM compilation
+- Works in both [CommonJS and Module packages](https://nodejs.org/api/packages.html#type)
+- Supports next-gen TypeScript extensions (`.cts` & `.mts`)
+- Supports `node:` import prefixes
 - Hides experimental feature warnings
+- TypeScript REPL
+- Tested on Linux & Windows with Node.js v12~18
 
 ## Install
 ```sh
