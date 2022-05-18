@@ -22,10 +22,7 @@
 		"dist"
 	],
 	"exports": {
-		".": {
-			"import": "./dist/loader/esm.js",
-			"require": "./dist/loader/cjs.cjs"
-		},
+		".": "./dist/loader.js",
 		"./cli": "./dist/cli.js",
 		"./repl": "./dist/repl.js"
 	},
