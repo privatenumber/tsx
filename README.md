@@ -4,7 +4,7 @@ Node.js enhanced with [esbuild](https://esbuild.github.io/) to run TypeScript & 
 
 ### Features
 - Blazing fast on-demand TypeScript & ESM compilation
-- Works in both [CommonJS and Module packages](https://nodejs.org/api/packages.html#type)
+- Works in both [CommonJS and ESM packages](https://nodejs.org/api/packages.html#type)
 - Supports next-gen TypeScript extensions (`.cts` & `.mts`)
 - Supports `node:` import prefixes
 - Hides experimental feature warnings
