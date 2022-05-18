@@ -26,6 +26,7 @@
 			"import": "./dist/loader/esm.js",
 			"require": "./dist/loader/cjs.cjs"
 		},
+		"./cli": "./dist/cli.js",
 		"./repl": "./dist/repl.js"
 	},
 	"bin": "./dist/cli.js",
