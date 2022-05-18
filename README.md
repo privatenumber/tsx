@@ -79,8 +79,10 @@ It's recommended to run TypeScript separately as a command (`tsc --noEmit`) or v
 
 ### How is `tsx` different from [`ts-node`](https://github.com/TypeStrong/ts-node)?
 
-They are both tools to run TypeScript files and start a TypeScript REPL.
+They are both tools to run TypeScript files.
 
-The main difference is that `tsx` is powered by [esbuild](https://esbuild.github.io/) for blazing fast compilation. But because it uses esbuild, it doesn't type check like ts-node.
+The main difference is that `tsx` is powered by [esbuild](https://esbuild.github.io/) for blazing fast TypeScript compilation. Whereas `ts-node` uses the TypeScript compiler, [which is not as fast](https://esbuild.github.io/faq/#:~:text=typescript%20benchmark).
+
+Because esbuild doesn't do type checking, `tsx` is more equivalent to `ts-node --transpileOnly`.
 
 If you migrated from `ts-node`, please share your performance gains [here](https://github.com/esbuild-kit/tsx/discussions/10)!
