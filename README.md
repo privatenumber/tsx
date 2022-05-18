@@ -33,24 +33,6 @@ Pass in a file to run:
 npx tsx ./file.ts
 ```
 
-### Run via loader/require hook
-You can also pass `tsx` into the [`--loader`](https://nodejs.org/api/cli.html#--experimental-loadermodule) flag if using esm.
-```sh
-node --loader tsx ./file.ts
-```
-
-Or pass `tsx` into the [`--require`](https://nodejs.org/api/cli.html#-r---require-module) flag if using cjs.
-```sh
-node -r tsx ./file.ts
-```
-
-This works well for tools that allow you to pass [Node.js CLI flags](https://nodejs.org/api/cli.html) but expose their own binary to run.
-For example for usage with [mocha](https://mochajs.org) you could run the following:
-```sh
-mocha -r tsx
-```
-
-
 ### Watch mode
 Run file and automatically re-run on changes.
 
@@ -78,6 +60,24 @@ Set the `--no-cache` flag to disable the cache:
 ```sh
 npx tsx --no-cache ./file.ts
 ```
+
+### Node.js Loader
+
+tsx is a standalone binary used in-place of Node.js, but sometimes you'll want to use `node` directly. For example, when adding TypeScript & ESM support to Node.js binaries.
+
+To use tsx with Node.js, pass it into the [`--loader`](https://nodejs.org/api/esm.html#loaders) flag.
+
+> Note: Node.js's experimental feature warnings will not be suppressed when used as a loader
+
+```sh
+# As a CLI flag
+node --loader tsx ./file.ts
+
+# As an environment variable
+NODE_OPTIONS='--loader tsx' node ./file.ts
+```
+
+If you're looking to use the [`-r, --require`](https://nodejs.org/api/cli.html#-r---require-module) flag, you can use [`@esbuild-kit/cjs-loader`](https://github.com/esbuild-kit/cjs-loader) but transformations _will not_ be applied to dynamic `import()`s.
 
 ## Dependencies
 
