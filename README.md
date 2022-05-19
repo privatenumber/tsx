@@ -1,6 +1,6 @@
 # tsx
 
-Node.js enhanced with [esbuild](https://esbuild.github.io/) to run TypeScript & ESM
+_TypeScript Execute (tsx)_: Node.js enhanced with [esbuild](https://esbuild.github.io/) to run TypeScript & ESM files
 
 ### Features
 - Blazing fast on-demand TypeScript & ESM compilation
@@ -12,26 +12,50 @@ Node.js enhanced with [esbuild](https://esbuild.github.io/) to run TypeScript & 
 - Tested on Linux & Windows with Node.js v12~18
 
 ## Install
+
+### Local installation
+If you're using it in an npm project, install it as a development dependency:
 ```sh
 npm install --save-dev tsx
 ```
 
-### Install globally
-Install it globally to use it anywhere, outside of your npm project, without [npx](https://docs.npmjs.com/cli/v8/commands/npx).
+You can reference it directly in the `package.json#scripts` object:
+```json5
+{
+	"scripts": {
+		"dev": "tsx ..."
+	}
+}
+```
+
+To use the binary, you can call it with [`npx`](https://docs.npmjs.com/cli/v8/commands/npx) while in the project directory:
+
+```sh
+npx tsx ...
+```
+
+### Global installation
+
+If you want to use it in any arbitrary project without [npx](https://docs.npmjs.com/cli/v8/commands/npx), install it globally:
+
 ```sh
 npm install --global tsx
 ```
 
-## Usage
+You can call `tsx` directly:
 
-> Note: Commands are prefixed with [`npx`](https://docs.npmjs.com/cli/v8/commands/npx) to execute the `tsx` binary, but it's not necessary if globally installed or when using it in the `script` object in `package.json`
+```sh
+tsx ...
+```
+
+## Usage
 
 ### Run TypeScript / ESM / CJS module
 
 Pass in a file to run:
 
 ```sh
-npx tsx ./file.ts
+tsx ./file.ts
 ```
 
 You can also run a local binary:
@@ -48,14 +72,14 @@ All imported files are watched except from the following directories:
 Press <kbd>Return</kbd> to manually re-run.
 
 ```sh
-npx tsx watch ./file.ts
+tsx watch ./file.ts
 ```
 
 ### REPL
-Start a TypeScript REPL by running `tsx` with no arguments.
+Start a TypeScript REPL by running with no arguments.
 
 ```sh
-npx tsx
+tsx
 ```
 
 ### Cache
@@ -64,12 +88,12 @@ Modules transformations are cached in the system cache directory ([`TMPDIR`](htt
 Set the `--no-cache` flag to disable the cache:
 
 ```sh
-npx tsx --no-cache ./file.ts
+tsx --no-cache ./file.ts
 ```
 
 ### Node.js Loader
 
-tsx is a standalone binary used in-place of Node.js, but sometimes you'll want to use `node` directly. For example, when adding TypeScript & ESM support to Node.js binaries.
+`tsx` is a standalone binary designed to be used in-place of `node`, but sometimes you'll want to use `node` directly. For example, when adding TypeScript & ESM support to npm-installed binaries.
 
 To use tsx with Node.js, pass it into the [`--loader`](https://nodejs.org/api/esm.html#loaders) flag.
 
@@ -83,7 +107,9 @@ node --loader tsx ./file.ts
 NODE_OPTIONS='--loader tsx' node ./file.ts
 ```
 
-If you're looking to use the [`-r, --require`](https://nodejs.org/api/cli.html#-r---require-module) flag, you can use [`@esbuild-kit/cjs-loader`](https://github.com/esbuild-kit/cjs-loader) but transformations _will not_ be applied to dynamic `import()`s.
+> Tip: In rare circumstances, you might be limited to use the [`-r, --require`](https://nodejs.org/api/cli.html#-r---require-module) flag.
+>
+> You can use [`@esbuild-kit/cjs-loader`](https://github.com/esbuild-kit/cjs-loader) but transformations will only be applied to `require()`.
 
 ## Dependencies
 
