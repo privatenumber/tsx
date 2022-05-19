@@ -2,7 +2,7 @@ import type { ChildProcess } from 'child_process';
 import { fileURLToPath } from 'url';
 import { command } from 'cleye';
 import { watch } from 'chokidar';
-import { run } from './run';
+import { runBinary } from './run-binary';
 
 // From ansi-escapes
 // https://github.com/sindresorhus/ansi-escapes/blob/2b3b59c56ff77a/index.js#L80
@@ -17,6 +17,8 @@ function isDependencyPath(
 		&& data.type === 'dependency'
 	);
 }
+
+const nodeBinary = process.execPath;
 
 export const watchCommand = command({
 	name: 'watch',
@@ -44,7 +46,7 @@ export const watchCommand = command({
 
 		process.stdout.write(clearScreen);
 
-		runProcess = run(argv._, options);
+		runProcess = runBinary(nodeBinary, argv._, options);
 
 		runProcess.on('message', (data) => {
 			// Collect run-time dependencies to watch

@@ -18,6 +18,7 @@ export const tsx = (
 	tsxPath,
 	options.args,
 	{
+		extendEnv: false,
 		env: {
 			ESBK_DISABLE_CACHE: '1',
 		},

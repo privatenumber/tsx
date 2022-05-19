@@ -34,6 +34,11 @@ Pass in a file to run:
 npx tsx ./file.ts
 ```
 
+You can also run a local binary:
+```sh
+npx tsx mocha
+```
+
 ### Watch mode
 Run file and automatically re-run on changes.
 

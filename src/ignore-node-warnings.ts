@@ -2,13 +2,13 @@ import { Transform } from 'stream';
 
 const warningTraceTip = '(Use `node --trace-warnings ...` to show where the warning was created)';
 const nodeWarningPattern = /^\(node:\d+\) (.+)\n/m;
+const warningsToIgnore = [
+	'ExperimentalWarning: --experimental-loader is an experimental feature. This feature could change at any time',
+	'ExperimentalWarning: Custom ESM Loaders is an experimental feature. This feature could change at any time',
+	'ExperimentalWarning: Importing JSON modules is an experimental feature. This feature could change at any time',
+];
 
 export const ignoreNodeWarnings = () => {
-	const warningsToIgnore = [
-		'ExperimentalWarning: --experimental-loader is an experimental feature. This feature could change at any time',
-		'ExperimentalWarning: Custom ESM Loaders is an experimental feature. This feature could change at any time',
-		'ExperimentalWarning: Importing JSON modules is an experimental feature. This feature could change at any time',
-	];
 	let filterStderr = true;
 	let counter = 0;
 
@@ -37,7 +37,6 @@ export const ignoreNodeWarnings = () => {
 				return callback(null, chunk);
 			}
 
-			warningsToIgnore.splice(ignoreWarning, 1);
 			if (warningsToIgnore.length === 0) {
 				filterStderr = false;
 			}
