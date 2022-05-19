@@ -58,9 +58,9 @@ Pass in a file to run:
 tsx ./file.ts
 ```
 
-You can also run a local binary:
+You can also run a local binary (binaries in `./node_modules/.bin/`):
 ```sh
-npx tsx mocha
+tsx binary-name
 ```
 
 ### Watch mode
