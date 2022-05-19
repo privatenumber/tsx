@@ -22,6 +22,7 @@
 		"dist"
 	],
 	"exports": {
+		".": "./dist/loader.js",
 		"./cli": "./dist/cli.js",
 		"./repl": "./dist/repl.js"
 	},

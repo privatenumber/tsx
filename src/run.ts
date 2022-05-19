@@ -32,14 +32,8 @@ export function run(
 	const childProcess = spawn(
 		process.execPath,
 		[
-			// Hook import/import() to transform to ESM
-			// Can be used in Node v12 to support dynamic `import()`
 			'--loader',
-			pathToFileURL(require.resolve('@esbuild-kit/esm-loader')).toString(),
-
-			// Hook require() to transform to CJS
-			'--require',
-			require.resolve('@esbuild-kit/cjs-loader'),
+			pathToFileURL(require.resolve('./loader.js')).toString(),
 
 			...argv,
 		],
