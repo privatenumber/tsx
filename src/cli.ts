@@ -44,12 +44,17 @@ cli({
 
 		// Load REPL
 		args.push(require.resolve('./repl'));
-	} else if (argv._.length === 1) {
-		const [scriptPath] = argv._;
-		const foundBinary = await isBinaryPath(scriptPath);
+	}
 
-		if (foundBinary) {
-			binaryPath = foundBinary;
+	const [scriptPath] = argv._;
+	const foundBinary = await isBinaryPath(scriptPath);
+
+	if (foundBinary) {
+		binaryPath = foundBinary;
+
+		const scriptIndex = args.indexOf(scriptPath);
+		if (scriptIndex > -1) {
+			args.splice(scriptIndex, 1);
 		}
 	}
 

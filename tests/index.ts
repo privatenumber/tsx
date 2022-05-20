@@ -62,6 +62,10 @@ const nodeVersions = [
 						import('./specs/json'),
 						node,
 					);
+					runTestSuite(
+						import('./specs/binary'),
+						node,
+					);
 				});
 			}
 
