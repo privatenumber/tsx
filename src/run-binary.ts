@@ -59,7 +59,6 @@ export function runBinary(
 		binaryPath,
 		argv,
 		{
-			// stdio,
 			stdio,
 			env: environment,
 		},
