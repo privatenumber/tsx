@@ -2,7 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@esbuild-kit/cjs-loader': ^2.0.0
-  '@esbuild-kit/core-utils': ^1.1.1
+  '@esbuild-kit/core-utils': ^1.1.2
   '@esbuild-kit/esm-loader': github:esbuild-kit/esm-loader#built/handle-no-ext
   '@pvtnbr/eslint-config': ^0.22.0
   '@types/cross-spawn': ^6.0.2
@@ -22,7 +22,7 @@ specifiers:
 
 dependencies:
   '@esbuild-kit/cjs-loader': 2.0.0
-  '@esbuild-kit/core-utils': 1.1.1
+  '@esbuild-kit/core-utils': 1.1.2
   '@esbuild-kit/esm-loader': github.com/esbuild-kit/esm-loader/1953f5e20391999fcada4ae1aa01a06b5ae8925f
 
 optionalDependencies:
@@ -70,14 +70,8 @@ packages:
   /@esbuild-kit/cjs-loader/2.0.0:
     resolution: {integrity: sha512-1ijCpmiCQcOcr0dmwwwCpzv0inWpNtEgiXDWc74AL52AhvY108M26suhWe9PMDcF1esnPJf0YSeVBLLZS6SQvg==}
     dependencies:
-      '@esbuild-kit/core-utils': 1.1.1
+      '@esbuild-kit/core-utils': 1.1.2
       get-tsconfig: 3.0.1
-    dev: false
-
-  /@esbuild-kit/core-utils/1.1.1:
-    resolution: {integrity: sha512-Y5QM1ip6nUvycH8dc/bfNPLNyVt2ccBLB09lAndUvfCza/UwkAfYSiNMbcAnkLcEciEENMm6Lsyt1L98K57v3w==}
-    dependencies:
-      esbuild: 0.14.38
     dev: false
 
   /@esbuild-kit/core-utils/1.1.2:
