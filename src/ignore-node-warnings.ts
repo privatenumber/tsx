@@ -1,4 +1,6 @@
 import { Transform } from 'stream';
+import { inspect } from 'util';
+import parseError from './parse-error';
 
 const warningTraceTip = '(Use `node --trace-warnings ...` to show where the warning was created)';
 const nodeWarningPattern = /^\(node:\d+\) (.+)\n/m;
@@ -14,6 +16,21 @@ export const ignoreNodeWarnings = () => {
 
 	return new Transform({
 		transform(chunk, _, callback) {
+			const error = parseError(chunk.toString());
+
+			if (error) {
+				process.stderr.write(
+					inspect(error, {
+						showHidden: false,
+						depth: null,
+						colors: true,
+					}),
+				);
+
+				callback(null, null);
+				return;
+			}
+
 			if (!filterStderr) {
 				return callback(null, chunk);
 			}
