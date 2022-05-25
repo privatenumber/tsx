@@ -87,7 +87,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 					} else {
 						expect(nodeProcess.exitCode).toBe(1);
 						expect(nodeProcess.stdout).toBe('');
-						expect(nodeProcess.stderr).toMatch('ReferenceError: require is not defined');
+						expect(nodeProcess.stderr).toMatch('ReferenceError： require is not defined');
 					}
 				});
 
@@ -122,7 +122,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 					} else {
 						expect(nodeProcess.exitCode).toBe(1);
 						expect(nodeProcess.stdout).toBe('');
-						expect(nodeProcess.stderr).toMatch('ReferenceError: require is not defined');
+						expect(nodeProcess.stderr).toMatch('ReferenceError： require is not defined');
 					}
 				});
 
@@ -157,7 +157,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 					} else {
 						expect(nodeProcess.exitCode).toBe(1);
 						expect(nodeProcess.stdout).toBe('');
-						expect(nodeProcess.stderr).toMatch('ReferenceError: require is not defined');
+						expect(nodeProcess.stderr).toMatch('ReferenceError： require is not defined');
 					}
 				});
 
