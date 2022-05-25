@@ -28,7 +28,7 @@ export function run(
 		stdio.push('ipc');
 	}
 
-	const childProcess = spawn(
+	return spawn(
 		process.execPath,
 		[
 			'--require',
@@ -44,6 +44,4 @@ export function run(
 			env: environment,
 		},
 	);
-
-	return childProcess;
 }
