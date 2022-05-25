@@ -1,7 +1,6 @@
 import type { StdioOptions } from 'child_process';
 import { pathToFileURL } from 'url';
 import spawn from 'cross-spawn';
-import { ignoreNodeWarnings } from './ignore-node-warnings';
 
 export function run(
 	argv: string[],
@@ -21,7 +20,7 @@ export function run(
 	const stdio: StdioOptions = [
 		'inherit', // stdin
 		'inherit', // stdout
-		'pipe', // stderr
+		'inherit', // stderr
 	];
 
 	if (options?.ipc) {
@@ -32,6 +31,9 @@ export function run(
 	const childProcess = spawn(
 		process.execPath,
 		[
+			'--require',
+			require.resolve('./suppress-warnings.cjs'),
+
 			'--loader',
 			pathToFileURL(require.resolve('./loader.js')).toString(),
 
@@ -42,11 +44,6 @@ export function run(
 			env: environment,
 		},
 	);
-
-	// Suppress warnings about using experimental features
-	childProcess.stderr!
-		.pipe(ignoreNodeWarnings())
-		.pipe(process.stderr);
 
 	return childProcess;
 }
