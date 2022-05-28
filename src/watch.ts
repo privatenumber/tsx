@@ -47,7 +47,7 @@ export const watchCommand = command({
 			runProcess.kill();
 		}
 
-		if (!noClearScreen) {
+		if (!options.noClearScreen) {
 			process.stdout.write(clearScreen);
 		} else {
 			console.log('🔄 tsx: restarting');
