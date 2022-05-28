@@ -26,6 +26,10 @@ export const watchCommand = command({
 			type: Boolean,
 			description: 'Disable caching',
 		},
+		noClearScreen: {
+			type: Boolean,
+			description: 'Disable clearing the screen',
+		},
 	},
 	help: {
 		description: 'Run the script and watch for changes',
@@ -33,6 +37,7 @@ export const watchCommand = command({
 }, (argv) => {
 	const options = {
 		noCache: Boolean(argv.flags.noCache),
+		noClearScreen: Boolean(argv.flags.noClearScreen),
 		ipc: true,
 	};
 
@@ -42,7 +47,11 @@ export const watchCommand = command({
 			runProcess.kill();
 		}
 
-		process.stdout.write(clearScreen);
+		if (!noClearScreen) {
+			process.stdout.write(clearScreen);
+		} else {
+			console.log('🔄 tsx: restarting');
+		}
 
 		runProcess = run(argv._, options);
 
