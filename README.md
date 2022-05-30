@@ -42,7 +42,7 @@ If you want to use it in any arbitrary project without [`npx`](https://docs.npmj
 npm install --global tsx
 ```
 
-You can call `tsx` directly:
+Then, you can call `tsx` directly:
 
 ```sh
 tsx ...
@@ -59,7 +59,7 @@ tsx ./file.ts
 ```
 
 ### Watch mode
-Run file and automatically re-run on changes.
+Run file and automatically re-run on changes:
 
 All imported files are watched except from the following directories:
 `node_modules`, `bower_components`, `vendor`, `dist`, and `.*` (hidden directories).
@@ -71,7 +71,7 @@ tsx watch ./file.ts
 ```
 
 ### REPL
-Start a TypeScript REPL by running with no arguments.
+Start a TypeScript REPL by running with no arguments:
 
 ```sh
 tsx
