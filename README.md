@@ -1,6 +1,6 @@
 # tsx
 
-_TypeScript Execute (tsx)_: Node.js enhanced with [esbuild](https://esbuild.github.io/) to run TypeScript & ESM files
+_TypeScript Execute (`tsx`)_: Node.js enhanced with [esbuild](https://esbuild.github.io/) to run TypeScript & ESM files
 
 ### Features
 - Blazing fast on-demand TypeScript & ESM compilation
@@ -36,7 +36,7 @@ npx tsx ...
 
 ### Global installation
 
-If you want to use it in any arbitrary project without [npx](https://docs.npmjs.com/cli/v8/commands/npx), install it globally:
+If you want to use it in any arbitrary project without [`npx`](https://docs.npmjs.com/cli/v8/commands/npx), install it globally:
 
 ```sh
 npm install --global tsx
@@ -90,7 +90,7 @@ tsx --no-cache ./file.ts
 
 `tsx` is a standalone binary designed to be used in-place of `node`, but sometimes you'll want to use `node` directly. For example, when adding TypeScript & ESM support to npm-installed binaries.
 
-To use tsx with Node.js, pass it into the [`--loader`](https://nodejs.org/api/esm.html#loaders) flag.
+To use `tsx` with Node.js, pass it into the [`--loader`](https://nodejs.org/api/esm.html#loaders) flag.
 
 > Note: Node.js's experimental feature warnings will not be suppressed when used as a loader
 
