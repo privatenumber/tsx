@@ -3,9 +3,9 @@ import type { NodeApis } from '../../utils/tsx';
 
 export default testSuite(async ({ describe }, node: NodeApis) => {
 	describe('.mts extension', ({ describe }) => {
-		const output = 'loaded ts-ext-mts/index.mts true true true';
-		const outputEsm = `${output} undefined`;
-		const outputCjs = `${output} string`;
+		const output = 'loaded ts-ext-mts/index.mts';
+		const outputEsm = `${output} {"nodePrefix":true,"hasDynamicImport":true,"dirname":false,"nameInError":true,"sourceMap":true}`;
+		const outputCjs = `${output} {"nodePrefix":true,"hasDynamicImport":true,"dirname":true,"nameInError":true,"sourceMap":true}`;
 
 		describe('full path', ({ test }) => {
 			const importPath = './lib/ts-ext-mts/index.mts';

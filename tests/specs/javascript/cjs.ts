@@ -4,7 +4,7 @@ import type { NodeApis } from '../../utils/tsx';
 export default testSuite(async ({ describe }, node: NodeApis) => {
 	describe('Load CJS', ({ describe }) => {
 		describe('.cjs extension', ({ describe }) => {
-			const output = 'loaded cjs-ext-cjs/index.cjs true true true string';
+			const output = 'loaded cjs-ext-cjs/index.cjs {"nodePrefix":true,"hasDynamicImport":true,"dirname":true,"nameInError":true,"sourceMap":true}';
 
 			describe('full path', ({ test }) => {
 				const importPath = './lib/cjs-ext-cjs/index.cjs';
@@ -73,7 +73,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		});
 
 		describe('.js extension', ({ describe }) => {
-			const output = 'loaded cjs-ext-js/index.js true true true string';
+			const output = 'loaded cjs-ext-js/index.js {"nodePrefix":true,"hasDynamicImport":true,"dirname":true,"nameInError":true,"sourceMap":true}';
 
 			describe('full path', ({ test }) => {
 				const importPath = './lib/cjs-ext-js/index.js';
