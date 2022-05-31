@@ -12,8 +12,9 @@ console.log(
 				nameInError();
 			} catch (error) {
 				return {
+					message: error.message,
 					nameInError: error.message.includes('nameInError'),
-					sourceMap: error.stack.includes(':11:5'),
+					sourceMap: error.stack.includes(':12:5'),
 				};
 			}
 		})(),

@@ -13,7 +13,7 @@ console.log(
 			} catch (error) {
 				return {
 					nameInError: error.message.includes('nameInError'),
-					sourceMap: error.stack.includes(':11:5'),
+					sourceMap: error.stack.includes(':12:5'),
 				};
 			}
 		})(),
