@@ -3,9 +3,9 @@ import type { NodeApis } from '../../utils/tsx';
 
 export default testSuite(async ({ describe }, node: NodeApis) => {
 	describe('.jsx extension', ({ describe }) => {
-		const output = 'loaded ts-ext-jsx/index.jsx true true true';
-		const outputEsm = `${output} undefined`;
-		const outputCjs = `${output} string`;
+		const output = 'loaded ts-ext-jsx/index.jsx';
+		const outputEsm = `${output} {"nodePrefix":true,"hasDynamicImport":true,"dirname":false,"nameInError":true,"sourceMap":false}`;
+		const outputCjs = `${output} {"nodePrefix":true,"hasDynamicImport":true,"dirname":true,"nameInError":true,"sourceMap":false}`;
 
 		describe('full path', ({ test }) => {
 			const importPath = './lib/ts-ext-jsx/index.jsx';
