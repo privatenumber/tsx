@@ -1,6 +1,6 @@
 # tsx
 
-_TypeScript Execute (`tsx`)_: Node.js enhanced with [esbuild](https://esbuild.github.io/) to run TypeScript & ESM files
+> _TypeScript Execute (`tsx`)_: Node.js enhanced with [esbuild](https://esbuild.github.io/) to run TypeScript & ESM files
 
 ### Features
 - Blazing fast on-demand TypeScript & ESM compilation
@@ -10,6 +10,18 @@ _TypeScript Execute (`tsx`)_: Node.js enhanced with [esbuild](https://esbuild.gi
 - Hides experimental feature warnings
 - TypeScript REPL
 - Tested on Linux & Windows with Node.js v12~18
+
+
+## About
+`tsx` is a CLI command (alternative to `node`) for seamlessly running TypeScript & ESM, in both `commonjs` & `module` package types.
+
+It's powered by [esbuild](https://esbuild.github.io/) so it's insanely fast. 
+
+Want to just run TypeScript code? Try tsx:
+
+```sh
+npx tsx ./script.ts
+```
 
 ## Install
 
