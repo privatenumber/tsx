@@ -36,9 +36,9 @@
 		"prepublishOnly": "npm test"
 	},
 	"dependencies": {
-		"@esbuild-kit/cjs-loader": "^2.0.1",
+		"@esbuild-kit/cjs-loader": "github:esbuild-kit/cjs-loader#built/ts-paths",
 		"@esbuild-kit/core-utils": "^1.2.1",
-		"@esbuild-kit/esm-loader": "^2.1.4"
+		"@esbuild-kit/esm-loader": "github:esbuild-kit/esm-loader#built/ts-paths"
 	},
 	"optionalDependencies": {
 		"fsevents": "~2.3.2"
@@ -69,6 +69,7 @@
 				"error",
 				{
 					"allow": [
+						"test",
 						"describe",
 						"runTestSuite"
 					]
