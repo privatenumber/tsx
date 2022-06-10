@@ -15,13 +15,16 @@
 ## About
 `tsx` is a CLI command (alternative to `node`) for seamlessly running TypeScript & ESM, in both `commonjs` & `module` package types.
 
-It's powered by [esbuild](https://esbuild.github.io/) so it's insanely fast. 
+It's powered by [esbuild](https://esbuild.github.io/) so it's insanely fast.
 
 Want to just run TypeScript code? Try tsx:
 
 ```sh
 npx tsx ./script.ts
 ```
+
+How does it compare to [ts-node](https://github.com/TypeStrong/ts-node)? Checkout the [comparison](https://github.com/privatenumber/ts-runtime-comparison).
+
 
 ## Install
 
@@ -140,6 +143,8 @@ They are both tools to run TypeScript files.
 
 The main difference is that `tsx` is powered by [esbuild](https://esbuild.github.io/) for blazing fast TypeScript compilation, whereas `ts-node` uses the TypeScript compiler, [which is not as fast](https://esbuild.github.io/faq/#:~:text=typescript%20benchmark).
 
-Because esbuild doesn't do type checking, `tsx` is more equivalent to `ts-node --transpileOnly`.
+Because esbuild doesn't do type checking, `tsx` is more equivalent to `ts-node --esm --transpileOnly`.
+
+[Here's an exhaustive comparison](https://github.com/privatenumber/ts-runtime-comparison) between `tsx` vs `ts-node` (and other runtimes).
 
 If you migrated from `ts-node`, please share your performance gains [here](https://github.com/esbuild-kit/tsx/discussions/10)!
