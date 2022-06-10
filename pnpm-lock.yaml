@@ -1,9 +1,9 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@esbuild-kit/cjs-loader': ^2.0.1
-  '@esbuild-kit/core-utils': ^1.2.1
-  '@esbuild-kit/esm-loader': ^2.1.4
+  '@esbuild-kit/cjs-loader': ^2.1.0
+  '@esbuild-kit/core-utils': ^1.3.1
+  '@esbuild-kit/esm-loader': ^2.2.0
   '@pvtnbr/eslint-config': ^0.22.0
   '@types/cross-spawn': ^6.0.2
   '@types/node': ^17.0.34
@@ -21,9 +21,9 @@ specifiers:
   typescript: ^4.6.4
 
 dependencies:
-  '@esbuild-kit/cjs-loader': 2.0.1
-  '@esbuild-kit/core-utils': 1.2.1
-  '@esbuild-kit/esm-loader': 2.1.4
+  '@esbuild-kit/cjs-loader': 2.1.0
+  '@esbuild-kit/core-utils': 1.3.1
+  '@esbuild-kit/esm-loader': 2.2.0
 
 optionalDependencies:
   fsevents: 2.3.2
@@ -67,25 +67,25 @@ packages:
       js-tokens: 4.0.0
     dev: true
 
-  /@esbuild-kit/cjs-loader/2.0.1:
-    resolution: {integrity: sha512-KmE8XouKm6m05jPIsf5CTIZZ4171GHd+PUts1mtti2tzoiD228qCRjpkCwg540c3fMUweKupO+PIpkJ9+Z7vPg==}
+  /@esbuild-kit/cjs-loader/2.1.0:
+    resolution: {integrity: sha512-KyX25VcC2564K5FnEhNDdzonC87VeSZoLz3h6R8x3d1myhxqGdoQkTQba3VCcuAkgdkn69d3Zhvj3xtGWldbEQ==}
     dependencies:
-      '@esbuild-kit/core-utils': 1.2.1
-      get-tsconfig: 3.0.1
+      '@esbuild-kit/core-utils': 1.3.1
+      get-tsconfig: 4.0.0
     dev: false
 
-  /@esbuild-kit/core-utils/1.2.1:
-    resolution: {integrity: sha512-zNtrwZ/754OMs6joIQIxsdOA3rjhde7Vt/IzkgNnCcQrwUDG5iHmlv9vhlHzyg+BZ6Cp519lrkMKlTCEW00Kpw==}
+  /@esbuild-kit/core-utils/1.3.1:
+    resolution: {integrity: sha512-QXWJKf3mEIs+jgUCrY2YWJ2cr9e9asRYRwDhxit+wkCaQbSfV6fCCgs8KjRsrkIdMBcWsjbWnFKfwZ9kjILPrw==}
     dependencies:
       esbuild: 0.14.38
+      source-map-support: 0.5.21
     dev: false
 
-  /@esbuild-kit/esm-loader/2.1.4:
-    resolution: {integrity: sha512-acfzciUGugu1TV1QHJOAOe6F5miEjQLDYMWhoD4mVPFmwHA8Iwp5UCJidyruj67qp2ybu+Zc++7+th9VnYaZMA==}
+  /@esbuild-kit/esm-loader/2.2.0:
+    resolution: {integrity: sha512-DA9v3nkmvUIledvp4Uuf0bq8rWsGB611PwKx8FPTQkWRJe4GrqcoqemiSIXFzteQJIqaDveez9/jJQLZME/5rg==}
     dependencies:
-      '@esbuild-kit/core-utils': 1.2.1
-      es-module-lexer: 0.10.5
-      get-tsconfig: 3.0.1
+      '@esbuild-kit/core-utils': 1.3.1
+      get-tsconfig: 4.0.0
     dev: false
 
   /@eslint/eslintrc/1.2.3:
@@ -666,6 +666,10 @@ packages:
       fill-range: 7.0.1
     dev: true
 
+  /buffer-from/1.1.2:
+    resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
+    dev: false
+
   /buffer/5.7.1:
     resolution: {integrity: sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==}
     dependencies:
@@ -1005,10 +1009,6 @@ packages:
       string.prototype.trimstart: 1.0.5
       unbox-primitive: 1.0.2
     dev: true
-
-  /es-module-lexer/0.10.5:
-    resolution: {integrity: sha512-+7IwY/kiGAacQfY+YBhKMvEmyAJnw5grTUgjG85Pe7vcUI/6b7pZjZG8nQ7+48YhzEAEqrEgD2dCz/JIK+AYvw==}
-    dev: false
 
   /es-shim-unscopables/1.0.0:
     resolution: {integrity: sha512-Jm6GPcCdC30eMLbZ2x8z2WuRwAws3zTBBKuusffYVUrNj/GVSUAZ+xKMaUpfNDR5IbyNA5LJbaecoUVbmUcB1w==}
@@ -1839,8 +1839,8 @@ packages:
       get-intrinsic: 1.1.1
     dev: true
 
-  /get-tsconfig/3.0.1:
-    resolution: {integrity: sha512-+m30eQjbcf3xMNdnacXH5IDAKUMbI7Mhbf3e1BHif1FzBlUhBzBlmOVc7kL4+kB035l8OCyBdI3dNXZ3of9HqA==}
+  /get-tsconfig/4.0.0:
+    resolution: {integrity: sha512-WvnskjM5QJbSjuZrJkG3CeIE/ywYjL9/UMYu5dpOa3iD6GjefbQq7J/nrZY4yo6QSYuYwmj7G7Xd9qzCjMMKUw==}
     dev: false
 
   /glob-parent/5.1.2:
@@ -3156,6 +3156,18 @@ packages:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
     engines: {node: '>=8'}
     dev: true
+
+  /source-map-support/0.5.21:
+    resolution: {integrity: sha512-uBHU3L3czsIyYXKX88fdrGovxdSCoTGDRZ6SYXtSRxLZUzHg5P/66Ht6uoUlHu9EZod+inXhKo3qQgwXUT/y1w==}
+    dependencies:
+      buffer-from: 1.1.2
+      source-map: 0.6.1
+    dev: false
+
+  /source-map/0.6.1:
+    resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
+    engines: {node: '>=0.10.0'}
+    dev: false
 
   /sourcemap-codec/1.4.8:
     resolution: {integrity: sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==}
