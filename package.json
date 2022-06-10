@@ -36,9 +36,9 @@
 		"prepublishOnly": "npm test"
 	},
 	"dependencies": {
-		"@esbuild-kit/cjs-loader": "github:esbuild-kit/cjs-loader#built/ts-paths",
+		"@esbuild-kit/cjs-loader": "github:esbuild-kit/cjs-loader#built/develop",
 		"@esbuild-kit/core-utils": "^1.2.1",
-		"@esbuild-kit/esm-loader": "github:esbuild-kit/esm-loader#built/ts-paths"
+		"@esbuild-kit/esm-loader": "github:esbuild-kit/esm-loader#built/develop"
 	},
 	"optionalDependencies": {
 		"fsevents": "~2.3.2"
