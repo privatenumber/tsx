@@ -2,10 +2,22 @@ import fs from 'node:fs';
 
 console.log(
 	'loaded ts-ext-ts/index.ts',
-	Boolean(fs),
-	Boolean(import('fs')),
-	/:7:16/.test((new Error()).stack),
-	typeof __dirname,
+	JSON.stringify({
+		nodePrefix: Boolean(fs),
+		hasDynamicImport: Boolean(import('fs')),
+		dirname: typeof __dirname === 'string',
+		...(() => {
+			let nameInError;
+			try {
+				nameInError();
+			} catch (error) {
+				return {
+					nameInError: error.message.includes('nameInError'),
+					sourceMap: error.stack.includes(':12:5'),
+				};
+			}
+		})(),
+	}),
 );
 
 function valueNumber(value: number) {

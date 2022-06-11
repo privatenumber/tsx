@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 
 console.log(
-	'loaded ts-ext-mts/index.mts',
+	'loaded ts-ext-ts/index.tsx.ts',
 	JSON.stringify({
 		nodePrefix: Boolean(fs),
 		hasDynamicImport: Boolean(import('fs')),
@@ -13,7 +13,7 @@ console.log(
 			} catch (error) {
 				return {
 					nameInError: error.message.includes('nameInError'),
-					sourceMap: error.stack.includes(':12:5'),
+					sourceMap: error.stack.includes(':11:5'),
 				};
 			}
 		})(),

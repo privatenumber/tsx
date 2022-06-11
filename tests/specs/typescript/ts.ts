@@ -3,9 +3,9 @@ import type { NodeApis } from '../../utils/tsx';
 
 export default testSuite(async ({ describe }, node: NodeApis) => {
 	describe('.ts extension', ({ describe }) => {
-		const output = 'loaded ts-ext-ts/index.ts true true true';
-		const outputEsm = `${output} undefined`;
-		const outputCjs = `${output} string`;
+		const output = 'loaded ts-ext-ts/index.ts';
+		const outputEsm = `${output} {"nodePrefix":true,"hasDynamicImport":true,"dirname":false,"nameInError":true,"sourceMap":true}`;
+		const outputCjs = `${output} {"nodePrefix":true,"hasDynamicImport":true,"dirname":true,"nameInError":true,"sourceMap":true}`;
 
 		describe('full path', ({ test }) => {
 			const importPath = './lib/ts-ext-ts/index.ts';
@@ -77,6 +77,34 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 				// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
 				expect(nodeProcess.stdout).toBe(`${outputCjs}\n{"default":1234}`);
+				expect(nodeProcess.stderr).toBe('');
+			});
+		});
+
+		describe('extensionless with subextension', ({ test }) => {
+			const importPath = './lib/ts-ext-ts/index.tsx';
+			const outputSubextension = 'loaded ts-ext-ts/index.tsx.ts';
+			const outputSubextensionEsm = `${outputSubextension} {"nodePrefix":true,"hasDynamicImport":true,"dirname":false,"nameInError":true,"sourceMap":false}`;
+			const outputSubextensionCjs = `${outputSubextension} {"nodePrefix":true,"hasDynamicImport":true,"dirname":true,"nameInError":true,"sourceMap":false}`;
+
+			test('Load', async () => {
+				const nodeProcess = await node.load(importPath);
+				expect(nodeProcess.stdout).toBe(node.isCJS ? outputSubextensionCjs : outputSubextensionEsm);
+				expect(nodeProcess.stderr).toBe('');
+			});
+
+			test('Import', async () => {
+				const nodeProcess = await node.import(importPath);
+
+				expect(nodeProcess.stdout).toBe(`${node.isCJS ? outputSubextensionCjs : outputSubextensionEsm}\n{"default":1234}`);
+				expect(nodeProcess.stderr).toBe('');
+			});
+
+			test('Require', async () => {
+				const nodeProcess = await node.require(importPath);
+
+				// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
+				expect(nodeProcess.stdout).toBe(`${outputSubextensionCjs}\n{"default":1234}`);
 				expect(nodeProcess.stderr).toBe('');
 			});
 		});
