@@ -26,9 +26,10 @@ export const watchCommand = command({
 			type: Boolean,
 			description: 'Disable caching',
 		},
-		noClearScreen: {
+		clearScreen: {
 			type: Boolean,
 			description: 'Disable clearing the screen',
+			default: true,
 		},
 	},
 	help: {
@@ -37,19 +38,20 @@ export const watchCommand = command({
 }, (argv) => {
 	const options = {
 		noCache: Boolean(argv.flags.noCache),
-		noClearScreen: Boolean(argv.flags.noClearScreen),
+		clearScreen: Boolean(argv.flags.clearScreen),
 		ipc: true,
 	};
 
 	let runProcess: ChildProcess | undefined;
-	function reRun() {
+
+	function reRun(printRestartMessage: boolean) {
 		if (runProcess && (!runProcess.killed && runProcess.exitCode === null)) {
 			runProcess.kill();
 		}
 
-		if (!options.noClearScreen) {
+		if (!options.clearScreen) {
 			process.stdout.write(clearScreen);
-		} else {
+		} else if (printRestartMessage) {
 			console.log('🔄 tsx: restarting');
 		}
 
@@ -72,7 +74,7 @@ export const watchCommand = command({
 		});
 	}
 
-	reRun();
+	reRun(false);
 
 	// Kill process on CTRL+C
 	function exit(exitCode: number) {
@@ -110,7 +112,7 @@ export const watchCommand = command({
 			],
 			ignorePermissionErrors: true,
 		},
-	).on('all', reRun);
+	).on('all', () => reRun(true));
 
 	// On "Return" key
 	process.stdin.on('data', reRun);
