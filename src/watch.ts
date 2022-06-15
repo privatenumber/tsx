@@ -31,6 +31,10 @@ export const watchCommand = command({
 		description: 'Run the script and watch for changes',
 	},
 }, (argv) => {
+	const args = process.argv.slice(3).filter(
+		argument => (argument !== '--no-cache' && argument !== '--noCache'),
+	);
+
 	const options = {
 		noCache: Boolean(argv.flags.noCache),
 		ipc: true,
@@ -44,7 +48,7 @@ export const watchCommand = command({
 
 		process.stdout.write(clearScreen);
 
-		runProcess = run(argv._, options);
+		runProcess = run(args, options);
 
 		runProcess.on('message', (data) => {
 			// Collect run-time dependencies to watch
