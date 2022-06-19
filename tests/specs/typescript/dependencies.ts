@@ -1,11 +1,25 @@
 import { testSuite, expect } from 'manten';
 import type { NodeApis } from '../../utils/tsx';
 
-export default testSuite(async ({ describe }, node: NodeApis) => {
-	describe('Dependencies', ({ describe }) => {
-		describe('TypeScript dependency', ({ test }) => {
-			const output = '{"default":"ts default export","namedExport":"ts named export"}';
+const output = '{"default":"ts default export","namedExport":"ts named export"}';
 
+export default testSuite(async ({ describe }, node: NodeApis) => {
+	describe('TypeScript dependencies', ({ describe }) => {
+		describe('commonjs dependency', ({ test }) => {
+			test('Import', async () => {
+				const nodeProcess = await node.import('package-commonjs/ts.ts');
+				expect(nodeProcess.stdout).toBe(output);
+				expect(nodeProcess.stderr).toBe('');
+			});
+
+			test('Require', async () => {
+				const nodeProcess = await node.require('package-commonjs/ts.ts');
+				expect(nodeProcess.stdout).toBe(output);
+				expect(nodeProcess.stderr).toBe('');
+			});
+		});
+
+		describe('module dependency', ({ test }) => {
 			test('Import', async () => {
 				const nodeProcess = await node.import('package-module/ts.ts');
 				expect(nodeProcess.stdout).toBe(output);
