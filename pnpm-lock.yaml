@@ -21,9 +21,9 @@ specifiers:
   typescript: ^4.7.3
 
 dependencies:
-  '@esbuild-kit/cjs-loader': github.com/esbuild-kit/cjs-loader/7e360fb5539447709679cbc95bc25bdac4ad6cc9
-  '@esbuild-kit/core-utils': 1.3.3
-  '@esbuild-kit/esm-loader': github.com/esbuild-kit/esm-loader/06798cb83afde7aee50fe2729e7c711bdb0aa80a
+  '@esbuild-kit/cjs-loader': github.com/esbuild-kit/cjs-loader/2de96046d9efc58ced26d1ddfa9d2cccfaff1c73
+  '@esbuild-kit/core-utils': github.com/esbuild-kit/core-utils/77cb1a4d3c826ad9d9e331bb9cbc37b4d6bababe
+  '@esbuild-kit/esm-loader': github.com/esbuild-kit/esm-loader/385a7d8990ca65bc2a84f7dced05c892640dbf65
 
 optionalDependencies:
   fsevents: 2.3.2
@@ -66,13 +66,6 @@ packages:
       chalk: 2.4.2
       js-tokens: 4.0.0
     dev: true
-
-  /@esbuild-kit/core-utils/1.3.3:
-    resolution: {integrity: sha512-LBpZunrStkP3N1qA+cTx+M4K1lpmJw9f0kqS1mauItjFqUbajCDON1ZXKm/kFYxR1/whsNvtU9Ohv8qhtrFR9w==}
-    dependencies:
-      esbuild: 0.14.38
-      source-map-support: 0.5.21
-    dev: false
 
   /@eslint/eslintrc/1.3.0:
     resolution: {integrity: sha512-UWW0TMTmk2d7hLcWD1/e2g5HDM/HQ3csaLSqXCfqwh4uNDuNqlaKWXmEsL4Cs41Z0KnILNvwbHAah3C2yt06kw==}
@@ -3504,17 +3497,17 @@ packages:
     engines: {node: '>=12.20'}
     dev: true
 
-  github.com/esbuild-kit/cjs-loader/7e360fb5539447709679cbc95bc25bdac4ad6cc9:
-    resolution: {tarball: https://codeload.github.com/esbuild-kit/cjs-loader/tar.gz/7e360fb5539447709679cbc95bc25bdac4ad6cc9}
+  github.com/esbuild-kit/cjs-loader/2de96046d9efc58ced26d1ddfa9d2cccfaff1c73:
+    resolution: {tarball: https://codeload.github.com/esbuild-kit/cjs-loader/tar.gz/2de96046d9efc58ced26d1ddfa9d2cccfaff1c73}
     name: '@esbuild-kit/cjs-loader'
     version: 0.0.0-semantic-release
     dependencies:
-      '@esbuild-kit/core-utils': github.com/esbuild-kit/core-utils/378a6e342d690dbba46dc47e9d3c8898a89656a1
+      '@esbuild-kit/core-utils': github.com/esbuild-kit/core-utils/77cb1a4d3c826ad9d9e331bb9cbc37b4d6bababe
       get-tsconfig: 4.0.4
     dev: false
 
-  github.com/esbuild-kit/core-utils/378a6e342d690dbba46dc47e9d3c8898a89656a1:
-    resolution: {tarball: https://codeload.github.com/esbuild-kit/core-utils/tar.gz/378a6e342d690dbba46dc47e9d3c8898a89656a1}
+  github.com/esbuild-kit/core-utils/77cb1a4d3c826ad9d9e331bb9cbc37b4d6bababe:
+    resolution: {tarball: https://codeload.github.com/esbuild-kit/core-utils/tar.gz/77cb1a4d3c826ad9d9e331bb9cbc37b4d6bababe}
     name: '@esbuild-kit/core-utils'
     version: 0.0.0-semantic-release
     dependencies:
@@ -3522,11 +3515,11 @@ packages:
       source-map-support: 0.5.21
     dev: false
 
-  github.com/esbuild-kit/esm-loader/06798cb83afde7aee50fe2729e7c711bdb0aa80a:
-    resolution: {tarball: https://codeload.github.com/esbuild-kit/esm-loader/tar.gz/06798cb83afde7aee50fe2729e7c711bdb0aa80a}
+  github.com/esbuild-kit/esm-loader/385a7d8990ca65bc2a84f7dced05c892640dbf65:
+    resolution: {tarball: https://codeload.github.com/esbuild-kit/esm-loader/tar.gz/385a7d8990ca65bc2a84f7dced05c892640dbf65}
     name: '@esbuild-kit/esm-loader'
     version: 0.0.0-semantic-release
     dependencies:
-      '@esbuild-kit/core-utils': github.com/esbuild-kit/core-utils/378a6e342d690dbba46dc47e9d3c8898a89656a1
+      '@esbuild-kit/core-utils': github.com/esbuild-kit/core-utils/77cb1a4d3c826ad9d9e331bb9cbc37b4d6bababe
       get-tsconfig: 4.0.4
     dev: false
