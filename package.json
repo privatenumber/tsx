@@ -36,9 +36,9 @@
 		"prepublishOnly": "npm test"
 	},
 	"dependencies": {
-		"@esbuild-kit/cjs-loader": "github:esbuild-kit/cjs-loader#built/core-utils-refactor",
-		"@esbuild-kit/core-utils": "github:esbuild-kit/core-utils#built/refactor",
-		"@esbuild-kit/esm-loader": "github:esbuild-kit/esm-loader#built/core-utils-refactor"
+		"@esbuild-kit/cjs-loader": "^2.2.0",
+		"@esbuild-kit/core-utils": "^2.0.0",
+		"@esbuild-kit/esm-loader": "^2.3.0"
 	},
 	"optionalDependencies": {
 		"fsevents": "~2.3.2"
