@@ -37,7 +37,7 @@
 	},
 	"dependencies": {
 		"@esbuild-kit/cjs-loader": "^2.2.0",
-		"@esbuild-kit/core-utils": "^2.0.0",
+		"@esbuild-kit/core-utils": "^2.0.1",
 		"@esbuild-kit/esm-loader": "^2.3.0"
 	},
 	"optionalDependencies": {

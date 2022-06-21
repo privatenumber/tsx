@@ -2,7 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@esbuild-kit/cjs-loader': ^2.2.0
-  '@esbuild-kit/core-utils': ^2.0.0
+  '@esbuild-kit/core-utils': ^2.0.1
   '@esbuild-kit/esm-loader': ^2.3.0
   '@pvtnbr/eslint-config': ^0.23.1
   '@types/cross-spawn': ^6.0.2
@@ -22,7 +22,7 @@ specifiers:
 
 dependencies:
   '@esbuild-kit/cjs-loader': 2.2.0
-  '@esbuild-kit/core-utils': 2.0.0
+  '@esbuild-kit/core-utils': 2.0.1
   '@esbuild-kit/esm-loader': 2.3.0
 
 optionalDependencies:
@@ -70,12 +70,12 @@ packages:
   /@esbuild-kit/cjs-loader/2.2.0:
     resolution: {integrity: sha512-MWRzs8ds9sujFL++H9Z4aGak61J1Gjlj9VyIjXx9AlgtCS8EEjdjrWKPMNBXP1hvJMmKbL7PE4zT+OzaBv1CaA==}
     dependencies:
-      '@esbuild-kit/core-utils': 2.0.0
+      '@esbuild-kit/core-utils': 2.0.1
       get-tsconfig: 4.0.4
     dev: false
 
-  /@esbuild-kit/core-utils/2.0.0:
-    resolution: {integrity: sha512-6qZTjrfzR44tb8KDtp1ao7N7D2Fa0BDwD44zcTmSM23TtQBhrf1zmyf5HuKv45f4wziXNcSFd1qqt5T5SLmVdg==}
+  /@esbuild-kit/core-utils/2.0.1:
+    resolution: {integrity: sha512-gSpJ59VeFI4/eZjD8hxVGSOf1pQYT7AE6vP9CzH3Igk6EDm72PPj1u2mUawfdzmZLSBj9gDKIuxX/biT3yzAjg==}
     dependencies:
       esbuild: 0.14.47
       source-map-support: 0.5.21
@@ -84,7 +84,7 @@ packages:
   /@esbuild-kit/esm-loader/2.3.0:
     resolution: {integrity: sha512-iaAHKgQlnXNBloPxhxR05d9nR7zF5T0z+p1umAeB/nejY9+cIN3ULMQ/O/QTW6RVtwDGxzdXdgOYCb3FjeI4PA==}
     dependencies:
-      '@esbuild-kit/core-utils': 2.0.0
+      '@esbuild-kit/core-utils': 2.0.1
       get-tsconfig: 4.0.4
     dev: false
 
