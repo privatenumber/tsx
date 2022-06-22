@@ -1,0 +1,71 @@
+name: Bug report
+description: File a bug report
+labels: [bug, pending triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to file this bug report.
+  - type: textarea
+    attributes:
+      label: Bug description
+      description: A clear and concise description of the bug.
+      value: |
+        <!--
+          What did you do? (Provide reproduction code in next section)
+
+          What did you expect to happen?
+
+          What happened instead?
+
+          Do you have an error stack-trace or screenshots?
+        -->
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Reproduction
+      description: |
+        How can we reproduce the issue? When an issue is immediately reproducible, others can start debugging instead of following-up with questions.
+      value: |
+        <!--
+          Provide one of the following:
+            1. A code-snippet that reproduces the issue
+            2. A reproduction repository that reproduces the issue
+            3. A pull request with a failing test-case
+
+          Please remove as much irrelevant code to make it easier for others to read and debug.
+        -->
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Environment
+      description: |
+        Describe the environment the issue is happening in. This information is used to for reproduction and debugging.
+      value: |
+        <!--
+          Run and paste the output of:
+          ```
+          npx envinfo --system --npmPackages tsx --binaries
+          ```
+        -->
+
+        System:
+          OS:
+          CPU:
+          Shell:
+        Binaries:
+          Node:
+          npm:
+        npmPackages:
+          tsx:
+      render: shell
+    validations:
+      required: true
+  - type: checkboxes
+    attributes:
+      label: Can you contribute a fix?
+      description: We would love it if you can open a pull request to fix this bug!
+      options:
+        - label: I’m interested in opening a pull request for this issue.
