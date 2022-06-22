@@ -26,15 +26,24 @@ body:
     attributes:
       label: Reproduction
       description: |
-        How can we reproduce the issue? When an issue is immediately reproducible, others can start debugging instead of following-up with questions.
+        How can we reproduce the issue?
+
+        A minimal reproduction...
+        - helps you verify that the problem is rooted in this project
+        - helps us immediately start debugging instead of following up with questions
+        - saves everyone time
       value: |
         <!--
           Provide one of the following:
             1. A code-snippet that reproduces the issue
-            2. A reproduction repository that reproduces the issue
+            2. A link to a repository that reproduces the issue with a command to run
             3. A pull request with a failing test-case
 
           Please remove as much irrelevant code to make it easier for others to read and debug.
+
+          This includes unnecessary properties in package.json, tsconfig.json, etc.
+
+          The less code there is, the faster we can debug and resolve your issue.
         -->
     validations:
       required: true
