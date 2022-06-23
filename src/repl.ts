@@ -14,7 +14,11 @@ const nodeRepl = repl.start();
 const { eval: defaultEval } = nodeRepl;
 
 const preEval: REPLEval = async function (code, context, filename, callback) {
-	const transformed = await transform(code, 'repl.ts').catch(
+	const transformed = await transform(
+		code,
+		filename,
+		{ loader: 'ts' },
+	).catch(
 		(error) => {
 			console.log(error.message);
 			return { code: '\n' };
