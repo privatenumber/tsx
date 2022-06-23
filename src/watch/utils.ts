@@ -13,7 +13,7 @@ export const log = (...messages: any[]) => console.log(
 export const clearScreen = '\u001Bc';
 
 export function debounce(
-	func: () => void,
+	originalFunction: () => void,
 	duration: number,
 ) {
 	let timeout: NodeJS.Timeout | undefined;
@@ -24,13 +24,13 @@ export function debounce(
 		}
 
 		timeout = setTimeout(
-			() => func(),
+			() => originalFunction(),
 			duration,
 		);
 	};
 }
 
-export const kebab = (str: string) => str.replace(/\B([A-Z])/g, '-$1').toLowerCase();
+export const kebab = (string_: string) => string_.replace(/\B([A-Z])/g, '-$1').toLowerCase();
 
 export function isDependencyPath(
 	data: any,

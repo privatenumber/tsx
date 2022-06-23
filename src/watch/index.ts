@@ -37,7 +37,7 @@ export const watchCommand = command({
 	},
 }, (argv) => {
 	const args = process.argv.slice(3).filter(
-		argument => !flagNames.find(flagName => argument.startsWith(flagName)),
+		argument => !flagNames.some(flagName => argument.startsWith(flagName)),
 	);
 
 	const options = {
