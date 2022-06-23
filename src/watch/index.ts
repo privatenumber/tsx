@@ -2,21 +2,13 @@ import type { ChildProcess } from 'child_process';
 import { fileURLToPath } from 'url';
 import { command } from 'cleye';
 import { watch } from 'chokidar';
-import { run } from './run';
-
-// From ansi-escapes
-// https://github.com/sindresorhus/ansi-escapes/blob/2b3b59c56ff77a/index.js#L80
-const clearScreen = '\u001Bc';
-
-function isDependencyPath(
-	data: any,
-): data is { type: 'dependency'; path: string } {
-	return (
-		data
-		&& 'type' in data
-		&& data.type === 'dependency'
-	);
-}
+import { run } from '../run';
+import {
+	clearScreen,
+	debounce,
+	isDependencyPath,
+	log,
+} from './utils';
 
 export const watchCommand = command({
 	name: 'watch',
@@ -44,15 +36,21 @@ export const watchCommand = command({
 
 	let runProcess: ChildProcess | undefined;
 
-	function reRun(printRestartMessage: boolean) {
-		if (runProcess && (!runProcess.killed && runProcess.exitCode === null)) {
+	const reRun = debounce(() => {
+		if (
+			runProcess
+			&& (!runProcess.killed && runProcess.exitCode === null)
+		) {
 			runProcess.kill();
 		}
 
-		if (!options.clearScreen) {
+		// Not first run
+		if (runProcess) {
+			log('rerunning');
+		}
+
+		if (options.clearScreen) {
 			process.stdout.write(clearScreen);
-		} else if (printRestartMessage) {
-			console.log('🔄 tsx: restarting');
 		}
 
 		runProcess = run(argv._, options);
@@ -72,9 +70,9 @@ export const watchCommand = command({
 				}
 			}
 		});
-	}
+	}, 100);
 
-	reRun(false);
+	reRun();
 
 	// Kill process on CTRL+C
 	function exit(exitCode: number) {
@@ -112,7 +110,7 @@ export const watchCommand = command({
 			],
 			ignorePermissionErrors: true,
 		},
-	).on('all', () => reRun(true));
+	).on('all', reRun);
 
 	// On "Return" key
 	process.stdin.on('data', reRun);
