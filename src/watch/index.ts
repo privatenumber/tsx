@@ -6,35 +6,43 @@ import { run } from '../run';
 import {
 	clearScreen,
 	debounce,
+	kebab,
 	isDependencyPath,
 	log,
 } from './utils';
 
+const flags = {
+	noCache: {
+		type: Boolean,
+		description: 'Disable caching',
+		default: false,
+	},
+	clearScreen: {
+		type: Boolean,
+		description: 'Clearing the screen on rerun',
+		default: true,
+	},
+};
+
+const flagNames = Object.keys(flags).flatMap(
+	flagName => [`--${flagName}`, `--${kebab(flagName)}`],
+);
+
 export const watchCommand = command({
 	name: 'watch',
 	parameters: ['<script path>'],
-	flags: {
-		noCache: {
-			type: Boolean,
-			description: 'Disable caching',
-		},
-		clearScreen: {
-			type: Boolean,
-			description: 'Disable clearing the screen',
-			default: true,
-		},
-	},
+	flags,
 	help: {
 		description: 'Run the script and watch for changes',
 	},
 }, (argv) => {
 	const args = process.argv.slice(3).filter(
-		argument => (argument !== '--no-cache' && argument !== '--noCache'),
+		argument => !flagNames.find(flagName => argument.startsWith(flagName)),
 	);
 
 	const options = {
-		noCache: Boolean(argv.flags.noCache),
-		clearScreen: Boolean(argv.flags.clearScreen),
+		noCache: argv.flags.noCache,
+		clearScreen: argv.flags.clearScreen,
 		ipc: true,
 	};
 

@@ -30,6 +30,8 @@ export function debounce(
 	};
 }
 
+export const kebab = (str: string) => str.replace(/\B([A-Z])/g, '-$1').toLowerCase();
+
 export function isDependencyPath(
 	data: any,
 ): data is { type: 'dependency'; path: string } {
