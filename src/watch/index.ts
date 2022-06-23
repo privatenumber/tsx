@@ -2,51 +2,68 @@ import type { ChildProcess } from 'child_process';
 import { fileURLToPath } from 'url';
 import { command } from 'cleye';
 import { watch } from 'chokidar';
-import { run } from './run';
+import { run } from '../run';
+import {
+	clearScreen,
+	debounce,
+	kebab,
+	isDependencyPath,
+	log,
+} from './utils';
 
-// From ansi-escapes
-// https://github.com/sindresorhus/ansi-escapes/blob/2b3b59c56ff77a/index.js#L80
-const clearScreen = '\u001Bc';
+const flags = {
+	noCache: {
+		type: Boolean,
+		description: 'Disable caching',
+		default: false,
+	},
+	clearScreen: {
+		type: Boolean,
+		description: 'Clearing the screen on rerun',
+		default: true,
+	},
+};
 
-function isDependencyPath(
-	data: any,
-): data is { type: 'dependency'; path: string } {
-	return (
-		data
-		&& 'type' in data
-		&& data.type === 'dependency'
-	);
-}
+const flagNames = Object.keys(flags).flatMap(
+	flagName => [`--${flagName}`, `--${kebab(flagName)}`],
+);
 
 export const watchCommand = command({
 	name: 'watch',
 	parameters: ['<script path>'],
-	flags: {
-		noCache: {
-			type: Boolean,
-			description: 'Disable caching',
-		},
-	},
+	flags,
 	help: {
 		description: 'Run the script and watch for changes',
 	},
 }, (argv) => {
 	const args = process.argv.slice(3).filter(
-		argument => (argument !== '--no-cache' && argument !== '--noCache'),
+		argument => !flagNames.some(flagName => argument.startsWith(flagName)),
 	);
 
 	const options = {
-		noCache: Boolean(argv.flags.noCache),
+		noCache: argv.flags.noCache,
+		clearScreen: argv.flags.clearScreen,
 		ipc: true,
 	};
 
 	let runProcess: ChildProcess | undefined;
-	function reRun() {
-		if (runProcess && (!runProcess.killed && runProcess.exitCode === null)) {
+
+	const reRun = debounce(() => {
+		if (
+			runProcess
+			&& (!runProcess.killed && runProcess.exitCode === null)
+		) {
 			runProcess.kill();
 		}
 
-		process.stdout.write(clearScreen);
+		// Not first run
+		if (runProcess) {
+			log('rerunning');
+		}
+
+		if (options.clearScreen) {
+			process.stdout.write(clearScreen);
+		}
 
 		runProcess = run(args, options);
 
@@ -65,7 +82,7 @@ export const watchCommand = command({
 				}
 			}
 		});
-	}
+	}, 100);
 
 	reRun();
 

@@ -75,7 +75,7 @@ tsx ./file.ts
 ```
 
 ### Watch mode
-Run file and automatically re-run on changes:
+Run file and automatically rerun on changes:
 
 ```sh
 tsx watch ./file.ts
@@ -84,7 +84,9 @@ tsx watch ./file.ts
 All imported files are watched except from the following directories:
 `node_modules`, `bower_components`, `vendor`, `dist`, and `.*` (hidden directories).
 
-Press <kbd>Return</kbd> to manually re-run.
+#### Tips
+- Press <kbd>Return</kbd> to manually rerun
+- Pass in `--clear-screen=false` to disable clearing the screen on rerun
 
 ### REPL
 Start a TypeScript REPL by running with no arguments:
