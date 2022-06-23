@@ -42,6 +42,7 @@ const nodeVersions = [
 					import('./specs/watch'),
 					fixture.path,
 				);
+				runTestSuite(import('./specs/repl'));
 			});
 
 			for (const nodeVersion of nodeVersions) {
