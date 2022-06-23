@@ -1,1 +1,1 @@
-export default 'resolved';
+export default 'nested-resolve-target';

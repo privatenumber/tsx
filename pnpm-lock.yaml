@@ -1,9 +1,9 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@esbuild-kit/cjs-loader': ^2.2.0
+  '@esbuild-kit/cjs-loader': ^2.2.1
   '@esbuild-kit/core-utils': ^2.0.1
-  '@esbuild-kit/esm-loader': ^2.3.0
+  '@esbuild-kit/esm-loader': ^2.3.1
   '@pvtnbr/eslint-config': ^0.23.1
   '@types/cross-spawn': ^6.0.2
   '@types/node': ^18.0.0
@@ -21,9 +21,9 @@ specifiers:
   typescript: ^4.7.3
 
 dependencies:
-  '@esbuild-kit/cjs-loader': 2.2.0
+  '@esbuild-kit/cjs-loader': 2.2.1
   '@esbuild-kit/core-utils': 2.0.1
-  '@esbuild-kit/esm-loader': 2.3.0
+  '@esbuild-kit/esm-loader': 2.3.1
 
 optionalDependencies:
   fsevents: 2.3.2
@@ -67,11 +67,11 @@ packages:
       js-tokens: 4.0.0
     dev: true
 
-  /@esbuild-kit/cjs-loader/2.2.0:
-    resolution: {integrity: sha512-MWRzs8ds9sujFL++H9Z4aGak61J1Gjlj9VyIjXx9AlgtCS8EEjdjrWKPMNBXP1hvJMmKbL7PE4zT+OzaBv1CaA==}
+  /@esbuild-kit/cjs-loader/2.2.1:
+    resolution: {integrity: sha512-pq2Z4DcqTBF7y1wQuIzFVqmHJVnmP6hgHEWN2ubPjeG7OzXMZ9NvozW+YA/MIeMdZWp1jcJ/EvXk2+mfEKoCDQ==}
     dependencies:
       '@esbuild-kit/core-utils': 2.0.1
-      get-tsconfig: 4.0.4
+      get-tsconfig: 4.0.5
     dev: false
 
   /@esbuild-kit/core-utils/2.0.1:
@@ -81,11 +81,11 @@ packages:
       source-map-support: 0.5.21
     dev: false
 
-  /@esbuild-kit/esm-loader/2.3.0:
-    resolution: {integrity: sha512-iaAHKgQlnXNBloPxhxR05d9nR7zF5T0z+p1umAeB/nejY9+cIN3ULMQ/O/QTW6RVtwDGxzdXdgOYCb3FjeI4PA==}
+  /@esbuild-kit/esm-loader/2.3.1:
+    resolution: {integrity: sha512-CC0H91Oa02cczLswEoiLowTzWxvnS3tIBGkQa1BnieFK7HHV4whrBFGRlUD9rMHfyyoO55IuOqNujycXX+gI8A==}
     dependencies:
       '@esbuild-kit/core-utils': 2.0.1
-      get-tsconfig: 4.0.4
+      get-tsconfig: 4.0.5
     dev: false
 
   /@eslint/eslintrc/1.3.0:
@@ -2069,8 +2069,8 @@ packages:
       get-intrinsic: 1.1.2
     dev: true
 
-  /get-tsconfig/4.0.4:
-    resolution: {integrity: sha512-HV3OGunzMsulS6nFzOYj4L/cjO8BoI8PlCUyR1g8On+hUmthxqaOmo/qyFRzOJ/IF/fLH0k+qz7NhMt9d3QnvQ==}
+  /get-tsconfig/4.0.5:
+    resolution: {integrity: sha512-UiOHySG2zoM0krlrfJOMQoY5UR1Z57/HjMUJdi7lJHCLKiES9zZsDXtU0BPo2GUI5EqJmNRnqU3FdMjDmf2XaA==}
     dev: false
 
   /glob-parent/5.1.2:
