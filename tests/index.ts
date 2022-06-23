@@ -33,16 +33,16 @@ const nodeVersions = [
 				type: packageType,
 			});
 
-			// await describe('tsx', ({ runTestSuite }) => {
-			// 	runTestSuite(
-			// 		import('./specs/cli'),
-			// 		fixture.path,
-			// 	);
-			// 	runTestSuite(
-			// 		import('./specs/watch'),
-			// 		fixture.path,
-			// 	);
-			// });
+			await describe('tsx', ({ runTestSuite }) => {
+				runTestSuite(
+					import('./specs/cli'),
+					fixture.path,
+				);
+				runTestSuite(
+					import('./specs/watch'),
+					fixture.path,
+				);
+			});
 
 			for (const nodeVersion of nodeVersions) {
 				const node = await createNode(nodeVersion, fixture.path);
@@ -50,18 +50,18 @@ const nodeVersions = [
 				node.packageType = packageType;
 
 				await describe(`Node ${node.version}`, ({ runTestSuite }) => {
-					// runTestSuite(
-					// 	import('./specs/javascript'),
-					// 	node,
-					// );
+					runTestSuite(
+						import('./specs/javascript'),
+						node,
+					);
 					runTestSuite(
 						import('./specs/typescript'),
 						node,
 					);
-					// runTestSuite(
-					// 	import('./specs/json'),
-					// 	node,
-					// );
+					runTestSuite(
+						import('./specs/json'),
+						node,
+					);
 				});
 			}
 
