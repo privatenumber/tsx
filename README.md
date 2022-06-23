@@ -11,6 +11,7 @@
 - TypeScript REPL
 - Tested on Linux & Windows with Node.js v12~18
 
+<sub>Support this project by ⭐️ starring and sharing it. [Follow me](https://github.com/privatenumber) to see what other cool projects I'm working on! ❤️</sub>
 
 ## About
 `tsx` is a CLI command (alternative to `node`) for seamlessly running TypeScript & ESM, in both `commonjs` & `module` package types.
