@@ -1,0 +1,43 @@
+name: Feature request
+description: Suggest an idea for this project
+labels: [enhancement, pending triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to file this feature request.
+  - type: textarea
+    attributes:
+      label: Feature request
+      description: A description of the feature you would like.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Why?
+      description: |
+        Describe the problem you’re tackling with this feature request.
+      value: |
+        <!--
+          What’s the motivation behind this issue?
+
+          eg. “I’m frustrated when...”
+        -->
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Alternatives
+      description: |
+        Have you considered alternative solutions? Is there a workaround?
+      value: |
+        <!--
+          Do you have alternative proposals?
+
+          Do you have a workaround?
+        -->
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: |
+        Anything else to share? Screenshots? Links?
