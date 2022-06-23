@@ -38,7 +38,7 @@ body:
 
           Please remove as much irrelevant code to make it easier for others to read and debug.
 
-          This includes unnecessary properties in package.json, tsconfig.json, etc.
+          This includes unnecessary files and properties in package.json, tsconfig.json, etc.
 
           The less code there is, the faster we can debug and resolve your issue.
         -->
