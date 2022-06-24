@@ -9,6 +9,7 @@
 - Supports `node:` import prefixes
 - Hides experimental feature warnings
 - TypeScript REPL
+- Resolves `tsconfig.json` [`paths`](https://www.typescriptlang.org/tsconfig#paths)
 - Tested on Linux & Windows with Node.js v12~18
 
 <sub>Support this project by ⭐️ starring and sharing it. [Follow me](https://github.com/privatenumber) to see what other cool projects I'm working on! ❤️</sub>
