@@ -152,3 +152,12 @@ Because esbuild doesn't do type checking, `tsx` is more equivalent to `ts-node -
 [Here's an exhaustive comparison](https://github.com/privatenumber/ts-runtime-comparison) between `tsx` vs `ts-node` (and other runtimes).
 
 If you migrated from `ts-node`, please share your performance gains [here](https://github.com/esbuild-kit/tsx/discussions/10)!
+
+
+### Can it use esbuild plugins?
+
+No. tsx uses esbuild's [Transform API](https://esbuild.github.io/api/#transform-api), which doesn't support plugins.
+
+### Does it have a configuration file?
+
+No. tsx's integration with Node.js is designed to be seamless so there is no configuration.
