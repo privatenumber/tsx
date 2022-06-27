@@ -6,6 +6,7 @@ export function run(
 	argv: string[],
 	options?: {
 		noCache?: boolean;
+		tsconfig?: string;
 		ipc?: boolean;
 	},
 ) {
@@ -15,6 +16,10 @@ export function run(
 
 	if (options?.noCache) {
 		environment.ESBK_DISABLE_CACHE = '1';
+	}
+
+	if (options?.tsconfig) {
+		environment.ESBK_TSCONFIG_NAME = options.tsconfig;
 	}
 
 	const stdio: StdioOptions = [

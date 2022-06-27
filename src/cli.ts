@@ -14,6 +14,10 @@ cli({
 			type: Boolean,
 			description: 'Disable caching',
 		},
+		tsconfig: {
+			type: String,
+			description: 'Custom tsconfig.json name',
+		},
 		version: {
 			type: Boolean,
 			description: 'Show version',
@@ -44,11 +48,16 @@ cli({
 	}
 
 	const args = process.argv.slice(2).filter(
-		argument => (argument !== '--no-cache' && argument !== '--noCache'),
+		(argument, i, array) => (argument !== '--no-cache'
+		&& argument !== '--noCache'
+		&& argument !== '--tsconfig'
+		&& !(i > 0 && array[i - 1] === '--tsconfig')
+		&& !argument.startsWith('--tsconfig=')),
 	);
 
 	run(args, {
 		noCache: Boolean(argv.flags.noCache),
+		tsconfig: argv.flags.tsconfig,
 	}).on(
 		'close',
 		code => process.exit(code!),
