@@ -137,6 +137,12 @@ NODE_OPTIONS='--loader tsx' node ./file.ts
 
 ## FAQ
 
+### Why is it named `tsx`?
+
+`tsx` stands for "TypeScript execute", similar to [`npx`](https://docs.npmjs.com/cli/v8/commands/npx) ("Node.js package execute").
+
+It has an unfortunate overlap with React's [TSX/JSX](https://www.typescriptlang.org/docs/handbook/jsx.html), which stands for "JavaScript XML". However, we believe the naming is appropriate for what it does.
+
 ### Does it do type-checking?
 
 No, [esbuild does not support type checking](https://esbuild.github.io/faq/#:~:text=TypeScript%20type%20checking%20(just%20run%20tsc%20separately)).
