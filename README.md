@@ -75,6 +75,15 @@ Pass in a file to run:
 tsx ./file.ts
 ```
 
+### Custom `tsconfig.json`
+By default, `tsconfig.json` in CWD will be used for TypeScript-related configuration.
+
+To override, use:
+
+```sh
+tsx --tsconfig tsconfig.custom.json ./file.ts
+```
+
 ### Watch mode
 Run file and automatically rerun on changes:
 
