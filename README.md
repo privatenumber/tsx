@@ -67,6 +67,9 @@ tsx ...
 
 ## Usage
 
+`tsx` is designed to be a drop-in replacement for `node`, so you can use it just the way you would use Node.js. All command-line arguments (with the exception of a few) are propagated to Node.js.
+
+
 ### Run TypeScript / ESM / CJS module
 
 Pass in a file to run:
