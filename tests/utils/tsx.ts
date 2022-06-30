@@ -49,7 +49,10 @@ export async function createNode(
 		) {
 			return tsx(
 				{
-					args: [...(options?.args ?? []), filePath],
+					args: [
+						...(options?.args ?? []),
+						filePath,
+					],
 					nodePath: node.path,
 					cwd: path.join(fixturePath, options?.cwd ?? ''),
 				},
