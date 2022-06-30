@@ -1,4 +1,4 @@
-# tsx
+# tsx <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/v/tsx"></a> <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/dm/tsx"></a> <a href="https://packagephobia.now.sh/result?p=tsx"><img src="https://packagephobia.now.sh/badge?p=tsx"></a>
 
 > _TypeScript Execute (`tsx`)_: Node.js enhanced with [esbuild](https://esbuild.github.io/) to run TypeScript & ESM files
 
@@ -145,6 +145,12 @@ NODE_OPTIONS='--loader tsx' node ./file.ts
 
 
 ## FAQ
+
+### Why is it named `tsx`?
+
+`tsx` stands for "TypeScript execute", similar to [`npx`](https://docs.npmjs.com/cli/v8/commands/npx) ("Node.js package execute").
+
+It has an unfortunate overlap with React's [TSX/JSX](https://www.typescriptlang.org/docs/handbook/jsx.html), which stands for "JavaScript XML". However, we believe the naming is appropriate for what it does.
 
 ### Does it do type-checking?
 
