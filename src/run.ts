@@ -9,23 +9,22 @@ export function run(
 		ipc?: boolean;
 	},
 ) {
-	const environment = {
-		...process.env,
-	};
-
-	if (options?.noCache) {
-		environment.ESBK_DISABLE_CACHE = '1';
-	}
-
+	const environment = { ...process.env };
 	const stdio: StdioOptions = [
 		'inherit', // stdin
 		'inherit', // stdout
 		'inherit', // stderr
 	];
 
-	if (options?.ipc) {
-		// To communicate with parent process
-		stdio.push('ipc');
+	if (options) {
+		if (options.noCache) {
+			environment.ESBK_DISABLE_CACHE = '1';
+		}
+
+		if (options.ipc) {
+			// To communicate with parent process
+			stdio.push('ipc');
+		}
 	}
 
 	return spawn(
