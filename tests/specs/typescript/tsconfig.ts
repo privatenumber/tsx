@@ -10,20 +10,13 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 			expect(nodeProcess.stdout).toBe('div null hello world\nnull null goodbye world');
 		});
 
-		test('supports `--tsconfig tsconfig.custom.json`', async () => {
-			const { stderr } = await node.load('./src/tsx.tsx', {
+		test('Custom tsconfig.json path', async () => {
+			const nodeProcess = await node.load('./src/tsx.tsx', {
 				cwd: './tsconfig',
-				args: ['--tsconfig', 'tsconfig.custom.json'],
+				args: ['--tsconfig', './tsconfig-custom/tsconfig.custom-name.json'],
 			});
-			expect(stderr).toBe('div null hello world\nnull null goodbye world');
-		});
-
-		test('supports `--tsconfig=tsconfig.custom.json`', async () => {
-			const { stderr } = await node.load('./src/tsx.tsx', {
-				cwd: './tsconfig',
-				args: ['--tsconfig=tsconfig.custom.json'],
-			});
-			expect(stderr).toBe('div null hello world\nnull null goodbye world');
+			expect(nodeProcess.stdout).toBe('');
+			expect(nodeProcess.stderr).toBe('div null hello world\nnull null goodbye world');
 		});
 
 		describe('paths', ({ test, describe }) => {

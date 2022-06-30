@@ -1,7 +1,32 @@
 import { cli } from 'cleye';
+import typeFlag from 'type-flag';
 import { version } from '../package.json';
 import { run } from './run';
 import { watchCommand } from './watch';
+
+const tsxFlags = {
+	noCache: {
+		type: Boolean,
+		description: 'Disable caching',
+	},
+	tsconfig: {
+		type: String,
+		description: 'Custom tsconfig.json path',
+	},
+};
+
+const flags = {
+	...tsxFlags,
+	version: {
+		type: Boolean,
+		description: 'Show version',
+	},
+	help: {
+		type: Boolean,
+		alias: 'h',
+		description: 'Show help',
+	},
+};
 
 cli({
 	name: 'tsx',
@@ -9,28 +34,12 @@ cli({
 	commands: [
 		watchCommand,
 	],
-	flags: {
-		noCache: {
-			type: Boolean,
-			description: 'Disable caching',
-		},
-		tsconfig: {
-			type: String,
-			description: 'Custom tsconfig.json name',
-		},
-		version: {
-			type: Boolean,
-			description: 'Show version',
-		},
-		help: {
-			type: Boolean,
-			alias: 'h',
-			description: 'Show help',
-		},
-	},
+	flags,
 	help: false,
 }, (argv) => {
-	if (argv._.length === 0) {
+	const noArgs = argv._.length === 0;
+
+	if (noArgs) {
 		if (argv.flags.version) {
 			console.log(version);
 			return;
@@ -47,17 +56,15 @@ cli({
 		process.argv.push(require.resolve('./repl'));
 	}
 
-	const args = process.argv.slice(2).filter(
-		(argument, i, array) => (argument !== '--no-cache'
-		&& argument !== '--noCache'
-		&& argument !== '--tsconfig'
-		&& !(i > 0 && array[i - 1] === '--tsconfig')
-		&& !argument.startsWith('--tsconfig=')),
-	);
+	const args = typeFlag(
+		noArgs ? flags : tsxFlags,
+		process.argv.slice(2),
+		{ ignoreUnknown: true },
+	)._;
 
 	run(args, {
 		noCache: Boolean(argv.flags.noCache),
-		tsconfig: argv.flags.tsconfig,
+		tsconfigPath: argv.flags.tsconfig,
 	}).on(
 		'close',
 		code => process.exit(code!),

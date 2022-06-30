@@ -6,31 +6,30 @@ export function run(
 	argv: string[],
 	options?: {
 		noCache?: boolean;
-		tsconfig?: string;
+		tsconfigPath?: string;
 		ipc?: boolean;
 	},
 ) {
-	const environment = {
-		...process.env,
-	};
-
-	if (options?.noCache) {
-		environment.ESBK_DISABLE_CACHE = '1';
-	}
-
-	if (options?.tsconfig) {
-		environment.ESBK_TSCONFIG_NAME = options.tsconfig;
-	}
-
+	const environment = { ...process.env };
 	const stdio: StdioOptions = [
 		'inherit', // stdin
 		'inherit', // stdout
 		'inherit', // stderr
 	];
 
-	if (options?.ipc) {
-		// To communicate with parent process
-		stdio.push('ipc');
+	if (options) {
+		if (options.noCache) {
+			environment.ESBK_DISABLE_CACHE = '1';
+		}
+
+		if (options.tsconfigPath) {
+			environment.ESBK_TSCONFIG_PATH = options.tsconfigPath;
+		}
+
+		if (options.ipc) {
+			// To communicate with parent process
+			stdio.push('ipc');
+		}
 	}
 
 	return spawn(

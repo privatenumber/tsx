@@ -1,12 +1,12 @@
 import type { ChildProcess } from 'child_process';
 import { fileURLToPath } from 'url';
 import { command } from 'cleye';
+import typeFlag from 'type-flag';
 import { watch } from 'chokidar';
-import { run } from '../run';
+import { run } from './run';
 import {
 	clearScreen,
 	debounce,
-	kebab,
 	isDependencyPath,
 	log,
 } from './utils';
@@ -24,10 +24,6 @@ const flags = {
 	},
 };
 
-const flagNames = Object.keys(flags).flatMap(
-	flagName => [`--${flagName}`, `--${kebab(flagName)}`],
-);
-
 export const watchCommand = command({
 	name: 'watch',
 	parameters: ['<script path>'],
@@ -36,9 +32,11 @@ export const watchCommand = command({
 		description: 'Run the script and watch for changes',
 	},
 }, (argv) => {
-	const args = process.argv.slice(3).filter(
-		argument => !flagNames.some(flagName => argument.startsWith(flagName)),
-	);
+	const args = typeFlag(
+		flags,
+		process.argv.slice(3),
+		{ ignoreUnknown: true },
+	)._;
 
 	const options = {
 		noCache: argv.flags.noCache,

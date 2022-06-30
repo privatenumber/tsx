@@ -78,13 +78,13 @@ Pass in a file to run:
 tsx ./file.ts
 ```
 
-### Custom `tsconfig.json`
-By default, `tsconfig.json` in CWD will be used for TypeScript-related configuration.
+#### Custom `tsconfig.json` path
+By default, `tsconfig.json` will be detected from the current working directory.
 
-To override, use:
+To set a custom path, use the `--tsconfig` flag:
 
 ```sh
-tsx --tsconfig tsconfig.custom.json ./file.ts
+tsx --tsconfig ./path/to/tsconfig.custom.json ./file.ts
 ```
 
 ### Watch mode
