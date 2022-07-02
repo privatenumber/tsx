@@ -44,11 +44,15 @@ export async function createNode(
 			filePath: string,
 			options?: {
 				cwd?: string;
+				args?: string[];
 			},
 		) {
 			return tsx(
 				{
-					args: [filePath],
+					args: [
+						...(options?.args ?? []),
+						filePath,
+					],
 					nodePath: node.path,
 					cwd: path.join(fixturePath, options?.cwd ?? ''),
 				},

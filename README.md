@@ -78,6 +78,15 @@ Pass in a file to run:
 tsx ./file.ts
 ```
 
+#### Custom `tsconfig.json` path
+By default, `tsconfig.json` will be detected from the current working directory.
+
+To set a custom path, use the `--tsconfig` flag:
+
+```sh
+tsx --tsconfig ./path/to/tsconfig.custom.json ./file.ts
+```
+
 ### Watch mode
 Run file and automatically rerun on changes:
 

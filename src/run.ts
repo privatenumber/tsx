@@ -6,6 +6,7 @@ export function run(
 	argv: string[],
 	options?: {
 		noCache?: boolean;
+		tsconfigPath?: string;
 		ipc?: boolean;
 	},
 ) {
@@ -19,6 +20,10 @@ export function run(
 	if (options) {
 		if (options.noCache) {
 			environment.ESBK_DISABLE_CACHE = '1';
+		}
+
+		if (options.tsconfigPath) {
+			environment.ESBK_TSCONFIG_PATH = options.tsconfigPath;
 		}
 
 		if (options.ipc) {

@@ -9,6 +9,10 @@ const tsxFlags = {
 		type: Boolean,
 		description: 'Disable caching',
 	},
+	tsconfig: {
+		type: String,
+		description: 'Custom tsconfig.json path',
+	},
 };
 
 const flags = {
@@ -60,6 +64,7 @@ cli({
 
 	run(args, {
 		noCache: Boolean(argv.flags.noCache),
+		tsconfigPath: argv.flags.tsconfig,
 	}).on(
 		'close',
 		code => process.exit(code!),

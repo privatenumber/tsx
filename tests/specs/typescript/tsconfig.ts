@@ -10,6 +10,15 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 			expect(nodeProcess.stdout).toBe('div null hello world\nnull null goodbye world');
 		});
 
+		test('Custom tsconfig.json path', async () => {
+			const nodeProcess = await node.load('./src/tsx.tsx', {
+				cwd: './tsconfig',
+				args: ['--tsconfig', './tsconfig-custom/tsconfig.custom-name.json'],
+			});
+			expect(nodeProcess.stdout).toBe('');
+			expect(nodeProcess.stderr).toBe('div null hello world\nnull null goodbye world');
+		});
+
 		describe('paths', ({ test, describe }) => {
 			test('resolves baseUrl', async () => {
 				const nodeProcess = await node.load('./src/base-url.ts', {
