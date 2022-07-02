@@ -29,7 +29,7 @@
 	},
 	"bin": "./dist/cli.js",
 	"scripts": {
-		"build": "pkgroll --target=node12.19",
+		"build": "pkgroll --target=node12.19 --minify",
 		"lint": "eslint --cache .",
 		"pretest": "npm run build",
 		"test": "node ./dist/cli.js tests/index.ts",
