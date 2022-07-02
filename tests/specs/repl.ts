@@ -30,5 +30,27 @@ export default testSuite(async ({ describe }) => {
 
 			tsxProcess.kill();
 		}, 5000);
+
+		test('errors on import statement', async () => {
+			const tsxProcess = tsx({
+				args: [],
+			});
+
+			await new Promise<void>((resolve) => {
+				tsxProcess.stdout!.on('data', (data: Buffer) => {
+					const chunkString = data.toString();
+
+					if (chunkString.includes('SyntaxError: Cannot use import statement inside the Node.js REPL')) {
+						return resolve();
+					}
+
+					if (chunkString.includes('> ')) {
+						tsxProcess.stdin?.write('import fs from "fs"\n');
+					}
+				});
+			});
+
+			tsxProcess.kill();
+		}, 2000);
 	});
 });
