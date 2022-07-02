@@ -26,21 +26,20 @@ body:
     attributes:
       label: Reproduction
       description: |
-        Provide a minimal reproduction of the problem for us to debug.
+        Provide a _minimal_ reproduction of the problem for us to debug.
 
-        ⚠️ Failure to provide this will result in a closed issue.
+        The smaller the reproduction, the faster we can debug and resolve your issue.
+
+        ⚠️ If the bug cannot be reproduced, the issue will be closed.
       value: |
         <!--
-          Provide one of the following:
-            1. A code-snippet that we can copy-paste to reproduce the issue
-            2. A link to a repository that reproduces the issue with the command to run in the package.json script `start`
+          Provide a minimal reproduction in one of the following forms:
+            1. A small code-snippet (no more than one) we can copy-paste
+            2. A link to a repository with the command to run in the package.json script `start`
             3. A pull request with a failing test-case
 
-          Please remove as much irrelevant code to make it easier for others to read and debug.
-
+          Remove as much irrelevant code to make it easier for others to read and debug.
           This includes unnecessary files and properties in package.json, tsconfig.json, etc.
-
-          The less code there is, the faster we can debug and resolve your issue.
         -->
     validations:
       required: true

@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import { command } from 'cleye';
 import typeFlag from 'type-flag';
 import { watch } from 'chokidar';
-import { run } from './run';
+import { run } from '../run';
 import {
 	clearScreen,
 	debounce,
