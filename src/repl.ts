@@ -17,7 +17,14 @@ const preEval: REPLEval = async function (code, context, filename, callback) {
 	const transformed = await transform(
 		code,
 		filename,
-		{ loader: 'ts' },
+		{
+			loader: 'ts',
+			tsconfigRaw: {
+				compilerOptions: {
+					preserveValueImports: true,
+				},
+			},
+		},
 	).catch(
 		(error) => {
 			console.log(error.message);
