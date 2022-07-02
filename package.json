@@ -44,14 +44,14 @@
 		"fsevents": "~2.3.2"
 	},
 	"devDependencies": {
-		"@pvtnbr/eslint-config": "^0.23.1",
+		"@pvtnbr/eslint-config": "^0.26.2",
 		"@types/cross-spawn": "^6.0.2",
 		"@types/node": "^18.0.0",
 		"@types/semver": "^7.3.10",
 		"chokidar": "^3.5.3",
 		"cleye": "^1.2.1",
 		"cross-spawn": "^7.0.3",
-		"eslint": "^8.17.0",
+		"eslint": "^8.19.0",
 		"execa": "^6.1.0",
 		"get-node": "^13.0.1",
 		"kolorist": "^1.5.1",
@@ -65,18 +65,6 @@
 		"extends": "@pvtnbr",
 		"ignorePatterns": [
 			"tests/fixtures"
-		],
-		"rules": {
-			"@typescript-eslint/no-shadow": [
-				"error",
-				{
-					"allow": [
-						"test",
-						"describe",
-						"runTestSuite"
-					]
-				}
-			]
-		}
+		]
 	}
 }
