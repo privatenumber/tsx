@@ -1,6 +1,6 @@
 import { describe } from 'manten';
+import { createFixture } from 'fs-fixture';
 import { createNode } from './utils/tsx';
-import { createFixture } from './utils/create-fixture';
 
 const isWin = process.platform === 'win32';
 
@@ -66,7 +66,7 @@ const nodeVersions = [
 				});
 			}
 
-			await fixture.cleanup();
+			await fixture.rm();
 		});
 	}
 })();

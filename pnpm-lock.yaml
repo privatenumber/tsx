@@ -13,6 +13,7 @@ specifiers:
   cross-spawn: ^7.0.3
   eslint: ^8.19.0
   execa: ^6.1.0
+  fs-fixture: ^1.0.0
   fsevents: ~2.3.2
   get-node: ^13.1.0
   kolorist: ^1.5.1
@@ -40,6 +41,7 @@ devDependencies:
   cross-spawn: 7.0.3
   eslint: 8.19.0
   execa: 6.1.0
+  fs-fixture: 1.0.0
   get-node: 13.1.0
   kolorist: 1.5.1
   manten: 0.2.1
@@ -2049,6 +2051,10 @@ packages:
 
   /fs-constants/1.0.0:
     resolution: {integrity: sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==}
+    dev: true
+
+  /fs-fixture/1.0.0:
+    resolution: {integrity: sha512-p8/NVxnToe3sHTz8vZUWg2qY4GsVctOoab6FdjRMA9CrM4tGmJiSxEieOrMz+sEFDgz/0sx5qAfMBNCZbtwN1A==}
     dev: true
 
   /fs.realpath/1.0.0:

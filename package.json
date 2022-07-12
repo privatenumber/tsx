@@ -53,6 +53,7 @@
 		"cross-spawn": "^7.0.3",
 		"eslint": "^8.19.0",
 		"execa": "^6.1.0",
+		"fs-fixture": "^1.0.0",
 		"get-node": "^13.1.0",
 		"kolorist": "^1.5.1",
 		"manten": "^0.2.1",
