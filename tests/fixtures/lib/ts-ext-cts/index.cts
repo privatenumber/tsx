@@ -35,7 +35,7 @@ test(
 
 test(
 	'sourcemaps',
-	() => new Error().stack!.includes(':37:'),
+	() => new Error().stack!.includes(':38:'),
 );
 
 test(

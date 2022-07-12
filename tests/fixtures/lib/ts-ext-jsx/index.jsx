@@ -38,18 +38,18 @@ test(
 );
 
 test(
+	'has dynamic import',
+	() => import('fs').then(Boolean),
+);
+
+test(
 	'resolves optional node prefix',
-	() => Boolean(require('node:fs')),
+	() => import('node:fs').then(Boolean),
 );
 
 test(
 	'resolves required node prefix',
-	() => Boolean(require('node:test')),
-);
-
-test(
-	'has dynamic import',
-	() => import('fs').then(Boolean),
+	() => import('node:test').then(Boolean),
 );
 
 const React = {

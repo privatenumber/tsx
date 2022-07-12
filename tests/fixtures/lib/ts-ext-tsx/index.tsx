@@ -35,22 +35,22 @@ test(
 
 test(
 	'sourcemaps',
-	() => new Error().stack!.includes(':37:'),
-);
-
-test(
-	'resolves optional node prefix',
-	() => Boolean(require('node:fs')),
-);
-
-test(
-	'resolves required node prefix',
-	() => Boolean(require('node:test')),
+	() => new Error().stack!.includes(':38:'),
 );
 
 test(
 	'has dynamic import',
 	() => import('fs').then(Boolean),
+);
+
+test(
+	'resolves optional node prefix',
+	() => import('node:fs').then(Boolean),
+);
+
+test(
+	'resolves required node prefix',
+	() => import('node:test').then(Boolean),
 );
 
 const React = {
