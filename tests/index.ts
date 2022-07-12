@@ -10,15 +10,17 @@ const packageTypes = [
 ] as const;
 
 const nodeVersions = [
-	'12.20.0', // CJS named export detection added
-	'12.22.11',
+	// '12.20.0', // CJS named export detection added
+	// '12.22.11',
+	'17.8.0',
+	'18.0.0',
 	...(
 		(process.env.CI && !isWin)
 			? [
 				'14.19.1',
 				'16.13.2',
 				'17.8.0',
-				'18.1.0',
+				'18.0.0',
 			]
 			: []
 	),
@@ -33,17 +35,17 @@ const nodeVersions = [
 				type: packageType,
 			});
 
-			await describe('tsx', ({ runTestSuite }) => {
-				runTestSuite(
-					import('./specs/cli'),
-					fixture.path,
-				);
-				runTestSuite(
-					import('./specs/watch'),
-					fixture.path,
-				);
-				runTestSuite(import('./specs/repl'));
-			});
+			// await describe('tsx', ({ runTestSuite }) => {
+			// 	runTestSuite(
+			// 		import('./specs/cli'),
+			// 		fixture.path,
+			// 	);
+			// 	runTestSuite(
+			// 		import('./specs/watch'),
+			// 		fixture.path,
+			// 	);
+			// 	runTestSuite(import('./specs/repl'));
+			// });
 
 			for (const nodeVersion of nodeVersions) {
 				const node = await createNode(nodeVersion, fixture.path);
@@ -55,14 +57,14 @@ const nodeVersions = [
 						import('./specs/javascript'),
 						node,
 					);
-					runTestSuite(
-						import('./specs/typescript'),
-						node,
-					);
-					runTestSuite(
-						import('./specs/json'),
-						node,
-					);
+					// runTestSuite(
+					// 	import('./specs/typescript'),
+					// 	node,
+					// );
+					// runTestSuite(
+					// 	import('./specs/json'),
+					// 	node,
+					// );
 				});
 			}
 
