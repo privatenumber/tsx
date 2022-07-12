@@ -1,9 +1,9 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@esbuild-kit/cjs-loader': ^2.3.0
-  '@esbuild-kit/core-utils': ^2.0.2
-  '@esbuild-kit/esm-loader': ^2.4.0
+  '@esbuild-kit/cjs-loader': ^2.3.1
+  '@esbuild-kit/core-utils': ^2.1.0
+  '@esbuild-kit/esm-loader': ^2.4.1
   '@pvtnbr/eslint-config': ^0.26.2
   '@types/cross-spawn': ^6.0.2
   '@types/node': ^18.0.0
@@ -24,9 +24,9 @@ specifiers:
   typescript: ^4.7.4
 
 dependencies:
-  '@esbuild-kit/cjs-loader': 2.3.0
-  '@esbuild-kit/core-utils': 2.0.2
-  '@esbuild-kit/esm-loader': 2.4.0
+  '@esbuild-kit/cjs-loader': 2.3.1
+  '@esbuild-kit/core-utils': 2.1.0
+  '@esbuild-kit/esm-loader': 2.4.1
 
 optionalDependencies:
   fsevents: 2.3.2
@@ -73,24 +73,24 @@ packages:
       js-tokens: 4.0.0
     dev: true
 
-  /@esbuild-kit/cjs-loader/2.3.0:
-    resolution: {integrity: sha512-KInrVt8wlKLhWy7+y4a+E+0uBJoWgdx6Xupy+rrF4MFHA/dEt22ACvvChOZSyiqtQieYPtbPkVYSjbC7mOrFVw==}
+  /@esbuild-kit/cjs-loader/2.3.1:
+    resolution: {integrity: sha512-ov6ALYD9xZSPoo5mmGOQtEC/b0xXeUlPy65p8aHMHLF4DfBEe8Y+iquH2lTDsy6Iskc1uMTadF+SVADTSTNJMA==}
     dependencies:
-      '@esbuild-kit/core-utils': 2.0.2
+      '@esbuild-kit/core-utils': 2.1.0
       get-tsconfig: 4.1.0
     dev: false
 
-  /@esbuild-kit/core-utils/2.0.2:
-    resolution: {integrity: sha512-clNYQUsqtc36pzW5EufMsahcbLG45EaW3YDyf0DlaS0eCMkDXpxIlHwPC0rndUwG6Ytk9sMSD5k1qHbwYEC/OQ==}
+  /@esbuild-kit/core-utils/2.1.0:
+    resolution: {integrity: sha512-fZirrc2KjeTumVjE4bpleWOk2gD83b7WuGeQqOceKFQL+heNKKkNB5G5pekOUTLzfSBc0hP7hCSBoD9TuR0hLw==}
     dependencies:
       esbuild: 0.14.47
       source-map-support: 0.5.21
     dev: false
 
-  /@esbuild-kit/esm-loader/2.4.0:
-    resolution: {integrity: sha512-zS720jXh06nfg5yAzm6oob4sWN9VTP2E1SonhFgEb6zCBswa4S8fOQ/4Bksz1flDgn56NPqoTTDn2XmWRyMG9Q==}
+  /@esbuild-kit/esm-loader/2.4.1:
+    resolution: {integrity: sha512-6x44rygVfNODm27v0RW3wX5y61mqSrXDvB39G0nomgWWqxG3mjiKtPSwrFppdkrA39QIqDgVlD4gJmPOxnleSw==}
     dependencies:
-      '@esbuild-kit/core-utils': 2.0.2
+      '@esbuild-kit/core-utils': 2.1.0
       get-tsconfig: 4.1.0
     dev: false
 
