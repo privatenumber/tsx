@@ -17,6 +17,10 @@ const flags = {
 		description: 'Disable caching',
 		default: false,
 	},
+	tsconfig: {
+		type: String,
+		description: 'Custom tsconfig.json path',
+	},
 	clearScreen: {
 		type: Boolean,
 		description: 'Clearing the screen on rerun',
@@ -40,6 +44,7 @@ export const watchCommand = command({
 
 	const options = {
 		noCache: argv.flags.noCache,
+		tsconfigPath: argv.flags.tsconfig,
 		clearScreen: argv.flags.clearScreen,
 		ipc: true,
 	};
