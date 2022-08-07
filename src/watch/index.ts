@@ -1,5 +1,6 @@
 import type { ChildProcess } from 'child_process';
 import { fileURLToPath } from 'url';
+import path from 'path';
 import { command } from 'cleye';
 import typeFlag from 'type-flag';
 import { watch } from 'chokidar';
@@ -79,7 +80,7 @@ export const watchCommand = command({
 						: data.path
 				);
 
-				if (dependencyPath.startsWith('/')) {
+				if (path.isAbsolute(dependencyPath)) {
 					// console.log('adding', dependencyPath);
 					watcher.add(dependencyPath);
 				}
