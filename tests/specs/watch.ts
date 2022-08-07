@@ -1,5 +1,6 @@
 import path from 'path';
 import { testSuite, expect } from 'manten';
+import { createFixture } from 'fs-fixture';
 import { tsx } from '../utils/tsx';
 
 export default testSuite(async ({ describe }, fixturePath: string) => {
@@ -11,6 +12,35 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			expect(tsxProcess.exitCode).toBe(1);
 			expect(tsxProcess.stderr).toMatch('Error: Missing required parameter "script path"');
 		});
+
+		test('watch files for changes', async () => {
+			const fixture = await createFixture({
+				'index.js': 'console.log(1)',
+			});
+
+			const tsxProcess = tsx({
+				args: [
+					'watch',
+					path.join(fixture.path, 'index.js'),
+				],
+			});
+
+			await new Promise<void>((resolve) => {
+				async function onStdOut(data: Buffer) {
+					const chunkString = data.toString();
+
+					if (chunkString.match('1\n')) {
+						await fixture.writeFile('index.js', 'console.log(2)');
+					} else if (chunkString.match('2\n')) {
+						tsxProcess.kill();
+						resolve();
+					}
+				}
+
+				tsxProcess.stdout!.on('data', onStdOut);
+				tsxProcess.stderr!.on('data', onStdOut);
+			});
+		}, 5000);
 
 		test('suppresses warnings & clear screen', async () => {
 			const tsxProcess = tsx({
