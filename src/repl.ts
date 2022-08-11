@@ -24,6 +24,9 @@ const preEval: REPLEval = async function (code, context, filename, callback) {
 					preserveValueImports: true,
 				},
 			},
+			define: {
+				require: 'global.require',
+			},
 		},
 	).catch(
 		(error) => {

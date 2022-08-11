@@ -31,6 +31,32 @@ export default testSuite(async ({ describe }) => {
 			tsxProcess.kill();
 		}, 5000);
 
+		test('doesn\'t error on require', async () => {
+			const tsxProcess = tsx({
+				args: [],
+			});
+
+			await new Promise<void>((resolve, reject) => {
+				tsxProcess.stdout!.on('data', (data: Buffer) => {
+					const chunkString = data.toString();
+
+					if (chunkString.includes('unsupported-require-call')) {
+						return reject(chunkString);
+					}
+
+					if (chunkString.includes('[Function: resolve]')) {
+						return resolve();
+					}
+
+					if (chunkString.includes('> ')) {
+						tsxProcess.stdin?.write('require("path")\n');
+					}
+				});
+			});
+
+			tsxProcess.kill();
+		}, 2000);
+
 		test('errors on import statement', async () => {
 			const tsxProcess = tsx({
 				args: [],
