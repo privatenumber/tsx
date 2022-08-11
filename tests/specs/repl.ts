@@ -55,7 +55,7 @@ export default testSuite(async ({ describe }) => {
 			});
 
 			tsxProcess.kill();
-		}, 2000);
+		}, 5000);
 
 		test('errors on import statement', async () => {
 			const tsxProcess = tsx({
@@ -77,6 +77,6 @@ export default testSuite(async ({ describe }) => {
 			});
 
 			tsxProcess.kill();
-		}, 2000);
+		}, 5000);
 	});
 });
