@@ -101,7 +101,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			expect(stdout).toMatch('"--some-flag"');
 
 			await tsxProcess;
-		}, 2000);
+		}, 5000);
 
 		describe('help', ({ test }) => {
 			test('shows help', async () => {
