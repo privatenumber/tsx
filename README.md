@@ -161,16 +161,27 @@ It's recommended to run TypeScript separately as a command (`tsc --noEmit`) or v
 
 ### How is `tsx` different from [`ts-node`](https://github.com/TypeStrong/ts-node)?
 
-They are both tools to run TypeScript files.
+They're both tools to run TypeScript files. But tsx does a lot more to improve the experience of using Node.js.
 
-The main difference is that `tsx` is powered by [esbuild](https://esbuild.github.io/) for blazing fast TypeScript compilation, whereas `ts-node` uses the TypeScript compiler, [which is not as fast](https://esbuild.github.io/faq/#:~:text=typescript%20benchmark).
+tsx _just works_. It's zero-config and doesn't require `tsconfig.json` to get started, making it easy for users that just want to run TypeScript code and not get caught up in the configuration.
 
-Because esbuild doesn't do type checking, `tsx` is more equivalent to `ts-node --esm --transpileOnly`.
+It's a single binary with no peer-dependencies (e.g. TypeScript or esbuild), so there is no setup necessary, enabling usage that is elegant and frictionless for first-time users:
 
-[Here's an exhaustive comparison](https://github.com/privatenumber/ts-runtime-comparison) between `tsx` vs `ts-node` (and other runtimes).
+```
+npx tsx ./script.ts
+```
 
-If you migrated from `ts-node`, please share your performance gains [here](https://github.com/esbuild-kit/tsx/discussions/10)!
+tsx is zero-config because it has smart detections built in. As a runtime, it detects what's imported to make many options in `tsconfig.json` redundant—which was designed for compiling matching files regardless of whether they're imported.
 
+It seamlessly adapts between CommonJS and ESM package types by detecting how modules are loaded (`require()` or `import`) to determine how to compile them. It even supports `require()`ing ESM modules from CommonJS to enable using ESM dependencies in CommonJS packages.
+
+[Newer and unsupported syntax](https://esbuild.github.io/content-types/) & features like [importing `node:` prefixes](https://2ality.com/2021/12/node-protocol-imports.html) are downgraded by detecting the Node.js version. For large TypeScript codebases, it has [`tsconfig.json paths`](https://www.typescriptlang.org/tsconfig#paths) aliasing support out of the box.
+
+At the core, tsx is powered by esbuild for [blazing fast TypeScript compilation](https://esbuild.github.io/faq/#:~:text=typescript%20benchmark), whereas `ts-node` (by default) uses the TypeScript compiler. Because esbuild doesn't type check, `tsx` is similar to `ts-node --esm --swc` (which uses the [SWC compiler](https://github.com/TypeStrong/ts-node#swc-1)).
+
+As a bonus, tsx also comes with a watcher to speed up your development.
+
+[Here's an exhaustive technical comparison](https://github.com/privatenumber/ts-runtime-comparison) between `tsx`, `ts-node`, and other runtimes.
 
 ### Can it use esbuild plugins?
 
