@@ -22,6 +22,7 @@
 		"dist"
 	],
 	"exports": {
+		"./package.json": "./package.json",
 		".": "./dist/loader.js",
 		"./cli": "./dist/cli.js",
 		"./suppress-warnings": "./dist/suppress-warnings.cjs",
