@@ -9,6 +9,7 @@ specifiers:
   '@types/node': ^18.6.4
   '@types/semver': ^7.3.10
   chokidar: ^3.5.3
+  clean-pkg-json: ^1.2.0
   cleye: ^1.2.1
   cross-spawn: ^7.0.3
   eslint: ^8.21.0
@@ -37,6 +38,7 @@ devDependencies:
   '@types/node': 18.6.4
   '@types/semver': 7.3.10
   chokidar: 3.5.3
+  clean-pkg-json: 1.2.0
   cleye: 1.2.1
   cross-spawn: 7.0.3
   eslint: 8.21.0
@@ -836,6 +838,11 @@ packages:
 
   /ci-info/3.3.2:
     resolution: {integrity: sha512-xmDt/QIAdeZ9+nfdPsaBCpMvHNLFiLdjj59qjqn+6iPe6YmHGQ35sBnQ8uslRBXFmXkiZQOJRjvQeoGppoTjjg==}
+    dev: true
+
+  /clean-pkg-json/1.2.0:
+    resolution: {integrity: sha512-QHBWWOtpSCv5nfMFKwyxn4WMvkYE0msxj5xiqejYGqYepWVrK7O/om1Vn6nSl/WPtYn8ge9YmSCbTi1Hp8k+Hg==}
+    hasBin: true
     dev: true
 
   /clean-regexp/1.0.0:
