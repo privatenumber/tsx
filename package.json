@@ -32,10 +32,9 @@
 	"scripts": {
 		"build": "pkgroll --target=node12.19 --minify",
 		"lint": "eslint --cache .",
-		"pretest": "npm run build",
-		"test": "node ./dist/cli.js tests/index.ts",
-		"prepack": "npm run build && clean-pkg-json",
-		"prepublishOnly": "npm test"
+		"test": "pnpm build && node ./dist/cli.js tests/index.ts",
+		"prepack": "pnpm build && clean-pkg-json",
+		"prepublishOnly": "pnpm test"
 	},
 	"dependencies": {
 		"@esbuild-kit/cjs-loader": "^2.3.3",
