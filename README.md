@@ -41,11 +41,11 @@ npm install --save-dev tsx
 
 You can reference it directly in the `package.json#scripts` object:
 
-```json5
+```json
 {
-  scripts: {
-    dev: "tsx ...",
-  },
+  "scripts": {
+    "dev": "tsx ..."
+  }
 }
 ```
 
