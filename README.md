@@ -3,6 +3,7 @@
 > _TypeScript Execute (`tsx`)_: Node.js enhanced with [esbuild](https://esbuild.github.io/) to run TypeScript & ESM files
 
 ### Features
+
 - Blazing fast on-demand TypeScript & ESM compilation
 - Works in both [CommonJS and ESM packages](https://nodejs.org/api/packages.html#type)
 - Supports next-gen TypeScript extensions (`.cts` & `.mts`)
@@ -15,6 +16,7 @@
 <sub>Support this project by ⭐️ starring and sharing it. [Follow me](https://github.com/privatenumber) to see what other cool projects I'm working on! ❤️</sub>
 
 ## About
+
 `tsx` is a CLI command (alternative to `node`) for seamlessly running TypeScript & ESM, in both `commonjs` & `module` package types.
 
 It's powered by [esbuild](https://esbuild.github.io/) so it's insanely fast.
@@ -27,21 +29,23 @@ npx tsx ./script.ts
 
 How does it compare to [ts-node](https://github.com/TypeStrong/ts-node)? Checkout the [comparison](https://github.com/privatenumber/ts-runtime-comparison).
 
-
 ## Install
 
 ### Local installation
+
 If you're using it in an npm project, install it as a development dependency:
+
 ```sh
 npm install --save-dev tsx
 ```
 
 You can reference it directly in the `package.json#scripts` object:
+
 ```json5
 {
-    "scripts": {
-        "dev": "tsx ..."
-    }
+  scripts: {
+    dev: "tsx ...",
+  },
 }
 ```
 
@@ -69,7 +73,6 @@ tsx ...
 
 `tsx` is designed to be a drop-in replacement for `node`, so you can use it just the way you would use Node.js. All command-line arguments (with the exception of a few) are propagated to Node.js.
 
-
 ### Run TypeScript / ESM / CJS module
 
 Pass in a file to run:
@@ -79,6 +82,7 @@ tsx ./file.ts
 ```
 
 #### Custom `tsconfig.json` path
+
 By default, `tsconfig.json` will be detected from the current working directory.
 
 To set a custom path, use the `--tsconfig` flag:
@@ -88,6 +92,7 @@ tsx --tsconfig ./path/to/tsconfig.custom.json ./file.ts
 ```
 
 ### Watch mode
+
 Run file and automatically rerun on changes:
 
 ```sh
@@ -97,11 +102,19 @@ tsx watch ./file.ts
 All imported files are watched except from the following directories:
 `node_modules`, `bower_components`, `vendor`, `dist`, and `.*` (hidden directories).
 
+#### Ignore file/directories from watch
+
+```sh
+tsx watch ./file.ts --ignore **/lib/** --ignore **/some-other/path/**
+```
+
 #### Tips
+
 - Press <kbd>Return</kbd> to manually rerun
 - Pass in `--clear-screen=false` to disable clearing the screen on rerun
 
 ### REPL
+
 Start a TypeScript REPL by running with no arguments:
 
 ```sh
@@ -109,6 +122,7 @@ tsx
 ```
 
 ### Cache
+
 Modules transformations are cached in the system cache directory ([`TMPDIR`](https://en.wikipedia.org/wiki/TMPDIR)). Transforms are cached by content hash, so duplicate dependencies are not re-transformed.
 
 Set the `--no-cache` flag to disable the cache:
@@ -143,7 +157,6 @@ NODE_OPTIONS='--loader tsx' node ./file.ts
 
 - [@esbuild-kit/cjs-loader](https://github.com/esbuild-kit/cjs-loader) - Node.js `require()` hook to transform TypeScript & ESM to CommonJS.
 
-
 ## FAQ
 
 ### Why is it named `tsx`?
@@ -154,10 +167,9 @@ It has an unfortunate overlap with React's [TSX/JSX](https://www.typescriptlang.
 
 ### Does it do type-checking?
 
-No, [esbuild does not support type checking](https://esbuild.github.io/faq/#:~:text=TypeScript%20type%20checking%20(just%20run%20tsc%20separately)).
+No, [esbuild does not support type checking](<https://esbuild.github.io/faq/#:~:text=TypeScript%20type%20checking%20(just%20run%20tsc%20separately)>).
 
 It's recommended to run TypeScript separately as a command (`tsc --noEmit`) or via [IDE IntelliSense](https://code.visualstudio.com/docs/languages/typescript).
-
 
 ### How is `tsx` different from [`ts-node`](https://github.com/TypeStrong/ts-node)?
 
