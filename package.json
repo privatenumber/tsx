@@ -47,7 +47,7 @@
 	"devDependencies": {
 		"@pvtnbr/eslint-config": "^0.30.1",
 		"@types/cross-spawn": "^6.0.2",
-		"@types/node": "^18.7.13",
+		"@types/node": "^18.7.18",
 		"@types/semver": "^7.3.12",
 		"chokidar": "^3.5.3",
 		"clean-pkg-json": "^1.2.0",
@@ -57,7 +57,7 @@
 		"execa": "^6.1.0",
 		"fs-fixture": "^1.1.0",
 		"get-node": "^13.2.0",
-		"kolorist": "^1.5.1",
+		"kolorist": "^1.6.0",
 		"manten": "^0.2.1",
 		"pkgroll": "^1.4.0",
 		"semver": "^7.3.7",

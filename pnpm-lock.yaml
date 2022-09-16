@@ -6,7 +6,7 @@ specifiers:
   '@esbuild-kit/esm-loader': ^2.4.2
   '@pvtnbr/eslint-config': ^0.30.1
   '@types/cross-spawn': ^6.0.2
-  '@types/node': ^18.7.13
+  '@types/node': ^18.7.18
   '@types/semver': ^7.3.12
   chokidar: ^3.5.3
   clean-pkg-json: ^1.2.0
@@ -17,7 +17,7 @@ specifiers:
   fs-fixture: ^1.1.0
   fsevents: ~2.3.2
   get-node: ^13.2.0
-  kolorist: ^1.5.1
+  kolorist: ^1.6.0
   manten: ^0.2.1
   pkgroll: ^1.4.0
   semver: ^7.3.7
@@ -35,7 +35,7 @@ optionalDependencies:
 devDependencies:
   '@pvtnbr/eslint-config': 0.30.1_irgkl5vooow2ydyo6aokmferha
   '@types/cross-spawn': 6.0.2
-  '@types/node': 18.7.13
+  '@types/node': 18.7.18
   '@types/semver': 7.3.12
   chokidar: 3.5.3
   clean-pkg-json: 1.2.0
@@ -45,7 +45,7 @@ devDependencies:
   execa: 6.1.0
   fs-fixture: 1.1.0
   get-node: 13.2.0
-  kolorist: 1.5.1
+  kolorist: 1.6.0
   manten: 0.2.1
   pkgroll: 1.4.0_typescript@4.8.3
   semver: 7.3.7
@@ -163,7 +163,7 @@ packages:
     dependencies:
       '@types/istanbul-lib-coverage': 2.0.4
       '@types/istanbul-reports': 3.0.1
-      '@types/node': 18.7.13
+      '@types/node': 18.7.18
       '@types/yargs': 16.0.4
       chalk: 4.1.2
     dev: true
@@ -175,7 +175,7 @@ packages:
       '@jest/schemas': 28.1.3
       '@types/istanbul-lib-coverage': 2.0.4
       '@types/istanbul-reports': 3.0.1
-      '@types/node': 18.7.13
+      '@types/node': 18.7.18
       '@types/yargs': 17.0.11
       chalk: 4.1.2
     dev: true
@@ -353,14 +353,14 @@ packages:
     dependencies:
       '@types/http-cache-semantics': 4.0.1
       '@types/keyv': 3.1.4
-      '@types/node': 18.7.13
+      '@types/node': 18.7.18
       '@types/responselike': 1.0.0
     dev: true
 
   /@types/cross-spawn/6.0.2:
     resolution: {integrity: sha512-KuwNhp3eza+Rhu8IFI5HUXRP0LIhqH5cAjubUvGXXthh4YYBuP2ntwEX+Cz8GJoZUHlKo247wPWOfA9LYEq4cw==}
     dependencies:
-      '@types/node': 18.7.13
+      '@types/node': 18.7.18
     dev: true
 
   /@types/estree/0.0.39:
@@ -406,7 +406,7 @@ packages:
   /@types/keyv/3.1.4:
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
     dependencies:
-      '@types/node': 18.7.13
+      '@types/node': 18.7.18
     dev: true
 
   /@types/mdast/3.0.10:
@@ -415,8 +415,8 @@ packages:
       '@types/unist': 2.0.6
     dev: true
 
-  /@types/node/18.7.13:
-    resolution: {integrity: sha512-46yIhxSe5xEaJZXWdIBP7GU4HDTG8/eo0qd9atdiL+lFpA03y8KS+lkTN834TWJj5767GbWv4n/P6efyTFt1Dw==}
+  /@types/node/18.7.18:
+    resolution: {integrity: sha512-m+6nTEOadJZuTPkKR/SYK3A2d7FZrgElol9UP1Kae90VVU4a6mxnPuLiIW1m4Cq4gZ/nWb9GrdVXJCoCazDAbg==}
     dev: true
 
   /@types/normalize-package-data/2.4.1:
@@ -426,13 +426,13 @@ packages:
   /@types/resolve/1.17.1:
     resolution: {integrity: sha512-yy7HuzQhj0dhGpD8RLXSZWEkLsV9ibvxvi6EiJ3bkqLAO1RGo0WbkWQiwpRlSFymTJRz0d3k5LM3kkx8ArDbLw==}
     dependencies:
-      '@types/node': 18.7.13
+      '@types/node': 18.7.18
     dev: true
 
   /@types/responselike/1.0.0:
     resolution: {integrity: sha512-85Y2BjiufFzaMIlvJDvTTB8Fxl2xfLo4HgmHzVBz08w4wDePCTjYw66PdrolO0kzli3yam/YCgRufyo1DdQVTA==}
     dependencies:
-      '@types/node': 18.7.13
+      '@types/node': 18.7.18
     dev: true
 
   /@types/semver/7.3.12:
@@ -2518,8 +2518,8 @@ packages:
       json-buffer: 3.0.1
     dev: true
 
-  /kolorist/1.5.1:
-    resolution: {integrity: sha512-lxpCM3HTvquGxKGzHeknB/sUjuVoUElLlfYnXZT73K8geR9jQbroGlSCFBax9/0mpGoD3kzcMLnOlGQPJJNyqQ==}
+  /kolorist/1.6.0:
+    resolution: {integrity: sha512-dLkz37Ab97HWMx9KTes3Tbi3D1ln9fCAy2zr2YVExJasDRPGRaKcoE4fycWNtnCAJfjFqe0cnY+f8KT2JePEXQ==}
     dev: true
 
   /leven/3.1.0:
