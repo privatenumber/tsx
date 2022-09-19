@@ -78,6 +78,15 @@ Pass in a file to run:
 tsx ./file.ts
 ```
 
+### #! Hashbang
+
+Use tsx to make awesome cli app!
+
+```ts
+#!/bin/sh
+//bin/true; exec tsx "$0" "$@"
+```
+
 #### Custom `tsconfig.json` path
 By default, `tsconfig.json` will be detected from the current working directory.
 
