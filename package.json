@@ -37,9 +37,9 @@
 		"prepublishOnly": "pnpm test"
 	},
 	"dependencies": {
-		"@esbuild-kit/cjs-loader": "^2.3.3",
-		"@esbuild-kit/core-utils": "^2.3.2",
-		"@esbuild-kit/esm-loader": "^2.4.2"
+		"@esbuild-kit/cjs-loader": "github:esbuild-kit/cjs-loader#npm/upgrade-core-utils",
+		"@esbuild-kit/core-utils": "github:esbuild-kit/core-utils#npm/develop",
+		"@esbuild-kit/esm-loader": "github:esbuild-kit/esm-loader#npm/upgrade-core-utils"
 	},
 	"optionalDependencies": {
 		"fsevents": "~2.3.2"
