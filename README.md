@@ -97,6 +97,15 @@ tsx watch ./file.ts
 All imported files are watched except from the following directories:
 `node_modules`, `bower_components`, `vendor`, `dist`, and `.*` (hidden directories).
 
+#### Ignore files from being watched
+
+If you wish to exclude files from being watched, you can pass `--ignored` multiple times:
+```sh
+tsx watch --ignored ./ignore-me.js --ignored ./ignore-me-too.js ./file.ts
+```
+
+This flag is passed to [chokidar](https://github.com/paulmillr/chokidar) thus glob patterns also work here.
+
 #### Tips
 - Press <kbd>Return</kbd> to manually rerun
 - Pass in `--clear-screen=false` to disable clearing the screen on rerun
