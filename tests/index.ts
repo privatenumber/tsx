@@ -51,6 +51,10 @@ const nodeVersions = [
 				node.packageType = packageType;
 
 				await describe(`Node ${node.version}`, ({ runTestSuite }) => {
+					if (node.version >= '18') {
+						runTestSuite(import('./specs/test-runner'));
+					}
+
 					runTestSuite(
 						import('./specs/javascript'),
 						node,

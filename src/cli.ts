@@ -3,6 +3,7 @@ import typeFlag from 'type-flag';
 import { version } from '../package.json';
 import { run } from './run';
 import { watchCommand } from './watch';
+import { findTestFiles } from './test-runner/util';
 
 const tsxFlags = {
 	noCache: {
@@ -12,6 +13,11 @@ const tsxFlags = {
 	tsconfig: {
 		type: String,
 		description: 'Custom tsconfig.json path',
+	},
+	test: {
+		type: Boolean,
+		description: 'Run node testrunner',
+		default: false,
 	},
 };
 
@@ -53,7 +59,9 @@ cli({
 		}
 
 		// Load REPL
-		process.argv.push(require.resolve('./repl'));
+		if (!argv.flags.test) {
+			process.argv.push(require.resolve('./repl'));
+		}
 	}
 
 	const args = typeFlag(
@@ -61,6 +69,14 @@ cli({
 		process.argv.slice(2),
 		{ ignoreUnknown: true },
 	)._;
+
+	if (argv.flags.test) {
+		if (noArgs) {
+			args.push('--test', ...findTestFiles());
+		} else {
+			args.unshift('--test');
+		}
+	}
 
 	run(args, {
 		noCache: Boolean(argv.flags.noCache),
