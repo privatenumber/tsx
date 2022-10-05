@@ -193,6 +193,8 @@ No. tsx's integration with Node.js is designed to be seamless so there is no con
 
 ### Does it support all TypeScript language features?
 
-Most TypeScript files will "just work", but some less common language features are not supported:
+Most TypeScript files will "just work", but some less common language features are not supported by esbuild:
 
-- `emitDecoratorMetadata`: decorators can't be used with tsx because they aren't supported by esbuild (see [issue #37](https://github.com/esbuild-kit/tsx/issues/37#issuecomment-1159618330))
+- `emitDecoratorMetadata`: decorators can't be used with tsx
+
+Refer to the [TypeScript Caveats](https://esbuild.github.io/content-types/#typescript-caveats) section in the esbuild documentation for further details.
