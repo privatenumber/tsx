@@ -97,6 +97,13 @@ tsx watch ./file.ts
 All imported files are watched except from the following directories:
 `node_modules`, `bower_components`, `vendor`, `dist`, and `.*` (hidden directories).
 
+#### Ignore files from watch
+
+To exclude files from being watched, pass in a path or glob to the `--ignore` flag:
+```sh
+tsx watch --ignore ./ignore-me.js --ignore ./ignore-me-too.js ./file.ts
+```
+
 #### Tips
 - Press <kbd>Return</kbd> to manually rerun
 - Pass in `--clear-screen=false` to disable clearing the screen on rerun
@@ -136,6 +143,31 @@ NODE_OPTIONS='--loader tsx' node ./file.ts
 > Tip: In rare circumstances, you might be limited to using the [`-r, --require`](https://nodejs.org/api/cli.html#-r---require-module) flag.
 >
 > You can use [`@esbuild-kit/cjs-loader`](https://github.com/esbuild-kit/cjs-loader), but transformations will only be applied to `require()` (not `import`).
+
+
+### Hashbang
+
+If you prefer to write scripts that doesn't need to be passed into tsx, you can declare it in the [hashbang](https://bash.cyberciti.biz/guide/Shebang).
+
+Simply add `#!/usr/bin/env tsx` at the top of your file:
+
+_file.ts_
+```ts
+#!/usr/bin/env tsx
+
+console.log('argv:', process.argv.slice(2))
+```
+
+And make the file executable:
+```sh
+chmod +x ./file.ts
+```
+
+Now, you can run the file without passing it into tsx:
+```sh
+$ ./file.ts hello
+argv: [ 'hello' ]
+```
 
 ## Dependencies
 
@@ -190,3 +222,13 @@ No. tsx uses esbuild's [Transform API](https://esbuild.github.io/api/#transform-
 ### Does it have a configuration file?
 
 No. tsx's integration with Node.js is designed to be seamless so there is no configuration.
+
+### Does it have any limitations?
+
+Transformations are handled by esbuild, so it shares the same limitations such as:
+
+- Compatibility with code executed via `eval()` is not preserved
+- Only certain `tsconfig.json` properties are supported
+- [`emitDecoratorMetadata`](https://www.typescriptlang.org/tsconfig#emitDecoratorMetadata) is not supported 
+
+For details, refer to esbuild's [JavaScript caveats](https://esbuild.github.io/content-types/#javascript-caveats) and [TypeScript caveats](https://esbuild.github.io/content-types/#typescript-caveats) documentation.

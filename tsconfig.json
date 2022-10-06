@@ -5,13 +5,13 @@
 		"esModuleInterop": true,
 		"moduleResolution": "node",
 		"resolveJsonModule": true,
-		"outDir": "dist",
+		"skipLibCheck": true,
+		"jsx": "preserve",
 
 		"module": "esnext",
 		"target": "esnext"
 	},
 	"include": [
-		"src",
-		"tests"
+		"src"
 	]
 }
