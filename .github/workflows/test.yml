@@ -32,6 +32,7 @@ jobs:
       run: pnpm test
 
     - name: Type check
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       run: pnpm type-check
 
     - name: Lint

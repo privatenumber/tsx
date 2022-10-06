@@ -7,7 +7,7 @@
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"jsx": "preserve",
-		
+
 		"module": "esnext",
 		"target": "esnext"
 	},
