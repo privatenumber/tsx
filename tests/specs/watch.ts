@@ -164,8 +164,8 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 					args: [
 						'watch',
 						'--clear-screen=false',
-						`--ignored=${path.join(fixtures.path, ignoredFilenames[0])}`,
-						`--ignored=${path.join(fixtures.path, ignoredFilenames[1])}`,
+						`--ignore=${path.join(fixtures.path, ignoredFilenames[0])}`,
+						`--ignore=${path.join(fixtures.path, ignoredFilenames[1])}`,
 						path.join(fixtures.path, includedFilename),
 					],
 				});

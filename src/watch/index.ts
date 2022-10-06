@@ -27,7 +27,7 @@ const flags = {
 		description: 'Clearing the screen on rerun',
 		default: true,
 	},
-	ignored: {
+	ignore: {
 		type: [String],
 		description: 'Paths & globs to exclude from being watched',
 		default: [],
@@ -52,7 +52,7 @@ export const watchCommand = command({
 		noCache: argv.flags.noCache,
 		tsconfigPath: argv.flags.tsconfig,
 		clearScreen: argv.flags.clearScreen,
-		ignored: argv.flags.ignored,
+		ignore: argv.flags.ignore,
 		ipc: true,
 	};
 
@@ -130,7 +130,7 @@ export const watchCommand = command({
 				// Distribution files
 				'**/dist/**',
 
-				...options.ignored,
+				...options.ignore,
 			],
 			ignorePermissionErrors: true,
 		},

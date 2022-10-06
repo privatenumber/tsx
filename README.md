@@ -99,9 +99,9 @@ All imported files are watched except from the following directories:
 
 #### Ignore files from being watched
 
-If you wish to exclude files from being watched, you can pass `--ignored` multiple times:
+If you wish to exclude files from being watched, you can pass `--ignore` multiple times:
 ```sh
-tsx watch --ignored ./ignore-me.js --ignored ./ignore-me-too.js ./file.ts
+tsx watch --ignore ./ignore-me.js --ignore ./ignore-me-too.js ./file.ts
 ```
 
 This flag is passed to [chokidar](https://github.com/paulmillr/chokidar) thus glob patterns also work here.
