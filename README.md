@@ -144,6 +144,31 @@ NODE_OPTIONS='--loader tsx' node ./file.ts
 >
 > You can use [`@esbuild-kit/cjs-loader`](https://github.com/esbuild-kit/cjs-loader), but transformations will only be applied to `require()` (not `import`).
 
+
+### Hashbang
+
+If you prefer to write scripts that doesn't need to be passed into tsx, you can declare it in the [hashbang](https://bash.cyberciti.biz/guide/Shebang).
+
+Simply add `#!/usr/bin/env tsx` at the top of your file:
+
+_file.ts_
+```ts
+#!/usr/bin/env tsx
+
+console.log('argv:', process.argv.slice(2))
+```
+
+And make the file executable:
+```sh
+chmod +x ./file.ts
+```
+
+Now, you can run the file without passing it into tsx:
+```sh
+$ ./file.ts hello
+argv: [ 'hello' ]
+```
+
 ## Dependencies
 
 - [@esbuild-kit/esm-loader](https://github.com/esbuild-kit/esm-loader) - Node.js Loader to transform TypeScript to ESM.
