@@ -30,7 +30,6 @@ const flags = {
 	ignore: {
 		type: [String],
 		description: 'Paths & globs to exclude from being watched',
-		default: [],
 	},
 } as const;
 
