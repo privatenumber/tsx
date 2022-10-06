@@ -32,6 +32,7 @@
 	"scripts": {
 		"build": "pkgroll --target=node12.19 --minify",
 		"lint": "eslint --cache .",
+		"type-check": "tsc --noEmit",
 		"test": "pnpm build && node ./dist/cli.js tests/index.ts",
 		"prepack": "pnpm build && clean-pkg-json",
 		"prepublishOnly": "pnpm test"
@@ -48,6 +49,7 @@
 		"@pvtnbr/eslint-config": "^0.30.1",
 		"@types/cross-spawn": "^6.0.2",
 		"@types/node": "^18.8.2",
+		"@types/react": "^18.0.21",
 		"@types/semver": "^7.3.12",
 		"chokidar": "^3.5.3",
 		"clean-pkg-json": "^1.2.0",
