@@ -3,7 +3,6 @@ import typeFlag from 'type-flag';
 import { version } from '../package.json';
 import { run } from './run';
 import { watchCommand } from './watch';
-import { findTestFiles } from './test-runner/util';
 
 const tsxFlags = {
 	noCache: {
@@ -13,11 +12,6 @@ const tsxFlags = {
 	tsconfig: {
 		type: String,
 		description: 'Custom tsconfig.json path',
-	},
-	test: {
-		type: Boolean,
-		description: 'Run node testrunner',
-		default: false,
 	},
 };
 
@@ -45,6 +39,15 @@ cli({
 }, (argv) => {
 	const noArgs = argv._.length === 0;
 
+	const { _: args, flags: parsedFlags, unknownFlags } = typeFlag(
+		noArgs ? flags : tsxFlags,
+		process.argv.slice(2),
+		{ ignoreUnknown: !noArgs },
+	);
+
+	const noKnownFlags = Object.values(parsedFlags).every(fl => fl === undefined);
+	const noUnknownFlags = Object.keys(unknownFlags).length === 0;
+
 	if (noArgs) {
 		if (argv.flags.version) {
 			console.log(version);
@@ -59,23 +62,22 @@ cli({
 		}
 
 		// Load REPL
-		if (!argv.flags.test) {
-			process.argv.push(require.resolve('./repl'));
+		if (noUnknownFlags && noKnownFlags) {
+			args.push(require.resolve('./repl'));
 		}
 	}
 
-	const args = typeFlag(
-		noArgs ? flags : tsxFlags,
-		process.argv.slice(2),
-		{ ignoreUnknown: true },
-	)._;
-
-	if (argv.flags.test) {
-		if (noArgs) {
-			args.push('--test', ...findTestFiles());
-		} else {
-			args.unshift('--test');
-		}
+	// serialize unknown flags and add to args as they are most likely supposed to be passed to node
+	if (noKnownFlags && !noUnknownFlags) {
+		Object.keys(unknownFlags).reverse().forEach((unknownFlag) => {
+			unknownFlags[unknownFlag].forEach((unknownFlagValue) => {
+				if (typeof unknownFlagValue === 'string') {
+					args.unshift(`--${unknownFlag}`, unknownFlagValue);
+				} else {
+					args.unshift(`--${unknownFlag}`);
+				}
+			});
+		});
 	}
 
 	run(args, {
