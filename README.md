@@ -78,15 +78,6 @@ Pass in a file to run:
 tsx ./file.ts
 ```
 
-### #! Hashbang
-
-Use tsx to make awesome cli app!
-
-```ts
-#!/bin/sh
-//bin/true; exec tsx "$0" "$@"
-```
-
 #### Custom `tsconfig.json` path
 By default, `tsconfig.json` will be detected from the current working directory.
 
@@ -152,6 +143,31 @@ NODE_OPTIONS='--loader tsx' node ./file.ts
 > Tip: In rare circumstances, you might be limited to using the [`-r, --require`](https://nodejs.org/api/cli.html#-r---require-module) flag.
 >
 > You can use [`@esbuild-kit/cjs-loader`](https://github.com/esbuild-kit/cjs-loader), but transformations will only be applied to `require()` (not `import`).
+
+
+### Hashbang
+
+If you prefer to write scripts that doesn't need to be passed into tsx, you can declare it in the [hashbang](https://bash.cyberciti.biz/guide/Shebang).
+
+Simply add `#!/usr/bin/env tsx` at the top of your file:
+
+_file.ts_
+```ts
+#!/usr/bin/env tsx
+
+console.log('argv:', process.argv.slice(2))
+```
+
+And make the file executable:
+```sh
+chmod +x ./file.ts
+```
+
+Now, you can run the file without passing it into tsx:
+```sh
+$ ./file.ts hello
+argv: [ 'hello' ]
+```
 
 ## Dependencies
 
