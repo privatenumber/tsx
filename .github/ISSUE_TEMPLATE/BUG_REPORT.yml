@@ -35,9 +35,9 @@ body:
       value: |
         <!--
           Provide a minimal reproduction in one of the following forms:
-            1. A small code-snippet (no more than one) we can copy-paste (no dependencies allowed)
-            2. A link to a repository with the command to run in the package.json script `start`
-            3. A pull request with a failing test-case (no dependencies allowed)
+            1. One small code-snippet we can copy-paste [no dependencies allowed]
+            2. Link to a repository with the command to run in the package.json script `start`
+            3. Pull request with a failing test-case [no dependencies allowed]
 
           Remove as much irrelevant code to make it easier for others to read and debug.
           This includes unnecessary files, dependencies, properties in package.json, tsconfig.json, etc.
