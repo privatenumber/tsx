@@ -29,7 +29,7 @@ const flags = {
 	},
 	ignored: {
 		type: [String],
-		description: 'Defines files/paths to be ignored',
+		description: 'Paths & globs to exclude from being watched',
 		default: [],
 	},
 } as const;
