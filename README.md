@@ -191,10 +191,12 @@ No. tsx uses esbuild's [Transform API](https://esbuild.github.io/api/#transform-
 
 No. tsx's integration with Node.js is designed to be seamless so there is no configuration.
 
-### Does it support all TypeScript language features?
+### Does it have any limitations?
 
-Most TypeScript files will "just work", but some less common language features are not supported by esbuild:
+Transformations are handled by esbuild, so it shares the same limitations such as:
 
-- `emitDecoratorMetadata`: decorators can't be used with tsx
+- Compatibility with code executed via `eval()` is not preserved
+- Only certain `tsconfig.json` properties are supported
+- [`emitDecoratorMetadata`](https://www.typescriptlang.org/tsconfig#emitDecoratorMetadata) is not supported 
 
-Refer to the [TypeScript Caveats](https://esbuild.github.io/content-types/#typescript-caveats) section in the esbuild documentation for further details.
+For details, refer to esbuild's [JavaScript caveats](https://esbuild.github.io/content-types/#javascript-caveats) and [TypeScript caveats](https://esbuild.github.io/content-types/#typescript-caveats) documentation.
