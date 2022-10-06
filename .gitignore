@@ -19,9 +19,6 @@ lerna-debug.log*
 .env
 .env.test
 
-# VSCode
-.vscode
-
 # Cache
 .eslintcache
 

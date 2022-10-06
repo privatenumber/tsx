@@ -1,4 +1,5 @@
 import path from 'path';
+import { setTimeout } from 'timers/promises';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import { tsx } from '../utils/tsx';
@@ -140,6 +141,59 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 
 			// 	await tsxProcess;
 			// }, 2000);
+		});
+
+		describe('ignore', ({ test }) => {
+			test('file path & glob', async () => {
+				const entryFile = 'index.js';
+				const fileA = 'file-a.js';
+				const fileB = 'directory/file-b.js';
+				let value = Date.now();
+
+				const fixture = await createFixture({
+					[entryFile]: `
+						import valueA from './${fileA}'
+						import valueB from './${fileB}'
+						console.log(valueA, valueB)
+					`.trim(),
+					[fileA]: `export default ${value}`,
+					[fileB]: `export default ${value}`,
+				});
+
+				const tsxProcess = tsx({
+					args: [
+						'watch',
+						'--clear-screen=false',
+						`--ignore=${path.join(fixture.path, fileA)}`,
+						`--ignore=${path.join(fixture.path, 'directory/*')}`,
+						path.join(fixture.path, entryFile),
+					],
+				});
+
+				tsxProcess.stdout!.on('data', async (data: Buffer) => {
+					const chunkString = data.toString();
+					if (chunkString === `${value} ${value}\n`) {
+						value = Date.now();
+						await Promise.all([
+							fixture.writeFile(fileA, `export default ${value}`),
+							fixture.writeFile(fileB, `export default ${value}`),
+						]);
+
+						await setTimeout(500);
+						await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
+					}
+
+					if (chunkString === 'TERMINATE\n') {
+						tsxProcess.kill();
+					}
+				});
+
+				const tsxProcessResolved = await tsxProcess;
+				await fixture.rm();
+
+				expect(tsxProcessResolved.stdout).not.toMatch(`${value} ${value}`);
+				expect(tsxProcessResolved.stderr).toBe('');
+			}, 5000);
 		});
 	});
 });

@@ -32,13 +32,14 @@
 	"scripts": {
 		"build": "pkgroll --target=node12.19 --minify",
 		"lint": "eslint --cache .",
+		"type-check": "tsc --noEmit",
 		"test": "pnpm build && node ./dist/cli.js tests/index.ts",
 		"prepack": "pnpm build && clean-pkg-json",
 		"prepublishOnly": "pnpm test"
 	},
 	"dependencies": {
 		"@esbuild-kit/cjs-loader": "^2.3.3",
-		"@esbuild-kit/core-utils": "^2.3.1",
+		"@esbuild-kit/core-utils": "^2.3.2",
 		"@esbuild-kit/esm-loader": "^2.4.2"
 	},
 	"optionalDependencies": {
@@ -47,22 +48,23 @@
 	"devDependencies": {
 		"@pvtnbr/eslint-config": "^0.30.1",
 		"@types/cross-spawn": "^6.0.2",
-		"@types/node": "^18.7.18",
+		"@types/node": "^18.8.2",
+		"@types/react": "^18.0.21",
 		"@types/semver": "^7.3.12",
 		"chokidar": "^3.5.3",
 		"clean-pkg-json": "^1.2.0",
 		"cleye": "^1.2.1",
 		"cross-spawn": "^7.0.3",
-		"eslint": "^8.23.1",
+		"eslint": "^8.24.0",
 		"execa": "^6.1.0",
 		"fs-fixture": "^1.1.0",
 		"get-node": "^13.2.0",
 		"kolorist": "^1.6.0",
-		"manten": "^0.2.1",
+		"manten": "^0.3.0",
 		"pkgroll": "^1.4.0",
-		"semver": "^7.3.7",
+		"semver": "^7.3.8",
 		"type-flag": "^2.2.0",
-		"typescript": "^4.8.3"
+		"typescript": "^4.8.4"
 	},
 	"eslintConfig": {
 		"extends": "@pvtnbr",

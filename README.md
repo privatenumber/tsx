@@ -106,6 +106,13 @@ tsx watch ./file.ts
 All imported files are watched except from the following directories:
 `node_modules`, `bower_components`, `vendor`, `dist`, and `.*` (hidden directories).
 
+#### Ignore files from watch
+
+To exclude files from being watched, pass in a path or glob to the `--ignore` flag:
+```sh
+tsx watch --ignore ./ignore-me.js --ignore ./ignore-me-too.js ./file.ts
+```
+
 #### Tips
 - Press <kbd>Return</kbd> to manually rerun
 - Pass in `--clear-screen=false` to disable clearing the screen on rerun
@@ -130,9 +137,9 @@ tsx --no-cache ./file.ts
 
 `tsx` is a standalone binary designed to be used in place of `node`, but sometimes you'll want to use `node` directly. For example, when adding TypeScript & ESM support to npm-installed binaries.
 
-To use `tsx` with Node.js, pass it to the [`--loader`](https://nodejs.org/api/esm.html#loaders) flag.
+To use `tsx` as a  Node.js loader, simply pass it in to the [`--loader`](https://nodejs.org/api/esm.html#loaders) flag.
 
-> Note: Node.js's experimental feature warnings will not be suppressed when used as a loader.
+> Note: The loader is limited to adding support for loading TypeScript/ESM files. CLI features such as _watch mode_ or suppressing "experimental feature" warnings will not be available.
 
 ```sh
 # As a CLI flag
@@ -144,7 +151,7 @@ NODE_OPTIONS='--loader tsx' node ./file.ts
 
 > Tip: In rare circumstances, you might be limited to using the [`-r, --require`](https://nodejs.org/api/cli.html#-r---require-module) flag.
 >
-> You can use [`@esbuild-kit/cjs-loader`](https://github.com/esbuild-kit/cjs-loader), but transformations will only be applied to `require()`.
+> You can use [`@esbuild-kit/cjs-loader`](https://github.com/esbuild-kit/cjs-loader), but transformations will only be applied to `require()` (not `import`).
 
 ## Dependencies
 
@@ -199,3 +206,13 @@ No. tsx uses esbuild's [Transform API](https://esbuild.github.io/api/#transform-
 ### Does it have a configuration file?
 
 No. tsx's integration with Node.js is designed to be seamless so there is no configuration.
+
+### Does it have any limitations?
+
+Transformations are handled by esbuild, so it shares the same limitations such as:
+
+- Compatibility with code executed via `eval()` is not preserved
+- Only certain `tsconfig.json` properties are supported
+- [`emitDecoratorMetadata`](https://www.typescriptlang.org/tsconfig#emitDecoratorMetadata) is not supported 
+
+For details, refer to esbuild's [JavaScript caveats](https://esbuild.github.io/content-types/#javascript-caveats) and [TypeScript caveats](https://esbuild.github.io/content-types/#typescript-caveats) documentation.
