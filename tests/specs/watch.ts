@@ -144,7 +144,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 		});
 
 		describe('ignore', ({ test }) => {
-			test('multiple files ignored', async () => {
+			test('file path & glob', async () => {
 				const entryFile = 'index.js';
 				const fileA = 'file-a.js';
 				const fileB = 'directory/file-b.js';
