@@ -1,4 +1,5 @@
 import path from 'path';
+import { setTimeout } from 'timers/promises';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import { tsx } from '../utils/tsx';
@@ -144,67 +145,55 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 
 		describe('ignore', ({ test }) => {
 			test('multiple files ignored', async () => {
-				// given
-				const initialValue = 'first round';
-				const alteredValue = 'second round';
-				const includedFilename = 'included.js';
-				const ignoredFilenames = ['ignored-1.js', 'ignored-2.js'];
+				const entryFile = 'index.js';
+				const fileA = 'file-a.js';
+				const fileB = 'directory/file-b.js';
+				let value = Date.now();
 
-				const fixtures = await createFixture({
-					[includedFilename]: `
-						import { value as value1 } from './ignored-1';
-						import { value as value2 } from './ignored-2';
-						console.log(value1 + value2);
+				const fixture = await createFixture({
+					[entryFile]: `
+						import valueA from './${fileA}'
+						import valueB from './${fileB}'
+						console.log(valueA, valueB)
 					`.trim(),
-					[ignoredFilenames[0]]: `export const value = '${initialValue}';`,
-					[ignoredFilenames[1]]: `export const value = '${initialValue}';`,
+					[fileA]: `export default ${value}`,
+					[fileB]: `export default ${value}`,
 				});
 
 				const tsxProcess = tsx({
 					args: [
 						'watch',
 						'--clear-screen=false',
-						`--ignore=${path.join(fixtures.path, ignoredFilenames[0])}`,
-						`--ignore=${path.join(fixtures.path, ignoredFilenames[1])}`,
-						path.join(fixtures.path, includedFilename),
+						`--ignore=${path.join(fixture.path, fileA)}`,
+						`--ignore=${path.join(fixture.path, 'directory/*')}`,
+						path.join(fixture.path, entryFile),
 					],
 				});
 
-				let aggregatedOutput = '';
-				async function onStdOut(data: Buffer) {
+				tsxProcess.stdout!.on('data', async (data: Buffer) => {
 					const chunkString = data.toString();
-					aggregatedOutput += chunkString;
+					if (chunkString === `${value} ${value}\n`) {
+						value = Date.now();
+						await Promise.all([
+							fixture.writeFile(fileA, `export default ${value}`),
+							fixture.writeFile(fileB, `export default ${value}`),
+						]);
 
-					if (new RegExp(`${initialValue}\n`).test(chunkString)) {
-						await Promise.all(ignoredFilenames.map(ignoredFilename => fixtures.writeFile(ignoredFilename, `export const value = '${alteredValue}';`)));
-						// make sure to wait for chokidar to pick up changes
-						// in the ignored file before manually triggering a rerun
-						setTimeout(async () => {
-							await fixtures.writeFile(includedFilename, 'console.log(\'TERMINATE\');');
-						}, 500);
-					} else if (chunkString.match('TERMINATE\n')) {
-						// cleanup
-						await fixtures.rm();
+						await setTimeout(500);
+						await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
+					}
+
+					if (chunkString === 'TERMINATE\n') {
 						tsxProcess.kill();
 					}
-				}
-				tsxProcess.stdout?.on('data', onStdOut);
-
-				let error = false;
-				tsxProcess.stderr?.on('data', () => {
-					error = true;
 				});
 
-				// when
-				await tsxProcess;
+				const tsxProcessResolved = await tsxProcess;
+				await fixture.rm();
 
-				// then
-				if (error) {
-					// manten does not come with a fail() utility.
-					expect('No error throwing').toEqual('but was thrown.');
-				}
-				expect(aggregatedOutput).not.toMatch(alteredValue);
-			});
+				expect(tsxProcessResolved.stdout).not.toMatch(`${value} ${value}`);
+				expect(tsxProcessResolved.stderr).toBe('');
+			}, 5000);
 		});
 	});
 });
