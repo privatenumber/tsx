@@ -39,7 +39,7 @@
 	},
 	"dependencies": {
 		"@esbuild-kit/cjs-loader": "github:esbuild-kit/cjs-loader#npm/upgrade-core-utils",
-		"@esbuild-kit/core-utils": "github:esbuild-kit/core-utils#npm/develop",
+		"@esbuild-kit/core-utils": "^3.0.0",
 		"@esbuild-kit/esm-loader": "github:esbuild-kit/esm-loader#npm/upgrade-core-utils"
 	},
 	"optionalDependencies": {

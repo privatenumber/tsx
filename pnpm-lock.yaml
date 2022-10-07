@@ -2,7 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@esbuild-kit/cjs-loader': github:esbuild-kit/cjs-loader#npm/upgrade-core-utils
-  '@esbuild-kit/core-utils': github:esbuild-kit/core-utils#npm/develop
+  '@esbuild-kit/core-utils': ^3.0.0
   '@esbuild-kit/esm-loader': github:esbuild-kit/esm-loader#npm/upgrade-core-utils
   '@pvtnbr/eslint-config': ^0.30.1
   '@types/cross-spawn': ^6.0.2
@@ -26,9 +26,9 @@ specifiers:
   typescript: ^4.8.4
 
 dependencies:
-  '@esbuild-kit/cjs-loader': github.com/esbuild-kit/cjs-loader/cecbb33fdabf8d4330998a9a933cce56d973bf63
-  '@esbuild-kit/core-utils': github.com/esbuild-kit/core-utils/1c791fb256bf8d9a489e4c96797873a3e70a6063
-  '@esbuild-kit/esm-loader': github.com/esbuild-kit/esm-loader/70f9c746a5f5c9e288d84da1380dbb9175bcb357
+  '@esbuild-kit/cjs-loader': github.com/esbuild-kit/cjs-loader/b6caa78502cbc54c12a911e03d1a3de584575d8d
+  '@esbuild-kit/core-utils': 3.0.0
+  '@esbuild-kit/esm-loader': github.com/esbuild-kit/esm-loader/04b89582092b835e480aed0efa9ab44506bde452
 
 optionalDependencies:
   fsevents: 2.3.2
@@ -76,6 +76,13 @@ packages:
       chalk: 2.4.2
       js-tokens: 4.0.0
     dev: true
+
+  /@esbuild-kit/core-utils/3.0.0:
+    resolution: {integrity: sha512-TXmwH9EFS3DC2sI2YJWJBgHGhlteK0Xyu1VabwetMULfm3oYhbrsWV5yaSr2NTWZIgDGVLHbRf0inxbjXqAcmQ==}
+    dependencies:
+      esbuild: 0.15.10
+      source-map-support: 0.5.21
+    dev: false
 
   /@esbuild/android-arm/0.15.10:
     resolution: {integrity: sha512-FNONeQPy/ox+5NBkcSbYJxoXj9GWu8gVGJTVmUyoOCKQFDTrHVKgNSzChdNt0I8Aj/iKcsDf2r9BFwv+FSNUXg==}
@@ -3927,29 +3934,20 @@ packages:
     engines: {node: '>=12.20'}
     dev: true
 
-  github.com/esbuild-kit/cjs-loader/cecbb33fdabf8d4330998a9a933cce56d973bf63:
-    resolution: {tarball: https://codeload.github.com/esbuild-kit/cjs-loader/tar.gz/cecbb33fdabf8d4330998a9a933cce56d973bf63}
+  github.com/esbuild-kit/cjs-loader/b6caa78502cbc54c12a911e03d1a3de584575d8d:
+    resolution: {tarball: https://codeload.github.com/esbuild-kit/cjs-loader/tar.gz/b6caa78502cbc54c12a911e03d1a3de584575d8d}
     name: '@esbuild-kit/cjs-loader'
     version: 0.0.0-semantic-release
     dependencies:
-      '@esbuild-kit/core-utils': github.com/esbuild-kit/core-utils/1c791fb256bf8d9a489e4c96797873a3e70a6063
+      '@esbuild-kit/core-utils': 3.0.0
       get-tsconfig: 4.2.0
     dev: false
 
-  github.com/esbuild-kit/core-utils/1c791fb256bf8d9a489e4c96797873a3e70a6063:
-    resolution: {tarball: https://codeload.github.com/esbuild-kit/core-utils/tar.gz/1c791fb256bf8d9a489e4c96797873a3e70a6063}
-    name: '@esbuild-kit/core-utils'
-    version: 0.0.0-semantic-release
-    dependencies:
-      esbuild: 0.15.10
-      source-map-support: 0.5.21
-    dev: false
-
-  github.com/esbuild-kit/esm-loader/70f9c746a5f5c9e288d84da1380dbb9175bcb357:
-    resolution: {tarball: https://codeload.github.com/esbuild-kit/esm-loader/tar.gz/70f9c746a5f5c9e288d84da1380dbb9175bcb357}
+  github.com/esbuild-kit/esm-loader/04b89582092b835e480aed0efa9ab44506bde452:
+    resolution: {tarball: https://codeload.github.com/esbuild-kit/esm-loader/tar.gz/04b89582092b835e480aed0efa9ab44506bde452}
     name: '@esbuild-kit/esm-loader'
     version: 0.0.0-semantic-release
     dependencies:
-      '@esbuild-kit/core-utils': github.com/esbuild-kit/core-utils/1c791fb256bf8d9a489e4c96797873a3e70a6063
+      '@esbuild-kit/core-utils': 3.0.0
       get-tsconfig: 4.2.0
     dev: false
