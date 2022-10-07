@@ -118,6 +118,7 @@ export const watchCommand = command({
 	const watcher = watch(
 		argv._,
 		{
+			cwd: process.cwd(),
 			ignoreInitial: true,
 			ignored: [
 				// Hidden directories like .git

@@ -161,12 +161,13 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				});
 
 				const tsxProcess = tsx({
+					cwd: fixture.path,
 					args: [
 						'watch',
 						'--clear-screen=false',
-						`--ignore=${path.join(fixture.path, fileA)}`,
+						`--ignore=${fileA}`,
 						`--ignore=${path.join(fixture.path, 'directory/*')}`,
-						path.join(fixture.path, entryFile),
+						entryFile,
 					],
 				});
 
