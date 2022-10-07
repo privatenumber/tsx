@@ -166,7 +166,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 						'watch',
 						'--clear-screen=false',
 						`--ignore=${fileA}`,
-						'--ignore=directory/*',
+						`--ignore=${path.join(fixture.path, 'directory/*')}`,
 						entryFile,
 					],
 				});
