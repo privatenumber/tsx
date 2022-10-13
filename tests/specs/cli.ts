@@ -55,23 +55,23 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 		// 	});
 		// });
 
-		describe('Relays kill signal', ({ test }) => {
+		describe('Relays kill signal', async ({ test }) => {
 			const signals = ['SIGINT', 'SIGTERM'];
 
 			for (const signal of signals) {
-				test(signal, async () => {
+				await test(signal, async () => {
 					const tsxProcess = tsx({
 						args: [
 							path.join(fixturePath, 'catch-signals.ts'),
 						],
 					});
 
-					tsxProcess.stdout!.once('data', () => {
-						tsxProcess.kill(signal);
-					});
-
 					tsxProcess.stdout?.on('data', (data) => {
 						console.log('stdout', data.toString());
+					});
+
+					tsxProcess.stdout!.once('data', () => {
+						tsxProcess.kill(signal);
 					});
 
 					const tsxProcessResolved = await tsxProcess;
