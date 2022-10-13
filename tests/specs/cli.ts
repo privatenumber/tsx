@@ -54,5 +54,26 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				expect(tsxProcess.stderr).toBe('');
 			});
 		});
+
+		describe('Relays kill signal', ({ test }) => {
+			const signals = ['SIGINT', 'SIGTERM'];
+
+			for (const signal of signals) {
+				test(signal, async () => {
+					const tsxProcess = tsx({
+						args: [
+							path.join(fixturePath, 'catch-signals.ts'),
+						],
+					});
+
+					tsxProcess.stdout!.once('data', () => {
+						tsxProcess.kill(signal);
+					});
+
+					const tsxProcessResolved = await tsxProcess;
+					expect(tsxProcessResolved.stdout).toBe(`READY\n${signal}\n${signal} HANDLER COMPLETED`);
+				}, 5000);
+			}
+		});
 	});
 });

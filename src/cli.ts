@@ -62,10 +62,16 @@ cli({
 		{ ignoreUnknown: true },
 	)._;
 
-	run(args, {
+	const childProcess = run(args, {
 		noCache: Boolean(argv.flags.noCache),
 		tsconfigPath: argv.flags.tsconfig,
-	}).on(
+	});
+
+	for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+		process.on(signal, () => childProcess.kill(signal));
+	}
+
+	childProcess.on(
 		'close',
 		code => process.exit(code!),
 	);
