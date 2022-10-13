@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
     timeout-minutes: 10
 
     steps:
@@ -31,10 +31,10 @@ jobs:
     - name: Test
       run: pnpm test
 
-    - name: Type check
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: pnpm type-check
+    # - name: Type check
+    #   if: ${{ matrix.os == 'ubuntu-latest' }}
+    #   run: pnpm type-check
 
-    - name: Lint
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: pnpm lint
+    # - name: Lint
+    #   if: ${{ matrix.os == 'ubuntu-latest' }}
+    #   run: pnpm lint
