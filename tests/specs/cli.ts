@@ -66,11 +66,14 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 						],
 					});
 
-					tsxProcess.stdout!.once('data', () => {
+					tsxProcess.stdout!.once('data', (data) => {
+						console.log({ data: data.toString() });
 						tsxProcess.kill(signal);
 					});
 
 					const tsxProcessResolved = await tsxProcess;
+
+					console.log(tsxProcessResolved);
 
 					if (process.platform === 'win32') {
 						expect(tsxProcessResolved.stdout).toBe('READY');
