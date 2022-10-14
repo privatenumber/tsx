@@ -1,3 +1,5 @@
+import { constants as osConstants } from 'os';
+
 const ignoreWarnings = new Set([
 	'--experimental-loader is an experimental feature. This feature could change at any time',
 	'Custom ESM Loaders is an experimental feature. This feature could change at any time',
@@ -16,3 +18,21 @@ process.emit = function (event: 'warning', warning: Error) {
 
 	return Reflect.apply(emit, this, arguments);
 };
+
+// Move to separate file
+function relaySignal(signal: NodeJS.Signals) {
+	if (process.send) {
+		process.send({
+			type: 'kill',
+			signal,
+		});
+	}
+
+	if (process.rawListeners('SIGINT').length === 1) {
+		process.stdin.write('\n');
+		process.exit(128 + osConstants.signals[signal]);
+	}
+}
+
+process.on('SIGINT', relaySignal);
+process.on('SIGTERM', relaySignal);

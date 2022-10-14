@@ -15,6 +15,7 @@ export function run(
 		'inherit', // stdin
 		'inherit', // stdout
 		'inherit', // stderr
+		'ipc', // parent-child communication
 	];
 
 	if (options) {
@@ -24,11 +25,6 @@ export function run(
 
 		if (options.tsconfigPath) {
 			environment.ESBK_TSCONFIG_PATH = options.tsconfigPath;
-		}
-
-		if (options.ipc) {
-			// To communicate with parent process
-			stdio.push('ipc');
 		}
 	}
 

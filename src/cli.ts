@@ -1,3 +1,5 @@
+import { once } from 'events';
+import { setTimeout } from 'timers/promises';
 import { cli } from 'cleye';
 import typeFlag from 'type-flag';
 import { version } from '../package.json';
@@ -67,7 +69,35 @@ cli({
 		tsconfigPath: argv.flags.tsconfig,
 	});
 
-	const relaySignal = (signal: NodeJS.Signals) => childProcess.kill(signal);
+	const relaySignal = async (signal: NodeJS.Signals) => {
+		const message = await Promise.race([
+			/**
+			 * If child received a signal, it detected a keypress or
+			 * was sent a signal via process group.
+			 *
+			 * Ignore it and let child handle it.
+			 */
+			new Promise<NodeJS.Signals>((resolve) => {
+				function handler(data: { type: string; signal: NodeJS.Signals }) {
+					if (data && data.type === 'kill') {
+						resolve(data.signal);
+						childProcess.off('message', handler);
+					}
+				}
+				childProcess.on('message', handler);
+			}),
+			setTimeout(10),
+		]);
+
+		/**
+		 * If child didn't receive a signal, it was sent to the parent
+		 * directly via kill PID. Relay it to child.
+		 */
+		if (!message) {
+			childProcess.kill(signal);
+		}
+	};
+
 	process.on('SIGINT', relaySignal);
 	process.on('SIGTERM', relaySignal);
 
