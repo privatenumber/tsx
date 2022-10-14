@@ -69,7 +69,9 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 					tsxProcess.stdout!.once('data', (data) => {
 						if (data.toString() === 'READY\n') {
 							console.log('killing with', signal);
-							tsxProcess.kill(signal);
+							tsxProcess.kill(signal, {
+								forceKillAfterTimeout: false,
+							});
 						}
 					});
 
