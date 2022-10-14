@@ -64,6 +64,7 @@
 		"node-pty": "^0.10.1",
 		"pkgroll": "^1.4.0",
 		"semver": "^7.3.8",
+		"strip-ansi": "^7.0.1",
 		"type-flag": "^2.2.0",
 		"typescript": "^4.8.4"
 	},

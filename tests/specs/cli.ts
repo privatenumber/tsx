@@ -3,6 +3,7 @@ import { testSuite, expect } from 'manten';
 import packageJson from '../../package.json';
 import { tsx, tsxPath } from '../utils/tsx';
 import { spawn, type IPty } from 'node-pty';
+import stripAnsi from 'strip-ansi';
 
 export default testSuite(({ describe }, fixturePath: string) => {
 	describe('CLI', ({ describe }) => {
@@ -143,8 +144,16 @@ export default testSuite(({ describe }, fixturePath: string) => {
 
 				shellProcess.onExit(() => {
 					console.log(123, commands);
+
 					const [out, exitCode] = commands.map(
-						({ command, output }) => output.split(command + '\r\n')[1],
+						({ command, output }) => {
+
+							const a = stripAnsi(output);
+							
+							console.log({a});
+							
+							return a.split(command + '\r\n')[1]
+						},
 					);
 
 					console.log({
