@@ -101,7 +101,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 
 			const isWindows = process.platform === 'win32';
 			const shell = isWindows ? 'powershell.exe' : 'bash';
-			const commandCaret = isWindows ? '>' : '$';
+			const commandCaret = (isWindows ? '>' : '$') + ' ';
 
 			const spawnShell = (
 				initCommand: string,
@@ -117,7 +117,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 
 				shellProcess.onData((data) => {
 					console.log({ data });
-					if (data.includes(commandCaret + ' ')) {
+					if (data.includes(commandCaret)) {
 						if (currentCommand === commands.length - 1) {
 							console.log('Killing shell');
 							shellProcess.kill();
@@ -126,6 +126,12 @@ export default testSuite(({ describe }, fixturePath: string) => {
 							console.log('entering command', commands[currentCommand].command);
 							shellProcess.write(`${commands[currentCommand].command}\r`);	
 						}
+
+						const newLine = data.lastIndexOf('\n', data.indexOf(commandCaret));
+						if (newLine === -1) {
+							return;
+						}
+						data = data.slice(0, newLine);
 					}
 
 					// If initialized
@@ -136,7 +142,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 				});
 
 				shellProcess.onExit(() => {
-					console.log(commands);
+					console.log(123, commands);
 					const [out, exitCode] = commands.map(
 						({ command, output }) => output.split(command + '\r\n')[1],
 					);
