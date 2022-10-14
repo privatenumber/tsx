@@ -123,9 +123,9 @@ export default testSuite(({ describe }, fixturePath: string) => {
 							shellProcess.kill();
 						} else {
 							currentCommand += 1;
+							console.log('entering command', commands[currentCommand].command);
 							shellProcess.write(`${commands[currentCommand].command}\r`);	
 						}
-						return;
 					}
 
 					// If initialized
