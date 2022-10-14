@@ -72,5 +72,10 @@
 		"ignorePatterns": [
 			"tests/fixtures"
 		]
+	},
+	"pnpm": {
+		"patchedDependencies": {
+			"node-pty@0.10.1": "patches/node-pty@0.10.1.patch"
+		}
 	}
 }
