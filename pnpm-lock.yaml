@@ -20,6 +20,7 @@ specifiers:
   get-node: ^13.2.0
   kolorist: ^1.6.0
   manten: ^0.3.0
+  node-pty: ^0.10.1
   pkgroll: ^1.4.0
   semver: ^7.3.8
   type-flag: ^2.2.0
@@ -49,6 +50,7 @@ devDependencies:
   get-node: 13.2.0
   kolorist: 1.6.0
   manten: 0.3.0
+  node-pty: 0.10.1
   pkgroll: 1.4.0_typescript@4.8.4
   semver: 7.3.8
   type-flag: 2.2.0
@@ -2946,8 +2948,19 @@ packages:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
     dev: true
 
+  /nan/2.17.0:
+    resolution: {integrity: sha512-2ZTgtl0nJsO0KQCjEpxcIr5D+Yv90plTitZt9JBfQvVJDS5seMl3FOvsh3+9CoYWXf/1l5OaZzzF6nDm4cagaQ==}
+    dev: true
+
   /natural-compare/1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
+    dev: true
+
+  /node-pty/0.10.1:
+    resolution: {integrity: sha512-JTdtUS0Im/yRsWJSx7yiW9rtpfmxqxolrtnyKwPLI+6XqTAPW/O2MjS8FYL4I5TsMbH2lVgDb2VMjp+9LoQGNg==}
+    requiresBuild: true
+    dependencies:
+      nan: 2.17.0
     dev: true
 
   /node-version-alias/3.2.0:

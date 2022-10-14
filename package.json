@@ -61,6 +61,7 @@
 		"get-node": "^13.2.0",
 		"kolorist": "^1.6.0",
 		"manten": "^0.3.0",
+		"node-pty": "^0.10.1",
 		"pkgroll": "^1.4.0",
 		"semver": "^7.3.8",
 		"type-flag": "^2.2.0",
