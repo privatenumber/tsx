@@ -146,10 +146,11 @@ export default testSuite(({ describe }, fixturePath: string) => {
 					if (data.includes(commandCaret)) {
 						if (currentCommand === commands.length - 1) {
 							console.log('Killing shell');
-							try {
-								process.kill(shellProcess.pid)
+							// try {
+								console.log('pid', shellProcess.pid);
+								process.kill(shellProcess.pid, 'SIGKILL');
 								// shellProcess.kill();
-							} catch {}
+							// } catch {}
 							triggerDone = true;
 						} else {
 							currentCommand += 1;
@@ -174,6 +175,10 @@ export default testSuite(({ describe }, fixturePath: string) => {
 						done();
 					}
 				});
+
+				shellProcess.onExit(() => {
+					console.log('EXIT');
+				})
 			});
 
 			// TODO: Add test for SIGINT on Node.js script without handler
