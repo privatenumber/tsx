@@ -94,39 +94,47 @@ export default testSuite(({ describe }, fixturePath: string) => {
 		});
 
 		describe('Handles kill signal from shell', ({ test }) => {
-			test('Ctrl + C', async () => {
 
-				function spawnShell() {
-					return new Promise((resolve, reject) => {
-						const shell = spawn(
-							process.platform === 'win32' ? 'powershell.exe' : 'bash',
-							[],
-							{},
-						);
-	
-	
-						let stdout = '';
-						shell.onData((data) => {
-							stdout += data;
-							if (data === 'READY\r\n') {
-								shell.write('\x03');
-							}
-							if (data.match('HANDLER COMPLETED\r\n')) {
-								shell.kill();
-							}
-						});
-	
-						shell.onExit((exitCode) => {
-							resolve({ exitCode, stdout });
-						});
-	
-						setTimeout(() => {
-							shell.write(`${tsxPath} ${path.join(fixturePath, 'catch-signals.ts')}\r`);
-						}, 1000);
+			function spawnShell(command: string) {
+				return new Promise((resolve, reject) => {
+
+					const shell = spawn(
+						process.platform === 'win32' ? 'powershell.exe' : 'bash',
+						[],
+						{ cols: 1000 },
+					);
+
+					console.log({ shell: process.platform === 'win32' ? 'powershell.exe' : 'bash' });
+					console.log(command);
+
+					let output = '';
+					shell.onData((data) => {
+						console.log({ data });
+						output += data;
+						// if (data === 'READY\r\n') {
+						// 	shell.write('\x03');
+						// }
+						// if (data.match('HANDLER COMPLETED\r\n')) {
+						// 	shell.kill();
+						// }
 					});
-				}
 
-				const a = await spawnShell();
+					shell.onExit((exit) => {
+						const [, stdout] = output.split(command + '\r\n');
+						resolve({
+							exit,
+							stdout,
+						});
+					});
+
+					setTimeout(() => {
+						shell.write(`${command}\r`);
+					}, 1000);
+				});
+			}
+
+			test('Ctrl + C', async () => {
+				const a = await spawnShell(`${tsxPath} ${path.join(fixturePath, 'catch-signals.ts')}`);
 
 				console.log(a);
 
@@ -152,7 +160,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 				// 	expect(tsxProcessResolved.exitCode).toBe(200);
 				// 	expect(tsxProcessResolved.stdout).toBe(`READY\n${signal}\n${signal} HANDLER COMPLETED`);
 				// }
-			}, 10000);
+			});
 		});
 	});
 });
