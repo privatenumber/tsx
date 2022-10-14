@@ -10,7 +10,7 @@ type Options = {
 };
 
 const __dirname = fileURLToPath(import.meta.url);
-const tsxPath = path.join(__dirname, '../../../dist/cli.js');
+export const tsxPath = path.join(__dirname, '../../../dist/cli.js');
 
 export const tsx = (
 	options: Options,

@@ -1,7 +1,8 @@
 import path from 'path';
 import { testSuite, expect } from 'manten';
 import packageJson from '../../package.json';
-import { tsx } from '../utils/tsx';
+import { tsx, tsxPath } from '../utils/tsx';
+import { spawn } from 'node-pty';
 
 export default testSuite(({ describe }, fixturePath: string) => {
 	describe('CLI', ({ describe }) => {
@@ -90,6 +91,68 @@ export default testSuite(({ describe }, fixturePath: string) => {
 					}
 				}, 5000);
 			}
+		});
+
+		describe('Handles kill signal from shell', ({ test }) => {
+			test('Ctrl + C', async () => {
+
+				function spawnShell() {
+					return new Promise((resolve, reject) => {
+						const shell = spawn(
+							process.platform === 'win32' ? 'powershell.exe' : 'bash',
+							[],
+							{},
+						);
+	
+	
+						let stdout = '';
+						shell.onData((data) => {
+							stdout += data;
+							if (data === 'READY\r\n') {
+								shell.write('\x03');
+							}
+							if (data.match('HANDLER COMPLETED\r\n')) {
+								shell.kill();
+							}
+						});
+	
+						shell.onExit((exitCode) => {
+							resolve({ exitCode, stdout });
+						});
+	
+						setTimeout(() => {
+							shell.write(`${tsxPath} ${path.join(fixturePath, 'catch-signals.ts')}\r`);
+						}, 1000);
+					});
+				}
+
+				const a = await spawnShell();
+
+				console.log(a);
+
+				// tsxProcess.stdout!.once('data', () => {
+				// 	tsxProcess.kill(signal, {
+				// 		forceKillAfterTimeout: false,
+				// 	});
+				// });
+
+				// const tsxProcessResolved = await tsxProcess;
+
+				// if (process.platform === 'win32') {
+				// 	/**
+				// 	 * Windows doesn't support sending signals to processes.
+				// 	 * https://nodejs.org/api/process.html#signal-events
+				// 	 *
+				// 	 * Sending SIGINT, SIGTERM, and SIGKILL will cause the unconditional termination
+				// 	 * of the target process, and afterwards, subprocess will report that the process
+				// 	 * was terminated by signal.
+				// 	 */
+				// 	expect(tsxProcessResolved.stdout).toBe('READY');
+				// } else {
+				// 	expect(tsxProcessResolved.exitCode).toBe(200);
+				// 	expect(tsxProcessResolved.stdout).toBe(`READY\n${signal}\n${signal} HANDLER COMPLETED`);
+				// }
+			}, 10000);
 		});
 	});
 });
