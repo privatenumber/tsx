@@ -75,6 +75,14 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 					const tsxProcessResolved = await tsxProcess;
 
 					if (process.platform === 'win32') {
+						/**
+						 * Windows doesn't support sending signals to processes.
+						 * https://nodejs.org/api/process.html#signal-events
+						 * 
+						 * Sending SIGINT, SIGTERM, and SIGKILL will cause the unconditional termination
+						 * of the target process, and afterwards, subprocess will report that the process
+						 * was terminated by signal.
+						 */
 						expect(tsxProcessResolved.stdout).toBe('READY');
 					} else {
 						expect(tsxProcessResolved.exitCode).toBe(200);
