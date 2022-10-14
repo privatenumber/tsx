@@ -68,7 +68,10 @@ cli({
 	});
 
 	for (const signal of ['SIGINT', 'SIGTERM'] as const) {
-		process.on(signal, () => childProcess.kill(signal));
+		process.on(signal, (receivedSignal) => {
+			console.log('TSX received', signal, receivedSignal);
+			childProcess.kill(signal);
+		});
 	}
 
 	childProcess.on(
