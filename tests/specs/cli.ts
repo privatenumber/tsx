@@ -116,42 +116,12 @@ export default testSuite(({ describe }, fixturePath: string) => {
 
 				const shellProcess = spawn(shell, [], { cols: 1000 });
 
-				const done = () => {
-					console.log(123, commands);
-
-					const [out, exitCode] = commands.map(
-						({ command, output }) => {
-
-							const a = stripAnsi(output);
-							
-							console.log({a});
-							
-							return a.split(command + '\r\n')[1]
-						},
-					);
-
-					console.log({
-						out,
-						exitCode,
-					});
-
-					resolve({
-						out,
-						exitCode: Number(exitCode.trim()),
-					});
-				};
-
 				shellProcess.onData((data) => {
-					let triggerDone = false;
 					if (data.includes(commandCaret)) {
 						if (currentCommand === commands.length - 1) {
-							console.log('Killing shell');
-							// try {
-								console.log('pid', shellProcess.pid);
-								process.kill(shellProcess.pid, 'SIGKILL');
-								// shellProcess.kill();
-							// } catch {}
-							triggerDone = true;
+
+							// Using pty's `kill` method errors on Windows
+							process.kill(shellProcess.pid, 'SIGKILL');
 						} else {
 							currentCommand += 1;
 							console.log('entering command', commands[currentCommand].command);
@@ -170,15 +140,18 @@ export default testSuite(({ describe }, fixturePath: string) => {
 						callback(data, shellProcess);
 						commands[currentCommand].output += data;
 					}
-
-					if (triggerDone) {
-						done();
-					}
 				});
 
 				shellProcess.onExit(() => {
-					console.log('EXIT');
-				})
+					const [out, exitCode] = commands.map(
+						({ command, output }) => stripAnsi(output).split(command + '\r\n')[1],
+					);
+
+					resolve({
+						out,
+						exitCode: Number(exitCode.trim()),
+					});
+				});
 			});
 
 			// TODO: Add test for SIGINT on Node.js script without handler
@@ -192,10 +165,13 @@ export default testSuite(({ describe }, fixturePath: string) => {
 					},
 				);
 
-				console.log(results);
-				expect(results.out).toBe('READY\r\n^CSIGINT\r\nSIGINT HANDLER COMPLETED\r\n');
+				expect(results.out).toBe(
+					process.platform === 'win32'
+						? 'READY\r\nSIGINT\r\nSIGINT HANDLER COMPLETED\r\n'
+						: 'READY\r\n^CSIGINT\r\nSIGINT HANDLER COMPLETED\r\n'
+				);
 				expect(results.exitCode).toBe(200);
-				
+
 				// tsxProcess.stdout!.once('data', () => {
 				// 	tsxProcess.kill(signal, {
 				// 		forceKillAfterTimeout: false,
