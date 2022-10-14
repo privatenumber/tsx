@@ -142,13 +142,14 @@ export default testSuite(({ describe }, fixturePath: string) => {
 				};
 
 				shellProcess.onData((data) => {
+					let triggerDone = false;
 					if (data.includes(commandCaret)) {
 						if (currentCommand === commands.length - 1) {
 							console.log('Killing shell');
 							try {
 								shellProcess.kill();
 							} catch {}
-							done();
+							triggerDone = true;
 						} else {
 							currentCommand += 1;
 							console.log('entering command', commands[currentCommand].command);
@@ -167,9 +168,14 @@ export default testSuite(({ describe }, fixturePath: string) => {
 						callback(data, shellProcess);
 						commands[currentCommand].output += data;
 					}
+
+					if (triggerDone) {
+						done();
+					}
 				});
 			});
 
+			// TODO: Add test for SIGINT on Node.js script without handler
 			test('Ctrl + C', async () => {
 				const results = await spawnShell(
 					`${process.execPath} ${tsxPath} ${path.join(fixturePath, 'catch-signals.ts')}`,
