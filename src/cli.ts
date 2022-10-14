@@ -67,12 +67,9 @@ cli({
 		tsconfigPath: argv.flags.tsconfig,
 	});
 
-	for (const signal of ['SIGINT', 'SIGTERM'] as const) {
-		process.on(
-			signal,
-			() => childProcess.kill(signal),
-		);
-	}
+	const relaySignal = (signal: NodeJS.Signals) => childProcess.kill(signal);
+	process.on('SIGINT', relaySignal);
+	process.on('SIGTERM', relaySignal);
 
 	childProcess.on(
 		'close',
