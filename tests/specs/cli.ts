@@ -116,33 +116,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 
 				const shellProcess = spawn(shell, [], { cols: 1000 });
 
-				shellProcess.onData((data) => {
-					console.log({ data });
-					if (data.includes(commandCaret)) {
-						if (currentCommand === commands.length - 1) {
-							console.log('Killing shell');
-							shellProcess.kill();
-						} else {
-							currentCommand += 1;
-							console.log('entering command', commands[currentCommand].command);
-							shellProcess.write(`${commands[currentCommand].command}\r`);	
-						}
-
-						const newLine = data.lastIndexOf('\n', data.indexOf(commandCaret));
-						if (newLine === -1) {
-							return;
-						}
-						data = data.slice(0, newLine);
-					}
-
-					// If initialized
-					if (currentCommand > -1) {
-						callback(data, shellProcess);
-						commands[currentCommand].output += data;
-					}
-				});
-
-				shellProcess.onExit(() => {
+				const done = () => {
 					console.log(123, commands);
 
 					const [out, exitCode] = commands.map(
@@ -165,6 +139,34 @@ export default testSuite(({ describe }, fixturePath: string) => {
 						out,
 						exitCode: Number(exitCode.trim()),
 					});
+				};
+
+				shellProcess.onData((data) => {
+					if (data.includes(commandCaret)) {
+						if (currentCommand === commands.length - 1) {
+							console.log('Killing shell');
+							try {
+								shellProcess.kill();
+							} catch {}
+							done();
+						} else {
+							currentCommand += 1;
+							console.log('entering command', commands[currentCommand].command);
+							shellProcess.write(`${commands[currentCommand].command}\r`);	
+						}
+
+						const newLine = data.lastIndexOf('\n', data.indexOf(commandCaret));
+						if (newLine === -1) {
+							return;
+						}
+						data = data.slice(0, newLine);
+					}
+
+					// If initialized
+					if (currentCommand > -1) {
+						callback(data, shellProcess);
+						commands[currentCommand].output += data;
+					}
 				});
 			});
 
