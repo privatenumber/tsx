@@ -45,26 +45,26 @@ const nodeVersions = [
 				runTestSuite(import('./specs/repl'));
 			});
 
-			// for (const nodeVersion of nodeVersions) {
-			// 	const node = await createNode(nodeVersion, fixture.path);
+			for (const nodeVersion of nodeVersions) {
+				const node = await createNode(nodeVersion, fixture.path);
 
-			// 	node.packageType = packageType;
+				node.packageType = packageType;
 
-			// 	await describe(`Node ${node.version}`, ({ runTestSuite }) => {
-			// 		runTestSuite(
-			// 			import('./specs/javascript'),
-			// 			node,
-			// 		);
-			// 		runTestSuite(
-			// 			import('./specs/typescript'),
-			// 			node,
-			// 		);
-			// 		runTestSuite(
-			// 			import('./specs/json'),
-			// 			node,
-			// 		);
-			// 	});
-			// }
+				await describe(`Node ${node.version}`, ({ runTestSuite }) => {
+					runTestSuite(
+						import('./specs/javascript'),
+						node,
+					);
+					runTestSuite(
+						import('./specs/typescript'),
+						node,
+					);
+					runTestSuite(
+						import('./specs/json'),
+						node,
+					);
+				});
+			}
 
 			await fixture.rm();
 		});

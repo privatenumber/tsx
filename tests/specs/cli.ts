@@ -66,7 +66,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 						],
 					});
 
-					tsxProcess.stdout!.once('data', (data) => {
+					tsxProcess.stdout!.once('data', () => {
 						tsxProcess.kill(signal, {
 							forceKillAfterTimeout: false,
 						});
