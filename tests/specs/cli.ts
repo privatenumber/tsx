@@ -124,7 +124,6 @@ export default testSuite(({ describe }, fixturePath: string) => {
 							process.kill(shellProcess.pid, 'SIGKILL');
 						} else {
 							currentCommand += 1;
-							console.log('entering command', commands[currentCommand].command);
 							shellProcess.write(`${commands[currentCommand].command}\r`);	
 						}
 
