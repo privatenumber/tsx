@@ -59,7 +59,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			const signals = ['SIGINT', 'SIGTERM'];
 
 			for (const signal of signals) {
-				await test(signal, async () => {
+				test(signal, async () => {
 					const tsxProcess = tsx({
 						args: [
 							path.join(fixturePath, 'catch-signals.ts'),
@@ -67,23 +67,19 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 					});
 
 					tsxProcess.stdout!.once('data', (data) => {
-						if (data.toString() === 'READY\n') {
-							tsxProcess.kill(signal, {
-								forceKillAfterTimeout: false,
-							});
-						}
+						tsxProcess.kill(signal, {
+							forceKillAfterTimeout: false,
+						});
 					});
 
 					const tsxProcessResolved = await tsxProcess;
 
-					console.log(tsxProcessResolved);
-
-					// if (process.platform === 'win32') {
-					// 	expect(tsxProcessResolved.stdout).toBe('READY');
-					// } else {
-					// 	expect(tsxProcessResolved.exitCode).toBe(200);
-					// 	expect(tsxProcessResolved.stdout).toBe(`READY\n${signal}\n${signal} HANDLER COMPLETED`);
-					// }
+					if (process.platform === 'win32') {
+						expect(tsxProcessResolved.stdout).toBe('READY');
+					} else {
+						expect(tsxProcessResolved.exitCode).toBe(200);
+						expect(tsxProcessResolved.stdout).toBe(`READY\n${signal}\n${signal} HANDLER COMPLETED`);
+					}
 				}, 5000);
 			}
 		});
