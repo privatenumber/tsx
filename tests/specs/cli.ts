@@ -141,6 +141,11 @@ export default testSuite(({ describe }, fixturePath: string) => {
 						({ command, output }) => output.split(command + '\r\n')[1],
 					);
 
+					console.log({
+						out,
+						exitCode,
+					});
+
 					resolve({
 						out,
 						exitCode: Number(exitCode.trim()),
