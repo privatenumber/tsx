@@ -147,7 +147,8 @@ export default testSuite(({ describe }, fixturePath: string) => {
 						if (currentCommand === commands.length - 1) {
 							console.log('Killing shell');
 							try {
-								shellProcess.kill();
+								process.kill(shellProcess.pid)
+								// shellProcess.kill();
 							} catch {}
 							triggerDone = true;
 						} else {
