@@ -136,8 +136,9 @@ export default testSuite(({ describe }, fixturePath: string) => {
 				});
 
 				shellProcess.onExit(() => {
+					console.log(commands);
 					const [out, exitCode] = commands.map(
-						({ command, output }) => (output.split(command + '\r\n')[1]),
+						({ command, output }) => output.split(command + '\r\n')[1],
 					);
 
 					resolve({
