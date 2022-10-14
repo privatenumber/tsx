@@ -95,51 +95,57 @@ export default testSuite(({ describe }, fixturePath: string) => {
 
 		describe('Handles kill signal from shell', ({ test }) => {
 
-			function spawnShell(
-				command: string,
-				callback: (stdoutChunk: string, shell: IPty) => void,
-			) {
-				return new Promise((resolve, reject) => {
-					const isWindows = process.platform === 'win32';
+			type Command = {
+				command: string;
+				output: string;
+			};
 
-					const shell = spawn(
-						isWindows ? 'powershell.exe' : 'bash',
-						[],
-						{ cols: 1000 },
+			const isWindows = process.platform === 'win32';
+			const shell = isWindows ? 'powershell.exe' : 'bash';
+			const commandCaret = isWindows ? '>' : '$';
+
+			const spawnShell = (
+				initCommand: string,
+				callback: (stdoutChunk: string, shell: IPty) => void,
+			) => new Promise((resolve, reject) => {
+				const commands: Command[] = [
+					initCommand,
+					'echo $?',
+				].map(command => ({ command, output: '' }));
+				let currentCommand = -1;
+
+				const shellProcess = spawn(shell, [], { cols: 1000 });
+
+				shellProcess.onData((data) => {
+					if (data.includes(commandCaret + ' ')) {
+						if (currentCommand === commands.length - 1) {
+							console.log('Killing shell');
+							shellProcess.kill();
+						} else {
+							currentCommand += 1;
+							shellProcess.write(`${commands[currentCommand].command}\r`);	
+						}
+						return;
+					}
+
+					// If initialized
+					if (currentCommand > -1) {
+						callback(data, shellProcess);
+						commands[currentCommand].output += data;
+					}
+				});
+
+				shellProcess.onExit(() => {
+					const [stdout, exitCode] = commands.map(
+						({ command, output }) => (output.split(command + '\r\n')[1]),
 					);
 
-
-					const commandCaret = isWindows ? '>' : '$';
-
-					let commandEntered = false;
-					let output = '';
-					shell.onData((data) => {
-						console.log({ data });
-
-						if (data.includes(commandCaret + ' ')) {
-							if (commandEntered) {
-								shell.kill();
-								return;
-							} else {
-								shell.write(`${command}\r`);
-								commandEntered = true;
-							}
-						} else {
-							callback(data, shell);
-						}
-						output += data;
-					});
-
-					shell.onExit((exit) => {
-						console.log('on exit', { output, exit });
-						const [, stdout] = output.split(command + '\r\n');
-						resolve({
-							exit,
-							stdout,
-						});
+					resolve({
+						stdout,
+						exitCode: Number(exitCode.trim()),
 					});
 				});
-			}
+			});
 
 			test('Ctrl + C', async () => {
 				const a = await spawnShell(

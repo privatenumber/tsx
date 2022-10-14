@@ -28,7 +28,11 @@ function relaySignal(signal: NodeJS.Signals) {
 		});
 	}
 
-	if (process.rawListeners('SIGINT').length === 1) {
+	/**
+	 * Since we're setting a custom signal handler, we need to emulate the
+	 * default behavior when there are no other handlers set
+	 */
+	if (process.rawListeners(signal).length === 1) {
 		process.stdin.write('\n');
 		process.exit(128 + osConstants.signals[signal]);
 	}
