@@ -72,10 +72,10 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 
 					const tsxProcessResolved = await tsxProcess;
 
-					expect(tsxProcessResolved.exitCode).toBe(200);
 					if (process.platform === 'win32') {
 						expect(tsxProcessResolved.stdout).toBe('READY');
 					} else {
+						expect(tsxProcessResolved.exitCode).toBe(200);
 						expect(tsxProcessResolved.stdout).toBe(`READY\n${signal}\n${signal} HANDLER COMPLETED`);
 					}
 				}, 5000);
