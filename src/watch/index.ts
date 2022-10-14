@@ -96,12 +96,7 @@ export const watchCommand = command({
 
 	reRun();
 
-	// Kill process on CTRL+C
-	function relaySignal(signal: NodeJS.Signals) {
-		if (runProcess) {
-			runProcess.kill(signal);
-		}
-
+	function exit(signal: NodeJS.Signals) {
 		/**
 		 * In CLI mode where there is only one run, we can inherit the child's exit code.
 		 * But in watch mode, the exit code should reflect the kill signal.
@@ -119,6 +114,17 @@ export const watchCommand = command({
 			 */
 			128 + osConstants.signals[signal],
 		);
+	}
+
+	function relaySignal(signal: NodeJS.Signals) {
+		// Child is still running
+		if (runProcess && runProcess.exitCode === null) {
+			// Wait for child to exit
+			runProcess.on('close', () => exit(signal));
+			runProcess.kill(signal);
+		} else {
+			exit(signal);
+		}
 	}
 
 	process.once('SIGINT', relaySignal);
