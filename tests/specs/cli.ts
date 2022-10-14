@@ -2,7 +2,7 @@ import path from 'path';
 import { testSuite, expect } from 'manten';
 import packageJson from '../../package.json';
 import { tsx, tsxPath } from '../utils/tsx';
-import { spawn } from 'node-pty';
+import { spawn, type IPty } from 'node-pty';
 
 export default testSuite(({ describe }, fixturePath: string) => {
 	describe('CLI', ({ describe }) => {
@@ -95,46 +95,61 @@ export default testSuite(({ describe }, fixturePath: string) => {
 
 		describe('Handles kill signal from shell', ({ test }) => {
 
-			function spawnShell(command: string) {
+			function spawnShell(
+				command: string,
+				callback: (stdoutChunk: string, shell: IPty) => void,
+			) {
 				return new Promise((resolve, reject) => {
+					const isWindows = process.platform === 'win32';
 
 					const shell = spawn(
-						process.platform === 'win32' ? 'powershell.exe' : 'bash',
+						isWindows ? 'powershell.exe' : 'bash',
 						[],
 						{ cols: 1000 },
 					);
 
-					console.log({ shell: process.platform === 'win32' ? 'powershell.exe' : 'bash' });
-					console.log(command);
 
+					const commandCaret = isWindows ? '>' : '$';
+
+					let commandEntered = false;
 					let output = '';
 					shell.onData((data) => {
 						console.log({ data });
+
+						if (data.includes(commandCaret + ' ')) {
+							if (commandEntered) {
+								shell.kill();
+								return;
+							} else {
+								shell.write(`${command}\r`);
+								commandEntered = true;
+							}
+						} else {
+							callback(data, shell);
+						}
 						output += data;
-						// if (data === 'READY\r\n') {
-						// 	shell.write('\x03');
-						// }
-						// if (data.match('HANDLER COMPLETED\r\n')) {
-						// 	shell.kill();
-						// }
 					});
 
 					shell.onExit((exit) => {
+						console.log('on exit', { output, exit });
 						const [, stdout] = output.split(command + '\r\n');
 						resolve({
 							exit,
 							stdout,
 						});
 					});
-
-					setTimeout(() => {
-						shell.write(`${command}\r`);
-					}, 1000);
 				});
 			}
 
 			test('Ctrl + C', async () => {
-				const a = await spawnShell(`${tsxPath} ${path.join(fixturePath, 'catch-signals.ts')}`);
+				const a = await spawnShell(
+					`${process.execPath} ${tsxPath} ${path.join(fixturePath, 'catch-signals.ts')}`,
+					(stdoutChunk, shell) => {
+						if (stdoutChunk === 'READY\r\n') {
+							shell.write('\x03');
+						}
+					},
+				);
 
 				console.log(a);
 
