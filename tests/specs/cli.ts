@@ -109,7 +109,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 			) => new Promise((resolve, reject) => {
 				const commands: Command[] = [
 					initCommand,
-					'echo $?',
+					`echo ${isWindows ? '$LastExitCode' : '$?'}`,
 				].map(command => ({ command, output: '' }));
 				let currentCommand = -1;
 
