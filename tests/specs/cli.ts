@@ -94,7 +94,6 @@ export default testSuite(({ describe }, fixturePath: string) => {
 		});
 
 		describe('Handles kill signal from shell', ({ test }) => {
-
 			type Command = {
 				command: string;
 				output: string;
@@ -106,7 +105,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 
 			const spawnShell = (
 				initCommand: string,
-				callback: (stdoutChunk: string, shell: IPty) => void,
+				callback: (outChunk: string, shell: IPty) => void,
 			) => new Promise((resolve, reject) => {
 				const commands: Command[] = [
 					initCommand,
@@ -117,6 +116,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 				const shellProcess = spawn(shell, [], { cols: 1000 });
 
 				shellProcess.onData((data) => {
+					console.log({ data });
 					if (data.includes(commandCaret + ' ')) {
 						if (currentCommand === commands.length - 1) {
 							console.log('Killing shell');
@@ -136,29 +136,31 @@ export default testSuite(({ describe }, fixturePath: string) => {
 				});
 
 				shellProcess.onExit(() => {
-					const [stdout, exitCode] = commands.map(
+					const [out, exitCode] = commands.map(
 						({ command, output }) => (output.split(command + '\r\n')[1]),
 					);
 
 					resolve({
-						stdout,
+						out,
 						exitCode: Number(exitCode.trim()),
 					});
 				});
 			});
 
 			test('Ctrl + C', async () => {
-				const a = await spawnShell(
+				const results = await spawnShell(
 					`${process.execPath} ${tsxPath} ${path.join(fixturePath, 'catch-signals.ts')}`,
-					(stdoutChunk, shell) => {
-						if (stdoutChunk === 'READY\r\n') {
+					(outChunk, shell) => {
+						if (outChunk === 'READY\r\n') {
 							shell.write('\x03');
 						}
 					},
 				);
 
-				console.log(a);
-
+				console.log(results);
+				expect(results.out).toBe('READY\r\n^CSIGINT\r\nSIGINT HANDLER COMPLETED\r\n');
+				expect(results.exitCode).toBe(200);
+				
 				// tsxProcess.stdout!.once('data', () => {
 				// 	tsxProcess.kill(signal, {
 				// 		forceKillAfterTimeout: false,
