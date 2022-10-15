@@ -1,10 +1,5 @@
 lockfileVersion: 5.4
 
-patchedDependencies:
-  node-pty@0.10.1:
-    hash: xmeglowi4qh6wwk2zjcn2evotq
-    path: patches/node-pty@0.10.1.patch
-
 specifiers:
   '@esbuild-kit/cjs-loader': ^2.4.0
   '@esbuild-kit/core-utils': ^3.0.0
@@ -56,7 +51,7 @@ devDependencies:
   get-node: 13.2.0
   kolorist: 1.6.0
   manten: 0.3.0
-  node-pty: 0.10.1_xmeglowi4qh6wwk2zjcn2evotq
+  node-pty: 0.10.1
   pkgroll: 1.4.0_typescript@4.8.4
   semver: 7.3.8
   strip-ansi: 7.0.1
@@ -2968,13 +2963,12 @@ packages:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
     dev: true
 
-  /node-pty/0.10.1_xmeglowi4qh6wwk2zjcn2evotq:
+  /node-pty/0.10.1:
     resolution: {integrity: sha512-JTdtUS0Im/yRsWJSx7yiW9rtpfmxqxolrtnyKwPLI+6XqTAPW/O2MjS8FYL4I5TsMbH2lVgDb2VMjp+9LoQGNg==}
     requiresBuild: true
     dependencies:
       nan: 2.17.0
     dev: true
-    patched: true
 
   /node-version-alias/3.2.0:
     resolution: {integrity: sha512-jrO/bZteYuRaQoNgHblO70POMR3EHS0I519s+p1cn9cay7OsOWHYp43Fv2w6B7pcjvPh71bQ8ri2Qms2OLzD/w==}
