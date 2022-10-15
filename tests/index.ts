@@ -1,6 +1,7 @@
 import { describe } from 'manten';
 import { createFixture } from 'fs-fixture';
 import { createNode } from './utils/tsx';
+import wtfnode from 'wtfnode';
 
 const isWin = process.platform === 'win32';
 
@@ -67,6 +68,11 @@ const nodeVersions = [
 			// }
 
 			await fixture.rm();
-		});
+
+			console.log('all tests done');
+			// console.log('process._getActiveRequests()', process._getActiveRequests());
+			// console.log('process._getActiveHandles()', process._getActiveHandles());
+			wtfnode.dump();
+	});
 	}
 })();

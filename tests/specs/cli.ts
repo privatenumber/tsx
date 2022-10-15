@@ -170,29 +170,6 @@ export default testSuite(({ describe }, fixturePath: string) => {
 						: 'READY\r\n^CSIGINT\r\nSIGINT HANDLER COMPLETED\r\n'
 				);
 				expect(results.exitCode).toBe(200);
-
-				// tsxProcess.stdout!.once('data', () => {
-				// 	tsxProcess.kill(signal, {
-				// 		forceKillAfterTimeout: false,
-				// 	});
-				// });
-
-				// const tsxProcessResolved = await tsxProcess;
-
-				// if (process.platform === 'win32') {
-				// 	/**
-				// 	 * Windows doesn't support sending signals to processes.
-				// 	 * https://nodejs.org/api/process.html#signal-events
-				// 	 *
-				// 	 * Sending SIGINT, SIGTERM, and SIGKILL will cause the unconditional termination
-				// 	 * of the target process, and afterwards, subprocess will report that the process
-				// 	 * was terminated by signal.
-				// 	 */
-				// 	expect(tsxProcessResolved.stdout).toBe('READY');
-				// } else {
-				// 	expect(tsxProcessResolved.exitCode).toBe(200);
-				// 	expect(tsxProcessResolved.stdout).toBe(`READY\n${signal}\n${signal} HANDLER COMPLETED`);
-				// }
 			});
 		});
 	});
