@@ -1,7 +1,7 @@
 /**
  * node-pty is wrapped in an individual module instead of
  * being called directly because it doesn't exist on Windows
- * 
+ *
  * https://github.com/microsoft/node-pty/issues/437
  */
 import { spawn } from 'node-pty';
@@ -17,7 +17,7 @@ process.on('message', (command) => {
 });
 
 spawned.onData((data) => {
-	process.stdout.write(data);	
+	process.stdout.write(data);
 });
 
 spawned.onExit(({ exitCode }) => {
