@@ -32,7 +32,7 @@ export function run(
 		process.execPath,
 		[
 			'--require',
-			require.resolve('./suppress-warnings.cjs'),
+			require.resolve('./preflight.cjs'),
 
 			'--loader',
 			pathToFileURL(require.resolve('./loader.js')).toString(),

@@ -26,6 +26,7 @@
 		".": "./dist/loader.js",
 		"./cli": "./dist/cli.js",
 		"./suppress-warnings": "./dist/suppress-warnings.cjs",
+		"./preflight": "./dist/preflight.cjs",
 		"./repl": "./dist/repl.js"
 	},
 	"bin": "./dist/cli.js",
