@@ -89,7 +89,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 						expect(tsxProcessResolved.exitCode).toBe(200);
 						expect(tsxProcessResolved.stdout).toBe(`READY\n${signal}\n${signal} HANDLER COMPLETED`);
 					}
-				}, 5000);
+				}, 10000);
 			}
 		});
 
@@ -103,7 +103,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 					],
 				);
 				expect(output).toMatch(/EXIT_CODE:\s+130/);
-			}, 5000);
+			}, 10000);
 
 			test('Catchable', async () => {
 				const output = await ptyShell(
@@ -120,7 +120,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 						: 'READY\r\n^CSIGINT\r\nSIGINT HANDLER COMPLETED\r\n',
 				);
 				expect(output).toMatch(/EXIT_CODE:\s+200/);
-			}, 5000);
+			}, 10000);
 		});
 	});
 });
