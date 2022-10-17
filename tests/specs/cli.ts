@@ -97,7 +97,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 			// test('Exit code', async () => {
 			// 	const output = await ptyShell(
 			// 		[
-			// 			`${tsxPath} ./tests/fixtures/keep-alive.js\r`,
+			// 			`${process.execPath} ${tsxPath} ./tests/fixtures/keep-alive.js\r`,
 			// 			stdout => stdout === 'READY\r\n' && '\u0003',
 			// 			`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 			// 		],
@@ -108,7 +108,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 			test('Catchable', async () => {
 				const output = await ptyShell(
 					[
-						`${tsxPath} ./tests/fixtures/catch-signals.js\r`,
+						`${process.execPath} ${tsxPath} ./tests/fixtures/catch-signals.js\r`,
 						stdout => stdout === 'READY\r\n' && '\u0003',
 						`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 					],
