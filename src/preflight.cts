@@ -1,5 +1,5 @@
 import { constants as osConstants } from 'os';
-import './suppress-warnings.cjs';
+import './suppress-warnings.cts';
 
 // If a parent process is detected
 if (process.send) {

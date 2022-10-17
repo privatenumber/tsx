@@ -1,4 +1,3 @@
-import { setTimeout } from 'timers/promises';
 import { cli } from 'cleye';
 import typeFlag from 'type-flag';
 import { version } from '../package.json';
@@ -86,7 +85,9 @@ cli({
 
 				childProcess.on('message', onKillSignal);
 			}),
-			setTimeout(10),
+			new Promise((resolve) => {
+				setTimeout(resolve, 10);
+			}),
 		]);
 
 		/**
