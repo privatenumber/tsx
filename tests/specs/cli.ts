@@ -98,7 +98,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 				const output = await ptyShell(
 					[
 						`${tsxPath} ./tests/fixtures/keep-alive.js\r`,
-						(stdout) => stdout === 'READY\r\n' && '\x03',
+						stdout => stdout === 'READY\r\n' && '\u0003',
 						`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 					],
 				);
@@ -109,7 +109,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 				const output = await ptyShell(
 					[
 						`${tsxPath} ./tests/fixtures/catch-signals.js\r`,
-						(stdout) => stdout === 'READY\r\n' && '\x03',
+						stdout => stdout === 'READY\r\n' && '\u0003',
 						`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 					],
 				);
@@ -117,7 +117,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 				expect(output).toMatch(
 					process.platform === 'win32'
 						? 'READY\r\nSIGINT\r\nSIGINT HANDLER COMPLETED\r\n'
-						: 'READY\r\n^CSIGINT\r\nSIGINT HANDLER COMPLETED\r\n'
+						: 'READY\r\n^CSIGINT\r\nSIGINT HANDLER COMPLETED\r\n',
 				);
 				expect(output).toMatch(/EXIT_CODE:\s+200/);
 			}, 5000);

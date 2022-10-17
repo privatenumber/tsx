@@ -4,18 +4,18 @@ import stripAnsi from 'strip-ansi';
 
 export const isWindows = process.platform === 'win32';
 const shell = isWindows ? 'powershell.exe' : 'bash';
-const commandCaret = (isWindows ? '>' : '$') + ' ';
+const commandCaret = `${isWindows ? '>' : '$'} `;
 
 type ConditionalStdin = (outChunk: string) => string | false;
 type StdInArray = (string | ConditionalStdin)[];
 
 const getStdin = (
-	stdins: StdInArray
+	stdins: StdInArray,
 ): ConditionalStdin | undefined => {
 	const stdin = stdins.shift();
 	return (
 		typeof stdin === 'string'
-			? (outChunk) => outChunk.includes(commandCaret) && stdin
+			? outChunk => outChunk.includes(commandCaret) && stdin
 			: stdin
 	);
 };

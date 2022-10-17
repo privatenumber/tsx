@@ -67,6 +67,6 @@ const nodeVersions = [
 			// }
 
 			await fixture.rm();
-	});
+		});
 	}
 })();
