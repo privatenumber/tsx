@@ -55,7 +55,7 @@ export const ptyShell = (
 		console.log('Has not exited', {
 			stdins,
 			output: Buffer.concat(output).toString(),
-		})
+		});
 	}, 2000);
 
 	childProcess.on('exit', () => {
