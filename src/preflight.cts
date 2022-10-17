@@ -14,7 +14,7 @@ if (process.send) {
 		 * default behavior when there are no other handlers set
 		 */
 		if (process.rawListeners(signal).length === 1) {
-			process.stdin.write('\n');
+			process.stdout.write('\n');
 
 			// eslint-disable-next-line unicorn/no-process-exit
 			process.exit(128 + osConstants.signals[signal]);
