@@ -14,6 +14,6 @@ for (const name of signals) {
 	});
 }
 
-setInterval(() => {}, 1e5);
+setTimeout(() => {}, 1e5);
 
 console.log('READY');

@@ -93,76 +93,26 @@ export default testSuite(({ describe }, fixturePath: string) => {
 			}
 		});
 
-		describe('Handles kill signal from shell', ({ test }) => {
-			// type Command = {
-			// 	command: string;
-			// 	output: string;
-			// };
-
-			// const isWindows = process.platform === 'win32';
-			// const shell = isWindows ? 'powershell.exe' : 'bash';
-			// const commandCaret = (isWindows ? '>' : '$') + ' ';
-
-			// const spawnShell = (
-			// 	initCommand: string,
-			// 	callback: (outChunk: string, shell: IPty) => void,
-			// ) => new Promise((resolve, reject) => {
-			// 	const commands: Command[] = [
-			// 		initCommand,
-			// 		`echo ${isWindows ? '$LastExitCode' : '$?'}`,
-			// 	].map(command => ({ command, output: '' }));
-			// 	let currentCommand = -1;
-
-			// 	const shellProcess = spawn(shell, [], { cols: 1000 });
-
-			// 	shellProcess.onData((data) => {
-			// 		if (data.includes(commandCaret)) {
-			// 			if (currentCommand === commands.length - 1) {
-
-			// 				// Using pty's `kill` method errors on Windows
-			// 				process.kill(shellProcess.pid, 'SIGKILL');
-			// 			} else {
-			// 				currentCommand += 1;
-			// 				shellProcess.write(`${commands[currentCommand].command}\r`);	
-			// 			}
-
-			// 			const newLine = data.lastIndexOf('\n', data.indexOf(commandCaret));
-			// 			if (newLine === -1) {
-			// 				return;
-			// 			}
-			// 			data = data.slice(0, newLine);
-			// 		}
-
-			// 		// If initialized
-			// 		if (currentCommand > -1) {
-			// 			callback(data, shellProcess);
-			// 			commands[currentCommand].output += data;
-			// 		}
-			// 	});
-
-			// 	shellProcess.onExit(() => {
-			// 		const [out, exitCode] = commands.map(
-			// 			({ command, output }) => stripAnsi(output).split(command + '\r\n')[1],
-			// 		);
-
-			// 		resolve({
-			// 			out,
-			// 			exitCode: Number(exitCode.trim()),
-			// 		});
-			// 	});
-			// });
-
-			// TODO: Add test for SIGINT on Node.js script without handler
-			test('Ctrl + C', async () => {
+		describe('Ctrl + C', ({ test }) => {
+			test('Exit code', async () => {
 				const output = await ptyShell(
 					[
-						`${process.execPath} ./tests/fixtures/catch-signals.js\r`,
+						`${tsxPath} ./tests/fixtures/keep-alive.js\r`,
 						(stdout) => stdout === 'READY\r\n' && '\x03',
 						`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 					],
 				);
-				
-				console.log({output});
+				expect(output).toMatch(/EXIT_CODE:\s+130/);
+			});
+
+			test('Catchable', async () => {
+				const output = await ptyShell(
+					[
+						`${tsxPath} ./tests/fixtures/catch-signals.js\r`,
+						(stdout) => stdout === 'READY\r\n' && '\x03',
+						`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
+					],
+				);
 
 				expect(output).toMatch(
 					process.platform === 'win32'
