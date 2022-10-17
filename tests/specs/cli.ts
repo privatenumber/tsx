@@ -103,7 +103,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 					],
 				);
 				expect(output).toMatch(/EXIT_CODE:\s+130/);
-			}, 2000);
+			}, 5000);
 
 			test('Catchable', async () => {
 				const output = await ptyShell(
@@ -120,7 +120,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 						: 'READY\r\n^CSIGINT\r\nSIGINT HANDLER COMPLETED\r\n'
 				);
 				expect(output).toMatch(/EXIT_CODE:\s+200/);
-			}, 2000);
+			}, 5000);
 		});
 	});
 });
