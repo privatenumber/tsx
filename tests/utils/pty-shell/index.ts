@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'url';
-import { spawn } from 'child_process';
+import { execaNode } from 'execa';
 import stripAnsi from 'strip-ansi';
 
 export const isWindows = process.platform === 'win32';
@@ -23,12 +23,9 @@ const getStdin = (
 export const ptyShell = (
 	stdins: StdInArray,
 ) => new Promise((resolve, reject) => {
-	const childProcess = spawn(
-		process.execPath,
-		[
-			fileURLToPath(new URL('node-pty.mjs', import.meta.url)),
-			shell,
-		],
+	const childProcess = execaNode(
+		fileURLToPath(new URL('node-pty.mjs', import.meta.url)),
+		[shell],
 		{
 			stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
 		},
@@ -42,17 +39,14 @@ export const ptyShell = (
 	childProcess.stdout!.on('data', (data) => {
 		output.push(data);
 		const outString = data.toString();
-		console.log({ out: outString });
 
 		if (currentStdin) {
 			const stdin = currentStdin(outString);
 			if (stdin) {
-				console.log('sending stdin', stdin);
 				childProcess.send(stdin);
 				currentStdin = getStdin(stdins);
 			}
 		} else if (outString.includes(commandCaret)) {
-			console.log('Sending SIGTERM');
 			childProcess.kill('SIGTERM');
 		}
 	});

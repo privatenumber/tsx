@@ -6,104 +6,104 @@ import { ptyShell, isWindows } from '../utils/pty-shell';
 
 export default testSuite(({ describe }, fixturePath: string) => {
 	describe('CLI', ({ describe }) => {
-		// describe('version', ({ test }) => {
-		// 	test('shows version', async () => {
-		// 		const tsxProcess = await tsx({
-		// 			args: ['--version'],
-		// 		});
+		describe('version', ({ test }) => {
+			test('shows version', async () => {
+				const tsxProcess = await tsx({
+					args: ['--version'],
+				});
 
-		// 		expect(tsxProcess.exitCode).toBe(0);
-		// 		expect(tsxProcess.stdout).toBe(packageJson.version);
-		// 		expect(tsxProcess.stderr).toBe('');
-		// 	});
+				expect(tsxProcess.exitCode).toBe(0);
+				expect(tsxProcess.stdout).toBe(packageJson.version);
+				expect(tsxProcess.stderr).toBe('');
+			});
 
-		// 	test('doesn\'t show version with file', async () => {
-		// 		const tsxProcess = await tsx({
-		// 			args: [
-		// 				path.join(fixturePath, 'log-argv.ts'),
-		// 				'--version',
-		// 			],
-		// 		});
+			test('doesn\'t show version with file', async () => {
+				const tsxProcess = await tsx({
+					args: [
+						path.join(fixturePath, 'log-argv.ts'),
+						'--version',
+					],
+				});
 
-		// 		expect(tsxProcess.exitCode).toBe(0);
-		// 		expect(tsxProcess.stdout).toMatch('"--version"');
-		// 		expect(tsxProcess.stderr).toBe('');
-		// 	});
-		// });
+				expect(tsxProcess.exitCode).toBe(0);
+				expect(tsxProcess.stdout).toMatch('"--version"');
+				expect(tsxProcess.stderr).toBe('');
+			});
+		});
 
-		// describe('help', ({ test }) => {
-		// 	test('shows help', async () => {
-		// 		const tsxProcess = await tsx({
-		// 			args: ['--help'],
-		// 		});
+		describe('help', ({ test }) => {
+			test('shows help', async () => {
+				const tsxProcess = await tsx({
+					args: ['--help'],
+				});
 
-		// 		expect(tsxProcess.exitCode).toBe(0);
-		// 		expect(tsxProcess.stdout).toMatch('Node.js runtime enhanced with esbuild for loading TypeScript & ESM');
-		// 		expect(tsxProcess.stderr).toBe('');
-		// 	});
+				expect(tsxProcess.exitCode).toBe(0);
+				expect(tsxProcess.stdout).toMatch('Node.js runtime enhanced with esbuild for loading TypeScript & ESM');
+				expect(tsxProcess.stderr).toBe('');
+			});
 
-		// 	test('doesn\'t show help with file', async () => {
-		// 		const tsxProcess = await tsx({
-		// 			args: [
-		// 				path.join(fixturePath, 'log-argv.ts'),
-		// 				'--help',
-		// 			],
-		// 		});
+			test('doesn\'t show help with file', async () => {
+				const tsxProcess = await tsx({
+					args: [
+						path.join(fixturePath, 'log-argv.ts'),
+						'--help',
+					],
+				});
 
-		// 		expect(tsxProcess.exitCode).toBe(0);
-		// 		expect(tsxProcess.stdout).toMatch('"--help"');
-		// 		expect(tsxProcess.stderr).toBe('');
-		// 	});
-		// });
+				expect(tsxProcess.exitCode).toBe(0);
+				expect(tsxProcess.stdout).toMatch('"--help"');
+				expect(tsxProcess.stderr).toBe('');
+			});
+		});
 
-		// describe('Relays kill signal', ({ test }) => {
-		// 	const signals = ['SIGINT', 'SIGTERM'];
+		describe('Relays kill signal', ({ test }) => {
+			const signals = ['SIGINT', 'SIGTERM'];
 
-		// 	for (const signal of signals) {
-		// 		test(signal, async () => {
-		// 			const tsxProcess = tsx({
-		// 				args: [
-		// 					path.join(fixturePath, 'catch-signals.js'),
-		// 				],
-		// 			});
+			for (const signal of signals) {
+				test(signal, async () => {
+					const tsxProcess = tsx({
+						args: [
+							path.join(fixturePath, 'catch-signals.js'),
+						],
+					});
 
-		// 			tsxProcess.stdout!.once('data', () => {
-		// 				tsxProcess.kill(signal, {
-		// 					forceKillAfterTimeout: false,
-		// 				});
-		// 			});
+					tsxProcess.stdout!.once('data', () => {
+						tsxProcess.kill(signal, {
+							forceKillAfterTimeout: false,
+						});
+					});
 
-		// 			const tsxProcessResolved = await tsxProcess;
+					const tsxProcessResolved = await tsxProcess;
 
-		// 			if (process.platform === 'win32') {
-		// 				/**
-		// 				 * Windows doesn't support sending signals to processes.
-		// 				 * https://nodejs.org/api/process.html#signal-events
-		// 				 *
-		// 				 * Sending SIGINT, SIGTERM, and SIGKILL will cause the unconditional termination
-		// 				 * of the target process, and afterwards, subprocess will report that the process
-		// 				 * was terminated by signal.
-		// 				 */
-		// 				expect(tsxProcessResolved.stdout).toBe('READY');
-		// 			} else {
-		// 				expect(tsxProcessResolved.exitCode).toBe(200);
-		// 				expect(tsxProcessResolved.stdout).toBe(`READY\n${signal}\n${signal} HANDLER COMPLETED`);
-		// 			}
-		// 		}, 5000);
-		// 	}
-		// });
+					if (process.platform === 'win32') {
+						/**
+						 * Windows doesn't support sending signals to processes.
+						 * https://nodejs.org/api/process.html#signal-events
+						 *
+						 * Sending SIGINT, SIGTERM, and SIGKILL will cause the unconditional termination
+						 * of the target process, and afterwards, subprocess will report that the process
+						 * was terminated by signal.
+						 */
+						expect(tsxProcessResolved.stdout).toBe('READY');
+					} else {
+						expect(tsxProcessResolved.exitCode).toBe(200);
+						expect(tsxProcessResolved.stdout).toBe(`READY\n${signal}\n${signal} HANDLER COMPLETED`);
+					}
+				}, 2000);
+			}
+		});
 
 		describe('Ctrl + C', ({ test }) => {
-			// test('Exit code', async () => {
-			// 	const output = await ptyShell(
-			// 		[
-			// 			`${process.execPath} ${tsxPath} ./tests/fixtures/keep-alive.js\r`,
-			// 			stdout => stdout === 'READY\r\n' && '\u0003',
-			// 			`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
-			// 		],
-			// 	);
-			// 	expect(output).toMatch(/EXIT_CODE:\s+130/);
-			// }, 5000);
+			test('Exit code', async () => {
+				const output = await ptyShell(
+					[
+						`${process.execPath} ${tsxPath} ./tests/fixtures/keep-alive.js\r`,
+						stdout => stdout === 'READY\r\n' && '\u0003',
+						`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
+					],
+				);
+				expect(output).toMatch(/EXIT_CODE:\s+130/);
+			}, 2000);
 
 			test('Catchable', async () => {
 				const output = await ptyShell(
@@ -120,7 +120,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 						: 'READY\r\n^CSIGINT\r\nSIGINT HANDLER COMPLETED\r\n',
 				);
 				expect(output).toMatch(/EXIT_CODE:\s+200/);
-			}, 5000);
+			}, 2000);
 		});
 	});
 });

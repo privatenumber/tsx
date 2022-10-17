@@ -34,6 +34,8 @@ function relaySignal(signal: NodeJS.Signals) {
 	 */
 	if (process.rawListeners(signal).length === 1) {
 		process.stdin.write('\n');
+
+		// eslint-disable-next-line unicorn/no-process-exit
 		process.exit(128 + osConstants.signals[signal]);
 	}
 }

@@ -1,4 +1,3 @@
-import { once } from 'events';
 import { setTimeout } from 'timers/promises';
 import { cli } from 'cleye';
 import typeFlag from 'type-flag';
@@ -78,13 +77,14 @@ cli({
 			 * Ignore it and let child handle it.
 			 */
 			new Promise<NodeJS.Signals>((resolve) => {
-				function handler(data: { type: string; signal: NodeJS.Signals }) {
+				function onKillSignal(data: { type: string; signal: NodeJS.Signals }) {
 					if (data && data.type === 'kill') {
 						resolve(data.signal);
-						childProcess.off('message', handler);
+						childProcess.off('message', onKillSignal);
 					}
 				}
-				childProcess.on('message', handler);
+
+				childProcess.on('message', onKillSignal);
 			}),
 			setTimeout(10),
 		]);
