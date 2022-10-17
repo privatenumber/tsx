@@ -15,5 +15,4 @@ for (const name of signals) {
 }
 
 setTimeout(() => {}, 1e5);
-
 console.log('READY');

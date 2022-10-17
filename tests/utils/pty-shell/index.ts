@@ -42,10 +42,12 @@ export const ptyShell = (
 	childProcess.stdout!.on('data', (data) => {
 		output.push(data);
 		const outString = data.toString();
+		console.log({ outString });
 
 		if (currentStdin) {
 			const stdin = currentStdin(outString);
 			if (stdin) {
+				console.log('sending stdin', stdin);
 				childProcess.send(stdin);
 				currentStdin = getStdin(stdins);
 			}
