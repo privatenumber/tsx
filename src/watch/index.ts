@@ -1,5 +1,6 @@
 import type { ChildProcess } from 'child_process';
 import { fileURLToPath } from 'url';
+import { constants as osConstants } from 'os';
 import path from 'path';
 import { command } from 'cleye';
 import typeFlag from 'type-flag';
@@ -95,17 +96,39 @@ export const watchCommand = command({
 
 	reRun();
 
-	// Kill process on CTRL+C
-	function exit(exitCode: number) {
-		if (runProcess) {
-			runProcess.kill();
-		}
-
+	function exit(signal: NodeJS.Signals) {
+		/**
+		 * In CLI mode where there is only one run, we can inherit the child's exit code.
+		 * But in watch mode, the exit code should reflect the kill signal.
+		 */
 		// eslint-disable-next-line unicorn/no-process-exit
-		process.exit(exitCode);
+		process.exit(
+			/**
+			 * https://nodejs.org/api/process.html#exit-codes
+			 * >128 Signal Exits: If Node.js receives a fatal signal such as SIGKILL or SIGHUP,
+			 * then its exit code will be 128 plus the value of the signal code. This is a
+			 * standard POSIX practice, since exit codes are defined to be 7-bit integers, and
+			 * signal exits set the high-order bit, and then contain the value of the signal
+			 * code. For example, signal SIGABRT has value 6, so the expected exit code will be
+			 * 128 + 6, or 134.
+			 */
+			128 + osConstants.signals[signal],
+		);
 	}
-	process.once('SIGINT', () => exit(130));
-	process.once('SIGTERM', () => exit(143));
+
+	function relaySignal(signal: NodeJS.Signals) {
+		// Child is still running
+		if (runProcess && runProcess.exitCode === null) {
+			// Wait for child to exit
+			runProcess.on('close', () => exit(signal));
+			runProcess.kill(signal);
+		} else {
+			exit(signal);
+		}
+	}
+
+	process.once('SIGINT', relaySignal);
+	process.once('SIGTERM', relaySignal);
 
 	/**
 	 * Ideally, we can get a list of files loaded from the run above

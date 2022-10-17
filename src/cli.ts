@@ -62,10 +62,47 @@ cli({
 		{ ignoreUnknown: true },
 	)._;
 
-	run(args, {
+	const childProcess = run(args, {
 		noCache: Boolean(argv.flags.noCache),
 		tsconfigPath: argv.flags.tsconfig,
-	}).on(
+	});
+
+	const relaySignal = async (signal: NodeJS.Signals) => {
+		const message = await Promise.race([
+			/**
+			 * If child received a signal, it detected a keypress or
+			 * was sent a signal via process group.
+			 *
+			 * Ignore it and let child handle it.
+			 */
+			new Promise<NodeJS.Signals>((resolve) => {
+				function onKillSignal(data: { type: string; signal: NodeJS.Signals }) {
+					if (data && data.type === 'kill') {
+						resolve(data.signal);
+						childProcess.off('message', onKillSignal);
+					}
+				}
+
+				childProcess.on('message', onKillSignal);
+			}),
+			new Promise((resolve) => {
+				setTimeout(resolve, 10);
+			}),
+		]);
+
+		/**
+		 * If child didn't receive a signal, it was sent to the parent
+		 * directly via kill PID. Relay it to child.
+		 */
+		if (!message) {
+			childProcess.kill(signal);
+		}
+	};
+
+	process.on('SIGINT', relaySignal);
+	process.on('SIGTERM', relaySignal);
+
+	childProcess.on(
 		'close',
 		code => process.exit(code!),
 	);

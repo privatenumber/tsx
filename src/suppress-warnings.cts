@@ -1,3 +1,5 @@
+// Deprecated: Move to preflight.cts & delete entry-point in next major
+
 const ignoreWarnings = new Set([
 	'--experimental-loader is an experimental feature. This feature could change at any time',
 	'Custom ESM Loaders is an experimental feature. This feature could change at any time',
