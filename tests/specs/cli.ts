@@ -56,54 +56,54 @@ export default testSuite(({ describe }, fixturePath: string) => {
 		// 	});
 		// });
 
-		describe('Relays kill signal', ({ test }) => {
-			const signals = ['SIGINT', 'SIGTERM'];
+		// describe('Relays kill signal', ({ test }) => {
+		// 	const signals = ['SIGINT', 'SIGTERM'];
 
-			for (const signal of signals) {
-				test(signal, async () => {
-					const tsxProcess = tsx({
-						args: [
-							path.join(fixturePath, 'catch-signals.js'),
-						],
-					});
+		// 	for (const signal of signals) {
+		// 		test(signal, async () => {
+		// 			const tsxProcess = tsx({
+		// 				args: [
+		// 					path.join(fixturePath, 'catch-signals.js'),
+		// 				],
+		// 			});
 
-					tsxProcess.stdout!.once('data', () => {
-						tsxProcess.kill(signal, {
-							forceKillAfterTimeout: false,
-						});
-					});
+		// 			tsxProcess.stdout!.once('data', () => {
+		// 				tsxProcess.kill(signal, {
+		// 					forceKillAfterTimeout: false,
+		// 				});
+		// 			});
 
-					const tsxProcessResolved = await tsxProcess;
+		// 			const tsxProcessResolved = await tsxProcess;
 
-					if (process.platform === 'win32') {
-						/**
-						 * Windows doesn't support sending signals to processes.
-						 * https://nodejs.org/api/process.html#signal-events
-						 *
-						 * Sending SIGINT, SIGTERM, and SIGKILL will cause the unconditional termination
-						 * of the target process, and afterwards, subprocess will report that the process
-						 * was terminated by signal.
-						 */
-						expect(tsxProcessResolved.stdout).toBe('READY');
-					} else {
-						expect(tsxProcessResolved.exitCode).toBe(200);
-						expect(tsxProcessResolved.stdout).toBe(`READY\n${signal}\n${signal} HANDLER COMPLETED`);
-					}
-				}, 5000);
-			}
-		});
+		// 			if (process.platform === 'win32') {
+		// 				/**
+		// 				 * Windows doesn't support sending signals to processes.
+		// 				 * https://nodejs.org/api/process.html#signal-events
+		// 				 *
+		// 				 * Sending SIGINT, SIGTERM, and SIGKILL will cause the unconditional termination
+		// 				 * of the target process, and afterwards, subprocess will report that the process
+		// 				 * was terminated by signal.
+		// 				 */
+		// 				expect(tsxProcessResolved.stdout).toBe('READY');
+		// 			} else {
+		// 				expect(tsxProcessResolved.exitCode).toBe(200);
+		// 				expect(tsxProcessResolved.stdout).toBe(`READY\n${signal}\n${signal} HANDLER COMPLETED`);
+		// 			}
+		// 		}, 5000);
+		// 	}
+		// });
 
 		describe('Ctrl + C', ({ test }) => {
-			test('Exit code', async () => {
-				const output = await ptyShell(
-					[
-						`${tsxPath} ./tests/fixtures/keep-alive.js\r`,
-						stdout => stdout === 'READY\r\n' && '\u0003',
-						`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
-					],
-				);
-				expect(output).toMatch(/EXIT_CODE:\s+130/);
-			}, 5000);
+			// test('Exit code', async () => {
+			// 	const output = await ptyShell(
+			// 		[
+			// 			`${tsxPath} ./tests/fixtures/keep-alive.js\r`,
+			// 			stdout => stdout === 'READY\r\n' && '\u0003',
+			// 			`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
+			// 		],
+			// 	);
+			// 	expect(output).toMatch(/EXIT_CODE:\s+130/);
+			// }, 5000);
 
 			test('Catchable', async () => {
 				const output = await ptyShell(

@@ -42,7 +42,7 @@ export const ptyShell = (
 	childProcess.stdout!.on('data', (data) => {
 		output.push(data);
 		const outString = data.toString();
-		console.log({ outString });
+		console.log({ out: outString });
 
 		if (currentStdin) {
 			const stdin = currentStdin(outString);
@@ -52,6 +52,7 @@ export const ptyShell = (
 				currentStdin = getStdin(stdins);
 			}
 		} else if (outString.includes(commandCaret)) {
+			console.log('Sending SIGTERM');
 			childProcess.kill('SIGTERM');
 		}
 	});
