@@ -17,6 +17,3 @@ for (const name of signals) {
 setInterval(() => {}, 1e5);
 
 console.log('READY');
-
-// For TypeScript to consider this file a module
-export {};

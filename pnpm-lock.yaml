@@ -26,7 +26,6 @@ specifiers:
   strip-ansi: ^7.0.1
   type-flag: ^2.2.0
   typescript: ^4.8.4
-  wtfnode: ^0.9.1
 
 dependencies:
   '@esbuild-kit/cjs-loader': 2.4.0
@@ -58,7 +57,6 @@ devDependencies:
   strip-ansi: 7.0.1
   type-flag: 2.2.0
   typescript: 4.8.4
-  wtfnode: 0.9.1
 
 packages:
 
@@ -3956,11 +3954,6 @@ packages:
     dependencies:
       imurmurhash: 0.1.4
       signal-exit: 3.0.7
-    dev: true
-
-  /wtfnode/0.9.1:
-    resolution: {integrity: sha512-Ip6C2KeQPl/F3aP1EfOnPoQk14Udd9lffpoqWDNH3Xt78svxPbv53ngtmtfI0q2Te3oTq79XKTnRNXVIn/GsPA==}
-    hasBin: true
     dev: true
 
   /xml-name-validator/4.0.0:

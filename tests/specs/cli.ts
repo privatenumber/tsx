@@ -2,8 +2,7 @@ import path from 'path';
 import { testSuite, expect } from 'manten';
 import packageJson from '../../package.json';
 import { tsx, tsxPath } from '../utils/tsx';
-import { spawn, type IPty } from 'node-pty';
-import stripAnsi from 'strip-ansi';
+import { ptyShell, isWindows } from '../utils/pty-shell';
 
 export default testSuite(({ describe }, fixturePath: string) => {
 	describe('CLI', ({ describe }) => {
@@ -64,7 +63,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 				test(signal, async () => {
 					const tsxProcess = tsx({
 						args: [
-							path.join(fixturePath, 'catch-signals.ts'),
+							path.join(fixturePath, 'catch-signals.js'),
 						],
 					});
 
@@ -95,81 +94,82 @@ export default testSuite(({ describe }, fixturePath: string) => {
 		});
 
 		describe('Handles kill signal from shell', ({ test }) => {
-			type Command = {
-				command: string;
-				output: string;
-			};
+			// type Command = {
+			// 	command: string;
+			// 	output: string;
+			// };
 
-			const isWindows = process.platform === 'win32';
-			const shell = isWindows ? 'powershell.exe' : 'bash';
-			const commandCaret = (isWindows ? '>' : '$') + ' ';
+			// const isWindows = process.platform === 'win32';
+			// const shell = isWindows ? 'powershell.exe' : 'bash';
+			// const commandCaret = (isWindows ? '>' : '$') + ' ';
 
-			const spawnShell = (
-				initCommand: string,
-				callback: (outChunk: string, shell: IPty) => void,
-			) => new Promise((resolve, reject) => {
-				const commands: Command[] = [
-					initCommand,
-					`echo ${isWindows ? '$LastExitCode' : '$?'}`,
-				].map(command => ({ command, output: '' }));
-				let currentCommand = -1;
+			// const spawnShell = (
+			// 	initCommand: string,
+			// 	callback: (outChunk: string, shell: IPty) => void,
+			// ) => new Promise((resolve, reject) => {
+			// 	const commands: Command[] = [
+			// 		initCommand,
+			// 		`echo ${isWindows ? '$LastExitCode' : '$?'}`,
+			// 	].map(command => ({ command, output: '' }));
+			// 	let currentCommand = -1;
 
-				const shellProcess = spawn(shell, [], { cols: 1000 });
+			// 	const shellProcess = spawn(shell, [], { cols: 1000 });
 
-				shellProcess.onData((data) => {
-					if (data.includes(commandCaret)) {
-						if (currentCommand === commands.length - 1) {
+			// 	shellProcess.onData((data) => {
+			// 		if (data.includes(commandCaret)) {
+			// 			if (currentCommand === commands.length - 1) {
 
-							// Using pty's `kill` method errors on Windows
-							process.kill(shellProcess.pid, 'SIGKILL');
-						} else {
-							currentCommand += 1;
-							shellProcess.write(`${commands[currentCommand].command}\r`);	
-						}
+			// 				// Using pty's `kill` method errors on Windows
+			// 				process.kill(shellProcess.pid, 'SIGKILL');
+			// 			} else {
+			// 				currentCommand += 1;
+			// 				shellProcess.write(`${commands[currentCommand].command}\r`);	
+			// 			}
 
-						const newLine = data.lastIndexOf('\n', data.indexOf(commandCaret));
-						if (newLine === -1) {
-							return;
-						}
-						data = data.slice(0, newLine);
-					}
+			// 			const newLine = data.lastIndexOf('\n', data.indexOf(commandCaret));
+			// 			if (newLine === -1) {
+			// 				return;
+			// 			}
+			// 			data = data.slice(0, newLine);
+			// 		}
 
-					// If initialized
-					if (currentCommand > -1) {
-						callback(data, shellProcess);
-						commands[currentCommand].output += data;
-					}
-				});
+			// 		// If initialized
+			// 		if (currentCommand > -1) {
+			// 			callback(data, shellProcess);
+			// 			commands[currentCommand].output += data;
+			// 		}
+			// 	});
 
-				shellProcess.onExit(() => {
-					const [out, exitCode] = commands.map(
-						({ command, output }) => stripAnsi(output).split(command + '\r\n')[1],
-					);
+			// 	shellProcess.onExit(() => {
+			// 		const [out, exitCode] = commands.map(
+			// 			({ command, output }) => stripAnsi(output).split(command + '\r\n')[1],
+			// 		);
 
-					resolve({
-						out,
-						exitCode: Number(exitCode.trim()),
-					});
-				});
-			});
+			// 		resolve({
+			// 			out,
+			// 			exitCode: Number(exitCode.trim()),
+			// 		});
+			// 	});
+			// });
 
 			// TODO: Add test for SIGINT on Node.js script without handler
 			test('Ctrl + C', async () => {
-				const results = await spawnShell(
-					`${process.execPath} ${tsxPath} ${path.join(fixturePath, 'catch-signals.ts')}`,
-					(outChunk, shell) => {
-						if (outChunk === 'READY\r\n') {
-							shell.write('\x03');
-						}
-					},
+				const output = await ptyShell(
+					[
+						`${process.execPath} ./tests/fixtures/catch-signals.js\r`,
+						(stdout) => stdout === 'READY\r\n' && '\x03',
+						`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
+					],
 				);
+				
+				console.log({output});
 
-				expect(results.out).toBe(
+				expect(output).toMatch(
 					process.platform === 'win32'
 						? 'READY\r\nSIGINT\r\nSIGINT HANDLER COMPLETED\r\n'
 						: 'READY\r\n^CSIGINT\r\nSIGINT HANDLER COMPLETED\r\n'
 				);
-				expect(results.exitCode).toBe(200);
+				expect(output).toMatch('EXIT_CODE: 200');
 			});
 		});
 	});
