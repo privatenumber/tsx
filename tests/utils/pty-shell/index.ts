@@ -51,7 +51,15 @@ export const ptyShell = (
 		}
 	});
 
+	const timeoutDebugger = setTimeout(() => {
+		console.log('Has not exited', {
+			stdins,
+			output: Buffer.concat(output).toString(),
+		})
+	}, 2000);
+
 	childProcess.on('exit', () => {
+		clearTimeout(timeoutDebugger);
 		let outString = Buffer.concat(output).toString();
 		outString = stripAnsi(outString);
 		resolve(outString);
