@@ -169,7 +169,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 						? 'READY\r\nSIGINT\r\nSIGINT HANDLER COMPLETED\r\n'
 						: 'READY\r\n^CSIGINT\r\nSIGINT HANDLER COMPLETED\r\n'
 				);
-				expect(output).toMatch('EXIT_CODE: 200');
+				expect(output).toMatch(/EXIT_CODE:\s+200/);
 			});
 		});
 	});
