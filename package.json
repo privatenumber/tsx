@@ -35,8 +35,7 @@
 		"lint": "eslint --cache .",
 		"type-check": "tsc --noEmit",
 		"test": "pnpm build && node ./dist/cli.js tests/index.ts",
-		"prepack": "pnpm build && clean-pkg-json",
-		"prepublishOnly": "pnpm test"
+		"prepack": "pnpm build && clean-pkg-json"
 	},
 	"dependencies": {
 		"@esbuild-kit/cjs-loader": "^2.4.0",
