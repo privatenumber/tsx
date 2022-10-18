@@ -98,7 +98,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 				const output = await ptyShell(
 					[
 						`${process.execPath} ${tsxPath} ./tests/fixtures/keep-alive.js\r`,
-						stdout => stdout === 'READY\r\n' && '\u0003',
+						stdout => stdout.includes('READY') && '\u0003',
 						`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 					],
 				);
@@ -109,7 +109,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 				const output = await ptyShell(
 					[
 						`${process.execPath} ${tsxPath} ./tests/fixtures/catch-signals.js\r`,
-						stdout => stdout === 'READY\r\n' && '\u0003',
+						stdout => stdout.includes('READY') && '\u0003',
 						`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 					],
 				);
