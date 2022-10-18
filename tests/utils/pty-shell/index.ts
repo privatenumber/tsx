@@ -23,15 +23,6 @@ const getStdin = (
 export const ptyShell = (
 	stdins: StdInArray,
 ) => new Promise((resolve, reject) => {
-	const originalStdins = stdins.slice();
-	const timeoutDebugger = setTimeout(() => {
-		console.log('Shell has not exited', {
-			stdins: originalStdins,
-			output: Buffer.concat(output).toString(),
-			chunks: output.map(chunk => chunk.toString()),
-		});
-	}, 5000);
-
 	const childProcess = execaNode(
 		fileURLToPath(new URL('node-pty.mjs', import.meta.url)),
 		[shell],
@@ -61,7 +52,6 @@ export const ptyShell = (
 	});
 
 	childProcess.on('exit', () => {
-		clearTimeout(timeoutDebugger);
 		let outString = Buffer.concat(output).toString();
 		outString = stripAnsi(outString);
 		resolve(outString);
