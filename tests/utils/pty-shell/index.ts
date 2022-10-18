@@ -28,6 +28,7 @@ export const ptyShell = (
 		console.log('Shell has not exited', {
 			stdins: originalStdins,
 			output: Buffer.concat(output).toString(),
+			chunks: output.map(chunk => chunk.toString()),
 		});
 	}, 5000);
 
