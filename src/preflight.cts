@@ -13,14 +13,24 @@ if (process.send) {
 		 * Since we're setting a custom signal handler, we need to emulate the
 		 * default behavior when there are no other handlers set
 		 */
-		if (process.rawListeners(signal).length === 1) {
-			process.stdout.write('\n');
-
+		if (process.listenerCount(signal) === 0) {
 			// eslint-disable-next-line unicorn/no-process-exit
 			process.exit(128 + osConstants.signals[signal]);
 		}
 	}
 
-	process.on('SIGINT', relaySignal);
-	process.on('SIGTERM', relaySignal);
+	const relaySignals = ['SIGINT', 'SIGTERM'] as const;
+	for (const signal of relaySignals) {
+		process.on(signal, relaySignal);
+	}
+
+	// Reduce the listenerCount to hide the one set above
+	const { listenerCount } = process;
+	process.listenerCount = function (eventName) {
+		let count = Reflect.apply(listenerCount, this, arguments);
+		if (relaySignals.includes(eventName as any)) {
+			count -= 1;
+		}
+		return count;
+	};
 }
