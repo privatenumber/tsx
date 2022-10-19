@@ -171,18 +171,22 @@ argv: [ 'hello' ]
 
 ## Dependencies
 
-- [@esbuild-kit/esm-loader](https://github.com/esbuild-kit/esm-loader) - Node.js Loader to transform TypeScript to ESM.
+#### [@esbuild-kit/esm-loader](https://github.com/esbuild-kit/esm-loader)
+Node.js Loader to transform TypeScript to ESM.
 
-- [@esbuild-kit/cjs-loader](https://github.com/esbuild-kit/cjs-loader) - Node.js `require()` hook to transform TypeScript & ESM to CommonJS.
+#### [@esbuild-kit/cjs-loader](https://github.com/esbuild-kit/cjs-loader)
+Node.js `require()` hook to transform TypeScript & ESM to CommonJS.
 
 
 ## FAQ
 
 ### Why is it named `tsx`?
 
-`tsx` stands for "TypeScript execute", similar to [`npx`](https://docs.npmjs.com/cli/v8/commands/npx) ("Node.js package execute").
+`tsx` stands for "TypeScript execute". Mirroring [`npx`](https://docs.npmjs.com/cli/v8/commands/npx), which stands for "Node.js package execute".
 
-It has an unfortunate overlap with React's [TSX/JSX](https://www.typescriptlang.org/docs/handbook/jsx.html), which stands for "JavaScript XML". However, we believe the naming is appropriate for what it does.
+The 3-character package name offers an elegant developer experience, allowing usage like: `npx tsx ...`.
+
+Unfortunately, it overlaps with React's [TSX/JSX](https://www.typescriptlang.org/docs/handbook/jsx.html), which stands for "TypeScript XML".
 
 ### Does it do type-checking?
 
