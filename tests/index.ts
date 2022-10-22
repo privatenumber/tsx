@@ -54,18 +54,18 @@ const nodeVersions = [
 						import('./specs/repl'),
 						node,
 					);
-					// runTestSuite(
-					// 	import('./specs/javascript'),
-					// 	node,
-					// );
-					// runTestSuite(
-					// 	import('./specs/typescript'),
-					// 	node,
-					// );
-					// runTestSuite(
-					// 	import('./specs/json'),
-					// 	node,
-					// );
+					runTestSuite(
+						import('./specs/javascript'),
+						node,
+					);
+					runTestSuite(
+						import('./specs/typescript'),
+						node,
+					);
+					runTestSuite(
+						import('./specs/json'),
+						node,
+					);
 				});
 			}
 
