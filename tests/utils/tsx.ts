@@ -40,6 +40,14 @@ export async function createNode(
 		get isCJS() {
 			return this.packageType === 'commonjs';
 		},
+		tsx(
+			options: Options,
+		) {
+			return tsx({
+				...options,
+				nodePath: node.path,
+			});
+		},
 		load(
 			filePath: string,
 			options?: {

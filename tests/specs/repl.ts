@@ -1,11 +1,11 @@
 import { testSuite } from 'manten';
-import { tsx } from '../utils/tsx';
+import { type NodeApis } from '../utils/tsx';
 
-export default testSuite(async ({ describe }) => {
+export default testSuite(async ({ describe }, node: NodeApis) => {
 	describe('repl', ({ test }) => {
 		test('handles ts', async () => {
-			const tsxProcess = tsx({
-				args: [],
+			const tsxProcess = node.tsx({
+				args: ['--interactive'],
 			});
 
 			const commands = [
@@ -32,8 +32,8 @@ export default testSuite(async ({ describe }) => {
 		}, 5000);
 
 		test('doesn\'t error on require', async () => {
-			const tsxProcess = tsx({
-				args: [],
+			const tsxProcess = node.tsx({
+				args: ['--interactive'],
 			});
 
 			await new Promise<void>((resolve, reject) => {
@@ -58,15 +58,15 @@ export default testSuite(async ({ describe }) => {
 		}, 5000);
 
 		test('errors on import statement', async () => {
-			const tsxProcess = tsx({
-				args: [],
+			const tsxProcess = node.tsx({
+				args: ['--interactive'],
 			});
 
 			await new Promise<void>((resolve) => {
 				tsxProcess.stdout!.on('data', (data: Buffer) => {
 					const chunkString = data.toString();
 
-					if (chunkString.includes('SyntaxError: Cannot use import statement inside the Node.js REPL')) {
+					if (chunkString.includes('SyntaxError: Cannot use import statement')) {
 						return resolve();
 					}
 

@@ -1,4 +1,6 @@
 // Hook require() to transform to CJS
+import './patch-repl';
+
 require('@esbuild-kit/cjs-loader');
 
 /*

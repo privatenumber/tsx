@@ -51,9 +51,6 @@ cli({
 			});
 			return;
 		}
-
-		// Load REPL
-		process.argv.push(require.resolve('./repl'));
 	}
 
 	const args = typeFlag(
