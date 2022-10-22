@@ -33,54 +33,54 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 			tsxProcess.kill();
 		}, 10000);
 
-		test('doesn\'t error on require', async () => {
-			const tsxProcess = node.tsx({
-				args: ['--interactive'],
-			});
+		// test('doesn\'t error on require', async () => {
+		// 	const tsxProcess = node.tsx({
+		// 		args: ['--interactive'],
+		// 	});
 
-			await new Promise<void>((resolve, reject) => {
-				tsxProcess.stdout!.on('data', (data: Buffer) => {
-					const chunkString = data.toString();
-					console.log({ chunkString });
+		// 	await new Promise<void>((resolve, reject) => {
+		// 		tsxProcess.stdout!.on('data', (data: Buffer) => {
+		// 			const chunkString = data.toString();
+		// 			console.log({ chunkString });
 
-					if (chunkString.includes('unsupported-require-call')) {
-						return reject(chunkString);
-					}
+		// 			if (chunkString.includes('unsupported-require-call')) {
+		// 				return reject(chunkString);
+		// 			}
 
-					if (chunkString.includes('[Function: resolve]')) {
-						return resolve();
-					}
+		// 			if (chunkString.includes('[Function: resolve]')) {
+		// 				return resolve();
+		// 			}
 
-					if (chunkString.includes('> ')) {
-						tsxProcess.stdin?.write('require("path")\r');
-					}
-				});
-			});
+		// 			if (chunkString.includes('> ')) {
+		// 				tsxProcess.stdin?.write('require("path")\r');
+		// 			}
+		// 		});
+		// 	});
 
-			tsxProcess.kill();
-		}, 10000);
+		// 	tsxProcess.kill();
+		// }, 10000);
 
-		test('errors on import statement', async () => {
-			const tsxProcess = node.tsx({
-				args: ['--interactive'],
-			});
+		// test('errors on import statement', async () => {
+		// 	const tsxProcess = node.tsx({
+		// 		args: ['--interactive'],
+		// 	});
 
-			await new Promise<void>((resolve) => {
-				tsxProcess.stdout!.on('data', (data: Buffer) => {
-					const chunkString = data.toString();
-					console.log({ chunkString });
+		// 	await new Promise<void>((resolve) => {
+		// 		tsxProcess.stdout!.on('data', (data: Buffer) => {
+		// 			const chunkString = data.toString();
+		// 			console.log({ chunkString });
 
-					if (chunkString.includes('SyntaxError: Cannot use import statement')) {
-						return resolve();
-					}
+		// 			if (chunkString.includes('SyntaxError: Cannot use import statement')) {
+		// 				return resolve();
+		// 			}
 
-					if (chunkString.includes('> ')) {
-						tsxProcess.stdin?.write('import fs from "fs"\r');
-					}
-				});
-			});
+		// 			if (chunkString.includes('> ')) {
+		// 				tsxProcess.stdin?.write('import fs from "fs"\r');
+		// 			}
+		// 		});
+		// 	});
 
-			tsxProcess.kill();
-		}, 10000);
+		// 	tsxProcess.kill();
+		// }, 10000);
 	});
 });
