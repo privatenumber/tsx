@@ -24,7 +24,8 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 					if (chunkString.includes('> ') && commands.length > 0) {
 						const command = commands.shift();
-						tsxProcess.stdin?.write(`${command}\n`);
+						console.log({ command });
+						tsxProcess.stdin?.write(`${command}\r`);
 					}
 				});
 			});
@@ -51,7 +52,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 					}
 
 					if (chunkString.includes('> ')) {
-						tsxProcess.stdin?.write('require("path")\n');
+						tsxProcess.stdin?.write('require("path")\r');
 					}
 				});
 			});
@@ -74,7 +75,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 					}
 
 					if (chunkString.includes('> ')) {
-						tsxProcess.stdin?.write('import fs from "fs"\n');
+						tsxProcess.stdin?.write('import fs from "fs"\r');
 					}
 				});
 			});
