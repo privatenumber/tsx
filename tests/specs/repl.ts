@@ -1,11 +1,11 @@
 import { testSuite } from 'manten';
-import { tsx } from '../utils/tsx';
+import { type NodeApis } from '../utils/tsx';
 
-export default testSuite(async ({ describe }) => {
+export default testSuite(async ({ describe }, node: NodeApis) => {
 	describe('repl', ({ test }) => {
 		test('handles ts', async () => {
-			const tsxProcess = tsx({
-				args: [],
+			const tsxProcess = node.tsx({
+				args: ['--interactive'],
 			});
 
 			const commands = [
@@ -23,17 +23,17 @@ export default testSuite(async ({ describe }) => {
 
 					if (chunkString.includes('> ') && commands.length > 0) {
 						const command = commands.shift();
-						tsxProcess.stdin?.write(`${command}\n`);
+						tsxProcess.stdin?.write(`${command}\r`);
 					}
 				});
 			});
 
 			tsxProcess.kill();
-		}, 5000);
+		}, 30_000);
 
 		test('doesn\'t error on require', async () => {
-			const tsxProcess = tsx({
-				args: [],
+			const tsxProcess = node.tsx({
+				args: ['--interactive'],
 			});
 
 			await new Promise<void>((resolve, reject) => {
@@ -49,34 +49,34 @@ export default testSuite(async ({ describe }) => {
 					}
 
 					if (chunkString.includes('> ')) {
-						tsxProcess.stdin?.write('require("path")\n');
+						tsxProcess.stdin?.write('require("path")\r');
 					}
 				});
 			});
 
 			tsxProcess.kill();
-		}, 5000);
+		}, 30_000);
 
 		test('errors on import statement', async () => {
-			const tsxProcess = tsx({
-				args: [],
+			const tsxProcess = node.tsx({
+				args: ['--interactive'],
 			});
 
 			await new Promise<void>((resolve) => {
 				tsxProcess.stdout!.on('data', (data: Buffer) => {
 					const chunkString = data.toString();
 
-					if (chunkString.includes('SyntaxError: Cannot use import statement inside the Node.js REPL')) {
+					if (chunkString.includes('SyntaxError: Cannot use import statement')) {
 						return resolve();
 					}
 
 					if (chunkString.includes('> ')) {
-						tsxProcess.stdin?.write('import fs from "fs"\n');
+						tsxProcess.stdin?.write('import fs from "fs"\r');
 					}
 				});
 			});
 
 			tsxProcess.kill();
-		}, 5000);
+		}, 30_000);
 	});
 });

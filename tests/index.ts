@@ -42,7 +42,6 @@ const nodeVersions = [
 					import('./specs/watch'),
 					fixture.path,
 				);
-				runTestSuite(import('./specs/repl'));
 			});
 
 			for (const nodeVersion of nodeVersions) {
@@ -51,6 +50,10 @@ const nodeVersions = [
 				node.packageType = packageType;
 
 				await describe(`Node ${node.version}`, ({ runTestSuite }) => {
+					runTestSuite(
+						import('./specs/repl'),
+						node,
+					);
 					runTestSuite(
 						import('./specs/javascript'),
 						node,

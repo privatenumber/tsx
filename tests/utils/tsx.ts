@@ -40,6 +40,14 @@ export async function createNode(
 		get isCJS() {
 			return this.packageType === 'commonjs';
 		},
+		tsx(
+			options: Options,
+		) {
+			return tsx({
+				...options,
+				nodePath: node.path,
+			});
+		},
 		load(
 			filePath: string,
 			options?: {
@@ -47,13 +55,12 @@ export async function createNode(
 				args?: string[];
 			},
 		) {
-			return tsx(
+			return this.tsx(
 				{
 					args: [
 						...(options?.args ?? []),
 						filePath,
 					],
-					nodePath: node.path,
 					cwd: path.join(fixturePath, options?.cwd ?? ''),
 				},
 			);
@@ -64,12 +71,11 @@ export async function createNode(
 				typescript?: boolean;
 			},
 		) {
-			return tsx({
+			return this.tsx({
 				args: [
 					`./import-file${options?.typescript ? '.ts' : '.js'}`,
 					filePath,
 				],
-				nodePath: node.path,
 				cwd: fixturePath,
 			});
 		},
@@ -79,12 +85,11 @@ export async function createNode(
 				typescript?: boolean;
 			},
 		) {
-			return tsx({
+			return this.tsx({
 				args: [
 					`./require-file${options?.typescript ? '.cts' : '.cjs'}`,
 					filePath,
 				],
-				nodePath: node.path,
 				cwd: fixturePath,
 			});
 		},
