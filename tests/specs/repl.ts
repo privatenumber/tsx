@@ -4,8 +4,13 @@ import { type NodeApis } from '../utils/tsx';
 export default testSuite(async ({ describe }, node: NodeApis) => {
 	describe('repl', ({ test }) => {
 		test('handles ts', async () => {
+			console.log('start', Date.now());
 			const tsxProcess = node.tsx({
 				args: ['--interactive'],
+			});
+
+			tsxProcess.on('spawn', () => {
+				console.log('spawn', Date.now());
 			});
 
 			const commands = [
@@ -16,7 +21,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 			await new Promise<void>((resolve) => {
 				tsxProcess.stdout!.on('data', (data: Buffer) => {
 					const chunkString = data.toString();
-					console.log({ chunkString });
+					console.log({ chunkString }, Date.now());
 
 					if (chunkString.includes('SUCCESS')) {
 						return resolve();
@@ -24,14 +29,14 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 					if (chunkString.includes('> ') && commands.length > 0) {
 						const command = commands.shift();
-						console.log({ command });
+						console.log({ command }, Date.now());
 						tsxProcess.stdin?.write(`${command}\r`);
 					}
 				});
 			});
 
 			tsxProcess.kill();
-		}, 10000);
+		});
 
 		// test('doesn\'t error on require', async () => {
 		// 	const tsxProcess = node.tsx({
