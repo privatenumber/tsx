@@ -29,7 +29,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 			});
 
 			tsxProcess.kill();
-		}, 20000);
+		}, 20_000);
 
 		test('doesn\'t error on require', async () => {
 			const tsxProcess = node.tsx({
@@ -55,7 +55,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 			});
 
 			tsxProcess.kill();
-		}, 20000);
+		}, 20_000);
 
 		test('errors on import statement', async () => {
 			const tsxProcess = node.tsx({
@@ -77,6 +77,6 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 			});
 
 			tsxProcess.kill();
-		}, 20000);
+		}, 20_000);
 	});
 });
