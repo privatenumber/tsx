@@ -17,8 +17,6 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 				tsxProcess.stdout!.on('data', (data: Buffer) => {
 					const chunkString = data.toString();
 
-					console.log({ chunkString });
-
 					if (chunkString.includes('SUCCESS')) {
 						return resolve();
 					}
@@ -41,8 +39,6 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 			await new Promise<void>((resolve, reject) => {
 				tsxProcess.stdout!.on('data', (data: Buffer) => {
 					const chunkString = data.toString();
-
-					console.log({ chunkString });
 
 					if (chunkString.includes('unsupported-require-call')) {
 						return reject(chunkString);
@@ -69,8 +65,6 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 			await new Promise<void>((resolve) => {
 				tsxProcess.stdout!.on('data', (data: Buffer) => {
 					const chunkString = data.toString();
-
-					console.log({ chunkString });
 
 					if (chunkString.includes('SyntaxError: Cannot use import statement')) {
 						return resolve();

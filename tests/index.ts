@@ -10,18 +10,18 @@ const packageTypes = [
 ] as const;
 
 const nodeVersions = [
-	// '12.20.0', // CJS named export detection added
+	'12.20.0', // CJS named export detection added
 	'12.22.11',
-	// ...(
-	// 	(process.env.CI && !isWin)
-	// 		? [
-	// 			'14.19.1',
-	// 			'16.13.2',
-	// 			'17.8.0',
-	// 			'18.0.0',
-	// 		]
-	// 		: []
-	// ),
+	...(
+		(process.env.CI && !isWin)
+			? [
+				'14.19.1',
+				'16.13.2',
+				'17.8.0',
+				'18.0.0',
+			]
+			: []
+	),
 ];
 
 (async () => {
