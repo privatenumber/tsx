@@ -51,6 +51,10 @@ export const ptyShell = (
 		}
 	});
 
+	childProcess.stderr!.on('data', (data) => {
+		reject(new Error(stripAnsi(data.toString())));
+	});
+
 	childProcess.on('exit', () => {
 		let outString = Buffer.concat(output).toString();
 		outString = stripAnsi(outString);
