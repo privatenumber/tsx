@@ -5,7 +5,7 @@ import { tsx, tsxPath } from '../utils/tsx';
 import { ptyShell, isWindows } from '../utils/pty-shell';
 
 export default testSuite(({ describe }, fixturePath: string) => {
-	describe('CLI', ({ describe }) => {
+	describe('CLI', ({ describe, test }) => {
 		describe('version', ({ test }) => {
 			test('shows version', async () => {
 				const tsxProcess = await tsx({
@@ -55,6 +55,18 @@ export default testSuite(({ describe }, fixturePath: string) => {
 				expect(tsxProcess.stderr).toBe('');
 			});
 		});
+
+		test('Node.js test runner', async () => {
+			const tsxProcess = await tsx({
+				args: [
+					'--test',
+					path.join(fixturePath, 'test-runner-file.ts'),
+				],
+			});
+
+			expect(tsxProcess.stdout).toMatch('# pass 1\n');
+			expect(tsxProcess.exitCode).toBe(0);
+		}, 10_000);
 
 		describe('Relays kill signal', ({ test }) => {
 			const signals = ['SIGINT', 'SIGTERM'];
