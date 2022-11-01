@@ -6,6 +6,19 @@ import { ptyShell, isWindows } from '../utils/pty-shell';
 
 export default testSuite(({ describe }, fixturePath: string) => {
 	describe('CLI', ({ describe, test }) => {
+		test('passes down flags', async () => {
+			const tsxProcess = await tsx({
+				args: [
+					path.join(fixturePath, 'log-argv.ts'),
+					'-vvv',
+				],
+			});
+
+			expect(tsxProcess.exitCode).toBe(0);
+			expect(tsxProcess.stdout).toMatch('.ts","-vvv"]');
+			expect(tsxProcess.stderr).toBe('');
+		});
+
 		describe('version', ({ test }) => {
 			test('shows version', async () => {
 				const tsxProcess = await tsx({
