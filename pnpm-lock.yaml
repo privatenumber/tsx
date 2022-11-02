@@ -26,7 +26,7 @@ specifiers:
   semver: ^7.3.8
   simple-git-hooks: ^2.8.1
   strip-ansi: ^7.0.1
-  type-flag: ^2.2.0
+  type-flag: github:privatenumber/type-flag#npm/mutate-argv
   typescript: ^4.8.4
 
 dependencies:
@@ -59,7 +59,7 @@ devDependencies:
   semver: 7.3.8
   simple-git-hooks: 2.8.1
   strip-ansi: 7.0.1
-  type-flag: 2.2.0
+  type-flag: github.com/privatenumber/type-flag/f4db82b4247d962a855ffa193c20ec45297cc100
   typescript: 4.8.4
 
 packages:
@@ -4244,4 +4244,10 @@ packages:
   /yocto-queue/1.0.0:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
+    dev: true
+
+  github.com/privatenumber/type-flag/f4db82b4247d962a855ffa193c20ec45297cc100:
+    resolution: {tarball: https://codeload.github.com/privatenumber/type-flag/tar.gz/f4db82b4247d962a855ffa193c20ec45297cc100}
+    name: type-flag
+    version: 0.0.0-semantic-release
     dev: true
