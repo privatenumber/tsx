@@ -5,7 +5,7 @@ import { watchCommand } from './watch';
 import {
 	removeArgvFlags,
 	ignoreAfterArgument,
-} from './remove-argv-flag';
+} from './remove-argv-flags';
 
 const tsxFlags = {
 	noCache: {

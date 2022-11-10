@@ -5,7 +5,7 @@ import path from 'path';
 import { command } from 'cleye';
 import { watch } from 'chokidar';
 import { run } from '../run';
-import { removeArgvFlags } from '../remove-argv-flag';
+import { removeArgvFlags } from '../remove-argv-flags';
 import {
 	clearScreen,
 	debounce,
