@@ -3,9 +3,9 @@ import { fileURLToPath } from 'url';
 import { constants as osConstants } from 'os';
 import path from 'path';
 import { command } from 'cleye';
-import typeFlag from 'type-flag';
 import { watch } from 'chokidar';
 import { run } from '../run';
+import { removeArgvFlags } from '../remove-argv-flags';
 import {
 	clearScreen,
 	debounce,
@@ -42,11 +42,7 @@ export const watchCommand = command({
 		description: 'Run the script and watch for changes',
 	},
 }, (argv) => {
-	const args = typeFlag(
-		flags,
-		process.argv.slice(3),
-		{ ignoreUnknown: true },
-	)._;
+	const rawArgvs = removeArgvFlags(flags, process.argv.slice(3));
 
 	const options = {
 		noCache: argv.flags.noCache,
@@ -75,7 +71,7 @@ export const watchCommand = command({
 			process.stdout.write(clearScreen);
 		}
 
-		runProcess = run(args, options);
+		runProcess = run(rawArgvs, options);
 
 		runProcess.on('message', (data) => {
 			// Collect run-time dependencies to watch

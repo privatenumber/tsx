@@ -11,7 +11,7 @@ specifiers:
   '@types/semver': ^7.3.12
   chokidar: ^3.5.3
   clean-pkg-json: ^1.2.0
-  cleye: ^1.2.1
+  cleye: ^1.3.0
   cross-spawn: ^7.0.3
   eslint: ^8.24.0
   execa: ^6.1.0
@@ -26,7 +26,7 @@ specifiers:
   semver: ^7.3.8
   simple-git-hooks: ^2.8.1
   strip-ansi: ^7.0.1
-  type-flag: ^2.2.0
+  type-flag: ^3.0.0
   typescript: ^4.8.4
 
 dependencies:
@@ -45,7 +45,7 @@ devDependencies:
   '@types/semver': 7.3.12
   chokidar: 3.5.3
   clean-pkg-json: 1.2.0
-  cleye: 1.2.1
+  cleye: 1.3.0
   cross-spawn: 7.0.3
   eslint: 8.24.0
   execa: 6.1.0
@@ -59,7 +59,7 @@ devDependencies:
   semver: 7.3.8
   simple-git-hooks: 2.8.1
   strip-ansi: 7.0.1
-  type-flag: 2.2.0
+  type-flag: 3.0.0
   typescript: 4.8.4
 
 packages:
@@ -921,11 +921,11 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /cleye/1.2.1:
-    resolution: {integrity: sha512-DjoWA/dFn1rQypY4juFH4IvjVxXxld4o92bmkGPR+uZNqBMpvDXx1VUmL93p2R5CBwSWt83eEe/SLPqtQahZNg==}
+  /cleye/1.3.0:
+    resolution: {integrity: sha512-IZ0mRzFQeeQwQk6gT1KIjxa0U86VdFmVB+EIlW3t1Wl1jZShTuWbCu11LcfOA6kODYJ2K7AwgVEb4b7TxN/s2A==}
     dependencies:
       terminal-columns: 1.4.1
-      type-flag: 2.2.0
+      type-flag: 3.0.0
     dev: true
 
   /cli-cursor/3.1.0:
@@ -4109,8 +4109,8 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /type-flag/2.2.0:
-    resolution: {integrity: sha512-zumH8ohtlidBe1aqRY99OxaUY1SCdtyQlCxiXlnAyPMby6GtMem4Y7+geySt/k3MFs0pnNzQpI/nSki4yJp5Jg==}
+  /type-flag/3.0.0:
+    resolution: {integrity: sha512-3YaYwMseXCAhBB14RXW5cRQfJQlEknS6i4C8fCfeUdS3ihG9EdccdR9kt3vP73ZdeTGmPb4bZtkDn5XMIn1DLA==}
     dev: true
 
   /typescript/4.8.4:

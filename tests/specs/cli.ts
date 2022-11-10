@@ -13,7 +13,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 				});
 
 				expect(tsxProcess.exitCode).toBe(0);
-				expect(tsxProcess.stdout).toBe(packageJson.version);
+				expect(tsxProcess.stdout).toBe(`tsx v${packageJson.version}\nnode ${process.version}`);
 				expect(tsxProcess.stderr).toBe('');
 			});
 
@@ -27,6 +27,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 
 				expect(tsxProcess.exitCode).toBe(0);
 				expect(tsxProcess.stdout).toMatch('"--version"');
+				expect(tsxProcess.stdout).not.toMatch(packageJson.version);
 				expect(tsxProcess.stderr).toBe('');
 			});
 		});
@@ -39,6 +40,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 
 				expect(tsxProcess.exitCode).toBe(0);
 				expect(tsxProcess.stdout).toMatch('Node.js runtime enhanced with esbuild for loading TypeScript & ESM');
+				expect(tsxProcess.stdout).toMatch('Usage: node [options] [ script.js ] [arguments]');
 				expect(tsxProcess.stderr).toBe('');
 			});
 
@@ -52,6 +54,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 
 				expect(tsxProcess.exitCode).toBe(0);
 				expect(tsxProcess.stdout).toMatch('"--help"');
+				expect(tsxProcess.stdout).not.toMatch('tsx');
 				expect(tsxProcess.stderr).toBe('');
 			});
 		});
