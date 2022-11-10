@@ -23,13 +23,13 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 					if (chunkString.includes('> ') && commands.length > 0) {
 						const command = commands.shift();
-						tsxProcess.stdin?.write(`${command}\r`);
+						tsxProcess.stdin!.write(`${command}\r`);
 					}
 				});
 			});
 
 			tsxProcess.kill();
-		}, 30_000);
+		}, 40_000);
 
 		test('doesn\'t error on require', async () => {
 			const tsxProcess = node.tsx({
@@ -49,13 +49,13 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 					}
 
 					if (chunkString.includes('> ')) {
-						tsxProcess.stdin?.write('require("path")\r');
+						tsxProcess.stdin!.write('require("path")\r');
 					}
 				});
 			});
 
 			tsxProcess.kill();
-		}, 30_000);
+		}, 40_000);
 
 		test('errors on import statement', async () => {
 			const tsxProcess = node.tsx({
@@ -71,12 +71,12 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 					}
 
 					if (chunkString.includes('> ')) {
-						tsxProcess.stdin?.write('import fs from "fs"\r');
+						tsxProcess.stdin!.write('import fs from "fs"\r');
 					}
 				});
 			});
 
 			tsxProcess.kill();
-		}, 30_000);
+		}, 40_000);
 	});
 });
