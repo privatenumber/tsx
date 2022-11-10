@@ -11,7 +11,7 @@ specifiers:
   '@types/semver': ^7.3.12
   chokidar: ^3.5.3
   clean-pkg-json: ^1.2.0
-  cleye: github:privatenumber/cleye#npm/explicit-unknown
+  cleye: ^1.3.0
   cross-spawn: ^7.0.3
   eslint: ^8.24.0
   execa: ^6.1.0
@@ -45,7 +45,7 @@ devDependencies:
   '@types/semver': 7.3.12
   chokidar: 3.5.3
   clean-pkg-json: 1.2.0
-  cleye: github.com/privatenumber/cleye/517a49067f1818bf65e4e13722610de860c37669
+  cleye: 1.3.0
   cross-spawn: 7.0.3
   eslint: 8.24.0
   execa: 6.1.0
@@ -919,6 +919,13 @@ packages:
   /clean-stack/2.2.0:
     resolution: {integrity: sha512-4diC9HaTE+KRAMWhDhrGOECgWZxoevMc5TlkObMqNSsVU62PYzXZ/SMTjzyGAFF1YusgxGcSWTEXBhp0CPwQ1A==}
     engines: {node: '>=6'}
+    dev: true
+
+  /cleye/1.3.0:
+    resolution: {integrity: sha512-IZ0mRzFQeeQwQk6gT1KIjxa0U86VdFmVB+EIlW3t1Wl1jZShTuWbCu11LcfOA6kODYJ2K7AwgVEb4b7TxN/s2A==}
+    dependencies:
+      terminal-columns: 1.4.1
+      type-flag: 3.0.0
     dev: true
 
   /cli-cursor/3.1.0:
@@ -4237,19 +4244,4 @@ packages:
   /yocto-queue/1.0.0:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
-    dev: true
-
-  github.com/privatenumber/cleye/517a49067f1818bf65e4e13722610de860c37669:
-    resolution: {tarball: https://codeload.github.com/privatenumber/cleye/tar.gz/517a49067f1818bf65e4e13722610de860c37669}
-    name: cleye
-    version: 0.0.0-semantic-release
-    dependencies:
-      terminal-columns: 1.4.1
-      type-flag: github.com/privatenumber/type-flag/9aecbdc1c797b474c64fd6c1efe5e6732e6cecb2
-    dev: true
-
-  github.com/privatenumber/type-flag/9aecbdc1c797b474c64fd6c1efe5e6732e6cecb2:
-    resolution: {tarball: https://codeload.github.com/privatenumber/type-flag/tar.gz/9aecbdc1c797b474c64fd6c1efe5e6732e6cecb2}
-    name: type-flag
-    version: 0.0.0-semantic-release
     dev: true
