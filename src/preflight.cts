@@ -1,6 +1,18 @@
 import { constants as osConstants } from 'os';
 import './suppress-warnings.cts';
 
+/**
+ * Hook require() to transform to CJS
+ *
+ * This needs to be loaded via --require flag so subsequent --require
+ * flags can support TypeScript.
+ *
+ * This is also added in loader.ts for the loader API.
+ * Although it is required twice, it's not executed twice because
+ * it's cached.
+ */
+require('@esbuild-kit/cjs-loader');
+
 // If a parent process is detected
 if (process.send) {
 	function relaySignal(signal: NodeJS.Signals) {
