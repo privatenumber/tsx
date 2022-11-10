@@ -93,6 +93,19 @@ export async function createNode(
 				cwd: fixturePath,
 			});
 		},
+		requireFlag(
+			filePath: string,
+		) {
+			return this.tsx({
+				args: [
+					'--eval',
+					'null',
+					'--require',
+					filePath,
+				],
+				cwd: fixturePath,
+			});
+		},
 	};
 }
 

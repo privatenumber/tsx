@@ -50,6 +50,11 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 				assertResults(nodeProcess, true);
 				expect(nodeProcess.stdout).toMatch('{"default":1234}');
 			});
+
+			test('Require flag', async () => {
+				const nodeProcess = await node.requireFlag(importPath);
+				assertResults(nodeProcess, true);
+			});
 		});
 
 		describe('full path via .js', ({ test }) => {
