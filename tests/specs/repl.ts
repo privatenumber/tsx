@@ -79,7 +79,8 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 					}
 
 					if (chunkString.includes('> ')) {
-						tsxProcess.stdin?.write('import fs from "fs"\r');
+						tsxProcess.stdin!.write('import fs from "fs"\r');
+						chunks.push('wrote import');
 					}
 				});
 			});
