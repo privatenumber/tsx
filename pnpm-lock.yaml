@@ -26,7 +26,7 @@ specifiers:
   semver: ^7.3.8
   simple-git-hooks: ^2.8.1
   strip-ansi: ^7.0.1
-  type-flag: github:privatenumber/type-flag#npm/develop
+  type-flag: ^3.0.0
   typescript: ^4.8.4
 
 dependencies:
@@ -59,7 +59,7 @@ devDependencies:
   semver: 7.3.8
   simple-git-hooks: 2.8.1
   strip-ansi: 7.0.1
-  type-flag: github.com/privatenumber/type-flag/9aecbdc1c797b474c64fd6c1efe5e6732e6cecb2
+  type-flag: 3.0.0
   typescript: 4.8.4
 
 packages:
@@ -4100,6 +4100,10 @@ packages:
   /type-fest/0.8.1:
     resolution: {integrity: sha512-4dbzIzqvjtgiM5rw1k5rEHtBANKmdudhGyBEajN01fEyhaAIhsoKNy6y7+IN93IfpFtwY9iqi7kD+xwKhQsNJA==}
     engines: {node: '>=8'}
+    dev: true
+
+  /type-flag/3.0.0:
+    resolution: {integrity: sha512-3YaYwMseXCAhBB14RXW5cRQfJQlEknS6i4C8fCfeUdS3ihG9EdccdR9kt3vP73ZdeTGmPb4bZtkDn5XMIn1DLA==}
     dev: true
 
   /typescript/4.8.4:
