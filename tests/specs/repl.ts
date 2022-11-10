@@ -57,14 +57,22 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 			tsxProcess.kill();
 		}, 30_000);
 
-		test('errors on import statement', async () => {
+		test('errors on import statement', async ({ onTestFail }) => {
 			const tsxProcess = node.tsx({
 				args: ['--interactive'],
+			});
+
+			const chunks: string[] = [];
+			onTestFail(() => {
+				console.log('tsxProcess', tsxProcess);
+				console.log('chunks', chunks);
 			});
 
 			await new Promise<void>((resolve) => {
 				tsxProcess.stdout!.on('data', (data: Buffer) => {
 					const chunkString = data.toString();
+
+					chunks.push(chunkString);
 
 					if (chunkString.includes('SyntaxError: Cannot use import statement')) {
 						return resolve();

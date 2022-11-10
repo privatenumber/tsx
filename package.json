@@ -68,7 +68,7 @@
 		"get-node": "^13.2.0",
 		"kolorist": "^1.6.0",
 		"lint-staged": "^13.0.3",
-		"manten": "^0.3.0",
+		"manten": "^0.5.0",
 		"node-pty": "^0.10.1",
 		"pkgroll": "^1.4.0",
 		"semver": "^7.3.8",
