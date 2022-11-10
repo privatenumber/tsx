@@ -58,6 +58,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		}, 30_000);
 
 		test('errors on import statement', async ({ onTestFail }) => {
+			const startTime = Date.now();
 			const tsxProcess = node.tsx({
 				args: ['--interactive'],
 			});
@@ -78,7 +79,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 				tsxProcess.stdout!.on('data', (data: Buffer) => {
 					const chunkString = data.toString();
 
-					chunks.push(chunkString);
+					chunks.push(`${Date.now() - startTime} ${chunkString}`);
 
 					if (chunkString.includes('SyntaxError: Cannot use import statement')) {
 						chunks.push('resolved');
@@ -87,14 +88,14 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 					if (chunkString.includes('> ')) {
 						tsxProcess.stdin!.write('import fs from "fs"\r\n');
-						chunks.push('wrote import');
+						chunks.push(`${Date.now() - startTime} wrote import`);
 					}
 				});
 			});
 
 			tsxProcess.kill();
 
-			console.log('done');
+			console.log('done', Date.now() - startTime);
 		}, 30_000);
 	});
 });
