@@ -23,7 +23,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 					if (chunkString.includes('> ') && commands.length > 0) {
 						const command = commands.shift();
-						tsxProcess.stdin?.write(`${command}\r`);
+						tsxProcess.stdin!.write(`${command}\r`);
 					}
 				});
 			});
@@ -49,7 +49,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 					}
 
 					if (chunkString.includes('> ')) {
-						tsxProcess.stdin?.write('require("path")\r');
+						tsxProcess.stdin!.write('require("path")\r');
 					}
 				});
 			});
@@ -81,6 +81,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 					chunks.push(chunkString);
 
 					if (chunkString.includes('SyntaxError: Cannot use import statement')) {
+						chunks.push('resolved');
 						return resolve();
 					}
 
@@ -92,6 +93,8 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 			});
 
 			tsxProcess.kill();
+
+			console.log('done');
 		}, 30_000);
 	});
 });
