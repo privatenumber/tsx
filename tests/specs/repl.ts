@@ -71,7 +71,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 			tsxProcess.stderr!.on('data', (data: Buffer) => {
 				const chunkString = data.toString();
 
-				chunks.push('error: ' + chunkString);
+				chunks.push(`error: ${chunkString}`);
 			});
 
 			await new Promise<void>((resolve) => {
