@@ -68,6 +68,12 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 				console.log('chunks', chunks);
 			});
 
+			tsxProcess.stderr!.on('data', (data: Buffer) => {
+				const chunkString = data.toString();
+
+				chunks.push('error: ' + chunkString);
+			});
+
 			await new Promise<void>((resolve) => {
 				tsxProcess.stdout!.on('data', (data: Buffer) => {
 					const chunkString = data.toString();
@@ -79,7 +85,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 					}
 
 					if (chunkString.includes('> ')) {
-						tsxProcess.stdin!.write('import fs from "fs"\r');
+						tsxProcess.stdin!.write('import fs from "fs"\r\n');
 						chunks.push('wrote import');
 					}
 				});
