@@ -45,7 +45,7 @@ devDependencies:
   '@types/semver': 7.3.12
   chokidar: 3.5.3
   clean-pkg-json: 1.2.0
-  cleye: github.com/privatenumber/cleye/c677988aeb2e7a0c9a99e84ed2ae86915d3c322f
+  cleye: github.com/privatenumber/cleye/517a49067f1818bf65e4e13722610de860c37669
   cross-spawn: 7.0.3
   eslint: 8.24.0
   execa: 6.1.0
@@ -59,7 +59,7 @@ devDependencies:
   semver: 7.3.8
   simple-git-hooks: 2.8.1
   strip-ansi: 7.0.1
-  type-flag: github.com/privatenumber/type-flag/45a6dc40cacb659e21f7c3b9036d01781cb0b36e
+  type-flag: github.com/privatenumber/type-flag/9aecbdc1c797b474c64fd6c1efe5e6732e6cecb2
   typescript: 4.8.4
 
 packages:
@@ -4235,17 +4235,17 @@ packages:
     engines: {node: '>=12.20'}
     dev: true
 
-  github.com/privatenumber/cleye/c677988aeb2e7a0c9a99e84ed2ae86915d3c322f:
-    resolution: {tarball: https://codeload.github.com/privatenumber/cleye/tar.gz/c677988aeb2e7a0c9a99e84ed2ae86915d3c322f}
+  github.com/privatenumber/cleye/517a49067f1818bf65e4e13722610de860c37669:
+    resolution: {tarball: https://codeload.github.com/privatenumber/cleye/tar.gz/517a49067f1818bf65e4e13722610de860c37669}
     name: cleye
     version: 0.0.0-semantic-release
     dependencies:
       terminal-columns: 1.4.1
-      type-flag: github.com/privatenumber/type-flag/45a6dc40cacb659e21f7c3b9036d01781cb0b36e
+      type-flag: github.com/privatenumber/type-flag/9aecbdc1c797b474c64fd6c1efe5e6732e6cecb2
     dev: true
 
-  github.com/privatenumber/type-flag/45a6dc40cacb659e21f7c3b9036d01781cb0b36e:
-    resolution: {tarball: https://codeload.github.com/privatenumber/type-flag/tar.gz/45a6dc40cacb659e21f7c3b9036d01781cb0b36e}
+  github.com/privatenumber/type-flag/9aecbdc1c797b474c64fd6c1efe5e6732e6cecb2:
+    resolution: {tarball: https://codeload.github.com/privatenumber/type-flag/tar.gz/9aecbdc1c797b474c64fd6c1efe5e6732e6cecb2}
     name: type-flag
     version: 0.0.0-semantic-release
     dev: true

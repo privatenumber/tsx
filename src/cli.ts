@@ -2,7 +2,10 @@ import { cli } from 'cleye';
 import { version } from '../package.json';
 import { run } from './run';
 import { watchCommand } from './watch';
-import { removeArgvFlags } from './remove-argv-flag';
+import {
+	removeArgvFlags,
+	ignoreAfterArgument,
+} from './remove-argv-flag';
 
 const tsxFlags = {
 	noCache: {
@@ -35,6 +38,7 @@ cli({
 		},
 	},
 	help: false,
+	ignoreArgv: ignoreAfterArgument(),
 }, (argv) => {
 	if (argv.flags.version) {
 		process.stdout.write(`tsx v${version}\nnode `);
