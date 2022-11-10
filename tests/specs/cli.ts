@@ -27,6 +27,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 
 				expect(tsxProcess.exitCode).toBe(0);
 				expect(tsxProcess.stdout).toMatch('"--version"');
+				expect(tsxProcess.stdout).not.toMatch(packageJson.version);
 				expect(tsxProcess.stderr).toBe('');
 			});
 		});
@@ -53,6 +54,7 @@ export default testSuite(({ describe }, fixturePath: string) => {
 
 				expect(tsxProcess.exitCode).toBe(0);
 				expect(tsxProcess.stdout).toMatch('"--help"');
+				expect(tsxProcess.stdout).not.toMatch('tsx');
 				expect(tsxProcess.stderr).toBe('');
 			});
 		});
