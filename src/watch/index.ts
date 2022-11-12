@@ -5,7 +5,10 @@ import path from 'path';
 import { command } from 'cleye';
 import { watch } from 'chokidar';
 import { run } from '../run';
-import { removeArgvFlags } from '../remove-argv-flags';
+import {
+	removeArgvFlags,
+	ignoreAfterArgument,
+} from '../remove-argv-flags';
 import {
 	clearScreen,
 	debounce,
@@ -41,9 +44,16 @@ export const watchCommand = command({
 	help: {
 		description: 'Run the script and watch for changes',
 	},
+
+	/**
+	 * ignoreAfterArgument needs to parse the first argument
+	 * because cleye will error on missing arguments
+	 *
+	 * Remove once cleye supports error callbacks on missing arguments
+	 */
+	ignoreArgv: ignoreAfterArgument(false),
 }, (argv) => {
 	const rawArgvs = removeArgvFlags(flags, process.argv.slice(3));
-
 	const options = {
 		noCache: argv.flags.noCache,
 		tsconfigPath: argv.flags.tsconfig,
