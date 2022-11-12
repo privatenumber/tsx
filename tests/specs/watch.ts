@@ -194,7 +194,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 
 				expect(tsxProcessResolved.stdout).not.toMatch(`${value} ${value}`);
 				expect(tsxProcessResolved.stderr).toBe('');
-			}, 5000);
+			}, 10_000);
 		});
 	});
 });
