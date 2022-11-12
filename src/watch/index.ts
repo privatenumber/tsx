@@ -146,9 +146,6 @@ export const watchCommand = command({
 				// 3rd party packages
 				'**/{node_modules,bower_components,vendor}/**',
 
-				// Distribution files
-				'**/dist/**',
-
 				...options.ignore,
 			],
 			ignorePermissionErrors: true,
