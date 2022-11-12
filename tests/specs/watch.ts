@@ -41,7 +41,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				tsxProcess.stdout!.on('data', onStdOut);
 				tsxProcess.stderr!.on('data', onStdOut);
 			});
-		}, 5000);
+		}, 10_000);
 
 		test('suppresses warnings & clear screen', async () => {
 			const tsxProcess = tsx({
@@ -77,7 +77,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 
 			expect(stdout).not.toMatch('Warning');
 			expect(stdout).toMatch('\u001Bc');
-		}, 5000);
+		}, 10_000);
 
 		test('passes flags', async () => {
 			const tsxProcess = tsx({
@@ -102,7 +102,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			expect(stdout).toMatch('"--some-flag"');
 
 			await tsxProcess;
-		}, 5000);
+		}, 10_000);
 
 		describe('help', ({ test }) => {
 			test('shows help', async () => {
@@ -115,32 +115,30 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				expect(tsxProcess.stderr).toBe('');
 			});
 
-			// BUGL Currently doesn't pass through `--help
-			// test('doesn\'t show help with file', async () => {
-			// 	const tsxProcess = tsx({
-			// 		args: [
-			// 			'watch',
-			// 			path.join(fixturePath, 'log-argv.ts'),
-			// 			'--help',
-			// 		],
-			// 	});
+			test('passes down --help to file', async () => {
+				const tsxProcess = tsx({
+					args: [
+						'watch',
+						path.join(fixturePath, 'log-argv.ts'),
+						'--help',
+					],
+				});
 
-			// 	const stdout = await new Promise<string>((resolve) => {
-			// 		tsxProcess.stdout!.on('data', (chunk) => {
-			// 			const chunkString = chunk.toString();
-			// 			if (chunkString.startsWith('[')) {
-			// 				resolve(chunkString);
-			// 			}
-			// 		});
-			// 	});
+				const stdout = await new Promise<string>((resolve) => {
+					tsxProcess.stdout!.on('data', (chunk) => {
+						const chunkString = chunk.toString();
+						if (chunkString.startsWith('[')) {
+							resolve(chunkString);
+						}
+					});
+				});
 
-			// 	tsxProcess.kill();
+				tsxProcess.kill();
 
-			// 	console.log(stdout);
-			// 	expect(stdout).toMatch('"--help"');
+				expect(stdout).toMatch('"--help"');
 
-			// 	await tsxProcess;
-			// }, 2000);
+				await tsxProcess;
+			}, 5000);
 		});
 
 		describe('ignore', ({ test }) => {

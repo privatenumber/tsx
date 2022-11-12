@@ -4,17 +4,22 @@ import {
 	type TypeFlagOptions,
 } from 'type-flag';
 
-export const ignoreAfterArgument = (): TypeFlagOptions['ignore'] => {
+export const ignoreAfterArgument = (
+	ignoreFirstArgument = true,
+): TypeFlagOptions['ignore'] => {
 	let ignore = false;
 
 	return (type) => {
-		if (ignore) {
+		if (
+			ignore
+			|| type === 'unknown-flag'
+		) {
 			return true;
 		}
-		const isArgument = type === 'argument';
-		if (isArgument || type === 'unknown-flag') {
-			ignore = isArgument;
-			return true;
+
+		if (type === 'argument') {
+			ignore = true;
+			return ignoreFirstArgument;
 		}
 	};
 };
