@@ -47,7 +47,7 @@
 	"dependencies": {
 		"@esbuild-kit/cjs-loader": "^2.4.0",
 		"@esbuild-kit/core-utils": "^3.0.0",
-		"@esbuild-kit/esm-loader": "^2.5.0"
+		"@esbuild-kit/esm-loader": "^2.5.1"
 	},
 	"optionalDependencies": {
 		"fsevents": "~2.3.2"

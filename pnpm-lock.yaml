@@ -3,7 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@esbuild-kit/cjs-loader': ^2.4.0
   '@esbuild-kit/core-utils': ^3.0.0
-  '@esbuild-kit/esm-loader': ^2.5.0
+  '@esbuild-kit/esm-loader': ^2.5.1
   '@pvtnbr/eslint-config': ^0.33.0
   '@types/cross-spawn': ^6.0.2
   '@types/node': ^18.8.2
@@ -32,7 +32,7 @@ specifiers:
 dependencies:
   '@esbuild-kit/cjs-loader': 2.4.0
   '@esbuild-kit/core-utils': 3.0.0
-  '@esbuild-kit/esm-loader': 2.5.0
+  '@esbuild-kit/esm-loader': 2.5.1
 
 optionalDependencies:
   fsevents: 2.3.2
@@ -99,8 +99,8 @@ packages:
       source-map-support: 0.5.21
     dev: false
 
-  /@esbuild-kit/esm-loader/2.5.0:
-    resolution: {integrity: sha512-ySs0qOsiwj+hsgZM9/MniGdvfa9/WzqfFuIia8/5gSUPeIQIX2/tG91QakxPFOR35VFiwTB7wCiHtiS6dc6SkA==}
+  /@esbuild-kit/esm-loader/2.5.1:
+    resolution: {integrity: sha512-UfG/KLaNGR48+C9e8cDrRowhN9u+d/aCKpnA3E3Zyevup76fIpKmzm8DWeNG40CbEN8ZN8HaEs+o63pRQrZ+Fw==}
     dependencies:
       '@esbuild-kit/core-utils': 3.0.0
       get-tsconfig: 4.2.0
