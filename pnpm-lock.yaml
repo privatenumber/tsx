@@ -1,9 +1,9 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@esbuild-kit/cjs-loader': ^2.4.0
+  '@esbuild-kit/cjs-loader': ^2.4.1
   '@esbuild-kit/core-utils': ^3.0.0
-  '@esbuild-kit/esm-loader': ^2.5.1
+  '@esbuild-kit/esm-loader': ^2.5.3
   '@pvtnbr/eslint-config': ^0.33.0
   '@types/cross-spawn': ^6.0.2
   '@types/node': ^18.8.2
@@ -30,9 +30,9 @@ specifiers:
   typescript: ^4.8.4
 
 dependencies:
-  '@esbuild-kit/cjs-loader': 2.4.0
+  '@esbuild-kit/cjs-loader': 2.4.1
   '@esbuild-kit/core-utils': 3.0.0
-  '@esbuild-kit/esm-loader': 2.5.1
+  '@esbuild-kit/esm-loader': 2.5.3
 
 optionalDependencies:
   fsevents: 2.3.2
@@ -85,8 +85,8 @@ packages:
       js-tokens: 4.0.0
     dev: true
 
-  /@esbuild-kit/cjs-loader/2.4.0:
-    resolution: {integrity: sha512-DBBCiHPgL2B/elUpvCDhNHXnlZQ9sfO2uyt1OJyAXKT41beQEFY4OxZ6gwS+ZesRCbZ6JV8M7GEyOPkjv8kdIw==}
+  /@esbuild-kit/cjs-loader/2.4.1:
+    resolution: {integrity: sha512-lhc/XLith28QdW0HpHZvZKkorWgmCNT7sVelMHDj3HFdTfdqkwEKvT+aXVQtNAmCC39VJhunDkWhONWB7335mg==}
     dependencies:
       '@esbuild-kit/core-utils': 3.0.0
       get-tsconfig: 4.2.0
@@ -99,8 +99,8 @@ packages:
       source-map-support: 0.5.21
     dev: false
 
-  /@esbuild-kit/esm-loader/2.5.1:
-    resolution: {integrity: sha512-UfG/KLaNGR48+C9e8cDrRowhN9u+d/aCKpnA3E3Zyevup76fIpKmzm8DWeNG40CbEN8ZN8HaEs+o63pRQrZ+Fw==}
+  /@esbuild-kit/esm-loader/2.5.3:
+    resolution: {integrity: sha512-7tPwjMtiCgJXDDmW5/HT0wXYVlY0W6M29C0KB8R7fuNDRxUC9+hB5pYNbRx6DhOYR8IGb9z//ozaQK9ulVEGLg==}
     dependencies:
       '@esbuild-kit/core-utils': 3.0.0
       get-tsconfig: 4.2.0
