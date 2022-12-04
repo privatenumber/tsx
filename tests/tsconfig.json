@@ -1,4 +1,4 @@
 {
-	"extends": "..",
+	"extends": "../tsconfig",
 	"include": ["."]
 }
