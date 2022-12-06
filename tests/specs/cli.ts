@@ -5,7 +5,7 @@ import { tsx, tsxPath } from '../utils/tsx';
 import { ptyShell, isWindows } from '../utils/pty-shell';
 
 export default testSuite(({ describe }, fixturePath: string) => {
-	describe('CLI', ({ describe }) => {
+	describe('CLI', ({ describe, test }) => {
 		describe('version', ({ test }) => {
 			test('shows version', async () => {
 				const tsxProcess = await tsx({
