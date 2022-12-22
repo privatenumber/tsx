@@ -87,6 +87,12 @@ To set a custom path, use the `--tsconfig` flag:
 tsx --tsconfig ./path/to/tsconfig.custom.json ./file.ts
 ```
 
+Alternatively, use the `ESBK_TSCONFIG_PATH` environment variable:
+
+```sh
+ESBK_TSCONFIG_PATH=./path/to/tsconfig.custom.json tsx ./file.ts
+```
+
 ### Watch mode
 Run file and automatically rerun on changes:
 
