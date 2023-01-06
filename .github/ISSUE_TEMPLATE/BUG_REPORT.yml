@@ -36,7 +36,7 @@ body:
         👉 **Tip:** The smaller the reproduction, the faster we can debug and resolve your issue.
         To save us debugging work, please do your best to eliminate all unnecessary code and dependencies to boil it down to bare minimums.
         This includes unnecessary files, dependencies, properties in `package.json`, `tsconfig.json`, etc.
-    placeholder: Reproduction snippet, link, or pull-request
+      placeholder: Reproduction snippet, link, or pull-request
     validations:
       required: true
   - type: textarea
