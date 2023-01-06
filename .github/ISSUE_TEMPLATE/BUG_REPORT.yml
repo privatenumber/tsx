@@ -33,24 +33,23 @@ body:
 
         ⚠️ If a reproduction is not provided, the issue will be closed.
       
-        👉 Tip: The smaller the reproduction, the faster we can debug and resolve your issue.
-        Please do your best to eliminate all unnecessary code and dependencies to boil it down to bare minimums.
+        👉 **Tip:** The smaller the reproduction, the faster we can debug and resolve your issue.
+        To save us debugging work, please do your best to eliminate all unnecessary code and dependencies to boil it down to bare minimums.
         This includes unnecessary files, dependencies, properties in `package.json`, `tsconfig.json`, etc.
+    placeholder: Reproduction snippet, link, or pull-request
     validations:
       required: true
   - type: textarea
     attributes:
       label: Environment
       description: |
-        Describe the environment the issue is happening in. This information is used to for reproduction and debugging.
-      value: |
-        <!--
-          Run and paste the output of:
-          ```
-          npx envinfo --system --npmPackages tsx --binaries
-          ```
-        -->
-
+        Run and paste the output of:
+        ```
+        npx envinfo --system --npmPackages tsx --binaries
+        ```
+        
+        This information is used to for reproduction and debugging.
+      placeholder: |
         System:
           OS:
           CPU:
