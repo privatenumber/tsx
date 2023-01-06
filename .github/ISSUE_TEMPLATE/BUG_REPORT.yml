@@ -26,22 +26,16 @@ body:
     attributes:
       label: Reproduction
       description: |
-        Provide a _minimal_ reproduction of the problem for us to debug.
-
-        The smaller the reproduction, the faster we can debug and resolve your issue.
-        Please do your best to eliminate all unnecessary code and dependencies to boil it down to bare minimums.
+        Provide a _minimal_ reproduction in one of the following forms:
+          1. A small code-snippet we can copy-paste **[No dependencies allowed]**
+          2. Link to a repository with the command to run in the `package.json` script `start` **[Dependencies allowed]**
+          3. Pull request with a failing test-case **[No dependencies allowed]**
 
         ⚠️ If a reproduction is not provided, the issue will be closed.
-      value: |
-        <!--
-          Provide a minimal reproduction in one of the following forms:
-            1. One small code-snippet we can copy-paste [no dependencies allowed]
-            2. Link to a repository with the command to run in the package.json script `start`
-            3. Pull request with a failing test-case [no dependencies allowed]
-
-          Remove as much irrelevant code to make it easier for others to read and debug.
-          This includes unnecessary files, dependencies, properties in package.json, tsconfig.json, etc.
-        -->
+      
+        👉 Tip: The smaller the reproduction, the faster we can debug and resolve your issue.
+        Please do your best to eliminate all unnecessary code and dependencies to boil it down to bare minimums.
+        This includes unnecessary files, dependencies, properties in `package.json`, `tsconfig.json`, etc.
     validations:
       required: true
   - type: textarea
