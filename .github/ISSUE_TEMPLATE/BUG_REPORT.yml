@@ -29,6 +29,7 @@ body:
         Provide a _minimal_ reproduction in one of the following forms:
           1. A small code-snippet we can copy-paste <kbd>No dependencies allowed</kbd>
           2. Link to a repository with the command to run in the `package.json` script `start` <kbd>Dependencies allowed</kbd>
+             Feel free to [fork this template on StackBlitz](https://stackblitz.com/edit/node-huzszn?file=index.ts)
           3. Pull request with a failing test-case <kbd>No dependencies allowed</kbd>
 
         ⚠️ If a reproduction is not provided, the issue will be closed.
