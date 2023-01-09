@@ -3,7 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@esbuild-kit/cjs-loader': ^2.4.1
   '@esbuild-kit/core-utils': ^3.0.0
-  '@esbuild-kit/esm-loader': ^2.5.3
+  '@esbuild-kit/esm-loader': ^2.5.4
   '@pvtnbr/eslint-config': ^0.33.0
   '@types/cross-spawn': ^6.0.2
   '@types/node': ^18.11.18
@@ -11,7 +11,7 @@ specifiers:
   '@types/semver': ^7.3.13
   chokidar: ^3.5.3
   clean-pkg-json: ^1.2.0
-  cleye: ^1.3.0
+  cleye: ^1.3.1
   cross-spawn: ^7.0.3
   eslint: ^8.31.0
   execa: ^6.1.0
@@ -32,7 +32,7 @@ specifiers:
 dependencies:
   '@esbuild-kit/cjs-loader': 2.4.1
   '@esbuild-kit/core-utils': 3.0.0
-  '@esbuild-kit/esm-loader': 2.5.3
+  '@esbuild-kit/esm-loader': 2.5.4
 
 optionalDependencies:
   fsevents: 2.3.2
@@ -45,7 +45,7 @@ devDependencies:
   '@types/semver': 7.3.13
   chokidar: 3.5.3
   clean-pkg-json: 1.2.0
-  cleye: 1.3.0
+  cleye: 1.3.1
   cross-spawn: 7.0.3
   eslint: 8.31.0
   execa: 6.1.0
@@ -99,11 +99,11 @@ packages:
       source-map-support: 0.5.21
     dev: false
 
-  /@esbuild-kit/esm-loader/2.5.3:
-    resolution: {integrity: sha512-7tPwjMtiCgJXDDmW5/HT0wXYVlY0W6M29C0KB8R7fuNDRxUC9+hB5pYNbRx6DhOYR8IGb9z//ozaQK9ulVEGLg==}
+  /@esbuild-kit/esm-loader/2.5.4:
+    resolution: {integrity: sha512-afmtLf6uqxD5IgwCzomtqCYIgz/sjHzCWZFvfS5+FzeYxOURPUo4QcHtqJxbxWOMOogKriZanN/1bJQE/ZL93A==}
     dependencies:
       '@esbuild-kit/core-utils': 3.0.0
-      get-tsconfig: 4.2.0
+      get-tsconfig: 4.3.0
     dev: false
 
   /@esbuild/android-arm/0.15.10:
@@ -910,8 +910,8 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /cleye/1.3.0:
-    resolution: {integrity: sha512-IZ0mRzFQeeQwQk6gT1KIjxa0U86VdFmVB+EIlW3t1Wl1jZShTuWbCu11LcfOA6kODYJ2K7AwgVEb4b7TxN/s2A==}
+  /cleye/1.3.1:
+    resolution: {integrity: sha512-8Za9ohNiygniCAHj6sVKJFI1FkEdmJM7XGA+tI3TVMSf9wQ1o8k0I6CZSRDx4AG5WZuqr0Zj4i/6Bw1TdoMyJQ==}
     dependencies:
       terminal-columns: 1.4.1
       type-flag: 3.0.0
@@ -1656,7 +1656,7 @@ packages:
       enhanced-resolve: 5.10.0
       eslint: 8.31.0
       eslint-plugin-import: 2.26.0_cyazhkcjevaa2emdgqvngug52e
-      get-tsconfig: 4.2.0
+      get-tsconfig: 4.3.0
       globby: 13.1.2
       is-core-module: 2.11.0
       is-glob: 4.0.3
@@ -2251,6 +2251,10 @@ packages:
 
   /get-tsconfig/4.2.0:
     resolution: {integrity: sha512-X8u8fREiYOE6S8hLbq99PeykTDoLVnxvF4DjWKJmz9xy2nNRdUcV8ZN9tniJFeKyTU3qnC9lL8n4Chd6LmVKHg==}
+    dev: false
+
+  /get-tsconfig/4.3.0:
+    resolution: {integrity: sha512-YCcF28IqSay3fqpIu5y3Krg/utCBHBeoflkZyHj/QcqI2nrLPC3ZegS9CmIo+hJb8K7aiGsuUl7PwWVjNG2HQQ==}
 
   /glob-parent/5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
