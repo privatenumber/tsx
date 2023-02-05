@@ -27,17 +27,17 @@ body:
       label: Reproduction
       description: |
         Provide a minimal reproduction in one of the following forms:
-          1. Small code-snippet (no more than one) we can copy-paste <kbd>No dependencies allowed</kbd>
-          2. Pull request with a failing test-case <kbd>No dependencies allowed</kbd>
-          3. Link to a repository containing minimal reproduction <kbd>Dependencies allowed</kbd>
-            - Fork [this template on StackBlitz](https://stackblitz.com/edit/node-huzszn?file=index.ts)
+          1. Small code-snippet (no more than one) we can copy-paste. **No dependencies allowed.**
+          2. Link to a repository containing minimal reproduction. **Dependencies allowed.**
+            - No more than 5 files. Delete irrelevant files (e.g. `LICENSE`, `.npmrc`, `.github`).
             - Set the command to run in the `package.json` script `start`
+            - For a starter template, [fork this template on StackBlitz](https://stackblitz.com/edit/node-huzszn?file=index.ts)
             - 👉 **Tip:** The _smaller_ the reproduction, the _faster_ we can debug and resolve your issue
               - Remove all unnecessary files, code, & dependencies. This is the first step of debugging so doing this will save us work.
               - If possible, convert TypeScript to plain JavaScript to eliminate the possibility of it being a TS bug
 
         ⚠️ If a _minimal_ reproduction is not provided, the issue will be closed
-      placeholder: Reproduction snippet, link, or pull-request
+      placeholder: 👆 Your issue will be CLOSED if it doesn't follow the instructions above.
     validations:
       required: true
   - type: textarea
