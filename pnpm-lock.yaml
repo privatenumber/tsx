@@ -1,9 +1,9 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@esbuild-kit/cjs-loader': github:esbuild-kit/cjs-loader#npm/ts-file-matcher
+  '@esbuild-kit/cjs-loader': ^2.4.2
   '@esbuild-kit/core-utils': ^3.0.0
-  '@esbuild-kit/esm-loader': github:esbuild-kit/esm-loader#npm/ts-file-matcher
+  '@esbuild-kit/esm-loader': ^2.5.5
   '@pvtnbr/eslint-config': ^0.33.0
   '@types/cross-spawn': ^6.0.2
   '@types/node': ^18.11.18
@@ -30,9 +30,9 @@ specifiers:
   typescript: ^4.9.4
 
 dependencies:
-  '@esbuild-kit/cjs-loader': github.com/esbuild-kit/cjs-loader/bd6cd2b5785abf86bb0912624a0c4c6c7a278fd6
+  '@esbuild-kit/cjs-loader': 2.4.2
   '@esbuild-kit/core-utils': 3.0.0
-  '@esbuild-kit/esm-loader': github.com/esbuild-kit/esm-loader/975ebc01ae671bc282f82cdaa2bee557d8e59510
+  '@esbuild-kit/esm-loader': 2.5.5
 
 optionalDependencies:
   fsevents: 2.3.2
@@ -85,11 +85,25 @@ packages:
       js-tokens: 4.0.0
     dev: true
 
+  /@esbuild-kit/cjs-loader/2.4.2:
+    resolution: {integrity: sha512-BDXFbYOJzT/NBEtp71cvsrGPwGAMGRB/349rwKuoxNSiKjPraNNnlK6MIIabViCjqZugu6j+xeMDlEkWdHHJSg==}
+    dependencies:
+      '@esbuild-kit/core-utils': 3.0.0
+      get-tsconfig: 4.4.0
+    dev: false
+
   /@esbuild-kit/core-utils/3.0.0:
     resolution: {integrity: sha512-TXmwH9EFS3DC2sI2YJWJBgHGhlteK0Xyu1VabwetMULfm3oYhbrsWV5yaSr2NTWZIgDGVLHbRf0inxbjXqAcmQ==}
     dependencies:
       esbuild: 0.15.10
       source-map-support: 0.5.21
+    dev: false
+
+  /@esbuild-kit/esm-loader/2.5.5:
+    resolution: {integrity: sha512-Qwfvj/qoPbClxCRNuac1Du01r9gvNOT+pMYtJDapfB1eoGN1YlJ1BixLyL9WVENRx5RXgNLdfYdx/CuswlGhMw==}
+    dependencies:
+      '@esbuild-kit/core-utils': 3.0.0
+      get-tsconfig: 4.4.0
     dev: false
 
   /@esbuild/android-arm/0.15.10:
@@ -4214,21 +4228,3 @@ packages:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
     dev: true
-
-  github.com/esbuild-kit/cjs-loader/bd6cd2b5785abf86bb0912624a0c4c6c7a278fd6:
-    resolution: {tarball: https://codeload.github.com/esbuild-kit/cjs-loader/tar.gz/bd6cd2b5785abf86bb0912624a0c4c6c7a278fd6}
-    name: '@esbuild-kit/cjs-loader'
-    version: 0.0.0-semantic-release
-    dependencies:
-      '@esbuild-kit/core-utils': 3.0.0
-      get-tsconfig: 4.4.0
-    dev: false
-
-  github.com/esbuild-kit/esm-loader/975ebc01ae671bc282f82cdaa2bee557d8e59510:
-    resolution: {tarball: https://codeload.github.com/esbuild-kit/esm-loader/tar.gz/975ebc01ae671bc282f82cdaa2bee557d8e59510}
-    name: '@esbuild-kit/esm-loader'
-    version: 0.0.0-semantic-release
-    dependencies:
-      '@esbuild-kit/core-utils': 3.0.0
-      get-tsconfig: 4.4.0
-    dev: false
