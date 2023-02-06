@@ -30,9 +30,9 @@ specifiers:
   typescript: ^4.9.4
 
 dependencies:
-  '@esbuild-kit/cjs-loader': github.com/esbuild-kit/cjs-loader/592345ba978c64c98bd3f2797904335f17c7ec0c
+  '@esbuild-kit/cjs-loader': github.com/esbuild-kit/cjs-loader/ffc2f9792c443e3adac0ddf3ed5e98631cc2f3e8
   '@esbuild-kit/core-utils': 3.0.0
-  '@esbuild-kit/esm-loader': github.com/esbuild-kit/esm-loader/bba6380ec81039dd5e41b0e5be491a7149393f7f
+  '@esbuild-kit/esm-loader': github.com/esbuild-kit/esm-loader/946a49b0b8ce5ed4ee75871dd7a42c827b6553a3
 
 optionalDependencies:
   fsevents: 2.3.2
@@ -4211,26 +4211,26 @@ packages:
     engines: {node: '>=12.20'}
     dev: true
 
-  github.com/esbuild-kit/cjs-loader/592345ba978c64c98bd3f2797904335f17c7ec0c:
-    resolution: {tarball: https://codeload.github.com/esbuild-kit/cjs-loader/tar.gz/592345ba978c64c98bd3f2797904335f17c7ec0c}
+  github.com/esbuild-kit/cjs-loader/ffc2f9792c443e3adac0ddf3ed5e98631cc2f3e8:
+    resolution: {tarball: https://codeload.github.com/esbuild-kit/cjs-loader/tar.gz/ffc2f9792c443e3adac0ddf3ed5e98631cc2f3e8}
     name: '@esbuild-kit/cjs-loader'
     version: 0.0.0-semantic-release
     dependencies:
       '@esbuild-kit/core-utils': 3.0.0
-      get-tsconfig: github.com/privatenumber/get-tsconfig/2a9640126cbcea030c9d2e762f5b4411136b296d
+      get-tsconfig: github.com/privatenumber/get-tsconfig/bb3bfcb5e8d26d6732c98249f02ca0462eefa9f9
     dev: false
 
-  github.com/esbuild-kit/esm-loader/bba6380ec81039dd5e41b0e5be491a7149393f7f:
-    resolution: {tarball: https://codeload.github.com/esbuild-kit/esm-loader/tar.gz/bba6380ec81039dd5e41b0e5be491a7149393f7f}
+  github.com/esbuild-kit/esm-loader/946a49b0b8ce5ed4ee75871dd7a42c827b6553a3:
+    resolution: {tarball: https://codeload.github.com/esbuild-kit/esm-loader/tar.gz/946a49b0b8ce5ed4ee75871dd7a42c827b6553a3}
     name: '@esbuild-kit/esm-loader'
     version: 0.0.0-semantic-release
     dependencies:
       '@esbuild-kit/core-utils': 3.0.0
-      get-tsconfig: github.com/privatenumber/get-tsconfig/2a9640126cbcea030c9d2e762f5b4411136b296d
+      get-tsconfig: github.com/privatenumber/get-tsconfig/bb3bfcb5e8d26d6732c98249f02ca0462eefa9f9
     dev: false
 
-  github.com/privatenumber/get-tsconfig/2a9640126cbcea030c9d2e762f5b4411136b296d:
-    resolution: {tarball: https://codeload.github.com/privatenumber/get-tsconfig/tar.gz/2a9640126cbcea030c9d2e762f5b4411136b296d}
+  github.com/privatenumber/get-tsconfig/bb3bfcb5e8d26d6732c98249f02ca0462eefa9f9:
+    resolution: {tarball: https://codeload.github.com/privatenumber/get-tsconfig/tar.gz/bb3bfcb5e8d26d6732c98249f02ca0462eefa9f9}
     name: get-tsconfig
     version: 0.0.0-semantic-release
     dev: false
