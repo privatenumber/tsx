@@ -59,6 +59,18 @@ export default testSuite(({ describe }, fixturePath: string) => {
 			});
 		});
 
+		describe('eval', ({ test }) => {
+			test('evaluates TypeScript code inside the eval flag', async () => {
+				const tsxProcess = await tsx({
+					args: ['--eval', 'const thing: string = "hi!!!"; console.log(thing);'],
+				});
+
+				expect(tsxProcess.exitCode).toBe(0);
+				expect(tsxProcess.stdout).toMatch('hi!!!');
+				expect(tsxProcess.stderr).toBe('');
+			});
+		});
+
 		test('Node.js test runner', async () => {
 			const tsxProcess = await tsx({
 				args: [
