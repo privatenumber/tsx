@@ -1,4 +1,5 @@
 import { cli } from 'cleye';
+import { transformSync } from '@esbuild-kit/core-utils';
 import { version } from '../package.json';
 import { run } from './run';
 import { watchCommand } from './watch';
@@ -36,6 +37,11 @@ cli({
 			alias: 'h',
 			description: 'Show help',
 		},
+		eval: {
+			type: String,
+			alias: 'e',
+			description: 'Evaluate code inside the eval flag',
+		},
 	},
 	help: false,
 	ignoreArgv: ignoreAfterArgument(),
@@ -49,8 +55,31 @@ cli({
 		console.log(`${'-'.repeat(45)}\n`);
 	}
 
+	const argvsToRun = removeArgvFlags(tsxFlags);
+
+	if (argv.flags.eval) {
+		const transformed = transformSync(
+			argv.flags.eval,
+			'/tmp/tsx_temporarily_stored_cache_file_for_the_code.ts',
+			{
+				loader: 'ts',
+				tsconfigRaw: {
+					compilerOptions: {
+						preserveValueImports: true,
+					},
+				},
+				define: {
+					require: 'global.require',
+				},
+				banner: '',
+				footer: '',
+			},
+		);
+		argvsToRun[1] = transformed.code;
+	}
+
 	const childProcess = run(
-		removeArgvFlags(tsxFlags),
+		argvsToRun,
 		{
 			noCache: Boolean(argv.flags.noCache),
 			tsconfigPath: argv.flags.tsconfig,
