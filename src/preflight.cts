@@ -45,4 +45,14 @@ if (process.send) {
 		}
 		return count;
 	};
+
+	// Also hide relaySignal from process.listeners()
+	const { listeners } = process;
+	process.listeners = function (eventName) {
+		const result = Reflect.apply(listeners, this, arguments);
+		if (relaySignals.includes(eventName as any)) {
+			return result.filter((listener: any) => listener !== relaySignal);
+		}
+		return result;
+	};
 }
