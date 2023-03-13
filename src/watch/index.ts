@@ -153,6 +153,9 @@ export const watchCommand = command({
 				// Hidden directories like .git
 				'**/.*/**',
 
+				// Hidden files (e.g. logs or temp files)
+				'**/.*',
+
 				// 3rd party packages
 				'**/{node_modules,bower_components,vendor}/**',
 
