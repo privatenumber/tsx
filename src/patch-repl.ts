@@ -38,5 +38,3 @@ repl.start = function () {
 	patchEval(nodeRepl);
 	return nodeRepl;
 };
-
-export {};
