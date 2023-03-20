@@ -56,3 +56,6 @@ if (process.send) {
 		return result;
 	};
 }
+
+// for some reason process.off does not work
+process.off = process.removeListener;
