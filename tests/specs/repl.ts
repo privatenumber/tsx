@@ -57,6 +57,35 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 			tsxProcess.kill();
 		}, 40_000);
 
+		test('supports incomplete expression in segments', async () => {
+			const tsxProcess = node.tsx({
+				args: ['--interactive'],
+			});
+
+			const commands = [
+				['> ', '('],
+				['... ', '1'],
+				['... ', ')'],
+				['1'],
+			];
+
+			let [expected, nextCommand] = commands.shift()!;
+			await new Promise<void>((resolve) => {
+				tsxProcess.stdout!.on('data', (data: Buffer) => {
+					const chunkString = data.toString();
+					if (chunkString.includes(expected)) {
+						if (nextCommand) {
+							tsxProcess.stdin!.write(`${nextCommand}\r`);
+							[expected, nextCommand] = commands.shift()!;
+						} else {
+							resolve();
+						}
+					}
+				});
+			});
+			tsxProcess.kill();
+		}, 40_000);
+
 		test('errors on import statement', async () => {
 			const tsxProcess = node.tsx({
 				args: ['--interactive'],
