@@ -4,28 +4,27 @@ import { transform } from '@esbuild-kit/core-utils';
 function patchEval(nodeRepl: REPLServer) {
 	const { eval: defaultEval } = nodeRepl;
 	const preEval: REPLEval = async function (code, context, filename, callback) {
-		const transformed = await transform(
-			code,
-			filename,
-			{
-				loader: 'ts',
-				tsconfigRaw: {
-					compilerOptions: {
-						preserveValueImports: true,
+		try {
+			const transformed = await transform(
+				code,
+				filename,
+				{
+					loader: 'ts',
+					tsconfigRaw: {
+						compilerOptions: {
+							preserveValueImports: true,
+						},
+					},
+					define: {
+						require: 'global.require',
 					},
 				},
-				define: {
-					require: 'global.require',
-				},
-			},
-		).catch(
-			(error) => {
-				console.log(error.message);
-				return { code: '\n' };
-			},
-		);
+			);
 
-		return defaultEval.call(this, transformed.code, context, filename, callback);
+			code = transformed.code;
+		} catch {}
+
+		return defaultEval.call(this, code, context, filename, callback);
 	};
 
 	// @ts-expect-error overwriting read-only property
