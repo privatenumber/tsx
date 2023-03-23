@@ -35,7 +35,7 @@ const flags = {
 		type: [String],
 		description: 'Paths & globs to exclude from being watched',
 	},
-	add: {
+	include: {
 		type: [String],
 		description: 'Additional files or folders in the monitoring range',
 	},
@@ -64,7 +64,6 @@ export const watchCommand = command({
 		clearScreen: argv.flags.clearScreen,
 		ignore: argv.flags.ignore,
 		ipc: true,
-		add: argv.flags.add,
 	};
 	let runProcess: ChildProcess | undefined;
 
@@ -149,7 +148,7 @@ export const watchCommand = command({
 	 * As an alternative, we watch cwd and all run-time dependencies
 	 */
 	const watcher = watch(
-		[...argv._, ...options.add],
+		[...argv._, ...argv.flags.include],
 		{
 			cwd: process.cwd(),
 			ignoreInitial: true,
