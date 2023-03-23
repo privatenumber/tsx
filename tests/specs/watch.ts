@@ -198,9 +198,9 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 		describe('include', ({ test }) => {
 			test('watch files for changes', async () => {
 				const entryFile = 'index.js';
-				const file = '.env';
-				let value = Date.now();
-
+				const file = 'file';
+				const value = 'test';
+				const append = `${value}append`;
 				const fixture = await createFixture({
 					[entryFile]: `
 						import fs from 'fs';
@@ -228,9 +228,10 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				tsxProcess.stdout?.on('data', async (data: Buffer) => {
 					const chunkString = data.toString();
 					if (chunkString === `${value}\n`) {
-						value = Date.now();
-						await fixture.writeFile(file, `${value}`);
+						await fixture.writeFile(file, `${append}`);
+					}
 
+					if (chunkString === `${append}\n`) {
 						await setTimeout(500);
 						await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
 					}
