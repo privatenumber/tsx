@@ -194,5 +194,58 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				expect(tsxProcessResolved.stderr).toBe('');
 			}, 10_000);
 		});
+
+		describe('include', ({ test }) => {
+			test('watch files for changes', async () => {
+				const entryFile = 'index.js';
+				const file = '.env';
+				let value = Date.now();
+
+				const fixture = await createFixture({
+					[entryFile]: `
+						import fs from 'fs';
+						fs.readFile('./${file}', (err, data) => {
+							if (!err) {
+								console.log(data.toString());
+							} else {
+								console.log(error);
+							}
+						});
+					`.trim(),
+					[file]: `${value}`,
+				});
+
+				const tsxProcess = tsx({
+					cwd: fixture.path,
+					args: [
+						'watch',
+						'--clear-screen=false',
+						`--include=${file}`,
+						entryFile,
+					],
+				});
+
+				tsxProcess.stdout?.on('data', async (data: Buffer) => {
+					const chunkString = data.toString();
+					if (chunkString === `${value}\n`) {
+						value = Date.now();
+						await fixture.writeFile(file, `${value}`);
+
+						await setTimeout(500);
+						await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
+					}
+
+					if (chunkString === 'TERMINATE\n') {
+						tsxProcess.kill();
+					}
+				});
+
+				const tsxProcessResolved = await tsxProcess;
+				await fixture.rm();
+
+				expect(tsxProcessResolved.stdout).not.toMatch(`current date: ${value}`);
+				expect(tsxProcessResolved.stderr).toBe('');
+			}, 10_000);
+		});
 	});
 });
