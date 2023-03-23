@@ -46,7 +46,7 @@ const flags = {
 	},
 	exclude: {
 		type: [String],
-		description: 'Same as ignore flag',
+		description: 'Paths & globs to exclude from being watched (same as ignore flag)',
 	},
 } as const;
 
