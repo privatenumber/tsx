@@ -22,6 +22,11 @@ const flags = {
 		description: 'Disable caching',
 		default: false,
 	},
+	noIgnore: {
+		type: Boolean,
+		description: 'Omit using the ignore rules',
+		default: false,
+	},
 	tsconfig: {
 		type: String,
 		description: 'Custom tsconfig.json path',
@@ -37,7 +42,11 @@ const flags = {
 	},
 	include: {
 		type: [String],
-		description: 'Additional files or folders in the monitoring range',
+		description: 'Additional paths in the watchlist',
+	},
+	exclude: {
+		type: [String],
+		description: 'Same as ignore flag',
 	},
 } as const;
 
@@ -152,18 +161,21 @@ export const watchCommand = command({
 		{
 			cwd: process.cwd(),
 			ignoreInitial: true,
-			ignored: [
-				// Hidden directories like .git
-				'**/.*/**',
+			ignored: !argv.flags.noIgnore
+				? [
+					// Hidden directories like .git
+					'**/.*/**',
 
-				// Hidden files (e.g. logs or temp files)
-				'**/.*',
+					// Hidden files (e.g. logs or temp files)
+					'**/.*',
 
-				// 3rd party packages
-				'**/{node_modules,bower_components,vendor}/**',
+					// 3rd party packages
+					'**/{node_modules,bower_components,vendor}/**',
 
-				...options.ignore,
-			],
+					...options.ignore,
+					...argv.flags.exclude,
+				]
+				: [],
 			ignorePermissionErrors: true,
 		},
 	).on('all', reRun);
