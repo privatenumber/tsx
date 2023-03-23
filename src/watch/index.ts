@@ -38,7 +38,7 @@ const flags = {
 	},
 	include: {
 		type: [String],
-		description: 'Additional paths in the watchlist',
+		description: 'Paths & globs to include from being watched',
 	},
 	exclude: {
 		type: [String],
