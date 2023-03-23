@@ -4,6 +4,7 @@ import { constants as osConstants } from 'os';
 import path from 'path';
 import { command } from 'cleye';
 import { watch } from 'chokidar';
+import anymatch from 'anymatch';
 import { run } from '../run';
 import {
 	removeArgvFlags,
@@ -20,11 +21,6 @@ const flags = {
 	noCache: {
 		type: Boolean,
 		description: 'Disable caching',
-		default: false,
-	},
-	noIgnore: {
-		type: Boolean,
-		description: 'Omit using the ignore rules',
 		default: false,
 	},
 	tsconfig: {
@@ -148,6 +144,30 @@ export const watchCommand = command({
 	process.once('SIGINT', relaySignal);
 	process.once('SIGTERM', relaySignal);
 
+	const included = argv.flags.include;
+	const watchlist = [...argv._, ...included];
+	const defaultIgnored = [
+		// Hidden directories like .git
+		'**/.*/**',
+
+		// Hidden files (e.g. logs or temp files)
+		'**/.*',
+
+		// 3rd party packages
+		'**/{node_modules,bower_components,vendor}/**',
+
+		...options.ignore,
+
+		...argv.flags.exclude,
+	];
+
+	const ignored = defaultIgnored.filter((glob: string) => {
+		if (included.length === 0) {
+			return true;
+		}
+		const matcher = anymatch(glob);
+		return included.filter(matcher).length === 0;
+	});
 	/**
 	 * Ideally, we can get a list of files loaded from the run above
 	 * and only watch those files, but it's not possible to detect
@@ -157,25 +177,11 @@ export const watchCommand = command({
 	 * As an alternative, we watch cwd and all run-time dependencies
 	 */
 	const watcher = watch(
-		[...argv._, ...argv.flags.include],
+		watchlist,
 		{
 			cwd: process.cwd(),
 			ignoreInitial: true,
-			ignored: !argv.flags.noIgnore
-				? [
-					// Hidden directories like .git
-					'**/.*/**',
-
-					// Hidden files (e.g. logs or temp files)
-					'**/.*',
-
-					// 3rd party packages
-					'**/{node_modules,bower_components,vendor}/**',
-
-					...options.ignore,
-					...argv.flags.exclude,
-				]
-				: [],
+			ignored,
 			ignorePermissionErrors: true,
 		},
 	).on('all', reRun);
