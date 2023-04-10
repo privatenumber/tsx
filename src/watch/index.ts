@@ -35,6 +35,11 @@ const flags = {
 		type: [String],
 		description: 'Paths & globs to exclude from being watched',
 	},
+	restartOnReturn: {
+		type: Boolean,
+		description: 'Restart on pressing return key',
+		default: true
+	}
 } as const;
 
 export const watchCommand = command({
@@ -59,6 +64,7 @@ export const watchCommand = command({
 		tsconfigPath: argv.flags.tsconfig,
 		clearScreen: argv.flags.clearScreen,
 		ignore: argv.flags.ignore,
+		restartOnReturn: argv.flags.restartOnReturn,
 		ipc: true,
 	};
 
@@ -166,5 +172,7 @@ export const watchCommand = command({
 	).on('all', reRun);
 
 	// On "Return" key
-	process.stdin.on('data', reRun);
+	if (options.restartOnReturn) {
+		process.stdin.on('data', reRun);
+	}
 });
