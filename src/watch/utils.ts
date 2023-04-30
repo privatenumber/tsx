@@ -35,7 +35,7 @@ export function isDependencyPath(
 ): data is { type: 'dependency'; path: string } {
 	return (
 		data
-		&& 'type' in data
+		&& typeof data === 'object'
 		&& data.type === 'dependency'
 	);
 }
