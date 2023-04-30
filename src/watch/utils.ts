@@ -36,7 +36,6 @@ export function isDependencyPath(
 	return (
 		data
 		&& typeof data === 'object'
-		&& 'type' in data
 		&& data.type === 'dependency'
 	);
 }
