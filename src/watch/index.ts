@@ -64,19 +64,7 @@ export const watchCommand = command({
 
 	let runProcess: ChildProcess | undefined;
 
-	const reRun = debounce(() => {
-		if (
-			runProcess
-			&& (!runProcess.killed && runProcess.exitCode === null)
-		) {
-			runProcess.kill();
-		}
-
-		// Not first run
-		if (runProcess) {
-			log('rerunning');
-		}
-
+	const spawnProcess = () => {
 		if (options.clearScreen) {
 			process.stdout.write(clearScreen);
 		}
@@ -98,6 +86,25 @@ export const watchCommand = command({
 				}
 			}
 		});
+	};
+
+	const reRun = debounce(() => {
+		if (
+			runProcess
+			&& (!runProcess.killed && runProcess.exitCode === null)
+		) {
+			runProcess.kill();
+		}
+
+		// Not first run
+		if (runProcess) {
+			log('rerunning');
+			runProcess.on('exit', () => {
+				spawnProcess();
+			});
+		} else {
+			spawnProcess();
+		}
 	}, 100);
 
 	reRun();
