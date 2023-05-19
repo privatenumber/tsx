@@ -93,15 +93,15 @@ export const watchCommand = command({
 			runProcess
 			&& (!runProcess.killed && runProcess.exitCode === null)
 		) {
+			runProcess.on('exit', () => {
+				spawnProcess();
+			});
 			runProcess.kill();
 		}
 
 		// Not first run
 		if (runProcess) {
 			log('rerunning');
-			runProcess.on('exit', () => {
-				spawnProcess();
-			});
 		} else {
 			spawnProcess();
 		}
