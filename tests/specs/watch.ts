@@ -194,5 +194,39 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				expect(tsxProcessResolved.stderr).toBe('');
 			}, 10_000);
 		});
+
+		test('processes not overlapped', async () => {
+			const tsxProcess = tsx({
+				args: [
+					'watch',
+					path.join(fixturePath, 'bind-port.js'),
+				],
+			});
+
+			await new Promise<void>((resolve) => {
+				tsxProcess.on('exit', resolve);
+
+				let restartsCounter = 0;
+				function onStdOut(data: Buffer) {
+					const chunkString = data.toString();
+					if (chunkString.match('READY')) {
+						restartsCounter += 1;
+						if (restartsCounter < 3) {
+							tsxProcess.stdin?.write('enter');
+						} else {
+							tsxProcess.kill();
+						}
+					}
+				}
+
+				tsxProcess.stdout!.on('data', onStdOut);
+				tsxProcess.stderr!.on('data', () => {
+					tsxProcess.kill();
+				});
+			});
+
+			const processResult = await tsxProcess;
+			expect(processResult.stderr).toBe('');
+		}, 10_000);
 	});
 });
