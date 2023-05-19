@@ -100,7 +100,7 @@ export const watchCommand = command({
 		}
 
 		// Not first run
-		if (runProcess) {
+		if (runProcess && runProcess.connected) {
 			log('rerunning');
 		} else {
 			spawnProcess();
