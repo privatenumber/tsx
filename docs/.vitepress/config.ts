@@ -1,28 +1,29 @@
-import { defineConfig } from 'vitepress'
+import { defineConfig } from "vitepress";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "tsx",
-  description: "Node.js enhanced with esbuild to run TypeScript & ESM files",
-  themeConfig: {
-    // https://vitepress.dev/reference/default-theme-config
-    nav: [
-      { text: 'Home', link: '/' },
-      { text: 'Examples', link: '/markdown-examples' }
-    ],
+	title: "tsx",
+	description: "Node.js enhanced with esbuild to run TypeScript & ESM files",
+	themeConfig: {
+		// https://vitepress.dev/reference/default-theme-config
 
-    sidebar: [
-      {
-        text: 'Examples',
-        items: [
-          { text: 'Markdown Examples', link: '/markdown-examples' },
-          { text: 'Runtime API Examples', link: '/api-examples' }
-        ]
-      }
-    ],
+    // esbuild-kit GitHub profile icon
+		logo: "https://avatars.githubusercontent.com/u/98902370?s=200&v=4",
 
-    socialLinks: [
-      { icon: 'github', link: 'https://github.com/vuejs/vitepress' }
-    ]
-  }
-})
+		nav: [
+			{ text: "Home", link: "/" },
+			{ text: "Install", link: "/install" },
+			{ text: "Usage", link: "/usage" },
+		],
+
+		sidebar: [
+			{ text: "Install", link: "/install" },
+			{ text: "Usage", link: "/usage" },
+			{ text: "FAQ", link: "/faq" },
+		],
+
+		socialLinks: [
+			{ icon: "github", link: "https://github.com/esbuild-kit/tsx" },
+		],
+	},
+});
