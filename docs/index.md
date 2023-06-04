@@ -25,7 +25,7 @@ features:
 
 <div id="example" align="center" style="margin-top: 4rem;">
   <iframe
-    src="https://stackblitz.com/github/esbuild-kit/tsx/tree/master/docs/stackblitz?embed=1&file=index.ts&hideExplorer=1&hideNavigation=1&view=editor"
+    src="https://stackblitz.com/github/jcbhmr/tsx/tree/add-docs-site/docs/stackblitz?embed=1&file=index.ts&hideExplorer=1&hideNavigation=1&view=editor"
     style="max-width: 1000px; width: 100%; height: 600px; border: 0; border-radius: 4px; overflow: hidden;"
     frameborder="0"
   ></iframe>
