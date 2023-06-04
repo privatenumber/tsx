@@ -1,0 +1,35 @@
+name: Deploy website
+on:
+  release:
+    types: published
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+jobs:
+  deploy-website:
+    permissions:
+      contents: read
+      id-token: write
+      pages: write
+      deployments: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy-pages.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          cache: npm
+      - run: npm ci
+      - id: configure-pages
+        uses: actions/configure-pages@v3
+      - run: npm run docs:build
+        env:
+          BASE_URL: ${{ steps.configure-pages.base_url }}/
+      - uses: actions/upload-pages-artifact@v1
+        with:
+          path: docs/.vitepress/dist
+      - id: deploy-pages
+        uses: actions/deploy-pages@v2

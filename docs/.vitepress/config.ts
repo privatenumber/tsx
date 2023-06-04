@@ -2,6 +2,9 @@ import { defineConfig } from "vitepress";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  // Use GitHub Pages /repo/ URL if available
+  ...process.env.BASE_URL && { base: process.env.BASE_URL },
+
 	title: "tsx",
 	description: "Node.js enhanced with esbuild to run TypeScript & ESM files",
 	themeConfig: {
