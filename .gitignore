@@ -1,6 +1,6 @@
 # VitePress
-.vitepress/dist
-.vitepress/cache
+**/.vitepress/dist
+**/.vitepress/cache
 
 # macOS
 .DS_Store
