@@ -1,0 +1,13 @@
+{
+  "type": "module",
+  "name": "tsx-example",
+  "version": "0.0.0",
+  "scripts": {
+    "start": "clear && tsx index.ts",
+    "test": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsx": "^3.12.7",
+    "typescript": "^5.1.3"
+  }
+}
