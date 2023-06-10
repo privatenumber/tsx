@@ -57,43 +57,42 @@ cli({
 		},
 	);
 
-	const relaySignal = async (signal: NodeJS.Signals) => {
-		const message = await Promise.race([
-			/**
-			 * If child received a signal, it detected a keypress or
-			 * was sent a signal via process group.
-			 *
-			 * Ignore it and let child handle it.
-			 */
-			new Promise<NodeJS.Signals>((resolve) => {
-				function onKillSignal(data: { type: string; signal: NodeJS.Signals }) {
-					if (data && data.type === 'kill') {
-						resolve(data.signal);
-						childProcess.off('message', onKillSignal);
-					}
-				}
-
-				childProcess.on('message', onKillSignal);
-			}),
-			new Promise((resolve) => {
-				setTimeout(resolve, 10);
-			}),
-		]);
-
-		/**
-		 * If child didn't receive a signal, it was sent to the parent
-		 * directly via kill PID. Relay it to child.
-		 */
-		if (!message) {
-			childProcess.kill(signal);
-		}
+	
+	let lastSignal: number;
+	const createRelay = (code: number) => async (signal: NodeJS.Signals) => {
+		lastSignal = code;
+		childProcess.kill(signal);
 	};
+	const signalToRelay = {
+		SIGINT: createRelay(2),
+		SIGTERM: createRelay(15),
+	};
+	for (const [signal, relay] of Object.entries(signalToRelay)) {
+		process.on(signal, relay);
+	}
 
-	process.on('SIGINT', relaySignal);
-	process.on('SIGTERM', relaySignal);
-
-	childProcess.on(
-		'close',
-		code => process.exit(code!),
-	);
+	childProcess.on("error", (error) => {
+		if (error) {
+			console.error(error);
+		}
+		process.exitCode =
+			childProcess.exitCode === null
+				? (128 + lastSignal) || 1
+				: childProcess.exitCode;
+		for (const [signal, relay] of Object.entries(signalToRelay)) {
+			process.off(signal, relay);
+		}
+	});
+	childProcess.on("exit", async (error) => {
+		process.exitCode =
+			error === null
+				? childProcess.exitCode === null
+					? (128 + lastSignal) || 0
+					: childProcess.exitCode
+				: error;
+		for (const [signal, relay] of Object.entries(signalToRelay)) {
+			process.off(signal, relay);
+		}
+	}); 
+	
 });

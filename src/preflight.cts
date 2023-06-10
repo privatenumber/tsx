@@ -1,4 +1,3 @@
-import { constants as osConstants } from 'os';
 import './suppress-warnings.cts';
 
 /**
@@ -15,44 +14,17 @@ require('@esbuild-kit/cjs-loader');
 
 // If a parent process is detected
 if (process.send) {
-	function relaySignal(signal: NodeJS.Signals) {
-		process.send!({
-			type: 'kill',
-			signal,
-		});
-
-		/**
-		 * Since we're setting a custom signal handler, we need to emulate the
-		 * default behavior when there are no other handlers set
-		 */
-		if (process.listenerCount(signal) === 0) {
-			// eslint-disable-next-line unicorn/no-process-exit
-			process.exit(128 + osConstants.signals[signal]);
-		}
-	}
-
-	const relaySignals = ['SIGINT', 'SIGTERM'] as const;
-	for (const signal of relaySignals) {
-		process.on(signal, relaySignal);
-	}
-
-	// Reduce the listenerCount to hide the one set above
-	const { listenerCount } = process;
-	process.listenerCount = function (eventName) {
-		let count = Reflect.apply(listenerCount, this, arguments);
-		if (relaySignals.includes(eventName as any)) {
-			count -= 1;
-		}
-		return count;
+	// Can happen if parent process is disconnected, but most likely
+	// it was because parent process was killed via SIGQUIT
+	const exitOnDisconnect = ()=> {
+		// the exit code doesn't matter, as the parent's exit code is the 
+		// one that is returned, and has already been returned by now. 
+		// If this is not performed, the process will continue to run 
+		// detached from the parent. 
+		process.exit(1);
 	};
-
-	// Also hide relaySignal from process.listeners()
-	const { listeners } = process;
-	process.listeners = function (eventName) {
-		const result = Reflect.apply(listeners, this, arguments);
-		if (relaySignals.includes(eventName as any)) {
-			return result.filter((listener: any) => listener !== relaySignal);
-		}
-		return result;
-	};
+	process.on('disconnect', exitOnDisconnect);
+	// adding the disconnect listner on the process will cause this
+	// child process to not exit. 
+	(process as any).channel.unref();
 }
