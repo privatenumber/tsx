@@ -131,8 +131,8 @@ export default testSuite(({ describe }, fixturePath: string) => {
 
 				expect(output).toMatch(
 					process.platform === 'win32'
-						? 'READY\r\nSIGINT\r\nSIGINT\r\nSIGINT HANDLER COMPLETED\r\n'
-						: 'READY\r\n^CSIGINT\r\nSIGINT\r\nSIGINT HANDLER COMPLETED\r\n',
+						? 'READY\r\nSIGINT\r\nSIGINT HANDLER COMPLETED\r\n'
+						: 'READY\r\n^CSIGINT\r\nSIGINT HANDLER COMPLETED\r\n',
 				);
 				expect(output).toMatch(/EXIT_CODE:\s+200/);
 			}, 10_000);
