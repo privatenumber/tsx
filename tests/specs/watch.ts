@@ -1,8 +1,10 @@
+// eslint-disable-next-line eslint-comments/disable-enable-pair
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import path from 'path';
 import { setTimeout } from 'timers/promises';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
-import { tsx } from '../utils/tsx';
+import { tsx, untilMatchesString } from '../utils/tsx';
 
 export default testSuite(async ({ describe }, fixturePath: string) => {
 	describe('watch', ({ test, describe }) => {
@@ -88,21 +90,14 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				],
 			});
 
-			const stdout = await new Promise<string>((resolve) => {
-				tsxProcess.stdout!.on('data', (chunk) => {
-					const chunkString = chunk.toString();
-					if (chunkString.startsWith('[')) {
-						resolve(chunkString);
-					}
-				});
-			});
-
-			tsxProcess.kill();
-
+			const stdout = await untilMatchesString(tsxProcess.stdout!, chunk => chunk.includes('['));
 			expect(stdout).toMatch('"--some-flag"');
 
+			await untilMatchesString(tsxProcess.stdout!, chunk => chunk.includes('Press enter/return to run again, or ctrl-C to terminate.'));
+			tsxProcess.kill();
+
 			await tsxProcess;
-		}, 10_000);
+		}, 5000);
 
 		describe('help', ({ test }) => {
 			test('shows help', async () => {
@@ -124,19 +119,11 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 					],
 				});
 
-				const stdout = await new Promise<string>((resolve) => {
-					tsxProcess.stdout!.on('data', (chunk) => {
-						const chunkString = chunk.toString();
-						if (chunkString.startsWith('[')) {
-							resolve(chunkString);
-						}
-					});
-				});
-
-				tsxProcess.kill();
-
+				const stdout = await untilMatchesString(tsxProcess.stdout!, chunk => chunk.includes('['));
 				expect(stdout).toMatch('"--help"');
 
+				await untilMatchesString(tsxProcess.stdout!, chunk => chunk.includes('Press enter/return to run again, or ctrl-C to terminate.'));
+				tsxProcess.kill();
 				await tsxProcess;
 			}, 5000);
 		});
@@ -183,6 +170,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 					}
 
 					if (chunkString === 'TERMINATE\n') {
+						await untilMatchesString(tsxProcess.stdout!, chunk => chunk.includes('Press enter/return to run again, or ctrl-C to terminate.'));
 						tsxProcess.kill();
 					}
 				});

@@ -13,6 +13,14 @@ import './suppress-warnings.cts';
  */
 require('@esbuild-kit/cjs-loader');
 
+declare global {
+	// eslint-disable-next-line @typescript-eslint/no-namespace
+	namespace NodeJS {
+		interface Process {
+			channel: RefCounted;
+		}
+	}
+}
 // If a parent process is detected
 if (process.send) {
 	// Can happen if parent process is disconnected, but most likely
@@ -22,11 +30,12 @@ if (process.send) {
 		// one that is returned, and has already been returned by now.
 		// If this is not performed, the process will continue to run
 		// detached from the parent.
+		// eslint-disable-next-line unicorn/no-process-exit
 		process.exit(1);
 	};
 	process.on('disconnect', exitOnDisconnect);
-	(process as any).channel.unref();
-	
+	process.channel.unref();
+
 	function relay(signal: NodeJS.Signals) {
 		/**
 		 * Since we're setting a custom signal handler, we need to emulate the
@@ -36,6 +45,7 @@ if (process.send) {
 			// eslint-disable-next-line unicorn/no-process-exit
 			process.exit(128 + osConstants.signals[signal]);
 		} else {
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			process.send!({
 				type: 'signal',
 				signal,

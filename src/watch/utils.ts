@@ -16,14 +16,14 @@ export function debounce(
 	originalFunction: () => void,
 	duration: number,
 ) {
-	let timeout: NodeJS.Timeout | undefined;
+	let timer: NodeJS.Timeout | undefined;
 
 	return () => {
-		if (timeout) {
-			clearTimeout(timeout);
+		if (timer) {
+			clearTimeout(timer);
 		}
 
-		timeout = setTimeout(
+		timer = setTimeout(
 			() => originalFunction(),
 			duration,
 		);
@@ -38,4 +38,27 @@ export function isDependencyPath(
 		&& typeof data === 'object'
 		&& data.type === 'dependency'
 	);
+}
+
+export async function timeout<T>(
+	promise: Promise<T>,
+	cleanup: () => void,
+	time: number,
+): Promise<T> {
+	let timer: NodeJS.Timeout | null = null;
+	try {
+		return await Promise.race([
+			promise,
+			new Promise<T>((_resolve, reject) => {
+				timer = setTimeout(reject, time);
+			}),
+		]);
+	} finally {
+		if (timer) {
+			clearTimeout(timer);
+		}
+		if (cleanup) {
+			cleanup();
+		}
+	}
 }
