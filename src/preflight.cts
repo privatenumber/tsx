@@ -1,3 +1,5 @@
+// eslint-disable-next-line eslint-comments/disable-enable-pair
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { constants as osConstants } from 'os';
 import './suppress-warnings.cts';
 
@@ -41,7 +43,7 @@ if (process.send) {
 		 * Since we're setting a custom signal handler, we need to emulate the
 		 * default behavior when there are no other handlers set
 		 */
-		if (process.listenerCount(signal) === 1) {
+		if (process.listenerCount(signal) === 0) {
 			// eslint-disable-next-line unicorn/no-process-exit
 			process.exit(128 + osConstants.signals[signal]);
 		} else {
@@ -57,4 +59,37 @@ if (process.send) {
 	for (const signal of relaySignals) {
 		process.on(signal, relay);
 	}
+
+	// Reduce the listenerCount to hide the one set above
+	const { listenerCount } = process;
+	process.listenerCount = function hideTsxListenerCount(eventName) {
+		let count = Reflect.apply(listenerCount, this, arguments);
+		if (relaySignals.includes(eventName as any)) {
+			count -= 1;
+		}
+		return count;
+	};
+
+	// Also hide relay from process.listeners()
+	const { listeners } = process;
+	process.listeners = function hideTsxListeners(eventName) {
+		const result = Reflect.apply(listeners, this, arguments);
+		if (relaySignals.includes(eventName as any)) {
+			return result.filter((listener: any) => listener !== relay);
+		}
+		return result;
+	};
+
+	process.once('exit', () => {
+		// Internally, node has a signal listener at C-level. This listener
+		// is cleaned up when the last JS-level signal listener is removed.
+		// However, node uses process.listenerCount to determine if it should
+		// stop listening. If we don't remove our modifications to process.listenerCount
+		// then we interfere with node's cleanup routines.
+		process.listeners = listeners;
+		process.listenerCount = listenerCount;
+		for (const signal of relaySignals) {
+			process.off(signal, relay);
+		}
+	});
 }
