@@ -12,6 +12,11 @@
 - Resolves `tsconfig.json` [`paths`](https://www.typescriptlang.org/tsconfig#paths)
 - Tested on Linux & Windows with Node.js v12~18
 
+> **💡 Protip: Looking to bundle your TypeScript project?**
+>
+> If you're looking for a dead simple way to bundle your TypeScript projects, take a look at [`pkgroll`](https://github.com/privatenumber/pkgroll). It's an esbuild-enhanced Rollup that's auto configured based on your `package.json`!
+
+
 <sub>Found this package useful? Show your support & appreciation by [sponsoring](https://github.com/sponsors/privatenumber)! ❤️</sub>
 
 ## About
