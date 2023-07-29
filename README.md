@@ -253,6 +253,14 @@ For details, refer to esbuild's [JavaScript caveats](https://esbuild.github.io/c
 In CommonJS mode, yes. But in Module/ESM mode, [Node.js version v19.6.0 and up](https://github.com/nodejs/node/blob/v19.6.0/doc/changelogs/CHANGELOG_V19.md#esm-leverage-loaders-when-resolving-subsequent-loaders) is required.
 
 
+## Support development
+
+As of July 2023, tsx gets 2 million downloads a month. Maintaining an open-source project like tsx requires considerable time and effort. Your sponsorship helps us dedicate more resources to development, improve stability, and introduce exciting enhancements for all users.
+
+By sponsoring tsx, you support an essential tool used by developers worldwide, ensuring its ongoing development and sustainable maintenance. Your contribution enables us to continuously improve the project and create a better development experience for everyone.
+
+[💖 Make a difference today!](https://github.com/sponsors/privatenumber)
+
 ## Sponsors
 <p align="center">
 	<a href="https://github.com/sponsors/privatenumber">
