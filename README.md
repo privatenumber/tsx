@@ -1,3 +1,12 @@
+<table><tr><td>
+<h3>🚀 Support tsx Development!</h3>
+Today, tsx is downloaded 2 million times a month. By becoming a sponsor, you can fund development and help us continuously improve the project to provide a better experience for everyone.
+<br><br>
+<a href="https://github.com/sponsors/privatenumber">💖 Sponsor and make a difference!</a>
+<br><br></td></tr></table>
+
+
+
 # tsx <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/v/tsx"></a> <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/dm/tsx"></a> <a href="https://packagephobia.now.sh/result?p=tsx"><img src="https://packagephobia.now.sh/badge?p=tsx"></a>
 
 > _TypeScript Execute (`tsx`)_: Node.js enhanced with [esbuild](https://esbuild.github.io/) to run TypeScript & ESM files
