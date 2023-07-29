@@ -1,5 +1,5 @@
 <table><tr><td>
-<h3>🚀 Support tsx Development!</h3>
+<h3>tsx is looking for sponsors</h3>
 Today, tsx is downloaded 2 million times a month. By becoming a sponsor, you can fund development and help us continuously improve the project to provide a better experience for everyone.
 <br><br>
 <a href="https://github.com/sponsors/privatenumber">💖 Sponsor and make a difference!</a>
