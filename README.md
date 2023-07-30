@@ -1,11 +1,11 @@
 <table><tr><td>
-<h3>tsx is looking for sponsors</h3>
-Today, tsx is downloaded 2 million times a month. By becoming a sponsor, you can fund development and help us continuously improve the project to provide a better experience for everyone.
+<h3>✨ <em>tsx</em> is now downloaded 2 million times a month! 🎉</h3>
+If you or your company use <em>tsx</em> and love it, please consider sponsoring us.
+<br>
+Your support allows us to maintain and improve the project for an even better experience.
 <br><br>
-<a href="https://github.com/sponsors/privatenumber">💖 Sponsor and make a difference!</a>
+<a href="https://github.com/sponsors/privatenumber">💖 Sponsor today and make a difference!</a>
 <br><br></td></tr></table>
-
-
 
 # tsx <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/v/tsx"></a> <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/dm/tsx"></a> <a href="https://packagephobia.now.sh/result?p=tsx"><img src="https://packagephobia.now.sh/badge?p=tsx"></a>
 
