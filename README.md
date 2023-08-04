@@ -271,6 +271,16 @@ By sponsoring tsx, you support an essential tool used by developers worldwide, e
 [💖 Make a difference today!](https://github.com/sponsors/privatenumber)
 
 ## Sponsors
+
+[**Holocron**](https://holocron.so#github-privatenumber)
+
+[![Holocron](https://holocron.so/banners/github.png)](https://holocron.so#github-privatenumber)
+
+> This page gets consistent traffic from Google and other dev resources.
+>
+> If you'd like to promote your banner here or my other projects, please reach out for sponsorship deals.
+
+### Badges
 <p align="center">
 	<a href="https://github.com/sponsors/privatenumber">
 		<img src="https://cdn.jsdelivr.net/gh/privatenumber/sponsors/sponsorkit/sponsors.svg">
