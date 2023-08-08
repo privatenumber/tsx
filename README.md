@@ -1,12 +1,3 @@
-<table><tr><td>
-<h3>✨ <em>tsx</em> is now downloaded 2 million times a month! 🎉</h3>
-If you or your company use <em>tsx</em> and love it, please consider sponsoring us.
-<br>
-Your support allows us to maintain and improve the project for an even better experience.
-<br><br>
-<a href="https://github.com/sponsors/privatenumber">💖 Sponsor today and make a difference!</a>
-<br><br></td></tr></table>
-
 # tsx <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/v/tsx"></a> <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/dm/tsx"></a> <a href="https://packagephobia.now.sh/result?p=tsx"><img src="https://packagephobia.now.sh/badge?p=tsx"></a>
 
 > _TypeScript Execute (`tsx`)_: Node.js enhanced with [esbuild](https://esbuild.github.io/) to run TypeScript & ESM files
@@ -25,8 +16,12 @@ Your support allows us to maintain and improve the project for an even better ex
 >
 > If you're looking for a dead simple way to bundle your TypeScript projects, take a look at [`pkgroll`](https://github.com/privatenumber/pkgroll). It's an esbuild-enhanced Rollup that's auto configured based on your `package.json`!
 
-
-<sub>Found this package useful? Show your support & appreciation by [sponsoring](https://github.com/sponsors/privatenumber)! ❤️</sub>
+<br>
+<p align="center">
+	<a href="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=platinum">
+		<img width="830" src="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=platinum&image">
+	</a>
+</p>
 
 ## About
 `tsx` is a CLI command (alternative to `node`) for seamlessly running TypeScript & ESM, in both `commonjs` & `module` package types.
@@ -197,6 +192,12 @@ Node.js Loader to transform TypeScript to ESM.
 #### [@esbuild-kit/cjs-loader](https://github.com/esbuild-kit/cjs-loader)
 Node.js `require()` hook to transform TypeScript & ESM to CommonJS.
 
+<br>
+<p align="center">
+	<a href="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=gold">
+		<img width="830" src="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=gold&image">
+	</a>
+</p>
 
 ## FAQ
 
@@ -276,9 +277,14 @@ By sponsoring tsx, you support an essential tool used by developers worldwide, e
 
 [![Holocron](https://holocron.so/banners/github.png)](https://holocron.so#github-privatenumber)
 
-> This page gets consistent traffic from Google and other dev resources.
->
-> If you'd like to promote your banner here or my other projects, please reach out for sponsorship deals.
+<p align="center">
+	<a href="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=silver1">
+		<img width="410" src="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=silver1&image">
+	</a>
+	<a href="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=silver2">
+		<img width="410" src="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=silver2&image">
+	</a>
+</p>
 
 ### Badges
 <p align="center">
@@ -286,3 +292,4 @@ By sponsoring tsx, you support an essential tool used by developers worldwide, e
 		<img src="https://cdn.jsdelivr.net/gh/privatenumber/sponsors/sponsorkit/sponsors.svg">
 	</a>
 </p>
+
