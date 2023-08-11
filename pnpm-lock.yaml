@@ -70,8 +70,8 @@ devDependencies:
     specifier: ^0.6.0
     version: 0.6.0
   node-pty:
-    specifier: ^0.10.1
-    version: 0.10.1
+    specifier: ^1.0.0
+    version: 1.0.0
   pkgroll:
     specifier: ^1.8.0
     version: 1.8.0(typescript@4.9.4)
@@ -3129,8 +3129,8 @@ packages:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
     dev: true
 
-  /node-pty@0.10.1:
-    resolution: {integrity: sha512-JTdtUS0Im/yRsWJSx7yiW9rtpfmxqxolrtnyKwPLI+6XqTAPW/O2MjS8FYL4I5TsMbH2lVgDb2VMjp+9LoQGNg==}
+  /node-pty@1.0.0:
+    resolution: {integrity: sha512-wtBMWWS7dFZm/VgqElrTvtfMq4GzJ6+edFI0Y0zyzygUSZMgZdraDUMUhCIvkjhJjme15qWmbyJbtAx4ot4uZA==}
     requiresBuild: true
     dependencies:
       nan: 2.17.0
