@@ -1,71 +1,120 @@
-name: Bug report
-description: File a bug report
+name: 🐛 Bug report
+description: Run into a bug? File a report and get the help you need!
 labels: [bug, pending triage]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you for taking the time to file this bug report.
+        ## 👀 Tell us about the bug
+        A clear and concise description of what the bug is. If applicable, add screenshots to help explain your problem.
+
   - type: textarea
     attributes:
-      label: Bug description
-      description: A clear and concise description of the bug.
-      value: |
-        <!--
-          What did you do? (Provide reproduction code in next section)
-
-          What did you expect to happen?
-
-          What happened instead?
-
-          Do you have an error stack-trace or screenshots?
-        -->
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: Reproduction
-      description: |
-        Provide a minimal reproduction in one of the following forms:
-          1. Small code-snippet (no more than one) we can copy-paste. **No dependencies allowed.**
-          2. Link to a repository containing minimal reproduction. **Dependencies allowed.**
-            - No more than 5 files. Delete irrelevant files (e.g. `LICENSE`, `.npmrc`, `.github`).
-            - Set the command to run in the `package.json` script `start`
-            - For a starter template, [fork this template on StackBlitz](https://stackblitz.com/edit/node-huzszn?file=index.ts)
-            - 👉 **Tip:** The _smaller_ the reproduction, the _faster_ we can debug and resolve your issue
-              - Remove all unnecessary files, code, & dependencies. This is the first step of debugging so doing this will save us work.
-              - If possible, convert TypeScript to plain JavaScript to eliminate the possibility of it being a TS bug
-
-        ⚠️ If a _minimal_ reproduction is not provided, the issue will be closed
-      placeholder: 👆 Your issue will be CLOSED if it doesn't follow the instructions above.
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: Environment
-      description: |
-        Run and paste the output of:
-        ```
-        npx envinfo --system --npmPackages tsx --binaries
-        ```
-        
-        This information is used to for reproduction and debugging.
+      label: Problem
       placeholder: |
-        System:
-          OS:
-          CPU:
-          Shell:
-        Binaries:
-          Node:
-          npm:
-        npmPackages:
-          tsx:
-      render: shell
+        What did you do and what happened?
+
+        Do you have an error stack trace?
     validations:
       required: true
+
+  - type: textarea
+    attributes:
+      label: Expected behavior
+      placeholder: |
+        What did you expect to happen?
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## 📋 Minimal reproduction
+        > ⚠️ If a minimal reproduction is not provided, **the issue will be closed.**
+
+        The minimal reproduction proves a bug exists in this project, streamlines the conversation, and allows others to debug it for you right away.
+
+        #### Requirements
+        1. Create the reproduction on [StackBlitz](https://stackblitz.com) or a new GitHub repository so it can be opened in the browser.
+        2. Keep the reproduction small.
+          Delete _everything_ you don't need. Narrowing the scope is the first step of debugging so doing this will save us work.
+          The _smaller_ the reproduction, the _faster_ we can debug and resolve your issue.
+
+        3. No more than 10 files.
+          Delete irrelevant files (e.g. `LICENSE`, `.npmrc`, `.github`).
+        4. Set the `start` script in `package.json` to the command that demonstrates the bug.
+
+        Starter template: [fork this template on StackBlitz](https://stackblitz.com/edit/node-huzszn?file=index.ts)
+
+  - type: input
+    attributes:
+      label: URL
+      placeholder: https://stackblitz.com/edit/...
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        > **🙋 Experiencing a challenging bug and need expert assistance?**
+        >
+        > Get personalized help through my [_Priority Support_ service](https://github.com/sponsors/privatenumber). From minimal reproduction creation to debugging, I'm here to assist you!
+
+  - type: markdown
+    attributes:
+      value: "## 🌍 Environment"
+
+  - type: input
+    attributes:
+      label: Version
+      placeholder: v0.0.0
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Node.js version
+      placeholder: v0.0.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: package-manager
+    attributes:
+      label: Package manager
+      options:
+        - npm
+        - yarn
+        - pnpm
+        - bun
+        - N/A
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "## 🛠️ Can you contribute a fix?"
+
   - type: checkboxes
     attributes:
-      label: Can you work on a fix?
-      description: We would love for you to contribute!
+      label: It would be amazing if you can contribute to the project!
       options:
-        - label: I’m interested in opening a pull request to address this issue.
+        - label: I plan to open a pull request for this issue.
+
+  - type: markdown
+    attributes:
+      value: |
+        ## 🚀 Need immediate attention?
+        Escalate this issue by becoming a [_Priority Patron_ sponsor](https://github.com/sponsors/privatenumber)! As a _Priority Patron_, your concern will receive prompt attention, ensuring faster and more efficient resolution.
+
+        [👉 Become a _Priority Patron_ now!](https://github.com/sponsors/privatenumber)

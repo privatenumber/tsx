@@ -1,43 +1,57 @@
-name: Feature request
-description: Suggest an idea for this project
+name: 🌟 Feature request
+description: Have a great idea for this project? Tell us more!
 labels: [enhancement, pending triage]
 body:
   - type: markdown
     attributes:
-      value: |
-        Thank you for taking the time to file this feature request.
+      value: "## 👀 Tell us about your idea"
+
   - type: textarea
     attributes:
       label: Feature request
-      description: A description of the feature you would like.
+      description: A clear and concise description of the feature you would like.
+      placeholder: |
+        When using this project, I would love to be able to...
     validations:
       required: true
+
   - type: textarea
     attributes:
-      label: Why?
+      label: Motivations
       description: |
         Describe the problem you’re tackling with this feature request.
-      value: |
-        <!--
-          What’s the motivation behind this issue?
-
-          eg. “I’m frustrated when...”
-        -->
+      placeholder: |
+        How did you come across this idea?
     validations:
       required: true
+
   - type: textarea
     attributes:
       label: Alternatives
       description: |
         Have you considered alternative solutions? Is there a workaround?
-      value: |
-        <!--
-          Do you have alternative proposals?
+      placeholder: |
+        Do you have alternative proposals?
 
-          Do you have a workaround?
-        -->
+        Are there workarounds?
+
   - type: textarea
     attributes:
       label: Additional context
       description: |
         Anything else to share? Screenshots? Links?
+
+  - type: markdown
+    attributes:
+      value: |
+        > **🙋 Experiencing a challenging problem and need expert assistance?**
+        >
+        > Get personalized help through my [_Priority Support_ service](https://github.com/sponsors/privatenumber). From debugging to implementation, I'm here to assist you!
+
+  - type: markdown
+    attributes:
+      value: |
+        ## 🚀 Need immediate attention?
+        Escalate this issue by becoming a [_Priority Patron_ sponsor](https://github.com/sponsors/privatenumber)! As a _Priority Patron_, your concern will receive prompt attention, ensuring faster and more efficient resolution.
+
+        [👉 Become a _Priority Patron_ now!](https://github.com/sponsors/privatenumber)
