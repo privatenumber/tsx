@@ -276,6 +276,11 @@ For details, refer to esbuild's [JavaScript caveats](https://esbuild.github.io/c
 
 In CommonJS mode, yes. But in Module/ESM mode, [Node.js version v19.6.0 and up](https://github.com/nodejs/node/blob/v19.6.0/doc/changelogs/CHANGELOG_V19.md#esm-leverage-loaders-when-resolving-subsequent-loaders) is required.
 
+### There's an outdated dependency in tsx—can you update?
+
+Dependencies are typically declared with SemVer ranges to allow updates. You can use the [`npm update <package name>`](https://docs.npmjs.com/cli/v8/commands/npm-update) command to automatically update them to the latest version within the defined range.
+
+If the dependencies are out of the specified range, it indicates a potential breaking change that requires manual review. You're welcome to submit a pull request to initiate the upgrade.
 
 ## Sponsors
 
