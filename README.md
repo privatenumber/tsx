@@ -209,6 +209,10 @@ Node.js `require()` hook to transform TypeScript & ESM to CommonJS.
 	</a>
 </p>
 
+## Support
+
+If there's a problem you're encountering or something you need help with, don't hesitate to take advantage of my [_Priority Support_ service](https://github.com/sponsors/privatenumber) where you can ask me questions in an exclusive forum. I'm well equppied to assist you with this project and would be happy to help you out! 🙂
+
 ## FAQ
 
 ### Why is it named `tsx`?
@@ -273,14 +277,6 @@ For details, refer to esbuild's [JavaScript caveats](https://esbuild.github.io/c
 In CommonJS mode, yes. But in Module/ESM mode, [Node.js version v19.6.0 and up](https://github.com/nodejs/node/blob/v19.6.0/doc/changelogs/CHANGELOG_V19.md#esm-leverage-loaders-when-resolving-subsequent-loaders) is required.
 
 
-## Support development
-
-As of July 2023, tsx gets 2 million downloads a month. Maintaining an open-source project like tsx requires considerable time and effort. Your sponsorship helps us dedicate more resources to development, improve stability, and introduce exciting enhancements for all users.
-
-By sponsoring tsx, you support an essential tool used by developers worldwide, ensuring its ongoing development and sustainable maintenance. Your contribution enables us to continuously improve the project and create a better development experience for everyone.
-
-[💖 Make a difference today!](https://github.com/sponsors/privatenumber)
-
 ## Sponsors
 
 [**Holocron**](https://holocron.so#github-privatenumber)
@@ -304,7 +300,6 @@ By sponsoring tsx, you support an essential tool used by developers worldwide, e
 	</a>
 </p>
 
-### Badges
 <p align="center">
 	<a href="https://github.com/sponsors/privatenumber">
 		<img src="https://cdn.jsdelivr.net/gh/privatenumber/sponsors/sponsorkit/sponsors.svg">
