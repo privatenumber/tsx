@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        > 💁‍♂️ Please remember others are volunteering to help you for free, and put in your best effort to follow this form.
+        > 💁‍♂️ Keep in mind this is a collaborative effort. Please do your best to debug, communicate, and demonstrate the problem.
 
         ## 👀 Tell us about the bug
         A _clear and concise_ description of what the bug is.
