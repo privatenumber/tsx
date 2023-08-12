@@ -4,14 +4,17 @@ labels: [enhancement, pending triage]
 body:
   - type: markdown
     attributes:
-      value: "## 👀 Tell us about your idea"
+      value: |
+        > 💁‍♂️ Please remember others are volunteering to help you for free, and put in your best effort to follow this form.
+
+        ## 👀 Tell us about your idea
 
   - type: textarea
     attributes:
       label: Feature request
-      description: A clear and concise description of the feature you would like.
+      description: A clear and concise description of the feature.
       placeholder: |
-        When using this project, I would love to be able to...
+        I would love to be able to...
     validations:
       required: true
 
@@ -47,6 +50,19 @@ body:
         > **🙋 Experiencing a challenging problem and need expert assistance?**
         >
         > Get personalized help through my [_Priority Support_ service](https://github.com/sponsors/privatenumber). From debugging to implementation, I'm here to assist you!
+
+  - type: markdown
+    attributes:
+      value: |
+        ## 🛠️ Contribute
+        It would be amazing if you can contribute to the project! This project is open source, free to use, and maintained by volunteers. This could be a great opportunity to give back and improve the project for everyone, including yourself.
+
+  - type: checkboxes
+    attributes:
+      label: Contributions
+      options:
+        - label: I plan to open a pull request for this issue
+        - label: I plan to make a financial contribution to this project
 
   - type: markdown
     attributes:

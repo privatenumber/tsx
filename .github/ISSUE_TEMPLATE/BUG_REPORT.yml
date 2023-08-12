@@ -5,16 +5,19 @@ body:
   - type: markdown
     attributes:
       value: |
+        > 💁‍♂️ Please remember others are volunteering to help you for free, and put in your best effort to follow this form.
+
         ## 👀 Tell us about the bug
-        A clear and concise description of what the bug is. If applicable, add screenshots to help explain your problem.
+        A _clear and concise_ description of what the bug is.
 
   - type: textarea
     attributes:
       label: Problem
+      description: Please refrain from describing anything other than the problem.
       placeholder: |
-        What did you do and what happened?
-
+        What's the problem?
         Do you have an error stack trace?
+        Do you have screenshots?
     validations:
       required: true
 
@@ -30,25 +33,44 @@ body:
     attributes:
       value: |
         ## 📋 Minimal reproduction
-        > ⚠️ If a minimal reproduction is not provided, **the issue will be closed.**
+        > ⚠️ If a **minimal** reproduction is not provided, **the issue will be closed.**
 
-        The minimal reproduction proves a bug exists in this project, streamlines the conversation, and allows others to debug it for you right away.
+        The minimal reproduction proves a bug exists in this project, allows others to debug it for you, and streamlines resolution.
 
-        #### Requirements
-        1. Create the reproduction on [StackBlitz](https://stackblitz.com) or a new GitHub repository so it can be opened in the browser.
-        2. Keep the reproduction small.
-          Delete _everything_ you don't need. Narrowing the scope is the first step of debugging so doing this will save us work.
-          The _smaller_ the reproduction, the _faster_ we can debug and resolve your issue.
+        <details>
+          <summary><strong>How do I create a minimal reproduction?</strong></summary>
 
-        3. No more than 10 files.
-          Delete irrelevant files (e.g. `LICENSE`, `.npmrc`, `.github`).
-        4. Set the `start` script in `package.json` to the command that demonstrates the bug.
+        1. Delete all unnecessary files and data. Keep it under 10 files.
+
+            Delete irrelevant files (e.g. `LICENSE`, `.npmrc`, `.github`).
+            Do you have unnecessary dependencies, scripts, properties in `package.json`?
+
+        2. Delete all unnecessary code. Reduce the scope.
+
+            Try to narrow the scope of the reproduction as much as possible.
+            Is it a frontend or backend problem? Delete the other.
+            Is it a TypeScript problem? Try converting to JavaScript to see if it still exists.
+            Ideally, the code is reduced to a few lines of code in a single file.
+
+        3. Set the `start` script in `package.json` to the command that demonstrates the bug.
+
+        4. Verify the reproduction.
+
+            Try running it yourself, and check:
+            - Is the problem immediately reproducible?
+            - Are dependencies properly declared?
+            - Could I find more files or code that isn't necessary?
+
+        5. Upload the reproduction to [StackBlitz](https://stackblitz.com), or a new GitHub repository, so it can be opened in the browser.
+        </details>
 
         Starter template: [fork this template on StackBlitz](https://stackblitz.com/edit/node-huzszn?file=index.ts)
 
+        The _smaller_ the reproduction, the _faster_ others can help you.
+
   - type: input
     attributes:
-      label: URL
+      label: Minimal reproduction URL
       placeholder: https://stackblitz.com/edit/...
     validations:
       required: true
@@ -56,9 +78,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        > **🙋 Experiencing a challenging bug and need expert assistance?**
+        > **🙋 Need help?**
         >
-        > Get personalized help through my [_Priority Support_ service](https://github.com/sponsors/privatenumber). From minimal reproduction creation to debugging, I'm here to assist you!
+        > Get personalized help through my [_Priority Support_ service](https://github.com/sponsors/privatenumber).
+        > From minimal reproduction creation to debugging, I'm happy to assist you!
 
   - type: markdown
     attributes:
@@ -103,13 +126,16 @@ body:
 
   - type: markdown
     attributes:
-      value: "## 🛠️ Can you contribute a fix?"
+      value: |
+        ## 🛠️ Contribute
+        It would be amazing if you can contribute to the project! This project is open source, free to use, and maintained by volunteers. This could be a great opportunity to give back and improve the project for everyone, including yourself.
 
   - type: checkboxes
     attributes:
-      label: It would be amazing if you can contribute to the project!
+      label: Contributions
       options:
-        - label: I plan to open a pull request for this issue.
+        - label: I plan to open a pull request for this issue
+        - label: I plan to make a financial contribution to this project
 
   - type: markdown
     attributes:
