@@ -26,8 +26,10 @@ const nodeVersions = [
 
 (async () => {
 	for (const packageType of packageTypes) {
-		await describe(`Package type: ${packageType}`, async ({ describe }) => {
+		await describe(`Package type: ${packageType}`, async ({ describe, onFinish }) => {
 			const fixture = await createFixture('./tests/fixtures/');
+
+			onFinish(async () => await fixture.rm());
 
 			await fixture.writeJson('package.json', {
 				type: packageType,
@@ -72,8 +74,6 @@ const nodeVersions = [
 					);
 				});
 			}
-
-			await fixture.rm();
 		});
 	}
 })();
