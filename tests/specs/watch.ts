@@ -148,6 +148,8 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			});
 
 			expect(stdout).toMatch(/start[\s\S]+end/);
+
+			await tsxProcess;
 		}, 10_000);
 
 		// describe('help', ({ test }) => {
