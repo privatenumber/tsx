@@ -16,9 +16,8 @@ import {
 	log,
 } from './utils';
 
-
 const killProcess = async (
-	childProcess: ChildProcess
+	childProcess: ChildProcess,
 ) => {
 	const waitForExit = new Promise((resolve) => {
 		childProcess.on('exit', resolve);
@@ -28,7 +27,6 @@ const killProcess = async (
 
 	await waitForExit;
 };
-
 
 const flags = {
 	noCache: {
