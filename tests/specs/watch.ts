@@ -14,10 +14,12 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			expect(tsxProcess.stderr).toMatch('Error: Missing required parameter "script path"');
 		});
 
-		test('watch files for changes', async () => {
+		test('watch files for changes', async ({ onTestFinish }) => {
 			const fixture = await createFixture({
 				'index.js': 'console.log(1)',
 			});
+
+			onTestFinish(async () => await fixture.rm());
 
 			const tsxProcess = tsx({
 				args: [
@@ -142,7 +144,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 		});
 
 		describe('ignore', ({ test }) => {
-			test('file path & glob', async () => {
+			test('file path & glob', async ({ onTestFinish }) => {
 				const entryFile = 'index.js';
 				const fileA = 'file-a.js';
 				const fileB = 'directory/file-b.js';
@@ -157,6 +159,8 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 					[fileA]: `export default ${value}`,
 					[fileB]: `export default ${value}`,
 				});
+
+				onTestFinish(async () => await fixture.rm());
 
 				const tsxProcess = tsx({
 					cwd: fixture.path,
@@ -188,7 +192,6 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				});
 
 				const tsxProcessResolved = await tsxProcess;
-				await fixture.rm();
 
 				expect(tsxProcessResolved.stdout).not.toMatch(`${value} ${value}`);
 				expect(tsxProcessResolved.stderr).toBe('');
