@@ -132,17 +132,28 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 
 			const stdout = await new Promise<string>((resolve) => {
 				const buffers: Buffer[] = [];
+				const waitingOn: [string, (() => void)][] = [
+					['start\n', () => {
+						tsxProcess.stdin?.write('enter');
+					}],
+					['end\n', () => {}],
+				];
+
+				let currentWaitingOn = waitingOn.shift();
 				async function onStdOut(data: Buffer) {
 					buffers.push(data);
 					const chunkString = data.toString();
-					console.log({
-						chunkString,
-					});
-					if (chunkString.match('start\n')) {
-						tsxProcess.stdin?.write('enter');
-					} else if (chunkString.match('end\n')) {
-						tsxProcess.kill();
-						resolve(Buffer.concat(buffers).toString());
+
+					if (currentWaitingOn) {
+						const [expected, callback] = currentWaitingOn!;
+						if (chunkString.match(expected)) {
+							callback();
+							currentWaitingOn = waitingOn.shift();
+							if (!currentWaitingOn) {
+								tsxProcess.kill();
+								resolve(Buffer.concat(buffers).toString());
+							}
+						}
 					}
 				}
 
