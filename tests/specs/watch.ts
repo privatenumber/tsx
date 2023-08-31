@@ -106,6 +106,50 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			await tsxProcess;
 		}, 10_000);
 
+		test('wait for exit', async ({ onTestFinish }) => {
+			const fixture = await createFixture({
+				'index.js': `
+				console.log('start');
+				const sleepSync = (delay) => {
+					const waitTo = Date.now() + delay;
+					while (Date.now() < waitTo) {}
+				};
+				process.on('exit', () => {
+					sleepSync(300);
+					console.log('end');
+				});
+				`,
+			});
+
+			onTestFinish(async () => await fixture.rm());
+
+			const tsxProcess = tsx({
+				args: [
+					'watch',
+					path.join(fixture.path, 'index.js'),
+				],
+			});
+
+			const stdout = await new Promise<string>((resolve) => {
+				const buffers: Buffer[] = [];
+				async function onStdOut(data: Buffer) {
+					buffers.push(data);
+					const chunkString = data.toString();
+					if (chunkString.match('start\n')) {
+						tsxProcess.stdin?.write('enter');
+					} else if (chunkString.match('end\n')) {
+						tsxProcess.kill();
+						resolve(Buffer.concat(buffers).toString());
+					}
+				}
+
+				tsxProcess.stdout!.on('data', onStdOut);
+				tsxProcess.stderr!.on('data', onStdOut);
+			});
+
+			expect(stdout).toBe('\u001Bcstart\nend\n');
+		}, 10_000);
+
 		describe('help', ({ test }) => {
 			test('shows help', async () => {
 				const tsxProcess = await tsx({

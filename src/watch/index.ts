@@ -64,12 +64,17 @@ export const watchCommand = command({
 
 	let runProcess: ChildProcess | undefined;
 
-	const reRun = debounce(() => {
+	const reRun = debounce(async () => {
 		if (
 			runProcess
 			&& (!runProcess.killed && runProcess.exitCode === null)
 		) {
+			const waitForExit = new Promise((resolve) => {
+				runProcess!.on('exit', resolve);
+			});
 			runProcess.kill();
+
+			await waitForExit;
 		}
 
 		// Not first run
