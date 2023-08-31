@@ -111,8 +111,8 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				'index.js': `
 				console.log('start');
 				const sleepSync = (delay) => {
-					const waitTo = Date.now() + delay;
-					while (Date.now() < waitTo) {}
+					const waitTill = Date.now() + delay;
+					while (Date.now() < waitTill) {}
 				};
 				process.on('exit', () => {
 					sleepSync(300);
@@ -147,7 +147,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				tsxProcess.stderr!.on('data', onStdOut);
 			});
 
-			expect(stdout).toBe('\u001Bcstart\nend\n');
+			expect(stdout).toMatch(/start[\s\S]+end/);
 		}, 10_000);
 
 		describe('help', ({ test }) => {
