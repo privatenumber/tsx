@@ -135,6 +135,9 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				async function onStdOut(data: Buffer) {
 					buffers.push(data);
 					const chunkString = data.toString();
+					console.log({
+						chunkString,
+					});
 					if (chunkString.match('start\n')) {
 						tsxProcess.stdin?.write('enter');
 					} else if (chunkString.match('end\n')) {
