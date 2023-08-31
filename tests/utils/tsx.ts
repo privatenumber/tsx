@@ -1,5 +1,6 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { Readable } from 'stream';
 import { execaNode } from 'execa';
 import getNode from 'get-node';
 
@@ -27,6 +28,37 @@ export const tsx = (
 		reject: false,
 	},
 );
+
+export async function untilMatchesString(
+	stdout: Readable,
+	matchFunction: (output: string) => boolean,
+) {
+	return await new Promise((resolve, reject) => {
+		let result = '';
+		const ondata = (chunk: any) => {
+			const chunkString = chunk.toString();
+			result += chunkString;
+			if (matchFunction(result)) {
+				cleanup();
+				resolve(result);
+			}
+		};
+		const cleanup = () => {
+			stdout.off('data', ondata);
+			stdout.off('error', rej);
+			stdout.off('end', rej);
+			stdout.off('close', rej);
+		};
+		const rej = () => {
+			cleanup();
+			reject();
+		};
+		stdout.on('data', ondata);
+		stdout.on('error', rej);
+		stdout.on('end', rej);
+		stdout.on('close', rej);
+	});
+}
 
 export async function createNode(
 	nodeVersion: string,
