@@ -64,12 +64,12 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 					aggregateStdout += chunkString;
 
 					if (chunkString.match('log-argv.ts')) {
-						if (!hitEnter) {
-							hitEnter = true;
-							tsxProcess.stdin?.write('enter');
-						} else {
+						if (hitEnter) {
 							tsxProcess.kill();
 							resolve(aggregateStdout);
+						} else {
+							hitEnter = true;
+							tsxProcess.stdin?.write('enter');
 						}
 					}
 				}
