@@ -1,6 +1,8 @@
 import { constants as osConstants } from 'os';
 import './suppress-warnings.cts';
 
+type BaseEventListener = () => void;
+
 /**
  * Hook require() to transform to CJS
  *
@@ -26,12 +28,13 @@ if (process.send) {
 		 * default behavior when there are no other handlers set
 		 */
 		if (process.listenerCount(signal) === 0) {
-			// eslint-disable-next-line unicorn/no-process-exit
+			// eslint-disable-next-line n/no-process-exit
 			process.exit(128 + osConstants.signals[signal]);
 		}
 	}
 
 	const relaySignals = ['SIGINT', 'SIGTERM'] as const;
+	type RelaySignals = typeof relaySignals[number];
 	for (const signal of relaySignals) {
 		process.on(signal, relaySignal);
 	}
@@ -40,7 +43,7 @@ if (process.send) {
 	const { listenerCount } = process;
 	process.listenerCount = function (eventName) {
 		let count = Reflect.apply(listenerCount, this, arguments);
-		if (relaySignals.includes(eventName as any)) {
+		if (relaySignals.includes(eventName as RelaySignals)) {
 			count -= 1;
 		}
 		return count;
@@ -49,9 +52,9 @@ if (process.send) {
 	// Also hide relaySignal from process.listeners()
 	const { listeners } = process;
 	process.listeners = function (eventName) {
-		const result = Reflect.apply(listeners, this, arguments);
-		if (relaySignals.includes(eventName as any)) {
-			return result.filter((listener: any) => listener !== relaySignal);
+		const result: BaseEventListener[] = Reflect.apply(listeners, this, arguments);
+		if (relaySignals.includes(eventName as RelaySignals)) {
+			return result.filter(listener => listener !== relaySignal);
 		}
 		return result;
 	};

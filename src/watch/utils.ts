@@ -2,7 +2,7 @@ import { gray, lightCyan } from 'kolorist';
 
 const currentTime = () => (new Date()).toLocaleTimeString();
 
-export const log = (...messages: any[]) => console.log(
+export const log = (...messages: unknown[]) => console.log(
 	gray(currentTime()),
 	lightCyan('[tsx]'),
 	...messages,
@@ -28,14 +28,4 @@ export function debounce(
 			duration,
 		);
 	};
-}
-
-export function isDependencyPath(
-	data: any,
-): data is { type: 'dependency'; path: string } {
-	return (
-		data
-		&& typeof data === 'object'
-		&& data.type === 'dependency'
-	);
 }

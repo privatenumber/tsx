@@ -12,7 +12,6 @@ import {
 import {
 	clearScreen,
 	debounce,
-	isDependencyPath,
 	log,
 } from './utils';
 
@@ -85,7 +84,14 @@ export const watchCommand = command({
 
 		runProcess.on('message', (data) => {
 			// Collect run-time dependencies to watch
-			if (isDependencyPath(data)) {
+			if (
+				data
+				&& typeof data === 'object'
+				&& 'type' in data
+				&& data.type === 'dependency'
+				&& 'path' in data
+				&& typeof data.path === 'string'
+			) {
 				const dependencyPath = (
 					data.path.startsWith('file:')
 						? fileURLToPath(data.path)
@@ -107,7 +113,7 @@ export const watchCommand = command({
 		 * In CLI mode where there is only one run, we can inherit the child's exit code.
 		 * But in watch mode, the exit code should reflect the kill signal.
 		 */
-		// eslint-disable-next-line unicorn/no-process-exit
+
 		process.exit(
 			/**
 			 * https://nodejs.org/api/process.html#exit-codes
