@@ -146,6 +146,8 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 
 					if (currentWaitingOn) {
 						const [expected, callback] = currentWaitingOn!;
+
+						// eslint-disable-next-line unicorn/prefer-regexp-test
 						if (chunkString.match(expected)) {
 							callback();
 							currentWaitingOn = waitingOn.shift();
