@@ -15,6 +15,18 @@ import {
 	log,
 } from './utils';
 
+const killProcess = async (
+	childProcess: ChildProcess,
+) => {
+	const waitForExit = new Promise((resolve) => {
+		childProcess.on('exit', resolve);
+	});
+
+	childProcess.kill();
+
+	await waitForExit;
+};
+
 const flags = {
 	noCache: {
 		type: Boolean,
@@ -63,26 +75,10 @@ export const watchCommand = command({
 
 	let runProcess: ChildProcess | undefined;
 
-	const reRun = debounce(() => {
-		if (
-			runProcess
-			&& (!runProcess.killed && runProcess.exitCode === null)
-		) {
-			runProcess.kill();
-		}
+	const spawnProcess = () => {
+		const childProcess = run(rawArgvs, options);
 
-		// Not first run
-		if (runProcess) {
-			log('rerunning');
-		}
-
-		if (options.clearScreen) {
-			process.stdout.write(clearScreen);
-		}
-
-		runProcess = run(rawArgvs, options);
-
-		runProcess.on('message', (data) => {
+		childProcess.on('message', (data) => {
 			// Collect run-time dependencies to watch
 			if (
 				data
@@ -104,6 +100,33 @@ export const watchCommand = command({
 				}
 			}
 		});
+
+		return childProcess;
+	};
+
+	let waitingExits = false;
+	const reRun = debounce(async () => {
+		if (waitingExits) {
+			log('forcing restart');
+			runProcess!.kill('SIGKILL');
+			return;
+		}
+
+		// If running process
+		if (runProcess?.exitCode === null) {
+			log('restarting');
+			waitingExits = true;
+			await killProcess(runProcess);
+			waitingExits = false;
+		} else {
+			log('rerunning');
+		}
+
+		if (options.clearScreen) {
+			process.stdout.write(clearScreen);
+		}
+
+		runProcess = spawnProcess();
 	}, 100);
 
 	reRun();
