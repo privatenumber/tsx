@@ -11,14 +11,15 @@ const packageTypes = [
 
 const nodeVersions = [
 	'12.20.0', // CJS named export detection added
-	'12.22.11',
+	'12',
 	...(
 		(process.env.CI && !isWin)
 			? [
-				'14.19.1',
-				'16.13.2',
-				'17.8.0',
-				'18.13.0',
+				'14',
+				'16',
+				'17',
+				'18',
+				'20',
 			]
 			: []
 	),
