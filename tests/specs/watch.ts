@@ -45,6 +45,42 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			});
 		}, 10_000);
 
+		test('watch files for changes on files with glob names', async ({ onTestFinish }) => {
+			const entryFile = 'index.js';
+			const globPathFile = '{dir}/file.js';
+			const fixture = await createFixture({
+				[entryFile]: `
+					import("./${globPathFile}");
+				`,
+				[globPathFile]: 'console.log(1)',
+			});
+
+			onTestFinish(async () => await fixture.rm());
+
+			const tsxProcess = tsx({
+				args: [
+					'watch',
+					path.join(fixture.path, 'index.js'),
+				],
+			});
+
+			await new Promise<void>((resolve) => {
+				async function onStdOut(data: Buffer) {
+					const chunkString = data.toString();
+
+					if (chunkString.match('1\n')) {
+						await fixture.writeFile(globPathFile, 'console.log(2)');
+					} else if (chunkString.match('2\n')) {
+						tsxProcess.kill();
+						resolve();
+					}
+				}
+
+				tsxProcess.stdout!.on('data', onStdOut);
+				tsxProcess.stderr!.on('data', onStdOut);
+			});
+		}, 10_000);
+
 		test('suppresses warnings & clear screen', async () => {
 			const tsxProcess = tsx({
 				args: [
