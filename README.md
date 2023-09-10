@@ -135,6 +135,35 @@ Start a TypeScript REPL by running with no arguments:
 tsx
 ```
 
+### Custom REPL
+To build a custom REPL application using [`node:repl`](https://nodejs.org/api/repl.html) that is capable of running TypeScript, use `tsx` as a loader to your custom REPL. This will patch [`node:repl`](https://nodejs.org/api/repl.html) to allow running and importing TypeScript code.
+
+_package.json_
+```json
+{
+    "scripts": {
+        "repl": "node --loader tsx customRepl.ts"
+    }
+}
+```
+
+_customRepl.ts_
+```ts
+import repl from "node:repl";
+
+const replServer = repl.start({
+    prompt: "ts> "
+});
+
+// ... customize your REPL app
+
+```
+
+Then run your custom REPL with:
+```sh
+npm run repl
+```
+
 ### Cache
 Modules transformations are cached in the system cache directory ([`TMPDIR`](https://en.wikipedia.org/wiki/TMPDIR)). Transforms are cached by content hash, so duplicate dependencies are not re-transformed.
 
@@ -150,7 +179,7 @@ tsx --no-cache ./file.ts
 
 To use `tsx` as a  Node.js loader, simply pass it in to the [`--loader`](https://nodejs.org/api/esm.html#loaders) flag.
 
-> Note: The loader is limited to adding support for loading TypeScript/ESM files. CLI features such as _watch mode_ or suppressing "experimental feature" warnings will not be available.
+> Note: The loader is limited to adding support for loading TypeScript/ESM files. CLI features such as _watch mode_ or suppressing "experimental feature" warnings will not be available. The loader will also patch [`node:repl`](https://nodejs.org/api/repl.html) to allow running TypeScript code.
 
 ```sh
 # As a CLI flag
