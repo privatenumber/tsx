@@ -174,7 +174,10 @@ export const watchCommand = command({
 	 * As an alternative, we watch cwd and all run-time dependencies
 	 */
 	const watcher = watch(
-		argv._,
+		[
+			argv._[0],
+			options.tsconfigPath,
+		].filter(Boolean) as string[],
 		{
 			cwd: process.cwd(),
 			ignoreInitial: true,
