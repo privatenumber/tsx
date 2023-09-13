@@ -47,7 +47,7 @@
 	"dependencies": {
 		"@esbuild-kit/cjs-loader": "^2.4.2",
 		"@esbuild-kit/core-utils": "^3.3.0",
-		"@esbuild-kit/esm-loader": "github:esbuild-kit/esm-loader#npm/fix-node-20-dependency-signal-transfering"
+		"@esbuild-kit/esm-loader": "^2.6.3"
 	},
 	"optionalDependencies": {
 		"fsevents": "~2.3.2"
