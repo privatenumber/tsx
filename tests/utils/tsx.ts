@@ -25,6 +25,7 @@ export const tsx = (
 		nodeOptions: [],
 		cwd: options.cwd,
 		reject: false,
+		all: true,
 	},
 );
 
