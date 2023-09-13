@@ -12,8 +12,8 @@ dependencies:
     specifier: ^3.3.0
     version: 3.3.0
   '@esbuild-kit/esm-loader':
-    specifier: ^2.6.1
-    version: 2.6.1
+    specifier: github:esbuild-kit/esm-loader#npm/fix-node-20-dependency-signal-transfering
+    version: github.com/esbuild-kit/esm-loader/368c46ebbb20bf0b57040067e7f4f1371f8d4e40
 
 optionalDependencies:
   fsevents:
@@ -135,13 +135,6 @@ packages:
     dependencies:
       esbuild: 0.18.20
       source-map-support: 0.5.21
-    dev: false
-
-  /@esbuild-kit/esm-loader@2.6.1:
-    resolution: {integrity: sha512-NJT43EF+rJ/KCU/9VlBWS9HByN1FvbWdNmtNxdZNLYcxwxF+MASIjRsH9/f6FRa3Eml+Fr8TNujB6uzNTAPZfQ==}
-    dependencies:
-      '@esbuild-kit/core-utils': 3.3.0
-      get-tsconfig: 4.7.0
     dev: false
 
   /@esbuild/android-arm64@0.18.20:
@@ -4500,3 +4493,12 @@ packages:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
     dev: true
+
+  github.com/esbuild-kit/esm-loader/368c46ebbb20bf0b57040067e7f4f1371f8d4e40:
+    resolution: {tarball: https://codeload.github.com/esbuild-kit/esm-loader/tar.gz/368c46ebbb20bf0b57040067e7f4f1371f8d4e40}
+    name: '@esbuild-kit/esm-loader'
+    version: 0.0.0-semantic-release
+    dependencies:
+      '@esbuild-kit/core-utils': 3.3.0
+      get-tsconfig: 4.7.0
+    dev: false
