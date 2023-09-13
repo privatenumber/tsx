@@ -89,12 +89,12 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				tsxProcess.stdout!,
 				[
 					(data) => {
-						if (data.match('log-argv.ts')) {
+						if (data.includes('log-argv.ts')) {
 							tsxProcess.stdin?.write('enter');
 							return true;
 						}
 					},
-					data => Boolean(data.match('log-argv.ts')),
+					data => data.includes('log-argv.ts'),
 				],
 			);
 
@@ -153,12 +153,12 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				tsxProcess.stdout!,
 				[
 					(data) => {
-						if (data.match('start\n')) {
+						if (data.includes('start\n')) {
 							tsxProcess.stdin?.write('enter');
 							return true;
 						}
 					},
-					data => Boolean(data.match('end\n')),
+					data => data.includes('end\n'),
 				],
 			);
 
