@@ -28,7 +28,6 @@ if (process.send) {
 		 * default behavior when there are no other handlers set
 		 */
 		if (process.listenerCount(signal) === 0) {
-			// eslint-disable-next-line n/no-process-exit
 			process.exit(128 + osConstants.signals[signal]);
 		}
 	}
