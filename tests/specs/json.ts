@@ -6,6 +6,9 @@ import type { NodeApis } from '../utils/tsx';
 export default testSuite(async ({ describe }, node: NodeApis) => {
 	describe('Load JSON', async ({ describe, onFinish }) => {
 		const fixture = await createFixture({
+			'package.json': JSON.stringify({
+				type: node.packageType,
+			}),
 			'index.json': JSON.stringify({
 				loaded: 'json',
 			}),
