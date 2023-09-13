@@ -4,12 +4,14 @@ import { createFixture } from 'fs-fixture';
 import type { NodeApis } from '../utils/tsx';
 
 export default testSuite(async ({ describe }, node: NodeApis) => {
-	describe('Load JSON', async ({ describe }) => {
+	describe('Load JSON', async ({ describe, onFinish }) => {
 		const fixture = await createFixture({
 			'index.json': JSON.stringify({
 				loaded: 'json',
 			}),
 		});
+
+		onFinish(async () => await fixture.rm());
 
 		describe('full path', async ({ test }) => {
 			const importPath = path.join(fixture.path, 'index.json');
