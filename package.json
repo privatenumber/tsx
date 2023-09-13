@@ -70,6 +70,7 @@
 		"lint-staged": "^13.1.0",
 		"manten": "^1.1.0",
 		"node-pty": "^1.0.0",
+		"outdent": "^0.8.0",
 		"pkgroll": "^1.8.0",
 		"semver": "^7.3.8",
 		"simple-git-hooks": "^2.8.1",
