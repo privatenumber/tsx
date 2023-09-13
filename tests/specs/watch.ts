@@ -62,13 +62,13 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				tsxProcess.stdout!,
 				[
 					async (data) => {
-						if (data.match(`${initialValue}\n`)) {
+						if (data.includes(`${initialValue}\n`)) {
 							initialValue = Date.now();
 							await fixture.writeFile('value.js', `export const value = ${initialValue};`);
 							return true;
 						}
 					},
-					data => Boolean(data.match(`${initialValue}\n`)),
+					data => data.includes(`${initialValue}\n`),
 				],
 			);
 
