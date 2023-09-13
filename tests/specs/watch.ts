@@ -1,10 +1,10 @@
 import { type Readable } from 'node:stream';
 import path from 'path';
 import { setTimeout } from 'timers/promises';
+import { on } from 'events';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import { tsx } from '../utils/tsx';
-import { on } from 'events';
 
 type MaybePromise<T> = T | Promise<T>;
 const interact = async (
@@ -62,13 +62,13 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				tsxProcess.stdout!,
 				[
 					async (data) => {
-						if (data.match(initialValue + '\n')) {
+						if (data.match(`${initialValue}\n`)) {
 							initialValue = Date.now();
-							await fixture.writeFile('value.js',  'export const value = ' + initialValue + ';');
+							await fixture.writeFile('value.js', `export const value = ${initialValue};`);
 							return true;
 						}
 					},
-					(data) => Boolean(data.match(initialValue + '\n')),
+					data => Boolean(data.match(`${initialValue}\n`)),
 				],
 			);
 
@@ -94,7 +94,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 							return true;
 						}
 					},
-					(data) => Boolean(data.match('log-argv.ts')),
+					data => Boolean(data.match('log-argv.ts')),
 				],
 			);
 
@@ -116,7 +116,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 
 			await interact(
 				tsxProcess.stdout!,
-				[(data) => data.startsWith('["')],
+				[data => data.startsWith('["')],
 			);
 
 			tsxProcess.kill();
@@ -158,7 +158,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 							return true;
 						}
 					},
-					(data) => Boolean(data.match('end\n')),
+					data => Boolean(data.match('end\n')),
 				],
 			);
 
@@ -190,7 +190,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 
 				await interact(
 					tsxProcess.stdout!,
-					[(data) => data.startsWith('["')],
+					[data => data.startsWith('["')],
 				);
 
 				tsxProcess.kill();
@@ -246,7 +246,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 								return true;
 							}
 						},
-						(data) => data === 'TERMINATE\n',
+						data => data === 'TERMINATE\n',
 					],
 				);
 
