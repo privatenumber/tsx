@@ -1,13 +1,20 @@
+import path from 'path';
 import { testSuite, expect } from 'manten';
+import { createFixture } from 'fs-fixture';
 import type { NodeApis } from '../utils/tsx';
 
 export default testSuite(async ({ describe }, node: NodeApis) => {
-	describe('Load JSON', ({ describe }) => {
-		describe('full path', ({ test }) => {
-			const importPath = './lib/json/index.json';
+	describe('Load JSON', async ({ describe }) => {
+		const fixture = await createFixture({
+			'index.json': JSON.stringify({
+				loaded: 'json',
+			}),
+		});
 
+		describe('full path', async ({ test }) => {
+			const importPath = path.join(fixture.path, 'index.json');
 			test('Load', async () => {
-				const nodeProcess = await node.load(importPath);
+				const nodeProcess = await node.load(fixture.path);
 				expect(nodeProcess.stdout).toBe('');
 				expect(nodeProcess.exitCode).toBe(0);
 			});
@@ -26,7 +33,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		});
 
 		describe('extensionless', ({ test }) => {
-			const importPath = './lib/json/index';
+			const importPath = path.join(fixture.path, 'index');
 
 			test('Load', async () => {
 				const nodeProcess = await node.load(importPath);
@@ -48,7 +55,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		});
 
 		describe('directory', ({ test }) => {
-			const importPath = './lib/json';
+			const importPath = fixture.path;
 
 			test('Load', async () => {
 				const nodeProcess = await node.load(importPath);
