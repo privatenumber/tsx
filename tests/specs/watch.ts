@@ -1,8 +1,31 @@
+import { type Readable } from 'node:stream';
 import path from 'path';
 import { setTimeout } from 'timers/promises';
+import { on } from 'events';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import { tsx } from '../utils/tsx';
+
+type MaybePromise<T> = T | Promise<T>;
+const interact = async (
+	stdout: Readable,
+	actions: ((data: string) => MaybePromise<boolean | void>)[],
+) => {
+	let currentAction = actions.shift();
+
+	const buffers: Buffer[] = [];
+	while (currentAction) {
+		for await (const [chunk] of on(stdout, 'data')) {
+			buffers.push(chunk);
+			if (await currentAction(chunk.toString())) {
+				currentAction = actions.shift();
+				break;
+			}
+		}
+	}
+
+	return Buffer.concat(buffers).toString();
+};
 
 export default testSuite(async ({ describe }, fixturePath: string) => {
 	describe('watch', ({ test, describe }) => {
@@ -15,10 +38,17 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 		});
 
 		test('watch files for changes', async ({ onTestFinish }) => {
+			let initialValue = Date.now();
 			const fixture = await createFixture({
-				'index.js': 'console.log(1)',
+				'package.json': JSON.stringify({
+					type: 'module',
+				}),
+				'index.js': `
+				import { value } from './value.js';
+				console.log(value);
+				`,
+				'value.js': `export const value = ${initialValue};`,
 			});
-
 			onTestFinish(async () => await fixture.rm());
 
 			const tsxProcess = tsx({
@@ -28,21 +58,23 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				],
 			});
 
-			await new Promise<void>((resolve) => {
-				async function onStdOut(data: Buffer) {
-					const chunkString = data.toString();
+			await interact(
+				tsxProcess.stdout!,
+				[
+					async (data) => {
+						if (data.includes(`${initialValue}\n`)) {
+							initialValue = Date.now();
+							await fixture.writeFile('value.js', `export const value = ${initialValue};`);
+							return true;
+						}
+					},
+					data => data.includes(`${initialValue}\n`),
+				],
+			);
 
-					if (chunkString.match('1\n')) {
-						await fixture.writeFile('index.js', 'console.log(2)');
-					} else if (chunkString.match('2\n')) {
-						tsxProcess.kill();
-						resolve();
-					}
-				}
+			tsxProcess.kill();
 
-				tsxProcess.stdout!.on('data', onStdOut);
-				tsxProcess.stderr!.on('data', onStdOut);
-			});
+			await tsxProcess;
 		}, 10_000);
 
 		test('suppresses warnings & clear screen', async () => {
@@ -53,32 +85,24 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				],
 			});
 
-			const stdout = await new Promise<string>((resolve) => {
-				let aggregateStdout = '';
-				let hitEnter = false;
-
-				function onStdOut(data: Buffer) {
-					const chunkString = data.toString();
-					// console.log({ chunkString });
-
-					aggregateStdout += chunkString;
-
-					if (chunkString.match('log-argv.ts')) {
-						if (hitEnter) {
-							tsxProcess.kill();
-							resolve(aggregateStdout);
-						} else {
-							hitEnter = true;
+			await interact(
+				tsxProcess.stdout!,
+				[
+					(data) => {
+						if (data.includes('log-argv.ts')) {
 							tsxProcess.stdin?.write('enter');
+							return true;
 						}
-					}
-				}
-				tsxProcess.stdout!.on('data', onStdOut);
-				tsxProcess.stderr!.on('data', onStdOut);
-			});
+					},
+					data => data.includes('log-argv.ts'),
+				],
+			);
 
-			expect(stdout).not.toMatch('Warning');
-			expect(stdout).toMatch('\u001Bc');
+			tsxProcess.kill();
+
+			const { all } = await tsxProcess;
+			expect(all).not.toMatch('Warning');
+			expect(all).toMatch('\u001Bc');
 		}, 10_000);
 
 		test('passes flags', async () => {
@@ -90,20 +114,15 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				],
 			});
 
-			const stdout = await new Promise<string>((resolve) => {
-				tsxProcess.stdout!.on('data', (chunk) => {
-					const chunkString = chunk.toString();
-					if (chunkString.startsWith('[')) {
-						resolve(chunkString);
-					}
-				});
-			});
+			await interact(
+				tsxProcess.stdout!,
+				[data => data.startsWith('["')],
+			);
 
 			tsxProcess.kill();
 
-			expect(stdout).toMatch('"--some-flag"');
-
-			await tsxProcess;
+			const { all } = await tsxProcess;
+			expect(all).toMatch('"--some-flag"');
 		}, 10_000);
 
 		test('wait for exit', async ({ onTestFinish }) => {
@@ -130,42 +149,23 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				],
 			});
 
-			const stdout = await new Promise<string>((resolve) => {
-				const buffers: Buffer[] = [];
-				const waitingOn: [string, (() => void)][] = [
-					['start\n', () => {
-						tsxProcess.stdin?.write('enter');
-					}],
-					['end\n', () => {}],
-				];
-
-				let currentWaitingOn = waitingOn.shift();
-				async function onStdOut(data: Buffer) {
-					buffers.push(data);
-					const chunkString = data.toString();
-
-					if (currentWaitingOn) {
-						const [expected, callback] = currentWaitingOn!;
-
-						// eslint-disable-next-line unicorn/prefer-regexp-test
-						if (chunkString.match(expected)) {
-							callback();
-							currentWaitingOn = waitingOn.shift();
-							if (!currentWaitingOn) {
-								tsxProcess.kill();
-								resolve(Buffer.concat(buffers).toString());
-							}
+			await interact(
+				tsxProcess.stdout!,
+				[
+					(data) => {
+						if (data.includes('start\n')) {
+							tsxProcess.stdin?.write('enter');
+							return true;
 						}
-					}
-				}
+					},
+					data => data.includes('end\n'),
+				],
+			);
 
-				tsxProcess.stdout!.on('data', onStdOut);
-				tsxProcess.stderr!.on('data', onStdOut);
-			});
+			tsxProcess.kill();
 
-			expect(stdout).toMatch(/start[\s\S]+end/);
-
-			await tsxProcess;
+			const { all } = await tsxProcess;
+			expect(all).toMatch(/start[\s\S]+end/);
 		}, 10_000);
 
 		describe('help', ({ test }) => {
@@ -188,20 +188,15 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 					],
 				});
 
-				const stdout = await new Promise<string>((resolve) => {
-					tsxProcess.stdout!.on('data', (chunk) => {
-						const chunkString = chunk.toString();
-						if (chunkString.startsWith('[')) {
-							resolve(chunkString);
-						}
-					});
-				});
+				await interact(
+					tsxProcess.stdout!,
+					[data => data.startsWith('["')],
+				);
 
 				tsxProcess.kill();
 
-				expect(stdout).toMatch('"--help"');
-
-				await tsxProcess;
+				const { all } = await tsxProcess;
+				expect(all).toMatch('"--help"');
 			}, 5000);
 		});
 
@@ -235,28 +230,31 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 					],
 				});
 
-				tsxProcess.stdout!.on('data', async (data: Buffer) => {
-					const chunkString = data.toString();
-					if (chunkString === `${value} ${value}\n`) {
-						value = Date.now();
-						await Promise.all([
-							fixture.writeFile(fileA, `export default ${value}`),
-							fixture.writeFile(fileB, `export default ${value}`),
-						]);
+				await interact(
+					tsxProcess.stdout!,
+					[
+						async (data) => {
+							if (data === `${value} ${value}\n`) {
+								value = Date.now();
+								await Promise.all([
+									fixture.writeFile(fileA, `export default ${value}`),
+									fixture.writeFile(fileB, `export default ${value}`),
+								]);
 
-						await setTimeout(500);
-						await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
-					}
+								await setTimeout(500);
+								await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
+								return true;
+							}
+						},
+						data => data === 'TERMINATE\n',
+					],
+				);
 
-					if (chunkString === 'TERMINATE\n') {
-						tsxProcess.kill();
-					}
-				});
+				tsxProcess.kill();
 
-				const tsxProcessResolved = await tsxProcess;
-
-				expect(tsxProcessResolved.stdout).not.toMatch(`${value} ${value}`);
-				expect(tsxProcessResolved.stderr).toBe('');
+				const { all, stderr } = await tsxProcess;
+				expect(all).not.toMatch(`${value} ${value}`);
+				expect(stderr).toBe('');
 			}, 10_000);
 		});
 	});
