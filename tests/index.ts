@@ -10,7 +10,6 @@ const packageTypes = [
 ] as const;
 
 const nodeVersions = [
-	'18',
 	'20',
 	...(
 		(process.env.CI && !isWin)
@@ -20,6 +19,7 @@ const nodeVersions = [
 				'14',
 				'16',
 				'17',
+				'18',
 			]
 			: []
 	),
