@@ -30,6 +30,9 @@ devDependencies:
   '@types/cross-spawn':
     specifier: ^6.0.2
     version: 6.0.3
+  '@types/micromatch':
+    specifier: ^4.0.2
+    version: 4.0.2
   '@types/node':
     specifier: ^18.11.18
     version: 18.17.15
@@ -583,6 +586,10 @@ packages:
       defer-to-connect: 2.0.1
     dev: true
 
+  /@types/braces@3.0.2:
+    resolution: {integrity: sha512-U5tlMYa0U/2eFTmJgKcPWQOEICP173sJDa6OjHbj5Tv+NVaYcrq2xmdWpNXOwWYGwJu+jER/pfTLdoQ31q8PzA==}
+    dev: true
+
   /@types/cross-spawn@6.0.3:
     resolution: {integrity: sha512-BDAkU7WHHRHnvBf5z89lcvACsvkz/n7Tv+HyD/uW76O29HoH1Tk/W6iQrepaZVbisvlEek4ygwT8IW7ow9XLAA==}
     dependencies:
@@ -625,6 +632,12 @@ packages:
     resolution: {integrity: sha512-DT+iNIRNX884cx0/Q1ja7NyUPpZuv0KPyL5rGNxm1WC1OtHstl7n4Jb7nk+xacNShQMbczJjt8uFzznpp6kYBg==}
     dependencies:
       '@types/unist': 2.0.8
+    dev: true
+
+  /@types/micromatch@4.0.2:
+    resolution: {integrity: sha512-oqXqVb0ci19GtH0vOA/U2TmHTcRY9kuZl4mqUxe0QmJAlIW13kzhuK5pi1i9+ngav8FjpSb9FVS/GE00GLX1VA==}
+    dependencies:
+      '@types/braces': 3.0.2
     dev: true
 
   /@types/node@18.17.15:

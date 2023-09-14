@@ -48,7 +48,7 @@
 		"@esbuild-kit/cjs-loader": "^2.4.2",
 		"@esbuild-kit/core-utils": "^3.3.0",
 		"@esbuild-kit/esm-loader": "^2.6.3",
-    "micromatch": "^4.0.5"
+		"micromatch": "^4.0.5"
 	},
 	"optionalDependencies": {
 		"fsevents": "~2.3.2"
@@ -56,6 +56,7 @@
 	"devDependencies": {
 		"@pvtnbr/eslint-config": "^0.36.0",
 		"@types/cross-spawn": "^6.0.2",
+		"@types/micromatch": "^4.0.2",
 		"@types/node": "^18.11.18",
 		"@types/react": "^18.0.26",
 		"@types/semver": "^7.3.13",
