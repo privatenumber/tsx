@@ -31,19 +31,30 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		describe('full path', ({ test }) => {
 			const importPath = './lib/ts-ext-tsx/index.tsx';
 
-			test('Load', async () => {
+			test('Load', async ({ onTestFail }) => {
 				const nodeProcess = await node.load(importPath);
+				onTestFail(() => {
+					console.log(nodeProcess);
+				});
+
 				assertResults(nodeProcess, node.isCJS);
 			});
 
-			test('Import', async () => {
+			test('Import', async ({ onTestFail }) => {
 				const nodeProcess = await node.import(importPath);
+				onTestFail(() => {
+					console.log(nodeProcess);
+				});
+
 				assertResults(nodeProcess, node.isCJS);
 				expect(nodeProcess.stdout).toMatch('{"default":["div",null,"hello world"]}');
 			});
 
-			test('Require', async () => {
+			test('Require', async ({ onTestFail }) => {
 				const nodeProcess = await node.require(importPath);
+				onTestFail(() => {
+					console.log(nodeProcess);
+				});
 
 				// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
 				assertResults(nodeProcess, true);
@@ -54,19 +65,30 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		describe('extensionless', ({ test }) => {
 			const importPath = './lib/ts-ext-tsx/index';
 
-			test('Load', async () => {
+			test('Load', async ({ onTestFail }) => {
 				const nodeProcess = await node.load(importPath);
+				onTestFail(() => {
+					console.log(nodeProcess);
+				});
+
 				assertResults(nodeProcess, node.isCJS);
 			});
 
-			test('Import', async () => {
+			test('Import', async ({ onTestFail }) => {
 				const nodeProcess = await node.import(importPath);
+				onTestFail(() => {
+					console.log(nodeProcess);
+				});
+
 				assertResults(nodeProcess, node.isCJS);
 				expect(nodeProcess.stdout).toMatch('{"default":["div",null,"hello world"]}');
 			});
 
-			test('Require', async () => {
+			test('Require', async ({ onTestFail }) => {
 				const nodeProcess = await node.require(importPath);
+				onTestFail(() => {
+					console.log(nodeProcess);
+				});
 
 				// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
 				assertResults(nodeProcess, true);
@@ -77,19 +99,28 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		describe('directory', ({ test }) => {
 			const importPath = './lib/ts-ext-tsx';
 
-			test('Load', async () => {
+			test('Load', async ({ onTestFail }) => {
 				const nodeProcess = await node.load(importPath);
+				onTestFail(() => {
+					console.log(nodeProcess);
+				});
 				assertResults(nodeProcess, node.isCJS);
 			});
 
-			test('Import', async () => {
+			test('Import', async ({ onTestFail }) => {
 				const nodeProcess = await node.import(importPath);
+				onTestFail(() => {
+					console.log(nodeProcess);
+				});
 				assertResults(nodeProcess, node.isCJS);
 				expect(nodeProcess.stdout).toMatch('{"default":["div",null,"hello world"]}');
 			});
 
-			test('Require', async () => {
+			test('Require', async ({ onTestFail }) => {
 				const nodeProcess = await node.require(importPath);
+				onTestFail(() => {
+					console.log(nodeProcess);
+				});
 
 				// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
 				assertResults(nodeProcess, true);
