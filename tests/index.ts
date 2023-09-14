@@ -53,26 +53,26 @@ const nodeVersions = [
 				node.packageType = packageType;
 
 				await describe(`Node ${node.version}`, ({ runTestSuite }) => {
-					// runTestSuite(
-					// 	import('./specs/repl'),
-					// 	node,
-					// );
-					// runTestSuite(
-					// 	import('./specs/javascript'),
-					// 	node,
-					// );
-					// runTestSuite(
-					// 	import('./specs/typescript'),
-					// 	node,
-					// );
+					runTestSuite(
+						import('./specs/repl'),
+						node,
+					);
+					runTestSuite(
+						import('./specs/javascript'),
+						node,
+					);
+					runTestSuite(
+						import('./specs/typescript'),
+						node,
+					);
 					runTestSuite(
 						import('./specs/json'),
 						node,
 					);
-					// runTestSuite(
-					// 	import('./specs/wasm'),
-					// 	node,
-					// );
+					runTestSuite(
+						import('./specs/wasm'),
+						node,
+					);
 				});
 			}
 		});
