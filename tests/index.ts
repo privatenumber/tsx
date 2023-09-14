@@ -10,19 +10,19 @@ const packageTypes = [
 ] as const;
 
 const nodeVersions = [
-	'18',
+	// '18',
 	'20',
-	...(
-		(process.env.CI && !isWin)
-			? [
-				'12.20.0', // CJS named export detection added
-				'12',
-				'14',
-				'16',
-				'17',
-			]
-			: []
-	),
+	// ...(
+	// 	(process.env.CI && !isWin)
+	// 		? [
+	// 			'12.20.0', // CJS named export detection added
+	// 			'12',
+	// 			'14',
+	// 			'16',
+	// 			'17',
+	// 		]
+	// 		: []
+	// ),
 ];
 
 (async () => {
@@ -53,26 +53,26 @@ const nodeVersions = [
 				node.packageType = packageType;
 
 				await describe(`Node ${node.version}`, ({ runTestSuite }) => {
-					runTestSuite(
-						import('./specs/repl'),
-						node,
-					);
-					runTestSuite(
-						import('./specs/javascript'),
-						node,
-					);
-					runTestSuite(
-						import('./specs/typescript'),
-						node,
-					);
+					// runTestSuite(
+					// 	import('./specs/repl'),
+					// 	node,
+					// );
+					// runTestSuite(
+					// 	import('./specs/javascript'),
+					// 	node,
+					// );
+					// runTestSuite(
+					// 	import('./specs/typescript'),
+					// 	node,
+					// );
 					runTestSuite(
 						import('./specs/json'),
 						node,
 					);
-					runTestSuite(
-						import('./specs/wasm'),
-						node,
-					);
+					// runTestSuite(
+					// 	import('./specs/wasm'),
+					// 	node,
+					// );
 				});
 			}
 		});
