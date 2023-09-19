@@ -20,6 +20,7 @@ export const tsx = (
 	options.args,
 	{
 		env: {
+			NODE_OPTIONS: '--max_old_space_size=4096',
 			ESBK_DISABLE_CACHE: '1',
 		},
 		nodePath: options.nodePath,
