@@ -29,6 +29,8 @@ jobs:
         run_install: true
 
     - name: Test
+      env:
+        NODE_OPTIONS: "--max_old_space_size=4096"
       run: pnpm test
 
     - name: Type check
