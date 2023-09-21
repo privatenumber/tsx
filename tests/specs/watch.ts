@@ -205,16 +205,18 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				const entryFile = 'index.js';
 				const fileA = 'file-a.js';
 				const fileB = 'directory/file-b.js';
-				let value = Date.now();
+				const depA = 'node_modules/a/index.js';
 
 				const fixture = await createFixture({
+					[fileA]: 'export default "logA"',
+					[fileB]: 'export default "logB"',
+					[depA]: 'export default "logC"',
 					[entryFile]: `
 						import valueA from './${fileA}'
 						import valueB from './${fileB}'
-						console.log(valueA, valueB)
+						import valueC from './${depA}'
+						console.log(valueA, valueB, valueC)
 					`.trim(),
-					[fileA]: `export default ${value}`,
-					[fileB]: `export default ${value}`,
 				});
 
 				onTestFinish(async () => await fixture.rm());
@@ -229,19 +231,25 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 						entryFile,
 					],
 				});
+				const negativeSignal = '"fail"';
 
 				await interact(
 					tsxProcess.stdout!,
 					[
 						async (data) => {
-							if (data === `${value} ${value}\n`) {
-								value = Date.now();
+							if (data.includes('fail')) {
+								throw new Error('should not log ignored file');
+							}
+
+							if (data === 'logA logB logC\n') {
+								// These changes should not trigger a re-run
 								await Promise.all([
-									fixture.writeFile(fileA, `export default ${value}`),
-									fixture.writeFile(fileB, `export default ${value}`),
+									fixture.writeFile(fileA, `export default ${negativeSignal}`),
+									fixture.writeFile(fileB, `export default ${negativeSignal}`),
+									fixture.writeFile(depA, `export default ${negativeSignal}`),
 								]);
 
-								await setTimeout(500);
+								await setTimeout(1500);
 								await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
 								return true;
 							}
@@ -253,7 +261,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				tsxProcess.kill();
 
 				const { all, stderr } = await tsxProcess;
-				expect(all).not.toMatch(`${value} ${value}`);
+				expect(all).not.toMatch('fail');
 				expect(stderr).toBe('');
 			}, 10_000);
 		});

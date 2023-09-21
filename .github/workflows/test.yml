@@ -28,10 +28,23 @@ jobs:
         version: 8
         run_install: true
 
+    - name: Restore Node.js versions
+      id: cache-nodejs
+      uses: actions/cache/restore@v3
+      with:
+        path: /home/runner/.cache/nve
+        key: ${{ runner.os }}-nodejs-${{ hashFiles('tests/index.ts') }}
+
     - name: Test
       env:
         NODE_OPTIONS: "--max_old_space_size=4096"
       run: pnpm test
+
+    - name: Save Node.js versions
+      uses: actions/cache/save@v3
+      with:
+        path: /home/runner/.cache/nve
+        key: ${{ steps.cache-nodejs.outputs.cache-primary-key }}
 
     - name: Type check
       if: ${{ matrix.os == 'ubuntu-latest' }}
