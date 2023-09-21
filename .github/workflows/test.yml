@@ -29,10 +29,11 @@ jobs:
         run_install: true
 
     - name: Restore Node.js versions
+      id: cache-nodejs
       uses: actions/cache/restore@v3
       with:
         path: /home/runner/.cache/nve
-        key: ${{ runner.os }}-nodejs
+        key: ${{ runner.os }}-nodejs-${{ hashFiles('tests/index.ts') }}
 
     - name: Test
       run: pnpm test
@@ -41,7 +42,7 @@ jobs:
       uses: actions/cache/save@v3
       with:
         path: /home/runner/.cache/nve
-        key: ${{ runner.os }}-nodejs
+        key: ${{ steps.cache-nodejs.outputs.cache-primary-key }}
 
     - name: Type check
       if: ${{ matrix.os == 'ubuntu-latest' }}
