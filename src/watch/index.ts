@@ -4,7 +4,7 @@ import { constants as osConstants } from 'os';
 import path from 'path';
 import { command } from 'cleye';
 import { watch } from 'chokidar';
-import micromatch from 'micromatch';
+import anymatch from 'anymatch';
 import { run } from '../run';
 import {
 	removeArgvFlags,
@@ -106,7 +106,10 @@ export const watchCommand = command({
 						: data.path
 				);
 
-				if (path.isAbsolute(dependencyPath) && !micromatch.isMatch(dependencyPath, options.ignore)) {
+				if (
+					path.isAbsolute(dependencyPath)
+					&& !anymatch(options.ignore, dependencyPath)
+				) {
 					// console.log('adding', dependencyPath);
 					watcher.add(dependencyPath);
 				}
