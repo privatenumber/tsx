@@ -34,7 +34,12 @@ export async function createNode(
 	nodeVersion: string,
 	fixturePath: string,
 ) {
-	const node = await getNode(nodeVersion);
+	console.log('Getting node', nodeVersion);
+	const startTime = Date.now();
+	const node = await getNode(nodeVersion, {
+		progress: true,
+	});
+	console.log('Got node', Date.now() - startTime, node);
 
 	return {
 		version: node.version,
