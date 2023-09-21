@@ -3,6 +3,10 @@ import { createFixture } from 'fs-fixture';
 import { createNode } from './utils/tsx';
 
 const isWin = process.platform === 'win32';
+console.log({
+	isWin,
+	processPlatform: process.platform,
+});
 
 const packageTypes = [
 	'commonjs',
