@@ -11,7 +11,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 			expect(nodeProcess.exitCode).toBe(1);
 
 			if (node.isCJS) {
-				expect(nodeProcess.stderr).toMatch('Do not know how to load path');
+				expect(nodeProcess.stderr).toMatch('Invalid or unexpected token');
 			} else {
 				expect(nodeProcess.stderr).toMatch('ERR_UNKNOWN_FILE_EXTENSION');
 			}
@@ -24,7 +24,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 
 			if (node.isCJS) {
 				expect(nodeProcess.exitCode).toBe(1);
-				expect(nodeProcess.stderr).toMatch('Do not know how to load path');
+				expect(nodeProcess.stderr).toMatch('Invalid or unexpected token');
 			} else {
 				expect(nodeProcess.exitCode).toBe(0);
 				expect(nodeProcess.stdout).toBe('1234');

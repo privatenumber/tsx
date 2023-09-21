@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { execaNode } from 'execa';
 import getNode from 'get-node';
@@ -106,6 +107,54 @@ export async function createNode(
 				],
 				cwd: fixturePath,
 			});
+		},
+
+		loadFile(
+			cwd: string,
+			filePath: string,
+			options?: {
+				args?: string[];
+			},
+		) {
+			return this.tsx(
+				{
+					args: [
+						...(options?.args ?? []),
+						filePath,
+					],
+					cwd,
+				},
+			);
+		},
+
+		async importFile(
+			cwd: string,
+			importFrom: string,
+			fileExtension = '.mjs',
+		) {
+			const fileName = `_${Math.random().toString(36).slice(2)}${fileExtension}`;
+			const filePath = path.resolve(cwd, fileName);
+			await fs.writeFile(filePath, `import * as _ from '${importFrom}';console.log(_)`);
+			try {
+				return await this.loadFile(cwd, filePath);
+			} finally {
+				await fs.rm(filePath);
+			}
+		},
+
+		async requireFile(
+			cwd: string,
+			requireFrom: string,
+			fileExtension = '.cjs',
+		) {
+			const fileName = `_${Math.random().toString(36).slice(2)}${fileExtension}`;
+			const filePath = path.resolve(cwd, fileName);
+			await fs.writeFile(filePath, `const _ = require('${requireFrom}');console.log(_)`);
+			try {
+				return await this.loadFile(cwd, filePath);
+			} finally {
+				await fs.rm(filePath);
+			}
 		},
 	};
 }

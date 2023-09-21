@@ -1,6 +1,6 @@
 # tsx <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/v/tsx"></a> <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/dm/tsx"></a> <a href="https://packagephobia.now.sh/result?p=tsx"><img src="https://packagephobia.now.sh/badge?p=tsx"></a>
 
-> _TypeScript Execute (`tsx`)_: Node.js enhanced with [esbuild](https://esbuild.github.io/) to run TypeScript & ESM files
+> _TypeScript Execute (`tsx`)_: Node.js enhanced to run TypeScript & ESM files
 
 ### Features
 - Blazing fast on-demand TypeScript & ESM compilation
@@ -10,7 +10,7 @@
 - Hides experimental feature warnings
 - TypeScript REPL
 - Resolves `tsconfig.json` [`paths`](https://www.typescriptlang.org/tsconfig#paths)
-- Tested on Linux & Windows with Node.js v12~18
+- Tested on Linux & Windows with Node.js v12~20
 
 > **💡 Protip: Looking to bundle your TypeScript project?**
 >
@@ -41,6 +41,11 @@ npx tsx ./script.ts
 
 How does it compare to [ts-node](https://github.com/TypeStrong/ts-node)? Checkout the [comparison](https://github.com/privatenumber/ts-runtime-comparison).
 
+### Mission
+tsx strives to:
+1. Enhance Node.js with TypeScript compatibility
+2. Improve ESM <-> CJS interoperability
+3. Support the latest major version of Node.js v12 and up _(likely to change in the future)_
 
 ## Install
 
@@ -283,10 +288,6 @@ Dependencies are typically declared with SemVer ranges to allow updates. You can
 If the dependencies are out of the specified range, it indicates a potential breaking change that requires manual review. You're welcome to submit a pull request to initiate the upgrade.
 
 ## Sponsors
-
-[**Holocron**](https://holocron.so#github-privatenumber)
-
-[![Holocron](https://holocron.so/banners/github.png)](https://holocron.so#github-privatenumber)
 
 <p align="center">
 	<a href="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=silver1">
