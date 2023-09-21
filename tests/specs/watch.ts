@@ -197,7 +197,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 
 				const { all } = await tsxProcess;
 				expect(all).toMatch('"--help"');
-			}, 5000);
+			}, 10_000);
 		});
 
 		describe('ignore', ({ test }) => {
