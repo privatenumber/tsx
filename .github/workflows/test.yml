@@ -49,7 +49,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ${{ env.NVE_CACHE }}
-        key: ${{ runner.os }}-nodejs-${{ hashFiles('tests/index.ts') }}
+        key: ${{ runner.os }}-nodejs-${{ hashFiles('tests/utils/node-versions.ts') }}
         restore-keys: ${{ runner.os }}-nodejs-
 
     - name: Test
