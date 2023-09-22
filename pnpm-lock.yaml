@@ -36,6 +36,9 @@ devDependencies:
   '@types/semver':
     specifier: ^7.5.1
     version: 7.5.1
+  cachedir:
+    specifier: ^2.4.0
+    version: 2.4.0
   chokidar:
     specifier: ^3.5.3
     version: 3.5.3
