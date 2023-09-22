@@ -35,9 +35,8 @@ jobs:
       name: Cache pnpm
       with:
         path: ${{ env.PNPM_STORE }}
-        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-        restore-keys: |
-          ${{ runner.os }}-pnpm-store-
+        key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: ${{ runner.os }}-pnpm-
 
     - name: Install dependencies
       run: pnpm install
@@ -50,11 +49,11 @@ jobs:
       run: echo "NVE_CACHE=$(node -e 'console.log(require("cachedir")("nve"))')" >> $GITHUB_ENV
 
     - name: Cache Node.js versions
-      id: cache-nodejs
       uses: actions/cache@v3
       with:
         path: ${{ env.NVE_CACHE }}
         key: ${{ runner.os }}-nodejs-${{ hashFiles('tests/utils/node-versions.ts') }}
+        restore-keys: ${{ runner.os }}-nodejs-
 
     - name: Download Node.js versions
       run: node ./dist/cli.js ./tests/download-node-versions.ts

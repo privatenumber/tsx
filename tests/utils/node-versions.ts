@@ -12,7 +12,7 @@ export const nodeVersions = [
 				'16',
 				'17',
 				'18',
-			]
-			: []
+			] as const
+			: [] as const
 	),
-];
+] as const;
