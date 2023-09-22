@@ -32,7 +32,7 @@ jobs:
       run: echo "PNPM_STORE=$(pnpm store path --silent)" >> $GITHUB_ENV
 
     - uses: actions/cache@v3
-      name: Setup pnpm cache
+      name: Cache pnpm
       with:
         path: ${{ env.PNPM_STORE }}
         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -49,7 +49,7 @@ jobs:
       shell: bash
       run: echo "NVE_CACHE=$(node -e 'console.log(require("cachedir")("nve"))')" >> $GITHUB_ENV
 
-    - name: Restore Node.js versions
+    - name: Cache Node.js versions
       id: cache-nodejs
       uses: actions/cache@v3
       with:
@@ -59,12 +59,6 @@ jobs:
     - name: Download Node.js versions
       run: node ./dist/cli.js ./tests/download-node-versions.ts
  
-    - name: Save Node.js versions
-      uses: actions/cache/save@v3
-      with:
-        path: ${{ env.NVE_CACHE }}
-        key: ${{ steps.cache-nodejs.outputs.cache-primary-key }}
-
     # - name: Test
     #   env:
     #     NODE_OPTIONS: "--max_old_space_size=4096"
