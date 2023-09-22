@@ -57,7 +57,7 @@ jobs:
         key: ${{ runner.os }}-nodejs-${{ hashFiles('tests/utils/node-versions.ts') }}
 
     - name: Download Node.js versions
-      run: ./dist/cli.js ./tests/download-node-versions.ts
+      run: node ./dist/cli.js ./tests/download-node-versions.ts
  
     - name: Save Node.js versions
       uses: actions/cache/save@v3
