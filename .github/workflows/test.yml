@@ -26,7 +26,6 @@ jobs:
       uses: pnpm/action-setup@v2
       with:
         version: 8
-        run_install: true
 
     - name: Get pnpm store directory
       shell: bash
@@ -39,6 +38,9 @@ jobs:
         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
           ${{ runner.os }}-pnpm-store-
+
+    - name: Install dependencies
+      run: pnpm install
 
     - name: Restore Node.js versions
       id: cache-nodejs
