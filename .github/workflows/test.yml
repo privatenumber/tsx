@@ -29,12 +29,12 @@ jobs:
 
     - name: Get pnpm store directory
       shell: bash
-      run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      run: echo "PNPM_STORE=$(pnpm store path --silent)" >> $GITHUB_ENV
 
     - uses: actions/cache@v3
       name: Setup pnpm cache
       with:
-        path: ${{ env.STORE_PATH }}
+        path: ${{ env.PNPM_STORE }}
         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
           ${{ runner.os }}-pnpm-store-
@@ -45,11 +45,15 @@ jobs:
     - name: Build
       run: pnpm build
 
+    - name: Get Node.js cache directory
+      shell: bash
+      run: echo "NVE_CACHE=$(node -e 'console.log(require("cachedir")("nve"))')" >> $GITHUB_ENV
+
     - name: Restore Node.js versions
       id: cache-nodejs
-      uses: actions/cache/restore@v3
+      uses: actions/cache@v3
       with:
-        path: /home/runner/.cache/nve
+        path: ${{ env.NVE_CACHE }}
         key: ${{ runner.os }}-nodejs-${{ hashFiles('tests/utils/node-versions.ts') }}
 
     - name: Download Node.js versions
@@ -58,7 +62,7 @@ jobs:
     - name: Save Node.js versions
       uses: actions/cache/save@v3
       with:
-        path: /home/runner/.cache/nve
+        path: ${{ env.NVE_CACHE }}
         key: ${{ steps.cache-nodejs.outputs.cache-primary-key }}
 
     - name: Test
