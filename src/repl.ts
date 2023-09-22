@@ -1,7 +1,7 @@
 // Deprecated: Delete entry-point in next major in favor of patch-repl.ts
 
 import repl, { type REPLEval } from 'repl';
-import { transform } from '@esbuild-kit/core-utils';
+import { transform } from './utils/transform';
 import { version } from '../package.json';
 
 // Copied from

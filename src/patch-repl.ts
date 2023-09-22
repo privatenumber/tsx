@@ -1,5 +1,5 @@
 import repl, { type REPLServer, type REPLEval } from 'repl';
-import { transform } from '@esbuild-kit/core-utils';
+import { transform } from './utils/transform';
 
 function patchEval(nodeRepl: REPLServer) {
 	const { eval: defaultEval } = nodeRepl;
