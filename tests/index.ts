@@ -1,33 +1,12 @@
 import { describe } from 'manten';
 import { createFixture } from 'fs-fixture';
 import { createNode } from './utils/tsx';
-
-const isWin = process.platform === 'win32';
-console.log({
-	isWin,
-	processPlatform: process.platform,
-});
+import { nodeVersions } from './utils/node-versions';
 
 const packageTypes = [
 	'commonjs',
 	'module',
 ] as const;
-
-const nodeVersions = [
-	'20',
-	...(
-		(process.env.CI && !isWin)
-			? [
-				'12.20.0', // CJS named export detection added
-				'12',
-				'14',
-				'16',
-				'17',
-				'18',
-			]
-			: []
-	),
-];
 
 (async () => {
 	for (const packageType of packageTypes) {

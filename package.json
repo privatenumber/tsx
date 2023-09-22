@@ -35,7 +35,7 @@
 		"build": "pkgroll --target=node12.19 --minify",
 		"lint": "eslint --cache .",
 		"type-check": "tsc --noEmit",
-		"test": "pnpm build && node ./dist/cli.js tests/index.ts",
+		"test": "node ./dist/cli.js tests/index.ts",
 		"prepack": "pnpm build && clean-pkg-json"
 	},
 	"simple-git-hooks": {
