@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import type { RawSourceMap } from '../source-map';
-import { parseEsm } from '../utils/es-module-lexer';
+import { parseEsm } from '../es-module-lexer';
 
 const checkEsModule = `.then((mod)=>{
 	const exports = Object.keys(mod);

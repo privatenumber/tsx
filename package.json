@@ -61,6 +61,7 @@
 		"@types/node": "^20.6.0",
 		"@types/react": "^18.2.21",
 		"@types/semver": "^7.5.1",
+		"@types/source-map-support": "^0.5.7",
 		"cachedir": "^2.4.0",
 		"chokidar": "^3.5.3",
 		"clean-pkg-json": "^1.2.0",
