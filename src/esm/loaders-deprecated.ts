@@ -5,9 +5,9 @@
  */
 import { fileURLToPath } from 'url';
 import type { ModuleFormat } from 'module';
+import type { TransformOptions } from 'esbuild';
 import { transform, transformDynamicImport } from '../utils/transform';
 import { compareNodeVersion } from '../utils/compare-node-version';
-import type { TransformOptions } from 'esbuild';
 import {
 	applySourceMap,
 	fileMatcher,

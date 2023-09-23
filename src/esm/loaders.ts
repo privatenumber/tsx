@@ -4,10 +4,10 @@ import { pathToFileURL, fileURLToPath } from 'url';
 import type {
 	ResolveFnOutput, ResolveHookContext, LoadHook, GlobalPreloadHook,
 } from 'module';
+import type { TransformOptions } from 'esbuild';
 import { compareNodeVersion } from '../utils/compare-node-version';
 import { transform, transformDynamicImport } from '../utils/transform';
 import { resolveTsPath } from '../utils/resolve-ts-path';
-import type { TransformOptions } from 'esbuild';
 import {
 	applySourceMap,
 	tsconfigPathsMatcher,

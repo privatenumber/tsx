@@ -1,12 +1,12 @@
 import path from 'path';
 import type { ModuleFormat } from 'module';
-import { installSourceMapSupport } from '../source-map';
 import {
 	getTsconfig,
 	parseTsconfig,
 	createPathsMatcher,
 	createFilesMatcher,
 } from 'get-tsconfig';
+import { installSourceMapSupport } from '../source-map';
 import { getPackageType } from './package-json.js';
 
 export const applySourceMap = installSourceMapSupport();
