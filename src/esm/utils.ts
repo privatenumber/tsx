@@ -1,6 +1,6 @@
 import path from 'path';
 import type { ModuleFormat } from 'module';
-import { installSourceMapSupport } from '../utils/source-map';
+import { installSourceMapSupport } from '../source-map';
 import {
 	getTsconfig,
 	parseTsconfig,

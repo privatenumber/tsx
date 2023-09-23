@@ -54,7 +54,7 @@ const _globalPreload: GlobalPreloadHook = ({ port }) => {
 
 	return `
 	const require = getBuiltin('module').createRequire("${import.meta.url}");
-	require('update-plz').installSourceMapSupport(port);
+	require('tsx/source-map').installSourceMapSupport(port);
 	if (process.send) {
 		port.addListener('message', (message) => {
 			if (message.type === 'dependency') {

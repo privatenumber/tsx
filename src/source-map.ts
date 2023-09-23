@@ -1,7 +1,7 @@
 import type { MessagePort } from 'node:worker_threads';
 import sourceMapSupport, { type UrlAndMap } from 'source-map-support';
-import type { Transformed } from './transform/apply-transformers';
-import { compareNodeVersion } from './compare-node-version';
+import type { Transformed } from './utils/transform/apply-transformers';
+import { compareNodeVersion } from './utils/compare-node-version';
 
 /**
  * Node.js loaders are isolated from v20

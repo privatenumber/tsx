@@ -27,6 +27,7 @@
 		"./cjs": "./dist/cjs/index.cjs",
 		"./esm": "./dist/esm/index.mjs",
 		"./cli": "./dist/cli.mjs",
+		"./source-map": "./dist/source-map.cjs",
 		"./suppress-warnings": "./dist/suppress-warnings.cjs",
 		"./preflight": "./dist/preflight.cjs",
 		"./repl": "./dist/repl.mjs"

@@ -8,7 +8,7 @@ import {
 	createFilesMatcher,
 } from 'get-tsconfig';
 import type { TransformOptions } from 'esbuild';
-import { installSourceMapSupport } from '../utils/source-map';
+import { installSourceMapSupport } from '../source-map';
 import { transformSync, transformDynamicImport } from '../utils/transform';
 import { resolveTsPath } from '../utils/resolve-ts-path';
 import { compareNodeVersion } from '../utils/compare-node-version';
