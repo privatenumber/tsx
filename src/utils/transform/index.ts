@@ -5,7 +5,7 @@ import {
 	transformSync as esbuildTransformSync,
 	version as esbuildVersion,
 } from 'esbuild';
-import { sha1 } from '../utils/sha1';
+import { sha1 } from '../sha1';
 import { transformDynamicImport } from './transform-dynamic-import';
 import cache from './cache';
 import {

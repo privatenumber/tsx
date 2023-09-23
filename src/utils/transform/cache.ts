@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { readJsonFile } from '../utils/read-json-file';
+import { readJsonFile } from '../read-json-file';
 import type { Transformed } from './apply-transformers';
 
 const getTime = () => Math.floor(Date.now() / 1e8);
