@@ -1,7 +1,7 @@
 import './patch-repl';
 
 // Hook require() to transform to CJS
-require('./cjs');
+require('./cjs/index.cjs');
 
 /*
 Hook import/import() to transform to ESM
