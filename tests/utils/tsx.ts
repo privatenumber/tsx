@@ -11,7 +11,7 @@ type Options = {
 };
 
 const __dirname = fileURLToPath(import.meta.url);
-export const tsxPath = path.join(__dirname, '../../../dist/cli.js');
+export const tsxPath = path.join(__dirname, '../../../dist/cli.mjs');
 
 export const tsx = (
 	options: Options,

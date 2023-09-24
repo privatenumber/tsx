@@ -35,7 +35,7 @@ export function run(
 			require.resolve('./preflight.cjs'),
 
 			'--loader',
-			pathToFileURL(require.resolve('./loader.js')).toString(),
+			pathToFileURL(require.resolve('./loader.mjs')).toString(),
 
 			...argv,
 		],

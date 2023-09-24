@@ -13,7 +13,8 @@ type BaseEventListener = () => void;
  * Although it is required twice, it's not executed twice because
  * it's cached.
  */
-require('@esbuild-kit/cjs-loader');
+// eslint-disable-next-line import/no-unresolved
+require('./cjs/index.cjs');
 
 // If a parent process is detected
 if (process.send) {
