@@ -153,22 +153,33 @@ tsx --no-cache ./file.ts
 
 `tsx` is a standalone binary designed to be used in place of `node`, but sometimes you'll want to use `node` directly. For example, when adding TypeScript & ESM support to npm-installed binaries.
 
-To use `tsx` as a  Node.js loader, simply pass it in to the [`--loader`](https://nodejs.org/api/esm.html#loaders) flag.
-
-> Note: The loader is limited to adding support for loading TypeScript/ESM files. CLI features such as _watch mode_ or suppressing "experimental feature" warnings will not be available.
+To use `tsx` as a  Node.js loader, pass it in to the [`--loader`](https://nodejs.org/api/esm.html#loaders) flag. This will add TypeScript & ESM support for both ESM and CommonJS contexts.
 
 ```sh
-# As a CLI flag
 node --loader tsx ./file.ts
+```
 
-# As an environment variable
+Or as an environment variable:
+```sh
 NODE_OPTIONS='--loader tsx' node ./file.ts
 ```
 
-> Tip: In rare circumstances, you might be limited to using the [`-r, --require`](https://nodejs.org/api/cli.html#-r---require-module) flag.
->
-> You can use [`@esbuild-kit/cjs-loader`](https://github.com/esbuild-kit/cjs-loader), but transformations will only be applied to `require()` (not `import`).
+> **Note:** The loader is limited to adding support for loading TypeScript/ESM files. CLI features such as _watch mode_ or suppressing "experimental feature" warnings will not be available.
 
+#### ESM only loader
+
+If you only need to add TypeScript support in a Module context, you can use the ESM loader:
+
+```sh
+node --loader tsx/esm ./file.ts
+```
+
+#### CommonJS only loader
+If you only need to add TypeScript & ESM support in a CommonJS context, you can use the CJS loader:
+
+```sh
+node --require tsx/cjs ./file.ts
+```
 
 ### Hashbang
 
@@ -193,14 +204,6 @@ Now, you can run the file without passing it into tsx:
 $ ./file.ts hello
 argv: [ 'hello' ]
 ```
-
-## Dependencies
-
-#### [@esbuild-kit/esm-loader](https://github.com/esbuild-kit/esm-loader)
-Node.js Loader to transform TypeScript to ESM.
-
-#### [@esbuild-kit/cjs-loader](https://github.com/esbuild-kit/cjs-loader)
-Node.js `require()` hook to transform TypeScript & ESM to CommonJS.
 
 <br>
 
