@@ -11,7 +11,6 @@ import type { TransformOptions } from 'esbuild';
 import { installSourceMapSupport } from '../source-map';
 import { transformSync, transformDynamicImport } from '../utils/transform';
 import { resolveTsPath } from '../utils/resolve-ts-path';
-import { compareNodeVersion } from '../utils/compare-node-version';
 
 const isRelativePathPattern = /^\.{1,2}\//;
 const isTsFilePatten = /\.[cm]?tsx?$/;
@@ -30,17 +29,6 @@ const fileMatcher = tsconfig && createFilesMatcher(tsconfig);
 const tsconfigPathsMatcher = tsconfig && createPathsMatcher(tsconfig);
 
 const applySourceMap = installSourceMapSupport();
-
-const nodeSupportsImport = (
-	// v13.2.0 and higher
-	compareNodeVersion([13, 2, 0]) >= 0
-
-	// 12.20.0 ~ 13.0.0
-	|| (
-		compareNodeVersion([12, 20, 0]) >= 0
-		&& compareNodeVersion([13, 0, 0]) < 0
-	)
-);
 
 const extensions = Module._extensions;
 const defaultLoader = extensions['.js'];
@@ -77,7 +65,7 @@ const transformer = (
 
 	let code = fs.readFileSync(filePath, 'utf8');
 
-	if (filePath.endsWith('.cjs') && nodeSupportsImport) {
+	if (filePath.endsWith('.cjs')) {
 		const transformed = transformDynamicImport(filePath, code);
 		if (transformed) {
 			code = applySourceMap(transformed, filePath);
