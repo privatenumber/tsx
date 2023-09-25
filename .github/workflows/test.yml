@@ -54,6 +54,12 @@ jobs:
 
     - name: Test
       run: pnpm test
+ 
+    - name: ESM Test
+      run: pnpm test:esm
+
+    - name: CJS Test
+      run: pnpm test:cjs
 
     - name: Type check
       if: ${{ matrix.os == 'ubuntu-latest' }}

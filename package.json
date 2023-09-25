@@ -39,6 +39,8 @@
 		"lint": "eslint --cache .",
 		"type-check": "tsc --noEmit",
 		"test": "pnpm build && node ./dist/cli.mjs tests/index.ts",
+		"test:esm": "node ./dist/cli.mjs tests-esm/index.ts",
+		"test:cjs": "node ./dist/cli.mjs tests-cjs/index.ts",
 		"prepack": "pnpm build && clean-pkg-json"
 	},
 	"simple-git-hooks": {
