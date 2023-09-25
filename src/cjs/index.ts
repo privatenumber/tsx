@@ -137,20 +137,8 @@ Object.defineProperty(extensions, '.mjs', {
 	enumerable: false,
 });
 
-const supportsNodePrefix = (
-	compareNodeVersion([16, 0, 0]) >= 0
-	|| compareNodeVersion([14, 18, 0]) >= 0
-);
-
-// Add support for "node:" protocol
 const defaultResolveFilename = Module._resolveFilename.bind(Module);
 Module._resolveFilename = (request, parent, isMain, options) => {
-	// Added in v12.20.0
-	// https://nodejs.org/api/esm.html#esm_node_imports
-	if (!supportsNodePrefix && request.startsWith('node:')) {
-		request = request.slice(5);
-	}
-
 	if (
 		tsconfigPathsMatcher
 

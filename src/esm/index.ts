@@ -149,23 +149,12 @@ async function tryDirectory(
 
 const isRelativePathPattern = /^\.{1,2}\//;
 
-const supportsNodePrefix = (
-	compareNodeVersion([14, 13, 1]) >= 0
-	|| compareNodeVersion([12, 20, 0]) >= 0
-);
-
 export const resolve: resolve = async function (
 	specifier,
 	context,
 	defaultResolve,
 	recursiveCall,
 ) {
-	// Added in v12.20.0
-	// https://nodejs.org/api/esm.html#esm_node_imports
-	if (!supportsNodePrefix && specifier.startsWith('node:')) {
-		specifier = specifier.slice(5);
-	}
-
 	// If directory, can be index.js, index.ts, etc.
 	if (isDirectoryPattern.test(specifier)) {
 		return await tryDirectory(specifier, context, defaultResolve);
