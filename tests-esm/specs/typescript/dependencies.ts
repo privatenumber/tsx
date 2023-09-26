@@ -6,18 +6,27 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		describe('TypeScript dependency', ({ test }) => {
 			const output = '{"default":"ts default export","namedExport":"ts named export"}';
 
-			test('Import', async () => {
+			test('Import', async ({ onTestFail }) => {
 				const nodeProcess = await node.import('package-module/ts.ts');
+				onTestFail(() => {
+					console.log(nodeProcess);
+				});
 				expect(nodeProcess.stdout).toBe(output);
 			});
 
-			test('Import extensionless', async () => {
+			test('Import extensionless', async ({ onTestFail }) => {
 				const nodeProcess = await node.import('package-module/ts');
+				onTestFail(() => {
+					console.log(nodeProcess);
+				});
 				expect(nodeProcess.stdout).toBe(output);
 			});
 
-			test('Import', async () => {
+			test('Import', async ({ onTestFail }) => {
 				const nodeProcess = await node.import('package-typescript-export');
+				onTestFail(() => {
+					console.log(nodeProcess);
+				});
 				expect(nodeProcess.stdout).toBe(output);
 			});
 		});
@@ -25,9 +34,12 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		describe('Export map', ({ test }) => {
 			const output = '{"default":"default export","namedExport":"named export"}';
 
-			test('Import', async () => {
+			test('Import', async ({ onTestFail }) => {
 				const nodeProcess = await node.import('package-exports/index.js', {
 					typescript: true,
+				});
+				onTestFail(() => {
+					console.log(nodeProcess);
 				});
 				expect(nodeProcess.stdout).toBe(output);
 			});

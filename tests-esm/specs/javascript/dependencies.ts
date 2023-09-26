@@ -6,8 +6,11 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		describe('module dependency', ({ test }) => {
 			const output = '{"default":"default export","namedExport":"named export"}';
 
-			test('Import', async () => {
+			test('Import', async ({ onTestFail }) => {
 				const nodeProcess = await node.import('package-module');
+				onTestFail(() => {
+					console.log(nodeProcess);
+				});
 				expect(nodeProcess.stdout).toBe(output);
 			});
 		});
