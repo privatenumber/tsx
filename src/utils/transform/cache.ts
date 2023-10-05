@@ -17,7 +17,7 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 	 * Note on Windows, temp files are not cleaned up automatically.
 	 * https://superuser.com/a/1599897
 	 */
-	cacheDirectory = path.join(os.tmpdir(), 'tsx');
+	cacheDirectory = path.join(os.tmpdir(), `tsx-${os.userInfo().uid}`);
 
 	cacheFiles: {
 		time: number;
