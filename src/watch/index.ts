@@ -195,5 +195,11 @@ export const watchCommand = command({
 	).on('all', reRun);
 
 	// On "Return" key
-	process.stdin.on('data', reRun);
+	if (process.stdin.isTTY) {
+		process.stdin.on('data', (input) => {
+			if (input.toString() === '\n') {
+				reRun();
+			}
+		});
+	}
 });
