@@ -2,7 +2,7 @@ import type { MessagePort } from 'node:worker_threads';
 import path from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
 import type {
-	ResolveFnOutput, ResolveHookContext, LoadHook, GlobalPreloadHook,
+	ResolveFnOutput, ResolveHookContext, LoadHook, GlobalPreloadHook, InitializeHook,
 } from 'module';
 import type { TransformOptions } from 'esbuild';
 import { compareNodeVersion } from '../utils/compare-node-version';
@@ -36,6 +36,8 @@ type resolve = (
 
 const isolatedLoader = compareNodeVersion([20, 0, 0]) >= 0;
 
+let mainThreadPort: MessagePort | undefined;
+
 type SendToParent = (data: {
 	type: 'dependency';
 	path: string;
@@ -43,11 +45,15 @@ type SendToParent = (data: {
 
 let sendToParent: SendToParent | undefined = process.send ? process.send.bind(process) : undefined;
 
+export const initialize: InitializeHook = async ({ port }) => {
+	mainThreadPort = port;
+	sendToParent = port.postMessage.bind(port);
+};
+
 /**
  * Technically globalPreload is deprecated so it should be in loaders-deprecated
  * but it shares a closure with the new load hook
  */
-let mainThreadPort: MessagePort | undefined;
 const _globalPreload: GlobalPreloadHook = ({ port }) => {
 	mainThreadPort = port;
 	sendToParent = port.postMessage.bind(port);
