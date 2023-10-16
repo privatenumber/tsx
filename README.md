@@ -170,6 +170,13 @@ NODE_OPTIONS='--loader tsx' node ./file.ts
 
 If you only need to add TypeScript support in a Module context, you can use the ESM loader:
 
+##### Node.js v20.6.0 and above
+```sh
+node --import tsx/esm-import ./file.ts
+```
+
+##### Node.js v20.5.1 and below
+
 ```sh
 node --loader tsx/esm ./file.ts
 ```
