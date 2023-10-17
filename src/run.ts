@@ -35,17 +35,8 @@ export function run(
 			'--require',
 			require.resolve('./preflight.cjs'),
 
-			...(
-				supportsModuleRegister
-					? [
-						'--import',
-						pathToFileURL(require.resolve('./loader.mjs')).toString(),
-					]
-					: [
-						'--loader',
-						pathToFileURL(require.resolve('./loader.mjs')).toString(),
-					]
-			),
+			supportsModuleRegister ? '--import' : '--loader',
+			pathToFileURL(require.resolve('./loader.mjs')).toString(),
 
 			...argv,
 		],
