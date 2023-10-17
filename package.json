@@ -26,7 +26,6 @@
 		".": "./dist/loader.mjs",
 		"./cjs": "./dist/cjs/index.cjs",
 		"./esm": "./dist/esm/index.mjs",
-		"./esm-import": "./dist/esm-import.mjs",
 		"./cli": "./dist/cli.mjs",
 		"./source-map": "./dist/source-map.cjs",
 		"./suppress-warnings": "./dist/suppress-warnings.cjs",

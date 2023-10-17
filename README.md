@@ -172,7 +172,7 @@ If you only need to add TypeScript support in a Module context, you can use the 
 
 ##### Node.js v20.6.0 and above
 ```sh
-node --import tsx/esm-import ./file.ts
+node --import tsx/esm ./file.ts
 ```
 
 ##### Node.js v20.5.1 and below

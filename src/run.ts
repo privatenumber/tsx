@@ -1,9 +1,7 @@
 import type { StdioOptions } from 'child_process';
 import { pathToFileURL } from 'url';
 import spawn from 'cross-spawn';
-import { compareNodeVersion } from './utils/compare-node-version';
-
-const supportsModuleRegister = compareNodeVersion([20, 6, 0]) >= 0;
+import { supportsModuleRegister } from './utils/node-features';
 
 export function run(
 	argv: string[],
@@ -41,7 +39,7 @@ export function run(
 				supportsModuleRegister
 					? [
 						'--import',
-						pathToFileURL(require.resolve('./esm-import.mjs')).toString(),
+						pathToFileURL(require.resolve('./loader.mjs')).toString(),
 					]
 					: [
 						'--loader',
