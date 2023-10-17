@@ -6,6 +6,8 @@ import type { Transformed } from './apply-transformers';
 
 const getTime = () => Math.floor(Date.now() / 1e8);
 
+const tmpdir = os.tmpdir();
+const noop = () => {};
 class FileCache<ReturnType> extends Map<string, ReturnType> {
 	/**
 	 * By using tmpdir, the expectation is for the OS to clean any files
@@ -17,7 +19,16 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 	 * Note on Windows, temp files are not cleaned up automatically.
 	 * https://superuser.com/a/1599897
 	 */
-	cacheDirectory = path.join(os.tmpdir(), 'tsx');
+	cacheDirectory = path.join(
+		// Write permissions by anyone
+		tmpdir,
+
+		// Write permissions only by current user
+		`tsx-${os.userInfo().uid}`,
+	);
+
+	// Maintained so we can remove it on Windows
+	oldCacheDirectory = path.join(tmpdir, 'tsx');
 
 	cacheFiles: {
 		time: number;
@@ -40,7 +51,10 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 			};
 		});
 
-		setImmediate(() => this.expireDiskCache());
+		setImmediate(() => {
+			this.expireDiskCache();
+			this.removeOldCacheDirectory();
+		});
 	}
 
 	get(key: string) {
@@ -90,10 +104,7 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 			fs.promises.writeFile(
 				path.join(this.cacheDirectory, `${time}-${key}`),
 				JSON.stringify(value),
-			).catch(
-
-				() => {},
-			);
+			).catch(noop);
 		}
 
 		return this;
@@ -105,12 +116,31 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 		for (const cache of this.cacheFiles) {
 			// Remove if older than ~7 days
 			if ((time - cache.time) > 7) {
-				fs.promises.unlink(path.join(this.cacheDirectory, cache.fileName)).catch(
-
-					() => {},
-				);
+				fs.promises.unlink(path.join(this.cacheDirectory, cache.fileName)).catch(noop);
 			}
 		}
+	}
+
+	async removeOldCacheDirectory() {
+		try {
+			const exists = await fs.promises.access(this.oldCacheDirectory).then(() => true);
+			if (exists) {
+				if ('rm' in fs.promises) {
+					await fs.promises.rm(
+						this.oldCacheDirectory,
+						{
+							recursive: true,
+							force: true,
+						},
+					);
+				} else {
+					await fs.promises.rmdir(
+						this.oldCacheDirectory,
+						{ recursive: true },
+					);
+				}
+			}
+		} catch {}
 	}
 }
 
