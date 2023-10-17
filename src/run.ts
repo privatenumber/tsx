@@ -1,6 +1,7 @@
 import type { StdioOptions } from 'child_process';
 import { pathToFileURL } from 'url';
 import spawn from 'cross-spawn';
+import { supportsModuleRegister } from './utils/node-features';
 
 export function run(
 	argv: string[],
@@ -34,7 +35,7 @@ export function run(
 			'--require',
 			require.resolve('./preflight.cjs'),
 
-			'--loader',
+			supportsModuleRegister ? '--import' : '--loader',
 			pathToFileURL(require.resolve('./loader.mjs')).toString(),
 
 			...argv,

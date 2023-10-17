@@ -153,15 +153,15 @@ tsx --no-cache ./file.ts
 
 `tsx` is a standalone binary designed to be used in place of `node`, but sometimes you'll want to use `node` directly. For example, when adding TypeScript & ESM support to npm-installed binaries.
 
-To use `tsx` as a  Node.js loader, pass it in to the [`--loader`](https://nodejs.org/api/esm.html#loaders) flag. This will add TypeScript & ESM support for both ESM and CommonJS contexts.
+To use `tsx` as a  Node.js loader, pass it in to the [`--import`](https://nodejs.org/api/module.html#enabling) flag. This will add TypeScript & ESM support for both Module and CommonJS contexts.
 
 ```sh
-node --loader tsx ./file.ts
+node --import tsx ./file.ts
 ```
 
 Or as an environment variable:
 ```sh
-NODE_OPTIONS='--loader tsx' node ./file.ts
+NODE_OPTIONS='--import tsx' node ./file.ts
 ```
 
 > **Note:** The loader is limited to adding support for loading TypeScript/ESM files. CLI features such as _watch mode_ or suppressing "experimental feature" warnings will not be available.
@@ -169,6 +169,13 @@ NODE_OPTIONS='--loader tsx' node ./file.ts
 #### ESM only loader
 
 If you only need to add TypeScript support in a Module context, you can use the ESM loader:
+
+##### Node.js v20.6.0 and above
+```sh
+node --import tsx/esm ./file.ts
+```
+
+##### Node.js v20.5.1 and below
 
 ```sh
 node --loader tsx/esm ./file.ts

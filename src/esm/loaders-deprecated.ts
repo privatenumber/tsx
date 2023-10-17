@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 import type { ModuleFormat } from 'module';
 import type { TransformOptions } from 'esbuild';
 import { transform, transformDynamicImport } from '../utils/transform';
-import { compareNodeVersion } from '../utils/compare-node-version';
+import { nodeSupportsDeprecatedLoaders } from '../utils/node-features';
 import {
 	applySourceMap,
 	fileMatcher,
@@ -108,8 +108,6 @@ const _transformSource: transformSource = async function (
 
 	return result;
 };
-
-const nodeSupportsDeprecatedLoaders = compareNodeVersion([16, 12, 0]) < 0;
 
 export const getFormat = nodeSupportsDeprecatedLoaders ? _getFormat : undefined;
 export const transformSource = nodeSupportsDeprecatedLoaders ? _transformSource : undefined;
