@@ -2,12 +2,14 @@ import type { MessagePort } from 'node:worker_threads';
 import path from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
 import type {
-	ResolveFnOutput, ResolveHookContext, LoadHook, GlobalPreloadHook,
+	ResolveFnOutput, ResolveHookContext, LoadHook, GlobalPreloadHook, InitializeHook,
 } from 'module';
 import type { TransformOptions } from 'esbuild';
-import { compareNodeVersion } from '../utils/compare-node-version';
 import { transform, transformDynamicImport } from '../utils/transform';
 import { resolveTsPath } from '../utils/resolve-ts-path';
+import {
+	supportsNodePrefix,
+} from '../utils/node-features';
 import {
 	applySourceMap,
 	tsconfigPathsMatcher,
@@ -34,7 +36,7 @@ type resolve = (
 	recursiveCall?: boolean,
 ) => MaybePromise<ResolveFnOutput>;
 
-const isolatedLoader = compareNodeVersion([20, 0, 0]) >= 0;
+let mainThreadPort: MessagePort | undefined;
 
 type SendToParent = (data: {
 	type: 'dependency';
@@ -43,12 +45,21 @@ type SendToParent = (data: {
 
 let sendToParent: SendToParent | undefined = process.send ? process.send.bind(process) : undefined;
 
+export const initialize: InitializeHook = async (data) => {
+	if (!data) {
+		throw new Error('tsx must be loaded with --import instead of --loader\nThe --loader flag was deprecated in Node v20.6.0');
+	}
+
+	const { port } = data;
+	mainThreadPort = port;
+	sendToParent = port.postMessage.bind(port);
+};
+
 /**
  * Technically globalPreload is deprecated so it should be in loaders-deprecated
  * but it shares a closure with the new load hook
  */
-let mainThreadPort: MessagePort | undefined;
-const _globalPreload: GlobalPreloadHook = ({ port }) => {
+export const globalPreload: GlobalPreloadHook = ({ port }) => {
 	mainThreadPort = port;
 	sendToParent = port.postMessage.bind(port);
 
@@ -65,8 +76,6 @@ const _globalPreload: GlobalPreloadHook = ({ port }) => {
 	port.unref(); // Allows process to exit without waiting for port to close
 	`;
 };
-
-export const globalPreload = isolatedLoader ? _globalPreload : undefined;
 
 const resolveExplicitPath = async (
 	defaultResolve: NextResolve,
@@ -148,11 +157,6 @@ async function tryDirectory(
 }
 
 const isRelativePathPattern = /^\.{1,2}\//;
-
-const supportsNodePrefix = (
-	compareNodeVersion([14, 13, 1]) >= 0
-	|| compareNodeVersion([12, 20, 0]) >= 0
-);
 
 export const resolve: resolve = async function (
 	specifier,
