@@ -18,10 +18,10 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 	 * https://superuser.com/a/1599897
 	 */
 	cacheDirectory = path.join(
-		// Permissions writable by anyone
+		// Write permissions by anyone
 		os.tmpdir(),
 
-		// Permissions writable by current user
+		// Write permissions only by current user
 		`tsx-${os.userInfo().uid}`,
 	);
 
