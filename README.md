@@ -156,12 +156,12 @@ tsx --no-cache ./file.ts
 To use `tsx` as a  Node.js loader, pass it in to the [`--loader`](https://nodejs.org/api/esm.html#loaders) flag. This will add TypeScript & ESM support for both ESM and CommonJS contexts.
 
 ```sh
-node --loader tsx ./file.ts
+node --import tsx ./file.ts
 ```
 
 Or as an environment variable:
 ```sh
-NODE_OPTIONS='--loader tsx' node ./file.ts
+NODE_OPTIONS='--import tsx' node ./file.ts
 ```
 
 > **Note:** The loader is limited to adding support for loading TypeScript/ESM files. CLI features such as _watch mode_ or suppressing "experimental feature" warnings will not be available.
