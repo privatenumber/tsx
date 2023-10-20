@@ -48,7 +48,7 @@
 		"*.{js,ts,mjs,mts,cjs,cts,json}": "pnpm lint"
 	},
 	"dependencies": {
-		"esbuild": "~0.18.20",
+		"esbuild": "~0.19.5",
 		"get-tsconfig": "^4.7.2",
 		"source-map-support": "^0.5.21"
 	},
