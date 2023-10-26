@@ -8,6 +8,20 @@ const getTime = () => Math.floor(Date.now() / 1e8);
 
 const tmpdir = os.tmpdir();
 const noop = () => {};
+
+/**
+ * Cache directory name is based on the user's uid.
+ * This is to avoid permission issues when as a different user in parallel.
+ */
+function cacheDirectoryName(): string {
+	const { geteuid } = process;
+	if (geteuid === undefined) {
+		return 'tsx';
+	}
+
+	return `tsx-${geteuid()}`;
+}
+
 class FileCache<ReturnType> extends Map<string, ReturnType> {
 	/**
 	 * By using tmpdir, the expectation is for the OS to clean any files
@@ -24,7 +38,7 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 		tmpdir,
 
 		// Write permissions only by current user
-		`tsx-${os.userInfo().uid}`,
+		cacheDirectoryName(),
 	);
 
 	// Maintained so we can remove it on Windows
