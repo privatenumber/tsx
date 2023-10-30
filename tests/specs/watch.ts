@@ -27,8 +27,14 @@ const interact = async (
 	return Buffer.concat(buffers).toString();
 };
 
-export default testSuite(async ({ describe }, fixturePath: string) => {
-	describe('watch', ({ test, describe }) => {
+export default testSuite(async ({ describe }) => {
+	describe('watch', async ({ test, describe, onFinish }) => {
+		const fixture = await createFixture({
+			// Unnecessary TS to test syntax
+			'log-argv.ts': 'console.log(JSON.stringify(process.argv) as string)',
+		});
+		onFinish(async () => await fixture.rm());
+
 		test('require file path', async () => {
 			const tsxProcess = await tsx({
 				args: ['watch'],
@@ -81,7 +87,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			const tsxProcess = tsx({
 				args: [
 					'watch',
-					path.join(fixturePath, 'log-argv.ts'),
+					path.join(fixture.path, 'log-argv.ts'),
 				],
 			});
 
@@ -109,7 +115,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			const tsxProcess = tsx({
 				args: [
 					'watch',
-					path.join(fixturePath, 'log-argv.ts'),
+					path.join(fixture.path, 'log-argv.ts'),
 					'--some-flag',
 				],
 			});
@@ -183,7 +189,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				const tsxProcess = tsx({
 					args: [
 						'watch',
-						path.join(fixturePath, 'log-argv.ts'),
+						path.join(fixture.path, 'log-argv.ts'),
 						'--help',
 					],
 				});

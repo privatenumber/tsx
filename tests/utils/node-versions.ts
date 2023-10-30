@@ -1,5 +1,5 @@
 export const nodeVersions = [
-	'18',
+	// '18',
 	'20',
 	...(
 		(
