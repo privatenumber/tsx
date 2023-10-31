@@ -83,8 +83,8 @@ const sourcemap = {
 		...values: string[]
 	) => {
 		const finalString = String.raw({ raw: strings }, ...values);
-		const line = finalString.split('\n').findIndex(line => line.includes('SOURCEMAP_LINE')) + 1;
-		return finalString.replaceAll('SOURCEMAP_LINE', line.toString());
+		const lineNumber = finalString.split('\n').findIndex(line => line.includes('SOURCEMAP_LINE')) + 1;
+		return finalString.replaceAll('SOURCEMAP_LINE', lineNumber.toString());
 	},
 };
 
@@ -304,13 +304,13 @@ const files = {
 
 const packageTypes = [
 	'module',
-	// 'commonjs',
+	'commonjs',
 ] as const;
 
 export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 	describe('Smoke', ({ describe }) => {
 		for (const packageType of packageTypes) {
-			const isCommonJs = false; //packageType === 'commonjs';
+			const isCommonJs = packageType === 'commonjs';
 
 			describe(packageType, ({ test }) => {
 				test('from .js', async ({ onTestFinish, onTestFail }) => {
@@ -401,7 +401,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						console.log(p);
 					});
 					expect(p.failed).toBe(false);
-					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},\"esmNamedExport\":123}`);
+					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"esmNamedExport":123}`);
 					expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
 					expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
 
@@ -550,7 +550,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						console.log(p);
 					});
 					expect(p.failed).toBe(false);
-					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},\"esmNamedExport\":123}`);
+					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"esmNamedExport":123}`);
 					expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
 					expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
 					expect(p.stdout).toMatch(`"jsx":{"cjsContext":${isCommonJs},"jsx":[null,null,["div",null,"JSX"]]}`);
