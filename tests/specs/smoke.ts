@@ -302,9 +302,11 @@ const files = {
 	},
 };
 
+const packageTypes = ['module', 'commonjs'] as const;
+
 export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 	describe('Smoke', ({ describe }) => {
-		for (const packageType of ['module', 'commonjs']) {
+		for (const packageType of packageTypes) {
 			const isCommonJs = packageType === 'commonjs';
 
 			describe(packageType, ({ test }) => {
