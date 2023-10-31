@@ -205,7 +205,8 @@ const files = {
 		errors = errors.filter(Boolean);
 
 		if (errors.length > 0) {
-			throw new AggregateError(errors);
+			console.error(errors);
+			process.exitCode = 1;
 		}
 	};
 	`,
@@ -561,7 +562,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					expect(pTsconfig.stdout).toBe('');
 
 					const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'jsx.jsx'], path.join(fixture.path, 'tsconfig'));
-					onTestFail(() => {
+					onTestFail((error) => {
+						console.log(error);
 						console.log(pTsconfigAllowJs);
 					});
 					expect(pTsconfigAllowJs.failed).toBe(true);
