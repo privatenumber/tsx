@@ -60,8 +60,9 @@ export default testSuite(async ({ describe }) => {
 			const tsxProcess = tsx({
 				args: [
 					'watch',
-					path.join(fixtureWatch.path, 'index.js'),
+					'index.js',
 				],
+				cwd: fixtureWatch.path,
 			});
 
 			await interact(
@@ -87,8 +88,9 @@ export default testSuite(async ({ describe }) => {
 			const tsxProcess = tsx({
 				args: [
 					'watch',
-					path.join(fixture.path, 'log-argv.ts'),
+					'log-argv.ts',
 				],
+				cwd: fixture.path,
 			});
 
 			await interact(
@@ -115,9 +117,10 @@ export default testSuite(async ({ describe }) => {
 			const tsxProcess = tsx({
 				args: [
 					'watch',
-					path.join(fixture.path, 'log-argv.ts'),
+					'log-argv.ts',
 					'--some-flag',
 				],
+				cwd: fixture.path,
 			});
 
 			await interact(
@@ -151,8 +154,9 @@ export default testSuite(async ({ describe }) => {
 			const tsxProcess = tsx({
 				args: [
 					'watch',
-					path.join(fixtureExit.path, 'index.js'),
+					'index.js',
 				],
+				cwd: fixtureExit.path,
 			});
 
 			await interact(
@@ -189,9 +193,10 @@ export default testSuite(async ({ describe }) => {
 				const tsxProcess = tsx({
 					args: [
 						'watch',
-						path.join(fixture.path, 'log-argv.ts'),
+						'log-argv.ts',
 						'--help',
 					],
+					cwd: fixture.path,
 				});
 
 				await interact(
