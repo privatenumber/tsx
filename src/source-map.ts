@@ -1,14 +1,7 @@
 import type { MessagePort } from 'node:worker_threads';
 import sourceMapSupport, { type UrlAndMap } from 'source-map-support';
 import type { Transformed } from './utils/transform/apply-transformers';
-import { compareNodeVersion } from './utils/compare-node-version';
-
-/**
- * Node.js loaders are isolated from v20
- * https://github.com/nodejs/node/issues/49455#issuecomment-1703812193
- * https://github.com/nodejs/node/blob/33710e7e7d39d19449a75911537d630349110a0c/doc/api/module.md#L375-L376
- */
-const isolatedLoader = compareNodeVersion([20, 0, 0]) >= 0;
+import { isolatedLoader } from './utils/node-features';
 
 export type RawSourceMap = UrlAndMap['map'];
 
