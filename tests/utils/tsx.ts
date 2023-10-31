@@ -20,6 +20,7 @@ export const tsx = (
 	{
 		env: {
 			ESBK_DISABLE_CACHE: '1',
+			DEBUG: '1',
 		},
 		nodePath: options.nodePath,
 		nodeOptions: [],
@@ -51,6 +52,7 @@ export const createNode = async (
 				cwd,
 				env: {
 					ESBK_DISABLE_CACHE: '1',
+					DEBUG: '1',
 				},
 				nodePath: node.path,
 				nodeOptions: [],
