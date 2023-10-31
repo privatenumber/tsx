@@ -115,6 +115,10 @@ export async function transform(
 			] as const,
 		);
 
+		console.log({
+			transformed,
+		});
+
 		cache.set(hash, transformed);
 	}
 
