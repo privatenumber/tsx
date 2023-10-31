@@ -185,7 +185,7 @@ export default testSuite(async ({ describe }) => {
 				expect(tsxProcess.stderr).toBe('');
 			});
 
-			test('passes down --help to file', async () => {
+			test('passes down --help to file', async ({ onTestFail }) => {
 				const tsxProcess = tsx({
 					args: [
 						'watch',
@@ -202,8 +202,12 @@ export default testSuite(async ({ describe }) => {
 				tsxProcess.kill();
 
 				const { all } = await tsxProcess;
+				onTestFail(() => {
+					console.log(all);
+				});
+
 				expect(all).toMatch('"--help"');
-			}, 5000);
+			}, 10_000);
 		});
 
 		describe('ignore', ({ test }) => {

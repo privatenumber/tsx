@@ -110,6 +110,7 @@ export async function transform(
 				transformDynamicImport,
 			] as const,
 		);
+
 		cache.set(hash, transformed);
 	}
 
