@@ -41,25 +41,23 @@ export const createNode = async (
 
 	return {
 		version: node.version,
-		tsx(
+		tsx: (
 			args: string[],
 			cwd?: string,
-		) {
-			return execaNode(
-				tsxPath,
-				args,
-				{
-					cwd,
-					env: {
-						ESBK_DISABLE_CACHE: '1',
-					},
-					nodePath: node.path,
-					nodeOptions: [],
-					reject: false,
-					all: true,
+		) => execaNode(
+			tsxPath,
+			args,
+			{
+				cwd,
+				env: {
+					ESBK_DISABLE_CACHE: '1',
 				},
-			);
-		},
+				nodePath: node.path,
+				nodeOptions: [],
+				reject: false,
+				all: true,
+			},
+		),
 	};
 };
 

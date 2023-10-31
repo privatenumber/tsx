@@ -391,7 +391,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					onTestFinish(async () => await fixture.rm());
 
 					const p = await tsx(['import-from-js.js'], fixture.path);
-					onTestFail(() => {
+					onTestFail((error) => {
+						console.error(error);
 						console.log(p);
 					});
 					expect(p.failed).toBe(false);
@@ -539,7 +540,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					onTestFinish(async () => await fixture.rm());
 
 					const p = await tsx(['import-from-ts.ts'], fixture.path);
-					onTestFail(() => {
+					onTestFail((error) => {
+						console.error(error);
 						console.log(p);
 					});
 					expect(p.failed).toBe(false);
@@ -554,7 +556,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					// console.log(p);
 
 					const pTsconfig = await tsx(['index.tsx'], path.join(fixture.path, 'tsconfig'));
-					onTestFail(() => {
+					onTestFail((error) => {
+						console.error(error);
 						console.log(pTsconfig);
 					});
 					expect(pTsconfig.failed).toBe(false);
@@ -563,7 +566,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 
 					const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'jsx.jsx'], path.join(fixture.path, 'tsconfig'));
 					onTestFail((error) => {
-						console.log(error);
+						console.error(error);
 						console.log(pTsconfigAllowJs);
 					});
 					expect(pTsconfigAllowJs.failed).toBe(true);
