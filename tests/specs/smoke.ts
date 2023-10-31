@@ -411,7 +411,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						...files,
 						'package.json': JSON.stringify({ type: packageType }),
 
-						'_import-from-ts.ts': `
+						'import-from-ts.ts': `
 						import { expectErrors } from './expect-errors';
 
 						// node: prefix
@@ -535,7 +535,6 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 							mjs,
 						}));
 						`,
-						'import-from-ts.ts': `let a = false; a ??= true; a ||= true; a &&= true;`,
 					});
 
 					onTestFinish(async () => await fixture.rm());

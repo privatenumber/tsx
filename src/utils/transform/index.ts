@@ -81,6 +81,7 @@ export async function transform(
 	filePath: string,
 	extendOptions?: TransformOptions,
 ): Promise<Transformed> {
+	console.log({ filePath, code });
 	const esbuildOptions = getEsbuildOptions({
 		format: 'esm',
 		sourcefile: filePath,
