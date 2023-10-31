@@ -81,10 +81,6 @@ export async function transform(
 	filePath: string,
 	extendOptions?: TransformOptions,
 ): Promise<Transformed> {
-	if (process.env.DEBUG) {
-		console.log({ filePath, code });
-	}
-
 	const esbuildOptions = getEsbuildOptions({
 		format: 'esm',
 		sourcefile: filePath,
@@ -114,13 +110,6 @@ export async function transform(
 				transformDynamicImport,
 			] as const,
 		);
-
-		if (process.env.DEBUG) {
-			console.log({
-				transformed,
-			});
-		}
-
 		cache.set(hash, transformed);
 	}
 

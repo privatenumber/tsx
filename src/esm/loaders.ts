@@ -8,9 +8,6 @@ import type { TransformOptions } from 'esbuild';
 import { transform, transformDynamicImport } from '../utils/transform';
 import { resolveTsPath } from '../utils/resolve-ts-path';
 import {
-	supportsNodePrefix,
-} from '../utils/node-features';
-import {
 	applySourceMap,
 	tsconfigPathsMatcher,
 	fileMatcher,
@@ -164,12 +161,6 @@ export const resolve: resolve = async function (
 	defaultResolve,
 	recursiveCall,
 ) {
-	// Added in v12.20.0
-	// https://nodejs.org/api/esm.html#esm_node_imports
-	if (!supportsNodePrefix && specifier.startsWith('node:')) {
-		specifier = specifier.slice(5);
-	}
-
 	// If directory, can be index.js, index.ts, etc.
 	if (isDirectoryPattern.test(specifier)) {
 		return await tryDirectory(specifier, context, defaultResolve);

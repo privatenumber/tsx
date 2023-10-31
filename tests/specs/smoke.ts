@@ -411,173 +411,173 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					expect(p.stderr).toBe('');
 				});
 
-				// test('from .ts', async ({ onTestFinish, onTestFail }) => {
-				// 	const fixture = await createFixture({
-				// 		...files,
-				// 		'package.json': JSON.stringify({ type: packageType }),
+				test('from .ts', async ({ onTestFinish, onTestFail }) => {
+					const fixture = await createFixture({
+						...files,
+						'package.json': JSON.stringify({ type: packageType }),
 
-				// 		'import-from-ts.ts': `
-				// 		import { expectErrors } from './expect-errors';
+						'import-from-ts.ts': `
+						import { expectErrors } from './expect-errors';
 
-				// 		// node: prefix
-				// 		import 'node:fs';
+						// node: prefix
+						import 'node:fs';
 
-				// 		import 'dep';
+						import 'dep';
 
-				// 		// .js
-				// 		import * as js from './js/index.js';
-				// 		import './js/index';
-				// 		import './js/';
+						// .js
+						import * as js from './js/index.js';
+						import './js/index';
+						import './js/';
 
-				// 		// .json
-				// 		import * as json from './json/index.json';
-				// 		import './json/index';
-				// 		import './json/';
+						// .json
+						import * as json from './json/index.json';
+						import './json/index';
+						import './json/';
 
-				// 		// .cjs
-				// 		import * as cjs from './cjs/index.cjs';
-				// 		expectErrors(
-				// 			[() => import('./cjs/index'), 'Cannot find module'],
-				// 			[() => import('./cjs/'), 'Cannot find module'],
-				// 			${
-				// 				isCommonJs
-				// 					? `
-				// 					[() => require('./cjs/index'), 'Cannot find module'],
-				// 					[() => require('./cjs/'), 'Cannot find module'],
-				// 					`
-				// 					: ''
-				// 			}
-				// 		);
+						// .cjs
+						import * as cjs from './cjs/index.cjs';
+						expectErrors(
+							[() => import('./cjs/index'), 'Cannot find module'],
+							[() => import('./cjs/'), 'Cannot find module'],
+							${
+								isCommonJs
+									? `
+									[() => require('./cjs/index'), 'Cannot find module'],
+									[() => require('./cjs/'), 'Cannot find module'],
+									`
+									: ''
+							}
+						);
 
-				// 		// .mjs
-				// 		import * as mjs from './mjs/index.mjs';
-				// 		expectErrors(
-				// 			[() => import('./mjs/index'), 'Cannot find module'],
-				// 			[() => import('./mjs/'), 'Cannot find module'],
-				// 			${
-				// 				isCommonJs
-				// 					? `
-				// 					[() => require('./mjs/index'), 'Cannot find module'],
-				// 					[() => require('./mjs/'), 'Cannot find module'],
-				// 					`
-				// 					: ''
-				// 			}
-				// 		);
+						// .mjs
+						import * as mjs from './mjs/index.mjs';
+						expectErrors(
+							[() => import('./mjs/index'), 'Cannot find module'],
+							[() => import('./mjs/'), 'Cannot find module'],
+							${
+								isCommonJs
+									? `
+									[() => require('./mjs/index'), 'Cannot find module'],
+									[() => require('./mjs/'), 'Cannot find module'],
+									`
+									: ''
+							}
+						);
 		
-				// 		// .ts
-				// 		import './ts/index.ts';
-				// 		import './ts/index.js';
-				// 		// import './ts/index.jsx';
-				// 		import './ts/index';
-				// 		import './ts/';
+						// .ts
+						import './ts/index.ts';
+						import './ts/index.js';
+						// import './ts/index.jsx';
+						import './ts/index';
+						import './ts/';
 		
-				// 		// .jsx
-				// 		import * as jsx from './jsx/index.jsx';
-				// 		// import './jsx/index.js';
-				// 		import './jsx/index';
-				// 		import './jsx/';
+						// .jsx
+						import * as jsx from './jsx/index.jsx';
+						// import './jsx/index.js';
+						import './jsx/index';
+						import './jsx/';
 
-				// 		// .tsx
-				// 		import './tsx/index.tsx';
-				// 		// import './tsx/index.js';
-				// 		import './tsx/index.jsx';
-				// 		import './tsx/index';
-				// 		import './tsx/';
+						// .tsx
+						import './tsx/index.tsx';
+						// import './tsx/index.js';
+						import './tsx/index.jsx';
+						import './tsx/index';
+						import './tsx/';
 
-				// 		// .cts
-				// 		import './cts/index.cjs';
-				// 		expectErrors(
-				// 			// [() => import('./cts/index.cts'), 'Cannot find module'],
-				// 			[() => import('./cts/index'), 'Cannot find module'],
-				// 			[() => import('./cts/'), 'Cannot find module'],
-				// 			${
-				// 				isCommonJs
-				// 					? `
-				// 					[() => require('./cts/index'), 'Cannot find module'],
-				// 					[() => require('./cts/'), 'Cannot find module'],
-				// 					`
-				// 					: ''
-				// 			}
-				// 		);
-				// 		// Loading via Node arg should not work via .cjs but with .cts
+						// .cts
+						import './cts/index.cjs';
+						expectErrors(
+							// [() => import('./cts/index.cts'), 'Cannot find module'],
+							[() => import('./cts/index'), 'Cannot find module'],
+							[() => import('./cts/'), 'Cannot find module'],
+							${
+								isCommonJs
+									? `
+									[() => require('./cts/index'), 'Cannot find module'],
+									[() => require('./cts/'), 'Cannot find module'],
+									`
+									: ''
+							}
+						);
+						// Loading via Node arg should not work via .cjs but with .cts
 
-				// 		// .mts
-				// 		import './mts/index.mjs';
-				// 		expectErrors(
-				// 			// [() => import('./mts/index.mts'), 'Cannot find module'],
-				// 			[() => import('./mts/index'), 'Cannot find module'],
-				// 			[() => import('./mts/'), 'Cannot find module'],
-				// 			${
-				// 				isCommonJs
-				// 					? `
-				// 					[() => require('./mts/index'), 'Cannot find module'],
-				// 					[() => require('./mts/'), 'Cannot find module'],
-				// 					`
-				// 					: ''
-				// 			}
-				// 		);
-				// 		// Loading via Node arg should not work via .mjs but with .mts
+						// .mts
+						import './mts/index.mjs';
+						expectErrors(
+							// [() => import('./mts/index.mts'), 'Cannot find module'],
+							[() => import('./mts/index'), 'Cannot find module'],
+							[() => import('./mts/'), 'Cannot find module'],
+							${
+								isCommonJs
+									? `
+									[() => require('./mts/index'), 'Cannot find module'],
+									[() => require('./mts/'), 'Cannot find module'],
+									`
+									: ''
+							}
+						);
+						// Loading via Node arg should not work via .mjs but with .mts
 
-				// 		// Unsupported files
-				// 		expectErrors(
-				// 			[() => import('./file.txt'), 'Unknown file extension'],
-				// 			[() => import('${wasmPath}'), 'Unknown file extension'],
-				// 			${
-				// 				isCommonJs
-				// 					? `
-				// 					[() => require('./file.txt'), 'hello is not defined'],
-				// 					[() => require('${wasmPath}'), 'Invalid or unexpected token'],
-				// 					`
-				// 					: ''
-				// 			}
-				// 		);
+						// Unsupported files
+						expectErrors(
+							[() => import('./file.txt'), 'Unknown file extension'],
+							[() => import('${wasmPath}'), 'Unknown file extension'],
+							${
+								isCommonJs
+									? `
+									[() => require('./file.txt'), 'hello is not defined'],
+									[() => require('${wasmPath}'), 'Invalid or unexpected token'],
+									`
+									: ''
+							}
+						);
 
-				// 		console.log(JSON.stringify({
-				// 			js,
-				// 			json,
-				// 			jsx,
-				// 			cjs,
-				// 			mjs,
-				// 		}));
-				// 		`,
-				// 	});
+						console.log(JSON.stringify({
+							js,
+							json,
+							jsx,
+							cjs,
+							mjs,
+						}));
+						`,
+					});
 
-				// 	onTestFinish(async () => await fixture.rm());
+					onTestFinish(async () => await fixture.rm());
 
-				// 	const p = await tsx(['import-from-ts.ts'], fixture.path);
-				// 	onTestFail((error) => {
-				// 		console.error(error);
-				// 		console.log(p);
-				// 	});
-				// 	expect(p.failed).toBe(false);
-				// 	expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},\"esmNamedExport\":123}`);
-				// 	expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
-				// 	expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
-				// 	expect(p.stdout).toMatch(`"jsx":{"cjsContext":${isCommonJs},"jsx":[null,null,["div",null,"JSX"]]}`);
+					const p = await tsx(['import-from-ts.ts'], fixture.path);
+					onTestFail((error) => {
+						console.error(error);
+						console.log(p);
+					});
+					expect(p.failed).toBe(false);
+					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},\"esmNamedExport\":123}`);
+					expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
+					expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
+					expect(p.stdout).toMatch(`"jsx":{"cjsContext":${isCommonJs},"jsx":[null,null,["div",null,"JSX"]]}`);
 
-				// 	// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
-				// 	expect(p.stdout).toMatch(`"mjs":{"mjsHasCjsContext":${isCommonJs}}`);
-				// 	expect(p.stderr).toBe('');
-				// 	// console.log(p);
+					// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
+					expect(p.stdout).toMatch(`"mjs":{"mjsHasCjsContext":${isCommonJs}}`);
+					expect(p.stderr).toBe('');
+					// console.log(p);
 
-				// 	const pTsconfig = await tsx(['index.tsx'], path.join(fixture.path, 'tsconfig'));
-				// 	onTestFail((error) => {
-				// 		console.error(error);
-				// 		console.log(pTsconfig);
-				// 	});
-				// 	expect(pTsconfig.failed).toBe(false);
-				// 	expect(pTsconfig.stderr).toBe('');
-				// 	expect(pTsconfig.stdout).toBe('');
+					const pTsconfig = await tsx(['index.tsx'], path.join(fixture.path, 'tsconfig'));
+					onTestFail((error) => {
+						console.error(error);
+						console.log(pTsconfig);
+					});
+					expect(pTsconfig.failed).toBe(false);
+					expect(pTsconfig.stderr).toBe('');
+					expect(pTsconfig.stdout).toBe('');
 
-				// 	const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'jsx.jsx'], path.join(fixture.path, 'tsconfig'));
-				// 	onTestFail((error) => {
-				// 		console.error(error);
-				// 		console.log(pTsconfigAllowJs);
-				// 	});
-				// 	expect(pTsconfigAllowJs.failed).toBe(true);
-				// 	expect(pTsconfigAllowJs.stderr).toMatch('Error: No error thrown');
-				// 	expect(pTsconfigAllowJs.stdout).toBe('');
-				// });
+					const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'jsx.jsx'], path.join(fixture.path, 'tsconfig'));
+					onTestFail((error) => {
+						console.error(error);
+						console.log(pTsconfigAllowJs);
+					});
+					expect(pTsconfigAllowJs.failed).toBe(true);
+					expect(pTsconfigAllowJs.stderr).toMatch('Error: No error thrown');
+					expect(pTsconfigAllowJs.stdout).toBe('');
+				});
 			});
 		}
 	});
