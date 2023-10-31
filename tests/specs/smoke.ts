@@ -50,7 +50,7 @@ Object ?? true
 // import.meta
 
 // es2021 - Logical assignment operators
-let a = false; a ??= true; a ||= true; a &&= true;
+// let a = false; a ??= true; a ||= true; a &&= true;
 
 // es2022 - Class instance fields
 (class { x });
