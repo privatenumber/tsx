@@ -115,9 +115,11 @@ export async function transform(
 			] as const,
 		);
 
-		console.log({
-			transformed,
-		});
+		if (process.env.DEBUG) {
+			console.log({
+				transformed,
+			});
+		}
 
 		cache.set(hash, transformed);
 	}
