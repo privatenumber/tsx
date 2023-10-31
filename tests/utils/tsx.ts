@@ -1,3 +1,4 @@
+import fs from 'fs/promises';
 import path from 'path';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
@@ -29,6 +30,8 @@ export const tsx = (
 		all: true,
 	},
 );
+
+let id = 0;
 
 export async function createNode(
 	nodeVersion: string,
@@ -85,6 +88,35 @@ export async function createNode(
 				],
 				cwd: fixturePath,
 			});
+		},
+		async importStatic(
+			filePath: string,
+			options?: {
+				extension?: string;
+			},
+		) {
+			id += 1;
+			const importerFileName = `static-import-file.${id}.${options?.extension || 'js'}`;
+			const importerFilePath = path.join(fixturePath, importerFileName);
+			await fs.writeFile(
+				importerFilePath,
+				`
+				import * as value from '${filePath}';
+				console.log(JSON.stringify(value));
+				`,
+			);
+
+			const nodeProcess = await tsx({
+				args: [
+					importerFileName,
+				],
+				nodePath: node.path,
+				cwd: fixturePath,
+			});
+
+			await fs.rm(importerFilePath);
+
+			return nodeProcess;
 		},
 		require(
 			filePath: string,
