@@ -158,8 +158,12 @@ export default testSuite(async ({ describe }) => {
 			});
 
 			onTestFinish(async () => {
-				console.log(1, tsxProcess);
-				tsxProcess.kill('SIGKILL');
+				if (tsxProcess.exitCode === null) {
+					tsxProcess.kill('SIGKILL');
+					const result = await tsxProcess;
+					console.log(result);
+				}
+
 				await fixtureExit.rm();
 			});
 
