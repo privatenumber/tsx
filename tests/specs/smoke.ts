@@ -21,7 +21,7 @@ assert(
 );
 `;
 
-const wasmPath = path.resolve('tests/fixtures/lib/wasm/test.wasm');
+const wasmPath = path.resolve('tests/fixtures/test.wasm');
 const wasmPathUrl = pathToFileURL(wasmPath).toString();
 
 const syntaxLowering = `
@@ -213,9 +213,25 @@ const files = {
 
 	'file.txt': 'hello',
 
-	'node_modules/dep': {
-		'package.json': '{}',
-		'index.js': syntaxLowering,
+	node_modules: {
+		'pkg-commonjs': {
+			'package.json': JSON.stringify({
+				type: 'commonjs',
+			}),
+			'index.js': `
+			${syntaxLowering}
+			`,
+		},
+		'pkg-module': {
+			'package.json': JSON.stringify({
+				type: 'module',
+				exports: './index.js',
+			}),
+			'index.js': `
+			${syntaxLowering}
+			export const named = 2;
+			`,
+		},
 	},
 
 	tsconfig: {
@@ -323,7 +339,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// node: prefix
 						import 'node:fs';
 
-						import 'dep';
+						import * as pkgCommonjs from 'pkg-commonjs';
+						import * as pkgModule from 'pkg-module';
 
 						// .js
 						import * as js from './js/index.js';
@@ -387,6 +404,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 							json,
 							cjs,
 							mjs,
+							pkgCommonjs,
+							pkgModule,
 						}));
 		
 						// Could .js import TS files?
@@ -403,6 +422,12 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"esmNamedExport":123}`);
 					expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
 					expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
+					expect(p.stdout).toMatch('"pkgModule":{"esmNamedExport":123,"named":2}');
+					if (isCommonJs) {
+						expect(p.stdout).toMatch('"pkgCommonjs":{"esmNamedExport":123}');
+					} else {
+						expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"esmNamedExport":123}}');
+					}
 
 					// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
 					expect(p.stdout).toMatch(`"mjs":{"mjsHasCjsContext":${isCommonJs}}`);
@@ -421,7 +446,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// node: prefix
 						import 'node:fs';
 
-						import 'dep';
+						import * as pkgCommonjs from 'pkg-commonjs';
+						import * as pkgModule from 'pkg-module';
 
 						// .js
 						import * as js from './js/index.js';
@@ -537,6 +563,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 							jsx,
 							cjs,
 							mjs,
+							pkgCommonjs,
+							pkgModule,
 						}));
 						`,
 					});
@@ -553,11 +581,16 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
 						expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
 						expect(p.stdout).toMatch(`"jsx":{"cjsContext":${isCommonJs},"jsx":[null,null,["div",null,"JSX"]]}`);
+						expect(p.stdout).toMatch('"pkgModule":{"esmNamedExport":123,"named":2}');
+						if (isCommonJs) {
+							expect(p.stdout).toMatch('"pkgCommonjs":{"esmNamedExport":123}');
+						} else {
+							expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"esmNamedExport":123}}');
+						}
 
 						// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
 						expect(p.stdout).toMatch(`"mjs":{"mjsHasCjsContext":${isCommonJs}}`);
 						expect(p.stderr).toBe('');
-						// console.log(p);
 					});
 
 					test('tsconfig', async ({ onTestFail }) => {

@@ -1,1 +1,0 @@
-import 'resolve-current-directory';
