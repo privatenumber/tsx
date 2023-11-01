@@ -26,6 +26,11 @@ try {
 const wasmPath = path.resolve('tests/fixtures/lib/wasm/test.wasm');
 const wasmPathUrl = pathToFileURL(wasmPath).toString();
 
+console.log({
+	wasmPath,
+	wasmPathUrl,
+});
+
 const syntaxLowering = `
 // es2016 - Exponentiation operator
 10 ** 4;
