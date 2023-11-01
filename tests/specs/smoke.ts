@@ -1,6 +1,7 @@
 import path from 'path';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
+import { pathToFileURL } from 'url';
 import type { NodeApis } from '../utils/tsx';
 
 const cjsContextCheck = 'typeof module !== \'undefined\'';
@@ -23,6 +24,7 @@ try {
 `;
 
 const wasmPath = path.resolve('tests/fixtures/lib/wasm/test.wasm');
+const wasmPathUrl = pathToFileURL(wasmPath).toString();
 
 const syntaxLowering = `
 // es2016 - Exponentiation operator
@@ -371,7 +373,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// Unsupported files
 						expectErrors(
 							[() => import('./file.txt'), 'Unknown file extension'],
-							[() => import('${wasmPath}'), 'Unknown file extension'],
+							[() => import('${wasmPathUrl}'), 'Unknown file extension'],
 							${
 								isCommonJs
 									? `
@@ -523,7 +525,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// Unsupported files
 						expectErrors(
 							[() => import('./file.txt'), 'Unknown file extension'],
-							[() => import('${wasmPath}'), 'Unknown file extension'],
+							[() => import('${wasmPathUrl}'), 'Unknown file extension'],
 							${
 								isCommonJs
 									? `
