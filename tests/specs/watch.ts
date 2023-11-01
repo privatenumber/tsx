@@ -158,6 +158,7 @@ export default testSuite(async ({ describe }) => {
 			});
 
 			onTestFinish(async () => {
+				console.log(1, tsxProcess);
 				tsxProcess.kill('SIGKILL');
 				await fixtureExit.rm();
 			});
