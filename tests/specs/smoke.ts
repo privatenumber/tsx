@@ -73,7 +73,8 @@ Object ?? true
 // es2022 - Class static blocks
 (class { static {} });
 
-export const esmNamedExport = 123;
+export const named = 2;
+export default 1;
 `;
 
 const sourcemap = {
@@ -218,19 +219,14 @@ const files = {
 			'package.json': JSON.stringify({
 				type: 'commonjs',
 			}),
-			'index.js': `
-			${syntaxLowering}
-			`,
+			'index.js': syntaxLowering,
 		},
 		'pkg-module': {
 			'package.json': JSON.stringify({
 				type: 'module',
 				exports: './index.js',
 			}),
-			'index.js': `
-			${syntaxLowering}
-			export const named = 2;
-			`,
+			'index.js': syntaxLowering,
 		},
 	},
 
@@ -419,14 +415,14 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						console.log(p);
 					});
 					expect(p.failed).toBe(false);
-					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"esmNamedExport":123}`);
+					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
 					expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
 					expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
-					expect(p.stdout).toMatch('"pkgModule":{"esmNamedExport":123,"named":2}');
+					expect(p.stdout).toMatch('"pkgModule":{"default":1,"named":2}');
 					if (isCommonJs) {
-						expect(p.stdout).toMatch('"pkgCommonjs":{"esmNamedExport":123}');
+						expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
 					} else {
-						expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"esmNamedExport":123}}');
+						expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"default":1,"named":2}}');
 					}
 
 					// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
@@ -577,15 +573,15 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 							console.log(p);
 						});
 						expect(p.failed).toBe(false);
-						expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"esmNamedExport":123}`);
+						expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
 						expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
 						expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
 						expect(p.stdout).toMatch(`"jsx":{"cjsContext":${isCommonJs},"jsx":[null,null,["div",null,"JSX"]]}`);
-						expect(p.stdout).toMatch('"pkgModule":{"esmNamedExport":123,"named":2}');
+						expect(p.stdout).toMatch('"pkgModule":{"default":1,"named":2}');
 						if (isCommonJs) {
-							expect(p.stdout).toMatch('"pkgCommonjs":{"esmNamedExport":123}');
+							expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
 						} else {
-							expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"esmNamedExport":123}}');
+							expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"default":1,"named":2}}');
 						}
 
 						// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
