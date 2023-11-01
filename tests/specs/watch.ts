@@ -216,7 +216,7 @@ export default testSuite(async ({ describe }) => {
 		});
 
 		describe('ignore', ({ test }) => {
-			test('file path & glob', async ({ onTestFinish }) => {
+			test('file path & glob', async ({ onTestFinish, onTestFail }) => {
 				const entryFile = 'index.js';
 				const fileA = 'file-a.js';
 				const fileB = 'directory/file-b.js';
@@ -276,6 +276,11 @@ export default testSuite(async ({ describe }) => {
 				tsxProcess.kill();
 
 				const { all, stderr } = await tsxProcess;
+				onTestFail(() => {
+					console.log({
+						all,
+					});
+				});
 				expect(all).not.toMatch('fail');
 				expect(stderr).toBe('');
 			}, 10_000);
