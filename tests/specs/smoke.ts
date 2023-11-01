@@ -14,13 +14,11 @@ const React = {
 `;
 const jsxCheck = '<><div>JSX</div></>';
 
-const nameInError = `
-let nameInError;
-try {
-	nameInError();
-} catch (error) {
-	assert(error.message.includes('nameInError'), 'Name should be in error');
-}
+const preserveName = `
+assert(
+	(function functionName() {}).name === 'functionName',
+	'Name should be preserved'
+);
 `;
 
 const wasmPath = path.resolve('tests/fixtures/lib/wasm/test.wasm');
@@ -94,7 +92,7 @@ const files = {
 	'js/index.js': `
 	import assert from 'assert';
 	${syntaxLowering}
-	${nameInError}
+	${preserveName}
 	export const cjsContext = ${cjsContextCheck};
 	`,
 
@@ -103,7 +101,7 @@ const files = {
 	'cjs/index.cjs': sourcemap.tag`
 	const assert = require('node:assert');
 	assert(${cjsContextCheck}, 'Should have CJS context');
-	${nameInError}
+	${preserveName}
 	${sourcemap.test}
 	exports.named = 'named';
 	`,
@@ -142,7 +140,7 @@ const files = {
 	// For "ts as tsx" test
 	const bar = <T>(value: T) => fn<T>();
 
-	${nameInError}
+	${preserveName}
 	${sourcemap.test}
 	export const cjsContext = ${cjsContextCheck};
 	${tsCheck};
@@ -155,7 +153,7 @@ const files = {
 	export const cjsContext = ${cjsContextCheck};
 	${declareReact}
 	export const jsx = ${jsxCheck};
-	${nameInError}
+	${preserveName}
 	${sourcemap.test}
 	`,
 
@@ -165,7 +163,7 @@ const files = {
 	${tsCheck};
 	${declareReact}
 	export const jsx = ${jsxCheck};
-	${nameInError}
+	${preserveName}
 	${sourcemap.test}
 	`,
 
@@ -173,7 +171,7 @@ const files = {
 	import assert from 'assert';
 	export const mjsHasCjsContext = ${cjsContextCheck};
 	${tsCheck};
-	${nameInError}
+	${preserveName}
 	${sourcemap.test}
 	`,
 
@@ -181,7 +179,7 @@ const files = {
 	const assert = require('assert');
 	assert(${cjsContextCheck}, 'Should have CJS context');
 	${tsCheck};
-	${nameInError}
+	${preserveName}
 	${sourcemap.test}
 	`,
 
