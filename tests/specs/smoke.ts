@@ -1,7 +1,7 @@
 import path from 'path';
+import { pathToFileURL } from 'url';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
-import { pathToFileURL } from 'url';
 import type { NodeApis } from '../utils/tsx';
 
 const cjsContextCheck = 'typeof module !== \'undefined\'';
@@ -555,11 +555,11 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
 						expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
 						expect(p.stdout).toMatch(`"jsx":{"cjsContext":${isCommonJs},"jsx":[null,null,["div",null,"JSX"]]}`);
-	
+
 						// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
 						expect(p.stdout).toMatch(`"mjs":{"mjsHasCjsContext":${isCommonJs}}`);
 						expect(p.stderr).toBe('');
-						// console.log(p);	
+						// console.log(p);
 					});
 
 					test('tsconfig', async ({ onTestFail }) => {
@@ -570,7 +570,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						});
 						expect(pTsconfig.failed).toBe(false);
 						expect(pTsconfig.stderr).toBe('');
-						expect(pTsconfig.stdout).toBe('');	
+						expect(pTsconfig.stdout).toBe('');
 					});
 
 					test('custom tsconfig', async ({ onTestFail }) => {
