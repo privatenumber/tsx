@@ -378,12 +378,12 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// Unsupported files
 						expectErrors(
 							[() => import('./file.txt'), 'Unknown file extension'],
-							[() => import('${wasmPathUrl}'), 'Unknown file extension'],
+							[() => import(${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
 							${
 								isCommonJs
 									? `
 									[() => require('./file.txt'), 'hello is not defined'],
-									[() => require('${wasmPath}'), 'Invalid or unexpected token'],
+									[() => require(${JSON.stringify(wasmPath)}), 'Invalid or unexpected token'],
 									`
 									: ''
 							}
@@ -530,12 +530,12 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// Unsupported files
 						expectErrors(
 							[() => import('./file.txt'), 'Unknown file extension'],
-							[() => import('${wasmPathUrl}'), 'Unknown file extension'],
+							[() => import(${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
 							${
 								isCommonJs
 									? `
 									[() => require('./file.txt'), 'hello is not defined'],
-									[() => require('${wasmPath}'), 'Invalid or unexpected token'],
+									[() => require(${JSON.stringify(wasmPath)}), 'Invalid or unexpected token'],
 									`
 									: ''
 							}
