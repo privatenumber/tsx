@@ -246,6 +246,11 @@ export default testSuite(async ({ describe }) => {
 						entryFile,
 					],
 				});
+				onTestFail((error) => {
+					console.error(tsxProcess);
+					console.error(error);
+				});
+
 				const negativeSignal = '"fail"';
 
 				await interact(
