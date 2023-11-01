@@ -1,0 +1,14 @@
+{
+	"type": "module",
+	"imports": {
+		"#directory": "./lib/esm-ext-js",
+
+		"#directory-star": "./lib/esm-ext-js",
+		"#directory-star/*": "./lib/esm-ext-js/*",
+
+		"#file-star": "./lib/ts-ext-ts/index",
+		"#file-star*": "./lib/ts-ext-ts/index*",
+
+		"#non-existent": "./lib/non-existent"
+	}
+}
