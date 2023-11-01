@@ -149,14 +149,17 @@ export default testSuite(async ({ describe }) => {
 				`,
 			});
 
-			onTestFinish(async () => await fixtureExit.rm());
-
 			const tsxProcess = tsx({
 				args: [
 					'watch',
 					'index.js',
 				],
 				cwd: fixtureExit.path,
+			});
+
+			onTestFinish(async () => {
+				tsxProcess.kill('SIGKILL');
+				await fixtureExit.rm();
 			});
 
 			await interact(
