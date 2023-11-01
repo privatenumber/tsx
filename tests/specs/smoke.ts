@@ -26,11 +26,6 @@ try {
 const wasmPath = path.resolve('tests/fixtures/lib/wasm/test.wasm');
 const wasmPathUrl = pathToFileURL(wasmPath).toString();
 
-console.log({
-	wasmPath,
-	wasmPathUrl,
-});
-
 const syntaxLowering = `
 // es2016 - Exponentiation operator
 10 ** 4;
@@ -399,9 +394,6 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// Could .js import TS files?
 						`,
 					});
-
-					console.log('from .js', packageType, fixture.path);
-
 					onTestFinish(async () => await fixture.rm());
 
 					const p = await tsx(['import-from-js.js'], fixture.path);
@@ -550,7 +542,6 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						}));
 						`,
 					});
-					console.log('from .ts', packageType, fixture.path);
 					onFinish(async () => await fixture.rm());
 
 					test('import all', async ({ onTestFail }) => {
