@@ -312,7 +312,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 		for (const packageType of packageTypes) {
 			const isCommonJs = packageType === 'commonjs';
 
-			describe(packageType, ({ test }) => {
+			describe(packageType, ({ test, describe }) => {
 				test('from .js', async ({ onTestFinish, onTestFail }) => {
 					const fixture = await createFixture({
 						...files,
@@ -393,6 +393,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						`,
 					});
 
+					console.log('from .js', packageType, fixture.path);
+
 					onTestFinish(async () => await fixture.rm());
 
 					const p = await tsx(['import-from-js.js'], fixture.path);
@@ -411,7 +413,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					expect(p.stderr).toBe('');
 				});
 
-				test('from .ts', async ({ onTestFinish, onTestFail }) => {
+				describe('from .ts', async ({ test, onFinish }) => {
 					const fixture = await createFixture({
 						...files,
 						'package.json': JSON.stringify({ type: packageType }),
@@ -541,42 +543,48 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						}));
 						`,
 					});
+					console.log('from .ts', packageType, fixture.path);
+					onFinish(async () => await fixture.rm());
 
-					onTestFinish(async () => await fixture.rm());
-
-					const p = await tsx(['import-from-ts.ts'], fixture.path);
-					onTestFail((error) => {
-						console.error(error);
-						console.log(p);
+					test('import all', async ({ onTestFail }) => {
+						const p = await tsx(['import-from-ts.ts'], fixture.path);
+						onTestFail((error) => {
+							console.error(error);
+							console.log(p);
+						});
+						expect(p.failed).toBe(false);
+						expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"esmNamedExport":123}`);
+						expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
+						expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
+						expect(p.stdout).toMatch(`"jsx":{"cjsContext":${isCommonJs},"jsx":[null,null,["div",null,"JSX"]]}`);
+	
+						// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
+						expect(p.stdout).toMatch(`"mjs":{"mjsHasCjsContext":${isCommonJs}}`);
+						expect(p.stderr).toBe('');
+						// console.log(p);	
 					});
-					expect(p.failed).toBe(false);
-					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"esmNamedExport":123}`);
-					expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
-					expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
-					expect(p.stdout).toMatch(`"jsx":{"cjsContext":${isCommonJs},"jsx":[null,null,["div",null,"JSX"]]}`);
 
-					// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
-					expect(p.stdout).toMatch(`"mjs":{"mjsHasCjsContext":${isCommonJs}}`);
-					expect(p.stderr).toBe('');
-					// console.log(p);
-
-					const pTsconfig = await tsx(['index.tsx'], path.join(fixture.path, 'tsconfig'));
-					onTestFail((error) => {
-						console.error(error);
-						console.log(pTsconfig);
+					test('tsconfig', async ({ onTestFail }) => {
+						const pTsconfig = await tsx(['index.tsx'], path.join(fixture.path, 'tsconfig'));
+						onTestFail((error) => {
+							console.error(error);
+							console.log(pTsconfig);
+						});
+						expect(pTsconfig.failed).toBe(false);
+						expect(pTsconfig.stderr).toBe('');
+						expect(pTsconfig.stdout).toBe('');	
 					});
-					expect(pTsconfig.failed).toBe(false);
-					expect(pTsconfig.stderr).toBe('');
-					expect(pTsconfig.stdout).toBe('');
 
-					const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'jsx.jsx'], path.join(fixture.path, 'tsconfig'));
-					onTestFail((error) => {
-						console.error(error);
-						console.log(pTsconfigAllowJs);
+					test('custom tsconfig', async ({ onTestFail }) => {
+						const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'jsx.jsx'], path.join(fixture.path, 'tsconfig'));
+						onTestFail((error) => {
+							console.error(error);
+							console.log(pTsconfigAllowJs);
+						});
+						expect(pTsconfigAllowJs.failed).toBe(true);
+						expect(pTsconfigAllowJs.stderr).toMatch('Error: No error thrown');
+						expect(pTsconfigAllowJs.stdout).toBe('');
 					});
-					expect(pTsconfigAllowJs.failed).toBe(true);
-					expect(pTsconfigAllowJs.stderr).toMatch('Error: No error thrown');
-					expect(pTsconfigAllowJs.stdout).toBe('');
 				});
 			});
 		}
