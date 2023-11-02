@@ -254,11 +254,12 @@ export default testSuite(async ({ describe }) => {
 						entryFile,
 					],
 				});
-				onTestFail(async (error) => {
-					console.error(error);
-					tsxProcess.kill();
-					const result = await tsxProcess;
-					console.error(result);
+				onTestFail(async () => {
+					if (tsxProcess.exitCode === null) {
+						tsxProcess.kill();
+						const result = await tsxProcess;
+						console.error(result);
+					}
 				});
 
 				const negativeSignal = '"fail"';
