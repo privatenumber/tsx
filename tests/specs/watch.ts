@@ -254,11 +254,11 @@ export default testSuite(async ({ describe }) => {
 						entryFile,
 					],
 				});
+
 				onTestFail(async () => {
+					// If timed out, force kill process
 					if (tsxProcess.exitCode === null) {
 						tsxProcess.kill();
-						const result = await tsxProcess;
-						console.error(result);
 					}
 				});
 
@@ -291,14 +291,12 @@ export default testSuite(async ({ describe }) => {
 
 				tsxProcess.kill();
 
-				const { all, stderr } = await tsxProcess;
+				const p = await tsxProcess;
 				onTestFail(() => {
-					console.log({
-						all,
-					});
+					console.log(p);
 				});
-				expect(all).not.toMatch('fail');
-				expect(stderr).toBe('');
+				expect(p.all).not.toMatch('fail');
+				expect(p.stderr).toBe('');
 			}, 10_000);
 		});
 	});
