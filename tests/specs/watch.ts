@@ -10,14 +10,33 @@ type MaybePromise<T> = T | Promise<T>;
 const interact = async (
 	stdout: Readable,
 	actions: ((data: string) => MaybePromise<boolean | void>)[],
+	timeout: number,
 ) => {
+	const startTime = Date.now();
+	const logs: [time: number, string][] = [];
+
 	let currentAction = actions.shift();
 
-	const buffers: Buffer[] = [];
+	setTimeout(timeout).then(
+		() => {
+			if (currentAction) {
+				console.error(`Timeout ${timeout}ms exceeded:`);
+				console.log(logs);
+			}
+		},
+		() => {},
+	);
+
 	while (currentAction) {
 		for await (const [chunk] of on(stdout, 'data')) {
-			buffers.push(chunk);
-			if (await currentAction(chunk.toString())) {
+			const chunkString = chunk.toString();
+			logs.push([
+				Date.now() - startTime,
+				chunkString,
+			]);
+
+			const gotoNextAction = await currentAction(chunkString);
+			if (gotoNextAction) {
 				currentAction = actions.shift();
 				break;
 			}
@@ -75,6 +94,7 @@ export default testSuite(async ({ describe }) => {
 					},
 					data => data.includes(`${initialValue}\n`),
 				],
+				1000,
 			);
 
 			tsxProcess.kill();
@@ -102,6 +122,7 @@ export default testSuite(async ({ describe }) => {
 					},
 					data => data.includes('log-argv.ts'),
 				],
+				1000,
 			);
 
 			tsxProcess.kill();
@@ -124,6 +145,7 @@ export default testSuite(async ({ describe }) => {
 			await interact(
 				tsxProcess.stdout!,
 				[data => data.startsWith('["')],
+				1000,
 			);
 
 			tsxProcess.kill();
@@ -155,7 +177,7 @@ export default testSuite(async ({ describe }) => {
 				cwd: fixtureExit.path,
 			});
 
-			const chunks: string[] = [];
+			const chunks: [number, string][] = [];
 			onTestFail(async () => {
 				if (tsxProcess.exitCode === null) {
 					console.log('Force killing hanging process\n\n');
@@ -175,17 +197,18 @@ export default testSuite(async ({ describe }) => {
 				tsxProcess.stdout!,
 				[
 					(data) => {
-						chunks.push(data);
+						chunks.push([1, data]);
 						if (data.includes('start\n')) {
 							tsxProcess.stdin?.write('enter');
 							return true;
 						}
 					},
 					(data) => {
-						chunks.push(data);
+						chunks.push([2, data]);
 						return data.includes('end\n');
 					},
 				],
+				1000,
 			);
 
 			tsxProcess.kill();
@@ -218,6 +241,7 @@ export default testSuite(async ({ describe }) => {
 				await interact(
 					tsxProcess.stdout!,
 					[data => data.startsWith('["')],
+					1000,
 				);
 
 				tsxProcess.kill();
@@ -263,7 +287,7 @@ export default testSuite(async ({ describe }) => {
 					],
 				});
 
-				const chunks: string[] = [];
+				const chunks: [number, string][] = [];
 
 				onTestFail(async () => {
 					// If timed out, force kill process
@@ -277,35 +301,36 @@ export default testSuite(async ({ describe }) => {
 					}
 				});
 
-				const negativeSignal = '"fail"';
+				const negativeSignal = 'fail';
 
 				await interact(
 					tsxProcess.stdout!,
 					[
 						async (data) => {
-							chunks.push(data);
-							if (data.includes('fail')) {
+							chunks.push([1, data]);
+							if (data.includes(negativeSignal)) {
 								throw new Error('should not log ignored file');
 							}
 
 							if (data === 'logA logB logC\n') {
 								// These changes should not trigger a re-run
 								await Promise.all([
-									fixtureGlob.writeFile(fileA, `export default ${negativeSignal}`),
-									fixtureGlob.writeFile(fileB, `export default ${negativeSignal}`),
-									fixtureGlob.writeFile(depA, `export default ${negativeSignal}`),
+									fixtureGlob.writeFile(fileA, `export default "${negativeSignal}"`),
+									fixtureGlob.writeFile(fileB, `export default "${negativeSignal}"`),
+									fixtureGlob.writeFile(depA, `export default "${negativeSignal}"`),
 								]);
 
-								await setTimeout(1500);
+								await setTimeout(1000);
 								fixtureGlob.writeFile(entryFile, 'console.log("TERMINATE")');
 								return true;
 							}
 						},
 						(data) => {
-							chunks.push(data);
+							chunks.push([2, data]);
 							return data === 'TERMINATE\n';
 						},
 					],
+					1000,
 				);
 
 				tsxProcess.kill();
