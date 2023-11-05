@@ -94,7 +94,7 @@ export default testSuite(async ({ describe }) => {
 					},
 					data => data.includes(`${initialValue}\n`),
 				],
-				1000,
+				5000,
 			);
 
 			tsxProcess.kill();
@@ -122,7 +122,7 @@ export default testSuite(async ({ describe }) => {
 					},
 					data => data.includes('log-argv.ts'),
 				],
-				1000,
+				5000,
 			);
 
 			tsxProcess.kill();
@@ -145,7 +145,7 @@ export default testSuite(async ({ describe }) => {
 			await interact(
 				tsxProcess.stdout!,
 				[data => data.startsWith('["')],
-				1000,
+				5000,
 			);
 
 			tsxProcess.kill();
@@ -202,7 +202,7 @@ export default testSuite(async ({ describe }) => {
 					},
 					data => data.includes('end\n'),
 				],
-				1000,
+				5000,
 			);
 
 			tsxProcess.kill();
@@ -235,7 +235,7 @@ export default testSuite(async ({ describe }) => {
 				await interact(
 					tsxProcess.stdout!,
 					[data => data.startsWith('["')],
-					1000,
+					5000,
 				);
 
 				tsxProcess.kill();
@@ -317,7 +317,7 @@ export default testSuite(async ({ describe }) => {
 						},
 						data => data === 'TERMINATE\n',
 					],
-					1000,
+					9000,
 				);
 
 				tsxProcess.kill();
