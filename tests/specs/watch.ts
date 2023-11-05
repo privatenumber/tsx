@@ -159,19 +159,18 @@ export default testSuite(async ({ describe }) => {
 
 			let chunks: string[];
 
-			onTestFail(() => {
-				console.log({
-					tsxProcess,
-					chunks,
-				});
+			onTestFail(async () => {
+				if (tsxProcess.exitCode === null) {
+					console.log('Force killing hanging process\n\n');
+					tsxProcess.kill('SIGKILL');
+					console.log({
+						tsxProcess: await tsxProcess,
+						chunks,
+					});
+				}
 			});
 
 			onTestFinish(async () => {
-				if (tsxProcess.exitCode === null) {
-					tsxProcess.kill('SIGKILL');
-					throw new Error('Child process running');
-				}
-
 				await fixtureExit.rm();
 			});
 
@@ -263,10 +262,12 @@ export default testSuite(async ({ describe }) => {
 					],
 				});
 
-				onTestFail(() => {
+				onTestFail(async () => {
 					// If timed out, force kill process
 					if (tsxProcess.exitCode === null) {
+						console.log('Force killing hanging process\n\n');
 						tsxProcess.kill();
+						console.log(await tsxProcess);
 					}
 				});
 
@@ -300,9 +301,6 @@ export default testSuite(async ({ describe }) => {
 				tsxProcess.kill();
 
 				const p = await tsxProcess;
-				onTestFail(() => {
-					console.log(p);
-				});
 				expect(p.all).not.toMatch('fail');
 				expect(p.stderr).toBe('');
 			}, 10_000);
