@@ -181,9 +181,9 @@ export default testSuite(async ({ describe }) => {
 							return true;
 						}
 					},
-					data => {
+					(data) => {
 						chunks.push(data);
-						data.includes('end\n');
+						return data.includes('end\n');
 					},
 				],
 			);
@@ -263,12 +263,17 @@ export default testSuite(async ({ describe }) => {
 					],
 				});
 
+				const chunks: string[] = [];
+
 				onTestFail(async () => {
 					// If timed out, force kill process
 					if (tsxProcess.exitCode === null) {
 						console.log('Force killing hanging process\n\n');
 						tsxProcess.kill();
-						console.log(await tsxProcess);
+						console.log({
+							tsxProcess: await tsxProcess,
+							chunks,
+						});
 					}
 				});
 
@@ -278,6 +283,7 @@ export default testSuite(async ({ describe }) => {
 					tsxProcess.stdout!,
 					[
 						async (data) => {
+							chunks.push(data);
 							if (data.includes('fail')) {
 								throw new Error('should not log ignored file');
 							}
@@ -295,7 +301,10 @@ export default testSuite(async ({ describe }) => {
 								return true;
 							}
 						},
-						data => data === 'TERMINATE\n',
+						(data) => {
+							chunks.push(data);
+							return data === 'TERMINATE\n';
+						},
 					],
 				);
 
