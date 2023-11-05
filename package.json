@@ -47,6 +47,9 @@
 	"lint-staged": {
 		"*.{js,ts,mjs,mts,cjs,cts,json}": "pnpm lint"
 	},
+	"engines": {
+		"node": ">=18.0.0"
+	},
 	"dependencies": {
 		"esbuild": "~0.18.20",
 		"get-tsconfig": "^4.7.2",
