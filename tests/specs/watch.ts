@@ -23,8 +23,6 @@ const interact = async (
 			}
 		}
 	}
-
-	return buffers.map(buffer => buffer.toString());
 };
 
 export default testSuite(async ({ describe }) => {
@@ -157,8 +155,7 @@ export default testSuite(async ({ describe }) => {
 				cwd: fixtureExit.path,
 			});
 
-			let chunks: string[];
-
+			const chunks: string[] = [];
 			onTestFail(async () => {
 				if (tsxProcess.exitCode === null) {
 					console.log('Force killing hanging process\n\n');
@@ -174,16 +171,20 @@ export default testSuite(async ({ describe }) => {
 				await fixtureExit.rm();
 			});
 
-			chunks = await interact(
+			await interact(
 				tsxProcess.stdout!,
 				[
 					(data) => {
+						chunks.push(data);
 						if (data.includes('start\n')) {
 							tsxProcess.stdin?.write('enter');
 							return true;
 						}
 					},
-					data => data.includes('end\n'),
+					data => {
+						chunks.push(data);
+						data.includes('end\n');
+					},
 				],
 			);
 
