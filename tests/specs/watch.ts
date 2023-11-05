@@ -255,7 +255,7 @@ export default testSuite(async ({ describe }) => {
 					],
 				});
 
-				onTestFail(async () => {
+				onTestFail(() => {
 					// If timed out, force kill process
 					if (tsxProcess.exitCode === null) {
 						tsxProcess.kill();
