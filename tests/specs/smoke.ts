@@ -443,12 +443,15 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// node: prefix
 						import 'node:fs';
 
+						// Dependencies
 						import * as pkgCommonjs from 'pkg-commonjs';
 						import * as pkgModule from 'pkg-module';
 
+						// TODO: Test resolving TS files in dependencies (e.g. implicit extensions & export maps)
+
 						// .js
 						import * as js from './js/index.js';
-						// import * as js from './js/index.js?query=123'; Support query
+						// import * as js from './js/index.js?query=123'; TODO: Support query
 						import './js/index';
 						import './js/';
 
@@ -510,6 +513,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// .cts
 						import './cts/index.cjs';
 						expectErrors(
+							// TODO:
 							// [() => import('./cts/index.cts'), 'Cannot find module'],
 							[() => import('./cts/index'), 'Cannot find module'],
 							[() => import('./cts/'), 'Cannot find module'],
@@ -527,6 +531,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// .mts
 						import './mts/index.mjs';
 						expectErrors(
+							// TODO:
 							// [() => import('./mts/index.mts'), 'Cannot find module'],
 							[() => import('./mts/index'), 'Cannot find module'],
 							[() => import('./mts/'), 'Cannot find module'],

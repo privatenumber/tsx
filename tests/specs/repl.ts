@@ -1,10 +1,10 @@
 import { testSuite } from 'manten';
-import { type NodeApis } from '../utils/tsx';
+import { tsx } from '../utils/tsx';
 
-export default testSuite(async ({ describe }, node: NodeApis) => {
-	describe('repl', ({ test }) => {
+export default testSuite(async ({ describe }) => {
+	describe('REPL', ({ test }) => {
 		test('handles ts', async () => {
-			const tsxProcess = node.tsx({
+			const tsxProcess = tsx({
 				args: ['--interactive'],
 			});
 
@@ -32,7 +32,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		}, 40_000);
 
 		test('doesn\'t error on require', async () => {
-			const tsxProcess = node.tsx({
+			const tsxProcess = tsx({
 				args: ['--interactive'],
 			});
 
@@ -58,7 +58,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		}, 40_000);
 
 		test('supports incomplete expression in segments', async () => {
-			const tsxProcess = node.tsx({
+			const tsxProcess = tsx({
 				args: ['--interactive'],
 			});
 
@@ -87,7 +87,7 @@ export default testSuite(async ({ describe }, node: NodeApis) => {
 		}, 40_000);
 
 		test('errors on import statement', async () => {
-			const tsxProcess = node.tsx({
+			const tsxProcess = tsx({
 				args: ['--interactive'],
 			});
 
