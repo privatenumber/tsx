@@ -177,14 +177,12 @@ export default testSuite(async ({ describe }) => {
 				cwd: fixtureExit.path,
 			});
 
-			const chunks: [number, string][] = [];
 			onTestFail(async () => {
 				if (tsxProcess.exitCode === null) {
 					console.log('Force killing hanging process\n\n');
 					tsxProcess.kill('SIGKILL');
 					console.log({
 						tsxProcess: await tsxProcess,
-						chunks,
 					});
 				}
 			});
@@ -197,16 +195,12 @@ export default testSuite(async ({ describe }) => {
 				tsxProcess.stdout!,
 				[
 					(data) => {
-						chunks.push([1, data]);
 						if (data.includes('start\n')) {
 							tsxProcess.stdin?.write('enter');
 							return true;
 						}
 					},
-					(data) => {
-						chunks.push([2, data]);
-						return data.includes('end\n');
-					},
+					data => data.includes('end\n'),
 				],
 				1000,
 			);
@@ -287,8 +281,6 @@ export default testSuite(async ({ describe }) => {
 					],
 				});
 
-				const chunks: [number, string][] = [];
-
 				onTestFail(async () => {
 					// If timed out, force kill process
 					if (tsxProcess.exitCode === null) {
@@ -296,7 +288,6 @@ export default testSuite(async ({ describe }) => {
 						tsxProcess.kill();
 						console.log({
 							tsxProcess: await tsxProcess,
-							chunks,
 						});
 					}
 				});
@@ -307,7 +298,6 @@ export default testSuite(async ({ describe }) => {
 					tsxProcess.stdout!,
 					[
 						async (data) => {
-							chunks.push([1, data]);
 							if (data.includes(negativeSignal)) {
 								throw new Error('should not log ignored file');
 							}
@@ -325,10 +315,7 @@ export default testSuite(async ({ describe }) => {
 								return true;
 							}
 						},
-						(data) => {
-							chunks.push([2, data]);
-							return data === 'TERMINATE\n';
-						},
+						data => data === 'TERMINATE\n',
 					],
 					1000,
 				);
