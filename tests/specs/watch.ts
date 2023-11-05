@@ -24,7 +24,7 @@ const interact = async (
 		}
 	}
 
-	return Buffer.concat(buffers).toString();
+	return buffers.map(buffer => buffer.toString());
 };
 
 export default testSuite(async ({ describe }) => {
@@ -134,7 +134,7 @@ export default testSuite(async ({ describe }) => {
 			expect(all).toMatch('"--some-flag"');
 		}, 10_000);
 
-		test('wait for exit', async ({ onTestFinish }) => {
+		test('wait for exit', async ({ onTestFinish, onTestFail }) => {
 			const fixtureExit = await createFixture({
 				'index.js': `
 				console.log('start');
@@ -157,17 +157,25 @@ export default testSuite(async ({ describe }) => {
 				cwd: fixtureExit.path,
 			});
 
+			let chunks: string[];
+
+			onTestFail(() => {
+				console.log({
+					tsxProcess,
+					chunks,
+				});
+			});
+
 			onTestFinish(async () => {
 				if (tsxProcess.exitCode === null) {
 					tsxProcess.kill('SIGKILL');
-					const result = await tsxProcess;
-					console.log(result);
+					throw new Error('Child process running');
 				}
 
 				await fixtureExit.rm();
 			});
 
-			await interact(
+			chunks = await interact(
 				tsxProcess.stdout!,
 				[
 					(data) => {

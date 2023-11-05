@@ -83,7 +83,7 @@ devDependencies:
     version: 0.30.3
   manten:
     specifier: github:privatenumber/manten#npm/error-hooks
-    version: github.com/privatenumber/manten/7dcc3250ab600f4b7b2c930e242957e71b30243f
+    version: github.com/privatenumber/manten/83dc0dd465e479a09bb44c049af99d81b3b1d558
   node-pty:
     specifier: ^1.0.0
     version: 1.0.0
@@ -4224,8 +4224,8 @@ packages:
     engines: {node: '>=12.20'}
     dev: true
 
-  github.com/privatenumber/manten/7dcc3250ab600f4b7b2c930e242957e71b30243f:
-    resolution: {tarball: https://codeload.github.com/privatenumber/manten/tar.gz/7dcc3250ab600f4b7b2c930e242957e71b30243f}
+  github.com/privatenumber/manten/83dc0dd465e479a09bb44c049af99d81b3b1d558:
+    resolution: {tarball: https://codeload.github.com/privatenumber/manten/tar.gz/83dc0dd465e479a09bb44c049af99d81b3b1d558}
     name: manten
     version: 0.0.0-semantic-release
     dependencies:
