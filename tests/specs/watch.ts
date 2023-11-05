@@ -297,7 +297,7 @@ export default testSuite(async ({ describe }) => {
 								]);
 
 								await setTimeout(1500);
-								await fixtureGlob.writeFile(entryFile, 'console.log("TERMINATE")');
+								fixtureGlob.writeFile(entryFile, 'console.log("TERMINATE")');
 								return true;
 							}
 						},
