@@ -8,24 +8,6 @@ const compareNodeVersion = (version: Version) => (
 	|| nodeVersion[2] - version[2]
 );
 
-export const nodeSupportsImport = (
-	// v13.2.0 and higher
-	compareNodeVersion([13, 2, 0]) >= 0
-
-	// 12.20.0 ~ 13.0.0
-	|| (
-		compareNodeVersion([12, 20, 0]) >= 0
-		&& compareNodeVersion([13, 0, 0]) < 0
-	)
-);
-
-export const supportsNodePrefix = (
-	compareNodeVersion([16, 0, 0]) >= 0
-	|| compareNodeVersion([14, 18, 0]) >= 0
-);
-
-export const nodeSupportsDeprecatedLoaders = compareNodeVersion([16, 12, 0]) < 0;
-
 /**
  * Node.js loaders are isolated from v20
  * https://github.com/nodejs/node/issues/49455#issuecomment-1703812193

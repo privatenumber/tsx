@@ -27,8 +27,14 @@ const interact = async (
 	return Buffer.concat(buffers).toString();
 };
 
-export default testSuite(async ({ describe }, fixturePath: string) => {
-	describe('watch', ({ test, describe }) => {
+export default testSuite(async ({ describe }) => {
+	describe('watch', async ({ test, describe, onFinish }) => {
+		const fixture = await createFixture({
+			// Unnecessary TS to test syntax
+			'log-argv.ts': 'console.log(JSON.stringify(process.argv) as string)',
+		});
+		onFinish(async () => await fixture.rm());
+
 		test('require file path', async () => {
 			const tsxProcess = await tsx({
 				args: ['watch'],
@@ -39,7 +45,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 
 		test('watch files for changes', async ({ onTestFinish }) => {
 			let initialValue = Date.now();
-			const fixture = await createFixture({
+			const fixtureWatch = await createFixture({
 				'package.json': JSON.stringify({
 					type: 'module',
 				}),
@@ -49,13 +55,14 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				`,
 				'value.js': `export const value = ${initialValue};`,
 			});
-			onTestFinish(async () => await fixture.rm());
+			onTestFinish(async () => await fixtureWatch.rm());
 
 			const tsxProcess = tsx({
 				args: [
 					'watch',
-					path.join(fixture.path, 'index.js'),
+					'index.js',
 				],
+				cwd: fixtureWatch.path,
 			});
 
 			await interact(
@@ -64,7 +71,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 					async (data) => {
 						if (data.includes(`${initialValue}\n`)) {
 							initialValue = Date.now();
-							await fixture.writeFile('value.js', `export const value = ${initialValue};`);
+							await fixtureWatch.writeFile('value.js', `export const value = ${initialValue};`);
 							return true;
 						}
 					},
@@ -81,8 +88,9 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			const tsxProcess = tsx({
 				args: [
 					'watch',
-					path.join(fixturePath, 'log-argv.ts'),
+					'log-argv.ts',
 				],
+				cwd: fixture.path,
 			});
 
 			await interact(
@@ -109,9 +117,10 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			const tsxProcess = tsx({
 				args: [
 					'watch',
-					path.join(fixturePath, 'log-argv.ts'),
+					'log-argv.ts',
 					'--some-flag',
 				],
+				cwd: fixture.path,
 			});
 
 			await interact(
@@ -126,7 +135,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 		}, 10_000);
 
 		test('wait for exit', async ({ onTestFinish }) => {
-			const fixture = await createFixture({
+			const fixtureExit = await createFixture({
 				'index.js': `
 				console.log('start');
 				const sleepSync = (delay) => {
@@ -140,13 +149,22 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				`,
 			});
 
-			onTestFinish(async () => await fixture.rm());
-
 			const tsxProcess = tsx({
 				args: [
 					'watch',
-					path.join(fixture.path, 'index.js'),
+					'index.js',
 				],
+				cwd: fixtureExit.path,
+			});
+
+			onTestFinish(async () => {
+				if (tsxProcess.exitCode === null) {
+					tsxProcess.kill('SIGKILL');
+					const result = await tsxProcess;
+					console.log(result);
+				}
+
+				await fixtureExit.rm();
 			});
 
 			await interact(
@@ -179,13 +197,14 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				expect(tsxProcess.stderr).toBe('');
 			});
 
-			test('passes down --help to file', async () => {
+			test('passes down --help to file', async ({ onTestFail }) => {
 				const tsxProcess = tsx({
 					args: [
 						'watch',
-						path.join(fixturePath, 'log-argv.ts'),
+						'log-argv.ts',
 						'--help',
 					],
+					cwd: fixture.path,
 				});
 
 				await interact(
@@ -196,18 +215,22 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				tsxProcess.kill();
 
 				const { all } = await tsxProcess;
+				onTestFail(() => {
+					console.log(all);
+				});
+
 				expect(all).toMatch('"--help"');
-			}, 5000);
+			}, 10_000);
 		});
 
 		describe('ignore', ({ test }) => {
-			test('file path & glob', async ({ onTestFinish }) => {
+			test('file path & glob', async ({ onTestFinish, onTestFail }) => {
 				const entryFile = 'index.js';
 				const fileA = 'file-a.js';
 				const fileB = 'directory/file-b.js';
 				const depA = 'node_modules/a/index.js';
 
-				const fixture = await createFixture({
+				const fixtureGlob = await createFixture({
 					[fileA]: 'export default "logA"',
 					[fileB]: 'export default "logB"',
 					[depA]: 'export default "logC"',
@@ -219,18 +242,26 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 					`.trim(),
 				});
 
-				onTestFinish(async () => await fixture.rm());
+				onTestFinish(async () => await fixtureGlob.rm());
 
 				const tsxProcess = tsx({
-					cwd: fixture.path,
+					cwd: fixtureGlob.path,
 					args: [
 						'watch',
 						'--clear-screen=false',
 						`--ignore=${fileA}`,
-						`--ignore=${path.join(fixture.path, 'directory/*')}`,
+						`--ignore=${path.join(fixtureGlob.path, 'directory/*')}`,
 						entryFile,
 					],
 				});
+
+				onTestFail(() => {
+					// If timed out, force kill process
+					if (tsxProcess.exitCode === null) {
+						tsxProcess.kill();
+					}
+				});
+
 				const negativeSignal = '"fail"';
 
 				await interact(
@@ -244,13 +275,13 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 							if (data === 'logA logB logC\n') {
 								// These changes should not trigger a re-run
 								await Promise.all([
-									fixture.writeFile(fileA, `export default ${negativeSignal}`),
-									fixture.writeFile(fileB, `export default ${negativeSignal}`),
-									fixture.writeFile(depA, `export default ${negativeSignal}`),
+									fixtureGlob.writeFile(fileA, `export default ${negativeSignal}`),
+									fixtureGlob.writeFile(fileB, `export default ${negativeSignal}`),
+									fixtureGlob.writeFile(depA, `export default ${negativeSignal}`),
 								]);
 
 								await setTimeout(1500);
-								await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
+								await fixtureGlob.writeFile(entryFile, 'console.log("TERMINATE")');
 								return true;
 							}
 						},
@@ -260,9 +291,12 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 
 				tsxProcess.kill();
 
-				const { all, stderr } = await tsxProcess;
-				expect(all).not.toMatch('fail');
-				expect(stderr).toBe('');
+				const p = await tsxProcess;
+				onTestFail(() => {
+					console.log(p);
+				});
+				expect(p.all).not.toMatch('fail');
+				expect(p.stderr).toBe('');
 			}, 10_000);
 		});
 	});
