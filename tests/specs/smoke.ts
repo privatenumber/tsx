@@ -330,6 +330,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						...files,
 						'package.json': JSON.stringify({ type: packageType }),
 						'import-from-js.js': `
+						import assert from 'assert';
 						import { expectErrors } from './expect-errors';
 		
 						// node: prefix
@@ -343,7 +344,17 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// import * as js from './js/index.js?query=123'; Support query
 						import './js/index';
 						import './js/';
-		
+
+						// No double .default.default in Dynamic Import
+						import('./js/index.js').then(m => {
+							if (typeof m.default === 'object') {
+								assert(
+									!('default' in m.default),
+									'Should not have double .default.default in Dynamic Import',
+								);
+							}
+						});
+
 						// .json
 						import * as json from './json/index.json';
 						import './json/index';
@@ -438,6 +449,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						'package.json': JSON.stringify({ type: packageType }),
 
 						'import-from-ts.ts': `
+						import assert from 'assert';
 						import { expectErrors } from './expect-errors';
 
 						// node: prefix
@@ -454,6 +466,16 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// import * as js from './js/index.js?query=123'; TODO: Support query
 						import './js/index';
 						import './js/';
+
+						// No double .default.default in Dynamic Import
+						import('./js/index.js').then(m => {
+							if (typeof m.default === 'object') {
+								assert(
+									!('default' in m.default),
+									'Should not have double .default.default in Dynamic Import',
+								);
+							}
+						});
 
 						// .json
 						import * as json from './json/index.json';

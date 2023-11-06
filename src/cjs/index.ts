@@ -11,6 +11,8 @@ import type { TransformOptions } from 'esbuild';
 import { installSourceMapSupport } from '../source-map';
 import { transformSync, transformDynamicImport } from '../utils/transform';
 import { resolveTsPath } from '../utils/resolve-ts-path';
+import { time } from '../utils/debug';
+import { isESM } from '../utils/esm-pattern';
 
 const isRelativePathPattern = /^\.{1,2}\//;
 const isTsFilePatten = /\.[cm]?tsx?$/;
@@ -47,22 +49,6 @@ const transformExtensions = [
 	'.mjs',
 ];
 
-/*
-TODO: Add tests
-Catches:
-import a from 'b'
-import 'b';
-import('b');
-export{a};
-export default a;
-
-Doesn't catch:
-EXPORT{a}
-exports.a = 1
-module.exports = 1
- */
-const esmPattern = /\b(?:import|export)\b/;
-
 const transformer = (
 	module: Module,
 	filePath: string,
@@ -83,6 +69,7 @@ const transformer = (
 
 	let code = fs.readFileSync(filePath, 'utf8');
 	if (filePath.endsWith('.cjs')) {
+		// Contains native ESM check
 		const transformed = transformDynamicImport(filePath, code);
 		if (transformed) {
 			code = applySourceMap(transformed, filePath);
@@ -91,7 +78,7 @@ const transformer = (
 		transformTs
 
 		// CommonJS file but uses ESM import/export
-		|| esmPattern.test(code)
+		|| isESM(code)
 	) {
 		const transformed = transformSync(
 			code,
