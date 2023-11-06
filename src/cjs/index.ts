@@ -11,7 +11,6 @@ import type { TransformOptions } from 'esbuild';
 import { installSourceMapSupport } from '../source-map';
 import { transformSync, transformDynamicImport } from '../utils/transform';
 import { resolveTsPath } from '../utils/resolve-ts-path';
-import { time } from '../utils/debug';
 import { isESM } from '../utils/esm-pattern';
 
 const isRelativePathPattern = /^\.{1,2}\//;

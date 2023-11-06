@@ -3,19 +3,21 @@ import type { RawSourceMap } from '../../source-map';
 import { parseEsm } from '../es-module-lexer';
 
 const handlerName = '___tsxInteropDynamicImport';
-const handleEsModuleFunction = 'function ' + handlerName + (function (imported: Record<string, unknown>) {
+const handleEsModuleFunction = `function ${handlerName}${(function (imported: Record<string, unknown>) {
+	const d = 'default';
 	const exports = Object.keys(imported);
 	if (
 		exports.length === 1
-		&& exports[0] === 'default'
-		&& imported.default
-		&& imported.default.__esModule
-	){
-		return imported.default;
+		&& exports[0] === d
+		&& imported[d]
+		&& typeof imported[d] === 'object'
+		&& '__esModule' in imported[d]
+	) {
+		return imported[d];
 	}
 
 	return imported;
-}).toString().slice('function'.length);
+}).toString().slice('function'.length)}`;
 
 const handleDynamicImport = `.then(${handlerName})`;
 

@@ -1,21 +1,30 @@
-export const time = (name: string, fn: Function) => {
-	return function (this: unknown, ...args: unknown[]) {
+export const time = <Argument>(
+	name: string,
+	_function: (...args: Argument[]) => unknown,
+) => function (
+		this: unknown,
+		...args: Argument[]
+	) {
 		const timeStart = Date.now();
 		const logTimeElapsed = () => {
 			const elapsed = Date.now() - timeStart;
 
 			if (elapsed > 10) {
-				// console.log({
-				// 	name,
-				// 	args,
-				// 	elapsed,
-				// });
+			// console.log({
+			// 	name,
+			// 	args,
+			// 	elapsed,
+			// });
 			}
 		};
 
-		const result = Reflect.apply(fn, this, args);
-		if (result && 'then' in result) {
-			result.then(
+		const result = Reflect.apply(_function, this, args);
+		if (
+			result
+		&& typeof result === 'object'
+		&& 'then' in result
+		) {
+			(result as Promise<unknown>).then(
 				logTimeElapsed,
 				// Ignore error in this chain
 				() => {},
@@ -25,4 +34,3 @@ export const time = (name: string, fn: Function) => {
 		}
 		return result;
 	};
-};

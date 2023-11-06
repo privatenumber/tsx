@@ -18,7 +18,6 @@ import {
 	type MaybePromise,
 	type NodeError,
 } from './utils.js';
-import { time } from '../utils/debug';
 
 const isDirectoryPattern = /\/(?:$|\?)/;
 
