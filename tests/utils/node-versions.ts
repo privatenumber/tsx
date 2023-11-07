@@ -1,5 +1,4 @@
 export const nodeVersions = [
-	'18',
 	'20',
 	...(
 		(
@@ -7,11 +6,7 @@ export const nodeVersions = [
 			&& process.platform !== 'win32'
 		)
 			? [
-				'12.20.0', // CJS named export detection added
-				'12',
-				'14',
-				'16',
-				'17',
+				'18',
 			] as const
 			: [] as const
 	),
