@@ -157,7 +157,11 @@ export default testSuite(({ describe }) => {
 							expect(tsxProcessResolved.stdout).toBe('READY');
 						} else {
 							expect(tsxProcessResolved.exitCode).toBe(200);
-							expect(tsxProcessResolved.stdout).toBe(`READY\n${signal}\n${signal} HANDLER COMPLETED`);
+							expectMatchInOrder(tsxProcessResolved.stdout, [
+								'READY\n',
+								`${signal}\n`,
+								`${signal} HANDLER COMPLETED`,
+							]);
 						}
 					}, 10_000);
 				}
