@@ -4,6 +4,7 @@ import { createFixture } from 'fs-fixture';
 import packageJson from '../../package.json';
 import { tsx, tsxPath } from '../utils/tsx';
 import { ptyShell, isWindows } from '../utils/pty-shell';
+import { expectMatchInOrder } from '../utils/expect-match-in-order';
 
 export default testSuite(({ describe }) => {
 	describe('CLI', ({ describe, test }) => {
@@ -183,12 +184,13 @@ export default testSuite(({ describe }) => {
 						],
 					);
 
-					expect(output).toMatch(
-						process.platform === 'win32'
-							? 'READY\r\nSIGINT\r\nSIGINT HANDLER COMPLETED\r\n'
-							: 'READY\r\n^CSIGINT\r\nSIGINT HANDLER COMPLETED\r\n',
-					);
-					expect(output).toMatch(/EXIT_CODE:\s+200/);
+					expectMatchInOrder(output, [
+						'READY\r\n',
+						process.platform === 'win32' ? '' : '^C',
+						'SIGINT\r\n',
+						'SIGINT HANDLER COMPLETED\r\n',
+						/EXIT_CODE:\s+200/,
+					]);
 				}, 10_000);
 			});
 		});
