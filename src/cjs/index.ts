@@ -11,7 +11,6 @@ import type { TransformOptions } from 'esbuild';
 import { installSourceMapSupport } from '../source-map';
 import { transformSync, transformDynamicImport } from '../utils/transform';
 import { resolveTsPath } from '../utils/resolve-ts-path';
-import { nodeSupportsImport, supportsNodePrefix } from '../utils/node-features';
 
 const isRelativePathPattern = /^\.{1,2}\//;
 const isTsFilePatten = /\.[cm]?tsx?$/;
@@ -66,7 +65,7 @@ const transformer = (
 
 	let code = fs.readFileSync(filePath, 'utf8');
 
-	if (filePath.endsWith('.cjs') && nodeSupportsImport) {
+	if (filePath.endsWith('.cjs')) {
 		const transformed = transformDynamicImport(filePath, code);
 		if (transformed) {
 			code = applySourceMap(transformed, filePath);
@@ -126,15 +125,8 @@ Object.defineProperty(extensions, '.mjs', {
 	enumerable: false,
 });
 
-// Add support for "node:" protocol
 const defaultResolveFilename = Module._resolveFilename.bind(Module);
 Module._resolveFilename = (request, parent, isMain, options) => {
-	// Added in v12.20.0
-	// https://nodejs.org/api/esm.html#esm_node_imports
-	if (!supportsNodePrefix && request.startsWith('node:')) {
-		request = request.slice(5);
-	}
-
 	if (
 		tsconfigPathsMatcher
 
