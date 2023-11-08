@@ -1,9 +1,0 @@
-{
-	"extends": "../tsconfig.json",
-	"compilerOptions": {
-		"jsxFactory": "console.error"
-	},
-	"include": [
-		"../src"
-	]
-}
