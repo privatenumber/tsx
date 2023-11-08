@@ -1,63 +1,22 @@
 import { describe } from 'manten';
-import { createFixture } from 'fs-fixture';
 import { createNode } from './utils/tsx';
 import { nodeVersions } from './utils/node-versions';
 
-const packageTypes = [
-	'commonjs',
-	'module',
-] as const;
-
 (async () => {
-	for (const packageType of packageTypes) {
-		await describe(`Package type: ${packageType}`, async ({ describe, onFinish }) => {
-			const fixture = await createFixture('./tests/fixtures/');
+	await describe('tsx', async ({ runTestSuite, describe }) => {
+		await runTestSuite(import('./specs/cli'));
+		await runTestSuite(import('./specs/watch'));
+		await runTestSuite(import('./specs/repl'));
 
-			onFinish(async () => await fixture.rm());
+		for (const nodeVersion of nodeVersions) {
+			const node = await createNode(nodeVersion);
 
-			await fixture.writeJson('package.json', {
-				type: packageType,
-			});
-
-			await describe('tsx', ({ runTestSuite }) => {
+			await describe(`Node ${node.version}`, ({ runTestSuite }) => {
 				runTestSuite(
-					import('./specs/cli'),
-					fixture.path,
-				);
-				runTestSuite(
-					import('./specs/watch'),
-					fixture.path,
+					import('./specs/smoke'),
+					node,
 				);
 			});
-
-			for (const nodeVersion of nodeVersions) {
-				const node = await createNode(nodeVersion, fixture.path);
-
-				node.packageType = packageType;
-
-				await describe(`Node ${node.version}`, ({ runTestSuite }) => {
-					runTestSuite(
-						import('./specs/repl'),
-						node,
-					);
-					runTestSuite(
-						import('./specs/javascript'),
-						node,
-					);
-					runTestSuite(
-						import('./specs/typescript'),
-						node,
-					);
-					runTestSuite(
-						import('./specs/json'),
-						node,
-					);
-					runTestSuite(
-						import('./specs/wasm'),
-						node,
-					);
-				});
-			}
-		});
-	}
+		}
+	});
 })();

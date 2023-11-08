@@ -3,15 +3,14 @@ on:
   push:
     branches: [develop]
   pull_request:
-    branches: [master, develop, next]
 jobs:
   test:
     name: Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
-    timeout-minutes: 15
+        os: [ubuntu-latest, windows-latest]
+    timeout-minutes: 5
 
     steps:
     - name: Checkout
