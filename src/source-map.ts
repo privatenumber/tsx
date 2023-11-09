@@ -10,15 +10,31 @@ type PortMessage = {
 	map: RawSourceMap;
 };
 
-const inlineSourceMapPrefix = '\n//# sourceMappingURL=data:application/json;base64,';
+// If Node.js has source map disabled, we should strip source maps to speed up processing
+export const shouldStripSourceMap = (
+	('sourceMapsEnabled' in process)
+	&& process.sourceMapsEnabled === false
+);
 
-export function installSourceMapSupport(
+const sourceMapPrefix = '\n//# sourceMappingURL=';
+
+export const stripSourceMap = (code: string) => {
+	const sourceMapIndex = code.indexOf(sourceMapPrefix);
+	if (sourceMapIndex !== -1) {
+		return code.slice(0, sourceMapIndex);
+	}
+	return code;
+};
+
+const inlineSourceMapPrefix = sourceMapPrefix + 'data:application/json;base64,';
+
+export const installSourceMapSupport = (
 	/**
 	 * To support Node v20 where loaders are executed in its own thread
 	 * https://nodejs.org/docs/latest-v20.x/api/esm.html#globalpreload
 	 */
 	loaderPort?: MessagePort,
-) {
+) => {
 	const hasNativeSourceMapSupport = (
 		/**
 		 * Check if native source maps are supported by seeing if the API is available
@@ -77,4 +93,4 @@ export function installSourceMapSupport(
 		}
 		return code;
 	};
-}
+};

@@ -1,4 +1,5 @@
 import { parseEsm } from './es-module-lexer';
+
 /*
 TODO: Add tests
 Catches:
