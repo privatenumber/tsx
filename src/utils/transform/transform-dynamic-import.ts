@@ -2,25 +2,33 @@ import MagicString from 'magic-string';
 import type { RawSourceMap } from '../../source-map';
 import { parseEsm } from '../es-module-lexer';
 
-const checkEsModule = `.then((mod)=>{
-	const exports = Object.keys(mod);
-	if(
-		exports.length===1&&exports[0]==='default'&&mod.default&&mod.default.__esModule
-	){
-		return mod.default
+const handlerName = '___tsxInteropDynamicImport';
+const handleEsModuleFunction = `function ${handlerName}${(function (imported: Record<string, unknown>) {
+	const d = 'default';
+	const exports = Object.keys(imported);
+	if (
+		exports.length === 1
+		&& exports[0] === d
+		&& imported[d]
+		&& typeof imported[d] === 'object'
+		&& '__esModule' in imported[d]
+	) {
+		return imported[d];
 	}
-	return mod
-})`
-	// replaceAll is not supported in Node 12
-	// eslint-disable-next-line unicorn/prefer-string-replace-all
-	.replace(/[\n\t]+/g, '');
 
-export function transformDynamicImport(
+	return imported;
+}).toString().slice('function'.length)}`;
+
+const handleDynamicImport = `.then(${handlerName})`;
+
+const esmImportPattern = /\bimport\b/;
+
+export const transformDynamicImport = (
 	filePath: string,
 	code: string,
-) {
+) => {
 	// Naive check
-	if (!code.includes('import')) {
+	if (!esmImportPattern.test(code)) {
 		return;
 	}
 
@@ -33,14 +41,25 @@ export function transformDynamicImport(
 	const magicString = new MagicString(code);
 
 	for (const dynamicImport of dynamicImports) {
-		magicString.appendRight(dynamicImport.se, checkEsModule);
+		magicString.appendRight(dynamicImport.se, handleDynamicImport);
 	}
 
+	magicString.append(handleEsModuleFunction);
+
+	const newCode = magicString.toString();
+	const newMap = magicString.generateMap({
+		source: filePath,
+		includeContent: false,
+
+		/**
+		 * The performance hit on this is very high
+		 * Since we're only transforming import()s, I think this may be overkill
+		 */
+		// hires: 'boundary',
+	}) as unknown as RawSourceMap;
+
 	return {
-		code: magicString.toString(),
-		map: magicString.generateMap({
-			source: filePath,
-			hires: true,
-		}) as unknown as RawSourceMap,
+		code: newCode,
+		map: newMap,
 	};
-}
+};

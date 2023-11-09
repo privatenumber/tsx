@@ -248,6 +248,10 @@ export const load: LoadHook = async function (
 	context,
 	defaultLoad,
 ) {
+	/*
+	Filter out node:*
+	Maybe only handle files that start with file://
+	*/
 	if (sendToParent) {
 		sendToParent({
 			type: 'dependency',
@@ -264,6 +268,7 @@ export const load: LoadHook = async function (
 
 	const loaded = await defaultLoad(url, context);
 
+	// CommonJS and Internal modules (e.g. node:*)
 	if (!loaded.source) {
 		return loaded;
 	}
