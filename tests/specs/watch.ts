@@ -1,34 +1,18 @@
-import { type Readable } from 'node:stream';
 import path from 'path';
 import { setTimeout } from 'timers/promises';
-import { on } from 'events';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import { tsx } from '../utils/tsx';
+import { processInteract } from '../utils/process-interact';
 
-type MaybePromise<T> = T | Promise<T>;
-const interact = async (
-	stdout: Readable,
-	actions: ((data: string) => MaybePromise<boolean | void>)[],
-) => {
-	let currentAction = actions.shift();
+export default testSuite(async ({ describe }) => {
+	describe('watch', async ({ test, describe, onFinish }) => {
+		const fixture = await createFixture({
+			// Unnecessary TS to test syntax
+			'log-argv.ts': 'console.log(JSON.stringify(process.argv) as string)',
+		});
+		onFinish(async () => await fixture.rm());
 
-	const buffers: Buffer[] = [];
-	while (currentAction) {
-		for await (const [chunk] of on(stdout, 'data')) {
-			buffers.push(chunk);
-			if (await currentAction(chunk.toString())) {
-				currentAction = actions.shift();
-				break;
-			}
-		}
-	}
-
-	return Buffer.concat(buffers).toString();
-};
-
-export default testSuite(async ({ describe }, fixturePath: string) => {
-	describe('watch', ({ test, describe }) => {
 		test('require file path', async () => {
 			const tsxProcess = await tsx({
 				args: ['watch'],
@@ -37,9 +21,8 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			expect(tsxProcess.stderr).toMatch('Error: Missing required parameter "script path"');
 		});
 
-		test('watch files for changes', async ({ onTestFinish }) => {
-			let initialValue = Date.now();
-			const fixture = await createFixture({
+		test('watch files for changes', async ({ onTestFinish, onTestFail }) => {
+			const fixtureWatch = await createFixture({
 				'package.json': JSON.stringify({
 					type: 'module',
 				}),
@@ -47,29 +30,40 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				import { value } from './value.js';
 				console.log(value);
 				`,
-				'value.js': `export const value = ${initialValue};`,
+				'value.js': 'export const value = \'hello world\';',
 			});
-			onTestFinish(async () => await fixture.rm());
+			onTestFinish(async () => await fixtureWatch.rm());
 
 			const tsxProcess = tsx({
 				args: [
 					'watch',
-					path.join(fixture.path, 'index.js'),
+					'index.js',
 				],
+				cwd: fixtureWatch.path,
 			});
 
-			await interact(
+			onTestFail(async () => {
+				if (tsxProcess.exitCode === null) {
+					console.log('Force killing hanging process\n\n');
+					tsxProcess.kill('SIGKILL');
+					console.log({
+						tsxProcess: await tsxProcess,
+					});
+				}
+			});
+
+			await processInteract(
 				tsxProcess.stdout!,
 				[
 					async (data) => {
-						if (data.includes(`${initialValue}\n`)) {
-							initialValue = Date.now();
-							await fixture.writeFile('value.js', `export const value = ${initialValue};`);
+						if (data.includes('hello world\n')) {
+							fixtureWatch.writeFile('value.js', 'export const value = \'goodbye world\';');
 							return true;
 						}
 					},
-					data => data.includes(`${initialValue}\n`),
+					data => data.includes('goodbye world\n'),
 				],
+				5000,
 			);
 
 			tsxProcess.kill();
@@ -81,11 +75,12 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			const tsxProcess = tsx({
 				args: [
 					'watch',
-					path.join(fixturePath, 'log-argv.ts'),
+					'log-argv.ts',
 				],
+				cwd: fixture.path,
 			});
 
-			await interact(
+			await processInteract(
 				tsxProcess.stdout!,
 				[
 					(data) => {
@@ -96,6 +91,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 					},
 					data => data.includes('log-argv.ts'),
 				],
+				5000,
 			);
 
 			tsxProcess.kill();
@@ -109,14 +105,16 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			const tsxProcess = tsx({
 				args: [
 					'watch',
-					path.join(fixturePath, 'log-argv.ts'),
+					'log-argv.ts',
 					'--some-flag',
 				],
+				cwd: fixture.path,
 			});
 
-			await interact(
+			await processInteract(
 				tsxProcess.stdout!,
 				[data => data.startsWith('["')],
+				5000,
 			);
 
 			tsxProcess.kill();
@@ -125,8 +123,8 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 			expect(all).toMatch('"--some-flag"');
 		}, 10_000);
 
-		test('wait for exit', async ({ onTestFinish }) => {
-			const fixture = await createFixture({
+		test('wait for exit', async ({ onTestFinish, onTestFail }) => {
+			const fixtureExit = await createFixture({
 				'index.js': `
 				console.log('start');
 				const sleepSync = (delay) => {
@@ -140,16 +138,29 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				`,
 			});
 
-			onTestFinish(async () => await fixture.rm());
-
 			const tsxProcess = tsx({
 				args: [
 					'watch',
-					path.join(fixture.path, 'index.js'),
+					'index.js',
 				],
+				cwd: fixtureExit.path,
 			});
 
-			await interact(
+			onTestFail(async () => {
+				if (tsxProcess.exitCode === null) {
+					console.log('Force killing hanging process\n\n');
+					tsxProcess.kill('SIGKILL');
+					console.log({
+						tsxProcess: await tsxProcess,
+					});
+				}
+			});
+
+			onTestFinish(async () => {
+				await fixtureExit.rm();
+			});
+
+			await processInteract(
 				tsxProcess.stdout!,
 				[
 					(data) => {
@@ -160,6 +171,7 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 					},
 					data => data.includes('end\n'),
 				],
+				5000,
 			);
 
 			tsxProcess.kill();
@@ -179,35 +191,41 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 				expect(tsxProcess.stderr).toBe('');
 			});
 
-			test('passes down --help to file', async () => {
+			test('passes down --help to file', async ({ onTestFail }) => {
 				const tsxProcess = tsx({
 					args: [
 						'watch',
-						path.join(fixturePath, 'log-argv.ts'),
+						'log-argv.ts',
 						'--help',
 					],
+					cwd: fixture.path,
 				});
 
-				await interact(
+				await processInteract(
 					tsxProcess.stdout!,
 					[data => data.startsWith('["')],
+					5000,
 				);
 
 				tsxProcess.kill();
 
 				const { all } = await tsxProcess;
+				onTestFail(() => {
+					console.log(all);
+				});
+
 				expect(all).toMatch('"--help"');
-			}, 5000);
+			}, 10_000);
 		});
 
 		describe('ignore', ({ test }) => {
-			test('file path & glob', async ({ onTestFinish }) => {
+			test('file path & glob', async ({ onTestFinish, onTestFail }) => {
 				const entryFile = 'index.js';
 				const fileA = 'file-a.js';
 				const fileB = 'directory/file-b.js';
 				const depA = 'node_modules/a/index.js';
 
-				const fixture = await createFixture({
+				const fixtureGlob = await createFixture({
 					[fileA]: 'export default "logA"',
 					[fileB]: 'export default "logB"',
 					[depA]: 'export default "logC"',
@@ -219,50 +237,63 @@ export default testSuite(async ({ describe }, fixturePath: string) => {
 					`.trim(),
 				});
 
-				onTestFinish(async () => await fixture.rm());
+				onTestFinish(async () => await fixtureGlob.rm());
 
 				const tsxProcess = tsx({
-					cwd: fixture.path,
+					cwd: fixtureGlob.path,
 					args: [
 						'watch',
 						'--clear-screen=false',
 						`--ignore=${fileA}`,
-						`--ignore=${path.join(fixture.path, 'directory/*')}`,
+						`--ignore=${path.join(fixtureGlob.path, 'directory/*')}`,
 						entryFile,
 					],
 				});
-				const negativeSignal = '"fail"';
 
-				await interact(
+				onTestFail(async () => {
+					// If timed out, force kill process
+					if (tsxProcess.exitCode === null) {
+						console.log('Force killing hanging process\n\n');
+						tsxProcess.kill();
+						console.log({
+							tsxProcess: await tsxProcess,
+						});
+					}
+				});
+
+				const negativeSignal = 'fail';
+
+				await processInteract(
 					tsxProcess.stdout!,
 					[
 						async (data) => {
-							if (data.includes('fail')) {
+							if (data.includes(negativeSignal)) {
 								throw new Error('should not log ignored file');
 							}
 
 							if (data === 'logA logB logC\n') {
 								// These changes should not trigger a re-run
 								await Promise.all([
-									fixture.writeFile(fileA, `export default ${negativeSignal}`),
-									fixture.writeFile(fileB, `export default ${negativeSignal}`),
-									fixture.writeFile(depA, `export default ${negativeSignal}`),
+									fixtureGlob.writeFile(fileA, `export default "${negativeSignal}"`),
+									fixtureGlob.writeFile(fileB, `export default "${negativeSignal}"`),
+									fixtureGlob.writeFile(depA, `export default "${negativeSignal}"`),
 								]);
 
-								await setTimeout(1500);
-								await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
+								await setTimeout(1000);
+								fixtureGlob.writeFile(entryFile, 'console.log("TERMINATE")');
 								return true;
 							}
 						},
 						data => data === 'TERMINATE\n',
 					],
+					9000,
 				);
 
 				tsxProcess.kill();
 
-				const { all, stderr } = await tsxProcess;
-				expect(all).not.toMatch('fail');
-				expect(stderr).toBe('');
+				const p = await tsxProcess;
+				expect(p.all).not.toMatch('fail');
+				expect(p.stderr).toBe('');
 			}, 10_000);
 		});
 	});

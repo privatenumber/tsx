@@ -8,20 +8,20 @@ import {
 	createFilesMatcher,
 } from 'get-tsconfig';
 import type { TransformOptions } from 'esbuild';
-import { installSourceMapSupport } from '../source-map';
+import { installSourceMapSupport, shouldStripSourceMap, stripSourceMap } from '../source-map';
 import { transformSync, transformDynamicImport } from '../utils/transform';
 import { resolveTsPath } from '../utils/resolve-ts-path';
-import { nodeSupportsImport, supportsNodePrefix } from '../utils/node-features';
+import { isESM } from '../utils/esm-pattern';
 
 const isRelativePathPattern = /^\.{1,2}\//;
 const isTsFilePatten = /\.[cm]?tsx?$/;
 const nodeModulesPath = `${path.sep}node_modules${path.sep}`;
 
 const tsconfig = (
-	process.env.ESBK_TSCONFIG_PATH
+	process.env.TSX_TSCONFIG_PATH
 		? {
-			path: path.resolve(process.env.ESBK_TSCONFIG_PATH),
-			config: parseTsconfig(process.env.ESBK_TSCONFIG_PATH),
+			path: path.resolve(process.env.TSX_TSCONFIG_PATH),
+			config: parseTsconfig(process.env.TSX_TSCONFIG_PATH),
 		}
 		: getTsconfig()
 );
@@ -34,29 +34,25 @@ const applySourceMap = installSourceMapSupport();
 const extensions = Module._extensions;
 const defaultLoader = extensions['.js'];
 
-const transformExtensions = [
-	'.js',
-	'.cjs',
+const typescriptExtensions = [
 	'.cts',
-	'.mjs',
 	'.mts',
 	'.ts',
 	'.tsx',
 	'.jsx',
 ];
 
+const transformExtensions = [
+	'.js',
+	'.cjs',
+	'.mjs',
+];
+
 const transformer = (
 	module: Module,
 	filePath: string,
 ) => {
-	const shouldTransformFile = transformExtensions.some(extension => filePath.endsWith(extension));
-	if (!shouldTransformFile) {
-		return defaultLoader(module, filePath);
-	}
-
-	/**
-	 * For tracking dependencies in watch mode
-	 */
+	// For tracking dependencies in watch mode
 	if (process.send) {
 		process.send({
 			type: 'dependency',
@@ -64,14 +60,31 @@ const transformer = (
 		});
 	}
 
+	const transformTs = typescriptExtensions.some(extension => filePath.endsWith(extension));
+	const transformJs = transformExtensions.some(extension => filePath.endsWith(extension));
+	if (!transformTs && !transformJs) {
+		return defaultLoader(module, filePath);
+	}
+
 	let code = fs.readFileSync(filePath, 'utf8');
 
-	if (filePath.endsWith('.cjs') && nodeSupportsImport) {
+	// Strip source maps if originally disabled
+	if (shouldStripSourceMap) {
+		code = stripSourceMap(code);
+	}
+
+	if (filePath.endsWith('.cjs')) {
+		// Contains native ESM check
 		const transformed = transformDynamicImport(filePath, code);
 		if (transformed) {
 			code = applySourceMap(transformed, filePath);
 		}
-	} else {
+	} else if (
+		transformTs
+
+		// CommonJS file but uses ESM import/export
+		|| isESM(code)
+	) {
 		const transformed = transformSync(
 			code,
 			filePath,
@@ -126,13 +139,12 @@ Object.defineProperty(extensions, '.mjs', {
 	enumerable: false,
 });
 
-// Add support for "node:" protocol
 const defaultResolveFilename = Module._resolveFilename.bind(Module);
 Module._resolveFilename = (request, parent, isMain, options) => {
-	// Added in v12.20.0
-	// https://nodejs.org/api/esm.html#esm_node_imports
-	if (!supportsNodePrefix && request.startsWith('node:')) {
-		request = request.slice(5);
+	// Strip query string
+	const queryIndex = request.indexOf('?');
+	if (queryIndex !== -1) {
+		request = request.slice(0, queryIndex);
 	}
 
 	if (
@@ -191,20 +203,22 @@ const resolveTsFilename = (
 		&& isTsFilePatten.test(parent.filename)
 		&& tsPath
 	) {
-		try {
-			return defaultResolveFilename(
-				tsPath[0],
-				parent,
-				isMain,
-				options,
-			);
-		} catch (error) {
-			const { code } = error as NodeError;
-			if (
-				code !== 'MODULE_NOT_FOUND'
-				&& code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED'
-			) {
-				throw error;
+		for (const tryTsPath of tsPath) {
+			try {
+				return defaultResolveFilename(
+					tryTsPath,
+					parent,
+					isMain,
+					options,
+				);
+			} catch (error) {
+				const { code } = error as NodeError;
+				if (
+					code !== 'MODULE_NOT_FOUND'
+					&& code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED'
+				) {
+					throw error;
+				}
 			}
 		}
 	}

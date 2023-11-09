@@ -21,11 +21,11 @@ export function run(
 
 	if (options) {
 		if (options.noCache) {
-			environment.ESBK_DISABLE_CACHE = '1';
+			environment.TSX_DISABLE_CACHE = '1';
 		}
 
 		if (options.tsconfigPath) {
-			environment.ESBK_TSCONFIG_PATH = options.tsconfigPath;
+			environment.TSX_TSCONFIG_PATH = options.tsconfigPath;
 		}
 	}
 

@@ -6,16 +6,13 @@ import {
 	createPathsMatcher,
 	createFilesMatcher,
 } from 'get-tsconfig';
-import { installSourceMapSupport } from '../source-map';
 import { getPackageType } from './package-json.js';
 
-export const applySourceMap = installSourceMapSupport();
-
 const tsconfig = (
-	process.env.ESBK_TSCONFIG_PATH
+	process.env.TSX_TSCONFIG_PATH
 		? {
-			path: path.resolve(process.env.ESBK_TSCONFIG_PATH),
-			config: parseTsconfig(process.env.ESBK_TSCONFIG_PATH),
+			path: path.resolve(process.env.TSX_TSCONFIG_PATH),
+			config: parseTsconfig(process.env.TSX_TSCONFIG_PATH),
 		}
 		: getTsconfig()
 );

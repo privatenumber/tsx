@@ -6,11 +6,9 @@
 - Blazing fast on-demand TypeScript & ESM compilation
 - Works in both [CommonJS and ESM packages](https://nodejs.org/api/packages.html#type)
 - Supports next-gen TypeScript extensions (`.cts` & `.mts`)
-- Supports `node:` import prefixes
 - Hides experimental feature warnings
 - TypeScript REPL
 - Resolves `tsconfig.json` [`paths`](https://www.typescriptlang.org/tsconfig#paths)
-- Tested on Linux & Windows with Node.js v12~20
 
 > **💡 Protip: Looking to bundle your TypeScript project?**
 >
@@ -45,7 +43,7 @@ How does it compare to [ts-node](https://github.com/TypeStrong/ts-node)? Checkou
 tsx strives to:
 1. Enhance Node.js with TypeScript compatibility
 2. Improve ESM <-> CJS interoperability
-3. Support the latest major version of Node.js v12 and up _(likely to change in the future)_
+3. Support the [LTS versions of Node.js](https://endoflife.date/nodejs)
 
 ## Install
 
@@ -106,10 +104,10 @@ To set a custom path, use the `--tsconfig` flag:
 tsx --tsconfig ./path/to/tsconfig.custom.json ./file.ts
 ```
 
-Alternatively, use the `ESBK_TSCONFIG_PATH` environment variable:
+Alternatively, use the `TSX_TSCONFIG_PATH` environment variable:
 
 ```sh
-ESBK_TSCONFIG_PATH=./path/to/tsconfig.custom.json tsx ./file.ts
+TSX_TSCONFIG_PATH=./path/to/tsconfig.custom.json tsx ./file.ts
 ```
 
 ### Watch mode
@@ -147,6 +145,12 @@ Set the `--no-cache` flag to disable the cache:
 
 ```sh
 tsx --no-cache ./file.ts
+```
+
+Alternatively, use the `TSX_DISABLE_CACHE` environment variable:
+
+```sh
+TSX_DISABLE_CACHE=1 tsx ./file.ts
 ```
 
 ### Node.js Loader

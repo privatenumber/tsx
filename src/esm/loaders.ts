@@ -7,11 +7,8 @@ import type {
 import type { TransformOptions } from 'esbuild';
 import { transform, transformDynamicImport } from '../utils/transform';
 import { resolveTsPath } from '../utils/resolve-ts-path';
+import { installSourceMapSupport, shouldStripSourceMap, stripSourceMap } from '../source-map';
 import {
-	supportsNodePrefix,
-} from '../utils/node-features';
-import {
-	applySourceMap,
 	tsconfigPathsMatcher,
 	fileMatcher,
 	tsExtensionsPattern,
@@ -21,6 +18,8 @@ import {
 	type MaybePromise,
 	type NodeError,
 } from './utils.js';
+
+const applySourceMap = installSourceMapSupport();
 
 const isDirectoryPattern = /\/(?:$|\?)/;
 
@@ -164,12 +163,6 @@ export const resolve: resolve = async function (
 	defaultResolve,
 	recursiveCall,
 ) {
-	// Added in v12.20.0
-	// https://nodejs.org/api/esm.html#esm_node_imports
-	if (!supportsNodePrefix && specifier.startsWith('node:')) {
-		specifier = specifier.slice(5);
-	}
-
 	// If directory, can be index.js, index.ts, etc.
 	if (isDirectoryPattern.test(specifier)) {
 		return await tryDirectory(specifier, context, defaultResolve);
@@ -257,6 +250,10 @@ export const load: LoadHook = async function (
 	context,
 	defaultLoad,
 ) {
+	/*
+	Filter out node:*
+	Maybe only handle files that start with file://
+	*/
 	if (sendToParent) {
 		sendToParent({
 			type: 'dependency',
@@ -273,12 +270,18 @@ export const load: LoadHook = async function (
 
 	const loaded = await defaultLoad(url, context);
 
+	// CommonJS and Internal modules (e.g. node:*)
 	if (!loaded.source) {
 		return loaded;
 	}
 
 	const filePath = url.startsWith('file://') ? fileURLToPath(url) : url;
-	const code = loaded.source.toString();
+	let code = loaded.source.toString();
+
+	// Strip source maps if originally disabled
+	if (shouldStripSourceMap) {
+		code = stripSourceMap(code);
+	}
 
 	if (
 		// Support named imports in JSON modules

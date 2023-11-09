@@ -12,7 +12,7 @@
 		"typescript"
 	],
 	"license": "MIT",
-	"repository": "esbuild-kit/tsx",
+	"repository": "privatenumber/tsx",
 	"author": {
 		"name": "Hiroki Osame",
 		"email": "hiroki.osame@gmail.com"
@@ -47,6 +47,9 @@
 	"lint-staged": {
 		"*.{js,ts,mjs,mts,cjs,cts,json}": "pnpm lint"
 	},
+	"engines": {
+		"node": ">=18.0.0"
+	},
 	"dependencies": {
 		"esbuild": "~0.18.20",
 		"get-tsconfig": "^4.7.2",
@@ -76,7 +79,7 @@
 		"kolorist": "^1.8.0",
 		"lint-staged": "^14.0.1",
 		"magic-string": "^0.30.3",
-		"manten": "^1.1.0",
+		"manten": "^1.2.0",
 		"node-pty": "^1.0.0",
 		"outdent": "^0.8.0",
 		"pkgroll": "^1.11.1",

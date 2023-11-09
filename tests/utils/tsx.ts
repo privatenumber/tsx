@@ -1,5 +1,4 @@
 import path from 'path';
-import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { execaNode } from 'execa';
 import getNode from 'get-node';
@@ -20,7 +19,8 @@ export const tsx = (
 	options.args,
 	{
 		env: {
-			ESBK_DISABLE_CACHE: '1',
+			TSX_DISABLE_CACHE: '1',
+			DEBUG: '1',
 		},
 		nodePath: options.nodePath,
 		nodeOptions: [],
@@ -30,10 +30,9 @@ export const tsx = (
 	},
 );
 
-export async function createNode(
+export const createNode = async (
 	nodeVersion: string,
-	fixturePath: string,
-) {
+) => {
 	console.log('Getting node', nodeVersion);
 	const startTime = Date.now();
 	const node = await getNode(nodeVersion, {
@@ -43,125 +42,25 @@ export async function createNode(
 
 	return {
 		version: node.version,
-		packageType: '',
-		get isCJS() {
-			return this.packageType === 'commonjs';
-		},
-		tsx(
-			options: Options,
-		) {
-			return tsx({
-				...options,
+		tsx: (
+			args: string[],
+			cwd?: string,
+		) => execaNode(
+			tsxPath,
+			args,
+			{
+				cwd,
+				env: {
+					TSX_DISABLE_CACHE: '1',
+					DEBUG: '1',
+				},
 				nodePath: node.path,
-			});
-		},
-		load(
-			filePath: string,
-			options?: {
-				cwd?: string;
-				args?: string[];
+				nodeOptions: [],
+				reject: false,
+				all: true,
 			},
-		) {
-			return this.tsx(
-				{
-					args: [
-						...(options?.args ?? []),
-						filePath,
-					],
-					cwd: path.join(fixturePath, options?.cwd ?? ''),
-				},
-			);
-		},
-		import(
-			filePath: string,
-			options?: {
-				typescript?: boolean;
-			},
-		) {
-			return this.tsx({
-				args: [
-					`./import-file${options?.typescript ? '.ts' : '.js'}`,
-					filePath,
-				],
-				cwd: fixturePath,
-			});
-		},
-		require(
-			filePath: string,
-			options?: {
-				typescript?: boolean;
-			},
-		) {
-			return this.tsx({
-				args: [
-					`./require-file${options?.typescript ? '.cts' : '.cjs'}`,
-					filePath,
-				],
-				cwd: fixturePath,
-			});
-		},
-		requireFlag(
-			filePath: string,
-		) {
-			return this.tsx({
-				args: [
-					'--eval',
-					'null',
-					'--require',
-					filePath,
-				],
-				cwd: fixturePath,
-			});
-		},
-
-		loadFile(
-			cwd: string,
-			filePath: string,
-			options?: {
-				args?: string[];
-			},
-		) {
-			return this.tsx(
-				{
-					args: [
-						...(options?.args ?? []),
-						filePath,
-					],
-					cwd,
-				},
-			);
-		},
-
-		async importFile(
-			cwd: string,
-			importFrom: string,
-			fileExtension = '.mjs',
-		) {
-			const fileName = `_${Math.random().toString(36).slice(2)}${fileExtension}`;
-			const filePath = path.resolve(cwd, fileName);
-			await fs.writeFile(filePath, `import * as _ from '${importFrom}';console.log(_)`);
-			try {
-				return await this.loadFile(cwd, filePath);
-			} finally {
-				await fs.rm(filePath);
-			}
-		},
-
-		async requireFile(
-			cwd: string,
-			requireFrom: string,
-			fileExtension = '.cjs',
-		) {
-			const fileName = `_${Math.random().toString(36).slice(2)}${fileExtension}`;
-			const filePath = path.resolve(cwd, fileName);
-			await fs.writeFile(filePath, `const _ = require('${requireFrom}');console.log(_)`);
-			try {
-				return await this.loadFile(cwd, filePath);
-			} finally {
-				await fs.rm(filePath);
-			}
-		},
+		),
 	};
-}
+};
 
 export type NodeApis = Awaited<ReturnType<typeof createNode>>;
