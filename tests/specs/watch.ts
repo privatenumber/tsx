@@ -67,7 +67,7 @@ export default testSuite(async ({ describe }) => {
 							received: data,
 						});
 					},
-					data => {
+					(data) => {
 						if (data.includes(`${initialValue}\n`)) {
 							return true;
 						}
