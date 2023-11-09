@@ -16,8 +16,6 @@ const noop = () => {};
 const { geteuid } = process;
 const cacheDirectoryName = geteuid === undefined ? 'tsx' : `tsx-${geteuid()}`;
 
-console.log({ cacheDirectoryName });
-
 class FileCache<ReturnType> extends Map<string, ReturnType> {
 	/**
 	 * By using tmpdir, the expectation is for the OS to clean any files
