@@ -1,5 +1,6 @@
 import { testSuite } from 'manten';
 import { tsx } from '../utils/tsx';
+import { processInteract } from '../utils/process-interact';
 
 export default testSuite(async ({ describe }) => {
 	describe('REPL', ({ test }) => {
@@ -8,25 +9,25 @@ export default testSuite(async ({ describe }) => {
 				args: ['--interactive'],
 			});
 
-			const commands = [
-				'const message: string = "SUCCESS"',
-				'message',
-			];
-
-			await new Promise<void>((resolve) => {
-				tsxProcess.stdout!.on('data', (data: Buffer) => {
-					const chunkString = data.toString();
-
-					if (chunkString.includes('SUCCESS')) {
-						return resolve();
-					}
-
-					if (chunkString.includes('> ') && commands.length > 0) {
-						const command = commands.shift();
-						tsxProcess.stdin!.write(`${command}\r`);
-					}
-				});
-			});
+			await processInteract(
+				tsxProcess.stdout!,
+				[
+					(data) => {
+						if (data.includes('> ')) {
+							tsxProcess.stdin!.write('const message: string = "SUCCESS"\r');
+							return true;
+						}
+					},
+					(data) => {
+						if (data.includes('> ')) {
+							tsxProcess.stdin!.write('message\r');
+							return true;
+						}
+					},
+					data => data.includes('SUCCESS'),
+				],
+				5000,
+			);
 
 			tsxProcess.kill();
 		}, 40_000);
@@ -36,23 +37,19 @@ export default testSuite(async ({ describe }) => {
 				args: ['--interactive'],
 			});
 
-			await new Promise<void>((resolve, reject) => {
-				tsxProcess.stdout!.on('data', (data: Buffer) => {
-					const chunkString = data.toString();
-
-					if (chunkString.includes('unsupported-require-call')) {
-						return reject(chunkString);
-					}
-
-					if (chunkString.includes('[Function: resolve]')) {
-						return resolve();
-					}
-
-					if (chunkString.includes('> ')) {
-						tsxProcess.stdin!.write('require("path")\r');
-					}
-				});
-			});
+			await processInteract(
+				tsxProcess.stdout!,
+				[
+					(data) => {
+						if (data.includes('> ')) {
+							tsxProcess.stdin!.write('require("path")\r');
+							return true;
+						}
+					},
+					data => data.includes('[Function: resolve]'),
+				],
+				5000,
+			);
 
 			tsxProcess.kill();
 		}, 40_000);
@@ -62,27 +59,32 @@ export default testSuite(async ({ describe }) => {
 				args: ['--interactive'],
 			});
 
-			const commands = [
-				['> ', '('],
-				['... ', '1'],
-				['... ', ')'],
-				['1'],
-			];
-
-			let [expected, nextCommand] = commands.shift()!;
-			await new Promise<void>((resolve) => {
-				tsxProcess.stdout!.on('data', (data: Buffer) => {
-					const chunkString = data.toString();
-					if (chunkString.includes(expected)) {
-						if (nextCommand) {
-							tsxProcess.stdin!.write(`${nextCommand}\r`);
-							[expected, nextCommand] = commands.shift()!;
-						} else {
-							resolve();
+			await processInteract(
+				tsxProcess.stdout!,
+				[
+					(data) => {
+						if (data.includes('> ')) {
+							tsxProcess.stdin!.write('(\r');
+							return true;
 						}
-					}
-				});
-			});
+					},
+					(data) => {
+						if (data.includes('... ')) {
+							tsxProcess.stdin!.write('1\r');
+							return true;
+						}
+					},
+					(data) => {
+						if (data.includes('... ')) {
+							tsxProcess.stdin!.write(')\r');
+							return true;
+						}
+					},
+					data => data.includes('1'),
+				],
+				5000,
+			);
+
 			tsxProcess.kill();
 		}, 40_000);
 
@@ -91,19 +93,19 @@ export default testSuite(async ({ describe }) => {
 				args: ['--interactive'],
 			});
 
-			await new Promise<void>((resolve) => {
-				tsxProcess.stdout!.on('data', (data: Buffer) => {
-					const chunkString = data.toString();
-
-					if (chunkString.includes('SyntaxError: Cannot use import statement')) {
-						return resolve();
-					}
-
-					if (chunkString.includes('> ')) {
-						tsxProcess.stdin!.write('import fs from "fs"\r');
-					}
-				});
-			});
+			await processInteract(
+				tsxProcess.stdout!,
+				[
+					(data) => {
+						if (data.includes('> ')) {
+							tsxProcess.stdin!.write('import fs from "fs"\r');
+							return true;
+						}
+					},
+					data => data.includes('SyntaxError: Cannot use import statement'),
+				],
+				5000,
+			);
 
 			tsxProcess.kill();
 		}, 40_000);
