@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: 💬 Help / Questions / Discussions
-    url: https://github.com/esbuild-kit/tsx/discussions
+    url: https://github.com/privatenumber/tsx/discussions
     about: Use GitHub Discussions for anything else
 
   - name: 🚀 Priority Support
