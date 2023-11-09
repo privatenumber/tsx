@@ -57,24 +57,11 @@ export default testSuite(async ({ describe }) => {
 				[
 					async (data) => {
 						if (data.includes('hello world\n')) {
-							console.log('Write new file');
 							fixtureWatch.writeFile('value.js', 'export const value = \'goodbye world\';');
 							return true;
 						}
-						console.warn({
-							expecting: 'hello world',
-							received: data,
-						});
 					},
-					(data) => {
-						if (data.includes('goodbye world\n')) {
-							return true;
-						}
-						console.warn({
-							expecting: 'goodbye world',
-							received: data,
-						});
-					},
+					data => data.includes('goodbye world\n'),
 				],
 				5000,
 			);
