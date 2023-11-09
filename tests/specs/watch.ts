@@ -59,13 +59,9 @@ export default testSuite(async ({ describe }) => {
 					async (data) => {
 						if (data.includes(`${initialValue}\n`)) {
 							initialValue = Date.now();
-							await fixtureWatch.writeFile('value.js', `export const value = ${initialValue};`);
+							fixtureWatch.writeFile('value.js', `export const value = ${initialValue};`);
 							return true;
 						}
-						console.warn({
-							expecting: `${initialValue}\n`,
-							received: data,
-						});
 					},
 					data => data.includes(`${initialValue}\n`),
 				],
