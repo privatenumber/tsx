@@ -21,8 +21,7 @@ export default testSuite(async ({ describe }) => {
 			expect(tsxProcess.stderr).toMatch('Error: Missing required parameter "script path"');
 		});
 
-		test('watch files for changes', async ({ onTestFinish }) => {
-			let initialValue = Date.now();
+		test('watch files for changes', async ({ onTestFinish, onTestFail }) => {
 			const fixtureWatch = await createFixture({
 				'package.json': JSON.stringify({
 					type: 'module',
@@ -31,7 +30,7 @@ export default testSuite(async ({ describe }) => {
 				import { value } from './value.js';
 				console.log(value);
 				`,
-				'value.js': `export const value = ${initialValue};`,
+				'value.js': 'export const value = \'hello world\';',
 			});
 			onTestFinish(async () => await fixtureWatch.rm());
 
@@ -43,17 +42,26 @@ export default testSuite(async ({ describe }) => {
 				cwd: fixtureWatch.path,
 			});
 
+			onTestFail(async () => {
+				if (tsxProcess.exitCode === null) {
+					console.log('Force killing hanging process\n\n');
+					tsxProcess.kill('SIGKILL');
+					console.log({
+						tsxProcess: await tsxProcess,
+					});
+				}
+			});
+
 			await processInteract(
 				tsxProcess.stdout!,
 				[
 					async (data) => {
-						if (data.includes(`${initialValue}\n`)) {
-							initialValue = Date.now();
-							await fixtureWatch.writeFile('value.js', `export const value = ${initialValue};`);
+						if (data.includes('hello world\n')) {
+							fixtureWatch.writeFile('value.js', 'export const value = \'goodbye world\';');
 							return true;
 						}
 					},
-					data => data.includes(`${initialValue}\n`),
+					data => data.includes('goodbye world\n'),
 				],
 				5000,
 			);
