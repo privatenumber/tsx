@@ -6,10 +6,7 @@ import {
 	createPathsMatcher,
 	createFilesMatcher,
 } from 'get-tsconfig';
-import { installSourceMapSupport } from '../source-map';
 import { getPackageType } from './package-json.js';
-
-export const applySourceMap = installSourceMapSupport();
 
 const tsconfig = (
 	process.env.TSX_TSCONFIG_PATH
