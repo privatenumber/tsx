@@ -1,48 +1,9 @@
-import { type Readable } from 'node:stream';
 import path from 'path';
 import { setTimeout } from 'timers/promises';
-import { on } from 'events';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import { tsx } from '../utils/tsx';
-
-type MaybePromise<T> = T | Promise<T>;
-const interact = async (
-	stdout: Readable,
-	actions: ((data: string) => MaybePromise<boolean | void>)[],
-	timeout: number,
-) => {
-	const startTime = Date.now();
-	const logs: [time: number, string][] = [];
-
-	let currentAction = actions.shift();
-
-	setTimeout(timeout).then(
-		() => {
-			if (currentAction) {
-				console.error(`Timeout ${timeout}ms exceeded:`);
-				console.log(logs);
-			}
-		},
-		() => {},
-	);
-
-	while (currentAction) {
-		for await (const [chunk] of on(stdout, 'data')) {
-			const chunkString = chunk.toString();
-			logs.push([
-				Date.now() - startTime,
-				chunkString,
-			]);
-
-			const gotoNextAction = await currentAction(chunkString);
-			if (gotoNextAction) {
-				currentAction = actions.shift();
-				break;
-			}
-		}
-	}
-};
+import { processInteract } from '../utils/process-interact';
 
 export default testSuite(async ({ describe }) => {
 	describe('watch', async ({ test, describe, onFinish }) => {
@@ -82,7 +43,7 @@ export default testSuite(async ({ describe }) => {
 				cwd: fixtureWatch.path,
 			});
 
-			await interact(
+			await processInteract(
 				tsxProcess.stdout!,
 				[
 					async (data) => {
@@ -111,7 +72,7 @@ export default testSuite(async ({ describe }) => {
 				cwd: fixture.path,
 			});
 
-			await interact(
+			await processInteract(
 				tsxProcess.stdout!,
 				[
 					(data) => {
@@ -142,7 +103,7 @@ export default testSuite(async ({ describe }) => {
 				cwd: fixture.path,
 			});
 
-			await interact(
+			await processInteract(
 				tsxProcess.stdout!,
 				[data => data.startsWith('["')],
 				5000,
@@ -191,7 +152,7 @@ export default testSuite(async ({ describe }) => {
 				await fixtureExit.rm();
 			});
 
-			await interact(
+			await processInteract(
 				tsxProcess.stdout!,
 				[
 					(data) => {
@@ -232,7 +193,7 @@ export default testSuite(async ({ describe }) => {
 					cwd: fixture.path,
 				});
 
-				await interact(
+				await processInteract(
 					tsxProcess.stdout!,
 					[data => data.startsWith('["')],
 					5000,
@@ -294,7 +255,7 @@ export default testSuite(async ({ describe }) => {
 
 				const negativeSignal = 'fail';
 
-				await interact(
+				await processInteract(
 					tsxProcess.stdout!,
 					[
 						async (data) => {
