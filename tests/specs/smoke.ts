@@ -515,19 +515,19 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// .ts
 						import './ts/index.ts';
 						import './ts/index.js';
-						// import './ts/index.jsx';
+						import './ts/index.jsx';
 						import './ts/index';
 						import './ts/';
 		
 						// .jsx
 						import * as jsx from './jsx/index.jsx';
-						// import './jsx/index.js';
+						import './jsx/index.js';
 						import './jsx/index';
 						import './jsx/';
 
 						// .tsx
 						import './tsx/index.tsx';
-						// import './tsx/index.js';
+						import './tsx/index.js';
 						import './tsx/index.jsx';
 						import './tsx/index';
 						import './tsx/';
