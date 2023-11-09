@@ -5,8 +5,22 @@ body:
   - type: markdown
     attributes:
       value: |
-        > 💁‍♂️ Please remember others are volunteering to help you for free, and put in your best effort to follow this form.
+        > 💁‍♂️ Keep in mind this is a collaborative effort. Please be polite & considerate, and follow this form to completion.
 
+  - type: checkboxes
+    attributes:
+      label: Precheck
+      description: Before starting the issue, please make sure you agree to the following.
+      options:
+        - label: I searched existing issues before opening this one to avoid duplicates
+          required: true
+
+        - label: I understand tsx aims for TypeScript parity and will not support arbitrary Node.js enhancements
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
         ## 👀 Tell us about your idea
 
   - type: textarea
