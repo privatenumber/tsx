@@ -22,7 +22,6 @@ export default testSuite(async ({ describe }) => {
 		});
 
 		test('watch files for changes', async ({ onTestFinish, onTestFail }) => {
-			let initialValue = Date.now();
 			const fixtureWatch = await createFixture({
 				'package.json': JSON.stringify({
 					type: 'module',
@@ -31,7 +30,7 @@ export default testSuite(async ({ describe }) => {
 				import { value } from './value.js';
 				console.log(value);
 				`,
-				'value.js': `export const value = ${initialValue};`,
+				'value.js': 'export const value = \'hello world\';',
 			});
 			onTestFinish(async () => await fixtureWatch.rm());
 
@@ -57,22 +56,22 @@ export default testSuite(async ({ describe }) => {
 				tsxProcess.stdout!,
 				[
 					async (data) => {
-						if (data.includes(`${initialValue}\n`)) {
-							initialValue = Date.now();
-							fixtureWatch.writeFile('value.js', `export const value = ${initialValue};`);
+						if (data.includes('hello world\n')) {
+							console.log('Write new file');
+							fixtureWatch.writeFile('value.js', 'export const value = \'goodbye world\';');
 							return true;
 						}
 						console.warn({
-							expecting: `${initialValue}\n`,
+							expecting: 'hello world',
 							received: data,
 						});
 					},
 					(data) => {
-						if (data.includes(`${initialValue}\n`)) {
+						if (data.includes('goodbye world\n')) {
 							return true;
 						}
 						console.warn({
-							expecting: `${initialValue}\n`,
+							expecting: 'goodbye world',
 							received: data,
 						});
 					},
