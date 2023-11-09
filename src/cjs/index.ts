@@ -127,6 +127,12 @@ Object.defineProperty(extensions, '.mjs', {
 
 const defaultResolveFilename = Module._resolveFilename.bind(Module);
 Module._resolveFilename = (request, parent, isMain, options) => {
+	// Strip query string
+	const queryIndex = request.indexOf('?');
+	if (queryIndex !== -1) {
+		request = request.slice(0, queryIndex);
+	}
+
 	if (
 		tsconfigPathsMatcher
 
