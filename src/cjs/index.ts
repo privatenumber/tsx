@@ -11,6 +11,7 @@ import type { TransformOptions } from 'esbuild';
 import { installSourceMapSupport } from '../source-map';
 import { transformSync, transformDynamicImport } from '../utils/transform';
 import { resolveTsPath } from '../utils/resolve-ts-path';
+import { isESM } from '../utils/esm-pattern';
 
 const isRelativePathPattern = /^\.{1,2}\//;
 const isTsFilePatten = /\.[cm]?tsx?$/;
@@ -33,29 +34,25 @@ const applySourceMap = installSourceMapSupport();
 const extensions = Module._extensions;
 const defaultLoader = extensions['.js'];
 
-const transformExtensions = [
-	'.js',
-	'.cjs',
+const typescriptExtensions = [
 	'.cts',
-	'.mjs',
 	'.mts',
 	'.ts',
 	'.tsx',
 	'.jsx',
 ];
 
+const transformExtensions = [
+	'.js',
+	'.cjs',
+	'.mjs',
+];
+
 const transformer = (
 	module: Module,
 	filePath: string,
 ) => {
-	const shouldTransformFile = transformExtensions.some(extension => filePath.endsWith(extension));
-	if (!shouldTransformFile) {
-		return defaultLoader(module, filePath);
-	}
-
-	/**
-	 * For tracking dependencies in watch mode
-	 */
+	// For tracking dependencies in watch mode
 	if (process.send) {
 		process.send({
 			type: 'dependency',
@@ -63,14 +60,25 @@ const transformer = (
 		});
 	}
 
-	let code = fs.readFileSync(filePath, 'utf8');
+	const transformTs = typescriptExtensions.some(extension => filePath.endsWith(extension));
+	const transformJs = transformExtensions.some(extension => filePath.endsWith(extension));
+	if (!transformTs && !transformJs) {
+		return defaultLoader(module, filePath);
+	}
 
+	let code = fs.readFileSync(filePath, 'utf8');
 	if (filePath.endsWith('.cjs')) {
+		// Contains native ESM check
 		const transformed = transformDynamicImport(filePath, code);
 		if (transformed) {
 			code = applySourceMap(transformed, filePath);
 		}
-	} else {
+	} else if (
+		transformTs
+
+		// CommonJS file but uses ESM import/export
+		|| isESM(code)
+	) {
 		const transformed = transformSync(
 			code,
 			filePath,
