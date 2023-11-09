@@ -79,7 +79,7 @@
 		"kolorist": "^1.8.0",
 		"lint-staged": "^14.0.1",
 		"magic-string": "^0.30.3",
-		"manten": "github:privatenumber/manten#npm/error-hooks",
+		"manten": "^1.2.0",
 		"node-pty": "^1.0.0",
 		"outdent": "^0.8.0",
 		"pkgroll": "^1.11.1",

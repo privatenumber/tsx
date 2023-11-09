@@ -22,7 +22,7 @@ const getStdin = (
 
 export const ptyShell = (
 	stdins: StdInArray,
-) => new Promise((resolve, reject) => {
+) => new Promise<string>((resolve, reject) => {
 	const childProcess = execaNode(
 		fileURLToPath(new URL('node-pty.mjs', import.meta.url)),
 		[shell],
