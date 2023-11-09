@@ -62,8 +62,20 @@ export default testSuite(async ({ describe }) => {
 							fixtureWatch.writeFile('value.js', `export const value = ${initialValue};`);
 							return true;
 						}
+						console.warn({
+							expecting: `${initialValue}\n`,
+							received: data,
+						});
 					},
-					data => data.includes(`${initialValue}\n`),
+					data => {
+						if (data.includes(`${initialValue}\n`)) {
+							return true;
+						}
+						console.warn({
+							expecting: `${initialValue}\n`,
+							received: data,
+						});
+					},
 				],
 				5000,
 			);
