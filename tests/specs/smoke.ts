@@ -341,7 +341,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 
 						// .js
 						import * as js from './js/index.js';
-						// import * as js from './js/index.js?query=123'; Support query
+						import './js/index.js?query=123';
 						import './js/index';
 						import './js/';
 
@@ -463,7 +463,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 
 						// .js
 						import * as js from './js/index.js';
-						// import * as js from './js/index.js?query=123'; TODO: Support query
+						import './js/index.js?query=123';
 						import './js/index';
 						import './js/';
 
