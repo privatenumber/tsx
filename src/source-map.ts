@@ -26,7 +26,7 @@ export const stripSourceMap = (code: string) => {
 	return code;
 };
 
-const inlineSourceMapPrefix = sourceMapPrefix + 'data:application/json;base64,';
+const inlineSourceMapPrefix = `${sourceMapPrefix}data:application/json;base64,`;
 
 export const installSourceMapSupport = (
 	/**

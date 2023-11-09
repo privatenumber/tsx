@@ -1,7 +1,10 @@
 import { parseEsm } from './es-module-lexer';
 
 /*
-TODO: Add tests
+Previously, this regex was used as a naive ESM catch,
+but turns out regex is slower than the lexer so removing
+it made the lexer faster.
+
 Catches:
 import a from 'b'
 import 'b';
@@ -13,11 +16,12 @@ Doesn't catch:
 EXPORT{a}
 exports.a = 1
 module.exports = 1
- */
+
 const esmPattern = /\b(?:import|export)\b/;
+*/
 
 export const isESM = (code: string) => {
-	if (esmPattern.test(code)) {
+	if (code.includes('import') || code.includes('export')) {
 		const [imports, exports] = parseEsm(code);
 		return imports.length > 0 || exports.length > 0;
 	}

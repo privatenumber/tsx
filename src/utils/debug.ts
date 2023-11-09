@@ -1,4 +1,5 @@
-export const time = <T extends (...args: unknown[]) => unknown>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const time = <T extends (...args: any[]) => unknown>(
 	name: string,
 	_function: T,
 	threshold = 100,
