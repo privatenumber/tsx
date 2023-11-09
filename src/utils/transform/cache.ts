@@ -145,7 +145,7 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 }
 
 export default (
-	process.env.ESBK_DISABLE_CACHE
+	process.env.TSX_DISABLE_CACHE
 		? new Map<string, Transformed>()
 		: new FileCache<Transformed>()
 );

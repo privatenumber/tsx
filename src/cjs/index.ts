@@ -17,10 +17,10 @@ const isTsFilePatten = /\.[cm]?tsx?$/;
 const nodeModulesPath = `${path.sep}node_modules${path.sep}`;
 
 const tsconfig = (
-	process.env.ESBK_TSCONFIG_PATH
+	process.env.TSX_TSCONFIG_PATH
 		? {
-			path: path.resolve(process.env.ESBK_TSCONFIG_PATH),
-			config: parseTsconfig(process.env.ESBK_TSCONFIG_PATH),
+			path: path.resolve(process.env.TSX_TSCONFIG_PATH),
+			config: parseTsconfig(process.env.TSX_TSCONFIG_PATH),
 		}
 		: getTsconfig()
 );
