@@ -7,6 +7,23 @@ body:
       value: |
         > 💁‍♂️ Keep in mind this is a collaborative effort. Please do your best to debug, communicate, and demonstrate the problem.
 
+  - type: checkboxes
+    attributes:
+      label: Precheck
+      description: Before starting the issue, please make sure you agree to the following.
+      options:
+        - label: I searched existing issues before opening this one to avoid duplicates
+          required: true
+
+        - label: I'm able to reproduce this issue and prove it with a minimal reproduction
+          required: true
+
+        - label: I understand this is not a place to ask for free debugging support
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
         ## 👀 Tell us about the bug
         A _clear and concise_ description of what the bug is.
 
@@ -33,7 +50,7 @@ body:
     attributes:
       value: |
         ## 📋 Minimal reproduction
-        > ⚠️ If a **minimal** reproduction is not provided, **the issue will be closed.**
+        > ⚠️ If a **minimal** reproduction is not provided, **the issue will be closed & locked.**
 
         The minimal reproduction proves a bug exists in this project, allows others to debug it for you, and streamlines resolution.
 
