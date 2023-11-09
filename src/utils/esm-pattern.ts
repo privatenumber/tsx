@@ -17,7 +17,6 @@ const esmPattern = /\b(?:import|export)\b/;
 
 export const isESM = (code: string) => {
 	if (esmPattern.test(code)) {
-		// return true;
 		const [imports, exports] = parseEsm(code);
 		return imports.length > 0 || exports.length > 0;
 	}
