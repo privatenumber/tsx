@@ -197,20 +197,22 @@ const resolveTsFilename = (
 		&& isTsFilePatten.test(parent.filename)
 		&& tsPath
 	) {
-		try {
-			return defaultResolveFilename(
-				tsPath[0],
-				parent,
-				isMain,
-				options,
-			);
-		} catch (error) {
-			const { code } = error as NodeError;
-			if (
-				code !== 'MODULE_NOT_FOUND'
-				&& code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED'
-			) {
-				throw error;
+		for (const tryTsPath of tsPath) {
+			try {
+				return defaultResolveFilename(
+					tryTsPath,
+					parent,
+					isMain,
+					options,
+				);
+			} catch (error) {
+				const { code } = error as NodeError;
+				if (
+					code !== 'MODULE_NOT_FOUND'
+					&& code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED'
+				) {
+					throw error;
+				}
 			}
 		}
 	}
