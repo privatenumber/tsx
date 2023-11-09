@@ -104,10 +104,10 @@ To set a custom path, use the `--tsconfig` flag:
 tsx --tsconfig ./path/to/tsconfig.custom.json ./file.ts
 ```
 
-Alternatively, use the `ESBK_TSCONFIG_PATH` environment variable:
+Alternatively, use the `TSX_TSCONFIG_PATH` environment variable:
 
 ```sh
-ESBK_TSCONFIG_PATH=./path/to/tsconfig.custom.json tsx ./file.ts
+TSX_TSCONFIG_PATH=./path/to/tsconfig.custom.json tsx ./file.ts
 ```
 
 ### Watch mode
@@ -145,6 +145,12 @@ Set the `--no-cache` flag to disable the cache:
 
 ```sh
 tsx --no-cache ./file.ts
+```
+
+Alternatively, use the `TSX_DISABLE_CACHE` environment variable:
+
+```sh
+TSX_DISABLE_CACHE=1 tsx ./file.ts
 ```
 
 ### Node.js Loader
