@@ -3,7 +3,7 @@ import { parseEsm } from './es-module-lexer';
 /*
 Previously, this regex was used as a naive ESM catch,
 but turns out regex is slower than the lexer so removing
-it made the lexer faster.
+it made the check faster.
 
 Catches:
 import a from 'b'
