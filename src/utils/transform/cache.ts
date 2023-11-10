@@ -8,6 +8,21 @@ const getTime = () => Math.floor(Date.now() / 1e8);
 
 const tmpdir = os.tmpdir();
 const noop = () => {};
+
+/**
+ * Cache directory is based on the user's identifier
+ * to avoid permission issues when accessed by a different user
+ */
+const { geteuid } = process;
+const userId = (
+	geteuid
+		// For Linux users with virtual users on CI (e.g. Docker)
+		? geteuid()
+
+		// Use username on Windows because it doesn't have id
+		: os.userInfo().username
+);
+
 class FileCache<ReturnType> extends Map<string, ReturnType> {
 	/**
 	 * By using tmpdir, the expectation is for the OS to clean any files
@@ -22,9 +37,7 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 	cacheDirectory = path.join(
 		// Write permissions by anyone
 		tmpdir,
-
-		// Write permissions only by current user
-		`tsx-${os.userInfo().uid}`,
+		`tsx-${userId}`,
 	);
 
 	// Maintained so we can remove it on Windows
