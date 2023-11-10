@@ -7,10 +7,26 @@ import type { Transformed } from './apply-transformers';
 const getTime = () => Math.floor(Date.now() / 1e8);
 
 const tmpdir = os.tmpdir();
+// console.log({
+// 	userInfo: os.userInfo().username,
+// 	geteuid: (
+// 		typeof process.geteuid === 'function'
+
+// 			? process.geteuid()
+
+// 			// Windows doesn't have user id
+// 			// Use username instead
+// 			: os.userInfo().username
+// 		),
+// });
+
 console.log({
-	userInfo: os.userInfo(),
-	geteuid: typeof process.geteuid === 'function' ? process.geteuid() : undefined,
+	userInfo: os.userInfo().username,
+	geteuid: (
+		typeof process.geteuid === 'function' ? process.geteuid() : undefined
+	),
 });
+
 const cacheDirectory = path.join(
 	// Write permissions by anyone
 	tmpdir,

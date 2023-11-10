@@ -6,10 +6,8 @@ on:
 jobs:
   test:
     name: Test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest]
+    runs-on: ubuntu-latest
+    container: node:18
     timeout-minutes: 5
 
     steps:
