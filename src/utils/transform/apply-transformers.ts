@@ -14,7 +14,7 @@ type IntersectionArray<T extends unknown[]> = (
 
 type TransformerResult = {
 	code: string;
-	map: SourceMap;
+	map?: SourceMap;
 	warnings?: unknown[];
 } | undefined;
 
@@ -59,7 +59,10 @@ export function applyTransformersSync<
 
 		if (transformed) {
 			Object.assign(result, transformed);
-			maps.unshift(transformed.map);
+
+			if (transformed.map) {
+				maps.unshift(transformed.map);
+			}
 
 			if (transformed.warnings) {
 				warnings.push(...transformed.warnings);
@@ -90,7 +93,10 @@ export async function applyTransformers<
 
 		if (transformed) {
 			Object.assign(result, transformed);
-			maps.unshift(transformed.map);
+
+			if (transformed.map) {
+				maps.unshift(transformed.map);
+			}
 
 			if (transformed.warnings) {
 				warnings.push(...transformed.warnings);
