@@ -7,6 +7,10 @@ import type { Transformed } from './apply-transformers';
 const getTime = () => Math.floor(Date.now() / 1e8);
 
 const tmpdir = os.tmpdir();
+console.log({
+	userInfo: os.userInfo(),
+	geteuid: process.geteuid(),
+});
 const cacheDirectory = path.join(
 	// Write permissions by anyone
 	tmpdir,
