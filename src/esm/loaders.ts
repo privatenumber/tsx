@@ -18,6 +18,7 @@ import {
 	type MaybePromise,
 	type NodeError,
 } from './utils.js';
+import { importAttributes } from '../utils/node-features';
 
 const applySourceMap = installSourceMapSupport();
 
@@ -245,6 +246,8 @@ export const resolve: resolve = async function (
 	}
 };
 
+const importAssertions = importAttributes ? 'importAttributes' : 'importAssertions';
+
 export const load: LoadHook = async function (
 	url,
 	context,
@@ -262,10 +265,11 @@ export const load: LoadHook = async function (
 	}
 
 	if (isJsonPattern.test(url)) {
-		if (!context.importAssertions) {
-			context.importAssertions = {};
+		if (!context[importAssertions]) {
+			context[importAssertions] = {};
 		}
-		context.importAssertions.type = 'json';
+
+		context[importAssertions].type = 'json';
 	}
 
 	const loaded = await defaultLoad(url, context);
