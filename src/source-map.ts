@@ -26,7 +26,7 @@ export const stripSourceMap = (code: string) => {
 	return code;
 };
 
-const inlineSourceMapPrefix = `${sourceMapPrefix}data:application/json;base64,`;
+const base64SourceMapPrefix = `${sourceMapPrefix}data:application/json;base64,`;
 
 export const installSourceMapSupport = (
 	/**
@@ -57,11 +57,12 @@ export const installSourceMapSupport = (
 
 		return (
 			{ code, map }: Transformed,
-		) => (
-			code
-			+ inlineSourceMapPrefix
-			+ Buffer.from(JSON.stringify(map), 'utf8').toString('base64')
-		);
+		) => {
+			if (map) {
+				code += base64SourceMapPrefix + Buffer.from(JSON.stringify(map), 'utf8').toString('base64');
+			}
+			return code;
+		};
 	}
 
 	const sourcemaps = new Map<string, RawSourceMap>();
@@ -86,11 +87,14 @@ export const installSourceMapSupport = (
 		filePath: string,
 		mainThreadPort?: MessagePort,
 	) => {
-		if (isolatedLoader && mainThreadPort) {
-			mainThreadPort.postMessage({ filePath, map } satisfies PortMessage);
-		} else {
-			sourcemaps.set(filePath, map);
+		if (map) {
+			if (isolatedLoader && mainThreadPort) {
+				mainThreadPort.postMessage({ filePath, map } satisfies PortMessage);
+			} else {
+				sourcemaps.set(filePath, map);
+			}
 		}
+
 		return code;
 	};
 };

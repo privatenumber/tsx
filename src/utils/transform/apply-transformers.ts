@@ -39,7 +39,7 @@ type AddSourceMap<T> = Omit<T, 'map'> & { map: RawSourceMap };
 
 export type Transformed = {
 	code: string;
-	map: RawSourceMap;
+	map?: RawSourceMap;
 	warnings?: unknown[];
 };
 

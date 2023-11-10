@@ -3,6 +3,12 @@ import type { RawSourceMap } from '../../source-map';
 import { parseEsm } from '../es-module-lexer';
 
 const handlerName = '___tsxInteropDynamicImport';
+
+/**
+ * Must be a function declaration (as opposed to expression) for it to be
+ * declared at the bottom of the code.
+ * It's inserted at the bottom to minimize code shift in the source map.
+ */
 const handleEsModuleFunction = `function ${handlerName}${(function (imported: Record<string, unknown>) {
 	const d = 'default';
 	const exports = Object.keys(imported);
@@ -21,14 +27,12 @@ const handleEsModuleFunction = `function ${handlerName}${(function (imported: Re
 
 const handleDynamicImport = `.then(${handlerName})`;
 
-const esmImportPattern = /\bimport\b/;
-
 export const transformDynamicImport = (
 	filePath: string,
 	code: string,
 ) => {
-	// Naive check
-	if (!esmImportPattern.test(code)) {
+	// Naive check (using regex is too slow)
+	if (!code.includes('import')) {
 		return;
 	}
 
@@ -47,16 +51,24 @@ export const transformDynamicImport = (
 	magicString.append(handleEsModuleFunction);
 
 	const newCode = magicString.toString();
-	const newMap = magicString.generateMap({
-		source: filePath,
-		includeContent: false,
+	const newMap = (
+		filePath.includes('/node_modules/')
+			/**
+			 * Performance improvement:
+			 * Don't generate source maps for node_modules
+			 */
+			? undefined
+			: magicString.generateMap({
+				source: filePath,
+				includeContent: false,
 
-		/**
-		 * The performance hit on this is very high
-		 * Since we're only transforming import()s, I think this may be overkill
-		 */
-		// hires: 'boundary',
-	}) as unknown as RawSourceMap;
+				/**
+				 * The performance hit on this is very high
+				 * Since we're only transforming import()s, I think this may be overkill
+				 */
+				// hires: 'boundary',
+			}) as unknown as RawSourceMap
+	);
 
 	return {
 		code: newCode,
