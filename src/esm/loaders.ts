@@ -8,6 +8,7 @@ import type { TransformOptions } from 'esbuild';
 import { transform, transformDynamicImport } from '../utils/transform';
 import { resolveTsPath } from '../utils/resolve-ts-path';
 import { installSourceMapSupport, shouldStripSourceMap, stripSourceMap } from '../source-map';
+import { importAttributes } from '../utils/node-features';
 import {
 	tsconfigPathsMatcher,
 	fileMatcher,
@@ -18,7 +19,6 @@ import {
 	type MaybePromise,
 	type NodeError,
 } from './utils.js';
-import { importAttributes } from '../utils/node-features';
 
 const applySourceMap = installSourceMapSupport();
 
