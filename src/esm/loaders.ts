@@ -246,7 +246,7 @@ export const resolve: resolve = async function (
 	}
 };
 
-const importAssertions = importAttributes ? 'importAttributes' : 'importAssertions';
+const contextAttributesProperty = importAttributes ? 'importAttributes' : 'importAssertions';
 
 export const load: LoadHook = async function (
 	url,
@@ -265,11 +265,11 @@ export const load: LoadHook = async function (
 	}
 
 	if (isJsonPattern.test(url)) {
-		if (!context[importAssertions]) {
-			context[importAssertions] = {};
+		if (!context[contextAttributesProperty]) {
+			context[contextAttributesProperty] = {};
 		}
 
-		context[importAssertions].type = 'json';
+		context[contextAttributesProperty].type = 'json';
 	}
 
 	const loaded = await defaultLoad(url, context);
