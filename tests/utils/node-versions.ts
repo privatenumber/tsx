@@ -1,11 +1,12 @@
 export const nodeVersions = [
-	'20',
+	'21',
 	...(
 		(
 			process.env.CI
 			&& process.platform !== 'win32'
 		)
 			? [
+				'20',
 				'18',
 			] as const
 			: [] as const
