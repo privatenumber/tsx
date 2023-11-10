@@ -9,7 +9,7 @@ const getTime = () => Math.floor(Date.now() / 1e8);
 const tmpdir = os.tmpdir();
 console.log({
 	userInfo: os.userInfo(),
-	geteuid: process.geteuid(),
+	geteuid: typeof process.geteuid === 'function' ? process.geteuid() : undefined,
 });
 const cacheDirectory = path.join(
 	// Write permissions by anyone
