@@ -7,6 +7,18 @@ import type { Transformed } from './apply-transformers';
 const getTime = () => Math.floor(Date.now() / 1e8);
 
 const tmpdir = os.tmpdir();
+const cacheDirectory = path.join(
+	// Write permissions by anyone
+	tmpdir,
+
+	// Write permissions only by current user
+	`tsx-${os.userInfo().uid}`,
+);
+
+console.log({
+	cacheDirectory,
+});
+
 const noop = () => {};
 class FileCache<ReturnType> extends Map<string, ReturnType> {
 	/**
