@@ -16,3 +16,5 @@ const compareNodeVersion = (version: Version) => (
 export const isolatedLoader = compareNodeVersion([20, 0, 0]) >= 0;
 
 export const supportsModuleRegister = compareNodeVersion([20, 6, 0]) >= 0;
+
+export const importAttributes = compareNodeVersion([21, 0, 0]) >= 0;
