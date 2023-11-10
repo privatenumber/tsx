@@ -8,6 +8,7 @@ import type { TransformOptions } from 'esbuild';
 import { transform, transformDynamicImport } from '../utils/transform';
 import { resolveTsPath } from '../utils/resolve-ts-path';
 import { installSourceMapSupport, shouldStripSourceMap, stripSourceMap } from '../source-map';
+import { importAttributes } from '../utils/node-features';
 import {
 	tsconfigPathsMatcher,
 	fileMatcher,
@@ -245,6 +246,8 @@ export const resolve: resolve = async function (
 	}
 };
 
+const contextAttributesProperty = importAttributes ? 'importAttributes' : 'importAssertions';
+
 export const load: LoadHook = async function (
 	url,
 	context,
@@ -262,10 +265,11 @@ export const load: LoadHook = async function (
 	}
 
 	if (isJsonPattern.test(url)) {
-		if (!context.importAssertions) {
-			context.importAssertions = {};
+		if (!context[contextAttributesProperty]) {
+			context[contextAttributesProperty] = {};
 		}
-		context.importAssertions.type = 'json';
+
+		context[contextAttributesProperty]!.type = 'json';
 	}
 
 	const loaded = await defaultLoad(url, context);
