@@ -269,7 +269,7 @@ export const load: LoadHook = async function (
 			context[contextAttributesProperty] = {};
 		}
 
-		context[contextAttributesProperty].type = 'json';
+		context[contextAttributesProperty]!.type = 'json';
 	}
 
 	const loaded = await defaultLoad(url, context);

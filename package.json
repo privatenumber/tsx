@@ -95,5 +95,10 @@
 		"ignorePatterns": [
 			"tests/fixtures"
 		]
+	},
+	"pnpm": {
+		"patchedDependencies": {
+			"@types/node@20.9.0": "patches/@types__node@20.9.0.patch"
+		}
 	}
 }
