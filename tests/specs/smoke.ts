@@ -315,6 +315,7 @@ const files = {
 };
 
 const packageTypes = [
+	undefined,
 	'module',
 	'commonjs',
 ] as const;
@@ -322,9 +323,9 @@ const packageTypes = [
 export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 	describe('Smoke', ({ describe }) => {
 		for (const packageType of packageTypes) {
-			const isCommonJs = packageType === 'commonjs';
+			const isCommonJs = packageType !== 'module';
 
-			describe(packageType, ({ test, describe }) => {
+			describe(packageType || 'Ambiguious', ({ test, describe }) => {
 				test('from .js', async ({ onTestFinish, onTestFail }) => {
 					const fixture = await createFixture({
 						...files,
