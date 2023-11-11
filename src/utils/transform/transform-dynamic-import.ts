@@ -3,7 +3,7 @@ import type { RawSourceMap } from '../../source-map';
 import { parseEsm } from '../es-module-lexer';
 
 const handlerName = '___tsxInteropDynamicImport';
-const handleEsModuleFunction = `function ${handlerName}${(function (imported: Record<string, unknown>) {
+const handleEsModuleFunction = `\nfunction ${handlerName}${(function (imported: Record<string, unknown>) {
 	const d = 'default';
 	const exports = Object.keys(imported);
 	if (
