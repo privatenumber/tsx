@@ -2,8 +2,7 @@ import MagicString from 'magic-string';
 import type { RawSourceMap } from '../../source-map';
 import { parseEsm } from '../es-module-lexer';
 
-// Prefixed with a newline since there could be a comment on the last line (e.g. sourcemap comment)
-const handleEsModuleFunction = ((imported: Record<string, unknown>) => {
+const toEsmFunctionString = ((imported: Record<string, unknown>) => {
 	const d = 'default';
 	const exports = Object.keys(imported);
 	if (
@@ -19,7 +18,7 @@ const handleEsModuleFunction = ((imported: Record<string, unknown>) => {
 	return imported;
 }).toString();
 
-const handleDynamicImport = `.then(${handleEsModuleFunction})`;
+const handleDynamicImport = `.then(${toEsmFunctionString})`;
 
 const esmImportPattern = /\bimport\b/;
 
