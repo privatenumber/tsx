@@ -2,6 +2,8 @@ import MagicString from 'magic-string';
 import type { RawSourceMap } from '../../source-map';
 import { parseEsm } from '../es-module-lexer';
 
+export const version = '1';
+
 const toEsmFunctionString = ((imported: Record<string, unknown>) => {
 	const d = 'default';
 	const exports = Object.keys(imported);
