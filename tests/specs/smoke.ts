@@ -355,6 +355,9 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 							}
 						});
 
+						const importWorksInEval = async () => await import('./js/index.js');
+						(0, eval)(importWorksInEval.toString())();
+
 						// .json
 						import * as json from './json/index.json';
 						import './json/index';
