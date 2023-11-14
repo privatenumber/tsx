@@ -6,7 +6,7 @@ import {
 	version as esbuildVersion,
 } from 'esbuild';
 import { sha1 } from '../sha1';
-import { transformDynamicImport } from './transform-dynamic-import';
+import { version as transformDynamicImportVersion, transformDynamicImport } from './transform-dynamic-import';
 import cache from './cache';
 import {
 	applyTransformersSync,
@@ -14,8 +14,6 @@ import {
 	type Transformed,
 } from './apply-transformers';
 import { getEsbuildOptions } from './get-esbuild-options';
-
-export { transformDynamicImport } from './transform-dynamic-import';
 
 // Used by cjs-loader
 export function transformSync(
@@ -38,7 +36,12 @@ export function transformSync(
 		...extendOptions,
 	});
 
-	const hash = sha1(code + JSON.stringify(esbuildOptions) + esbuildVersion);
+	const hash = sha1([
+		code,
+		JSON.stringify(esbuildOptions),
+		esbuildVersion,
+		transformDynamicImportVersion,
+	].join('-'));
 	let transformed = cache.get(hash);
 
 	if (!transformed) {
@@ -87,7 +90,12 @@ export async function transform(
 		...extendOptions,
 	});
 
-	const hash = sha1(code + JSON.stringify(esbuildOptions) + esbuildVersion);
+	const hash = sha1([
+		code,
+		JSON.stringify(esbuildOptions),
+		esbuildVersion,
+		transformDynamicImportVersion,
+	].join('-'));
 	let transformed = cache.get(hash);
 
 	if (!transformed) {

@@ -355,6 +355,9 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 							}
 						});
 
+						const importWorksInEval = async () => await import('./js/index.js');
+						(0, eval)(importWorksInEval.toString())();
+
 						// .json
 						import * as json from './json/index.json';
 						import './json/index';
@@ -417,7 +420,9 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						}));
 		
 						// Could .js import TS files?
-						`,
+
+						// Comment at EOF: could be a sourcemap declaration. Edge case for inserting functions here
+						`.trim(),
 					});
 					onTestFinish(async () => await fixture.rm());
 
@@ -591,7 +596,9 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 							pkgCommonjs,
 							pkgModule,
 						}));
-						`,
+
+						// Comment at EOF: could be a sourcemap declaration. Edge case for inserting functions here
+						`.trim(),
 					});
 					onFinish(async () => await fixture.rm());
 

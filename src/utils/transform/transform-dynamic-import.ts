@@ -2,14 +2,9 @@ import MagicString from 'magic-string';
 import type { RawSourceMap } from '../../source-map';
 import { parseEsm } from '../es-module-lexer';
 
-const handlerName = '___tsxInteropDynamicImport';
+export const version = '1';
 
-/**
- * Must be a function declaration (as opposed to expression) for it to be
- * declared at the bottom of the code.
- * It's inserted at the bottom to minimize code shift in the source map.
- */
-const handleEsModuleFunction = `function ${handlerName}${(function (imported: Record<string, unknown>) {
+const toEsmFunctionString = ((imported: Record<string, unknown>) => {
 	const d = 'default';
 	const exports = Object.keys(imported);
 	if (
@@ -23,15 +18,15 @@ const handleEsModuleFunction = `function ${handlerName}${(function (imported: Re
 	}
 
 	return imported;
-}).toString().slice('function'.length)}`;
+}).toString();
 
-const handleDynamicImport = `.then(${handlerName})`;
+const handleDynamicImport = `.then(${toEsmFunctionString})`;
 
 export const transformDynamicImport = (
 	filePath: string,
 	code: string,
 ) => {
-	// Naive check (using regex is too slow)
+	// Naive check (regex is too slow)
 	if (!code.includes('import')) {
 		return;
 	}
@@ -47,8 +42,6 @@ export const transformDynamicImport = (
 	for (const dynamicImport of dynamicImports) {
 		magicString.appendRight(dynamicImport.se, handleDynamicImport);
 	}
-
-	magicString.append(handleEsModuleFunction);
 
 	const newCode = magicString.toString();
 	const newMap = (

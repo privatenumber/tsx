@@ -9,7 +9,8 @@ import {
 } from 'get-tsconfig';
 import type { TransformOptions } from 'esbuild';
 import { installSourceMapSupport, shouldStripSourceMap, stripSourceMap } from '../source-map';
-import { transformSync, transformDynamicImport } from '../utils/transform';
+import { transformSync } from '../utils/transform';
+import { transformDynamicImport } from '../utils/transform/transform-dynamic-import';
 import { resolveTsPath } from '../utils/resolve-ts-path';
 import { isESM } from '../utils/esm-pattern';
 
