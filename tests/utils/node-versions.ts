@@ -8,6 +8,7 @@ export const nodeVersions = [
 			? [
 				'20',
 				'18',
+				'18.0.0',
 			] as const
 			: [] as const
 	),

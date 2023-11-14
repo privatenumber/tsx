@@ -1,6 +1,10 @@
 // Deprecated: Move to preflight.cts & delete entry-point in next major
 
 const ignoreWarnings = new Set([
+
+	// v18.0.0
+	'Custom ESM Loaders is an experimental feature. This feature could change at any time',
+
 	// Changed in Node v18.13.0 via https://github.com/nodejs/node/pull/45424
 	'Custom ESM Loaders is an experimental feature and might change at any time',
 
