@@ -20,14 +20,12 @@ const toEsmFunctionString = ((imported: Record<string, unknown>) => {
 
 const handleDynamicImport = `.then(${toEsmFunctionString})`;
 
-const esmImportPattern = /\bimport\b/;
-
 export const transformDynamicImport = (
 	filePath: string,
 	code: string,
 ) => {
-	// Naive check
-	if (!esmImportPattern.test(code)) {
+	// Naive check (regex is too slow)
+	if (!code.includes('import')) {
 		return;
 	}
 
