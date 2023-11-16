@@ -7,6 +7,7 @@ import { nodeVersions } from './utils/node-versions';
 		await runTestSuite(import('./specs/cli'));
 		await runTestSuite(import('./specs/watch'));
 		await runTestSuite(import('./specs/repl'));
+		await runTestSuite(import('./specs/source-map'));
 
 		for (const nodeVersion of nodeVersions) {
 			const node = await createNode(nodeVersion);
