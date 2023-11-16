@@ -22,8 +22,7 @@ const sourceMapUrlRegexp = /\n\/\/# sourceMappingURL=\S*\s*$/;
 
 export const stripSourceMap = (code: string) => code.replace(sourceMapUrlRegexp, '');
 
-const sourceMapPrefix = '\n//# sourceMappingURL=';
-const inlineSourceMapPrefix = `${sourceMapPrefix}data:application/json;base64,`;
+const inlineSourceMapPrefix = '\n//# sourceMappingURL=data:application/json;base64,';
 
 export const installSourceMapSupport = (
 	/**
