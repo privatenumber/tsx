@@ -16,13 +16,20 @@ export const shouldStripSourceMap = (
 	&& process.sourceMapsEnabled === false
 );
 
-// Matches a source map comment followed by any amount of whitespace at the
-// end of a file.
-const sourceMapUrlRegexp = /\n\/\/# sourceMappingURL=\S*\s*$/;
+const sourceMapPrefix = '\n//# sourceMappingURL=';
 
-export const stripSourceMap = (code: string) => code.replace(sourceMapUrlRegexp, '');
+export const stripSourceMap = (code: string) => {
+	const sourceMapIndex = code.indexOf(sourceMapPrefix);
+	if (sourceMapIndex === -1) {
+		return code;
+	}
 
-const inlineSourceMapPrefix = '\n//# sourceMappingURL=data:application/json;base64,';
+	const nextNewLine = code.indexOf('\n', sourceMapIndex + sourceMapPrefix.length);
+	const afterCode = nextNewLine === -1 ? '' : code.slice(nextNewLine);
+	return code.slice(0, sourceMapIndex) + afterCode;
+};
+
+const inlineSourceMapPrefix = `${sourceMapPrefix}data:application/json;base64,`;
 
 export const installSourceMapSupport = (
 	/**
