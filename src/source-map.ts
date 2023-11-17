@@ -25,8 +25,8 @@ export const stripSourceMap = (code: string) => {
 	}
 
 	const nextNewLine = code.indexOf('\n', sourceMapIndex + sourceMapPrefix.length);
-	const afterCode = nextNewLine === -1 ? '' : code.slice(nextNewLine);
-	return code.slice(0, sourceMapIndex) + afterCode;
+	const afterSourceMap = nextNewLine === -1 ? '' : code.slice(nextNewLine);
+	return code.slice(0, sourceMapIndex) + afterSourceMap;
 };
 
 const inlineSourceMapPrefix = `${sourceMapPrefix}data:application/json;base64,`;
