@@ -2,6 +2,7 @@ import path from 'path';
 import { pathToFileURL } from 'url';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
+import outdent from 'outdent';
 import type { NodeApis } from '../utils/tsx';
 
 const cjsContextCheck = 'typeof module !== \'undefined\'';
@@ -329,10 +330,12 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					const fixture = await createFixture({
 						...files,
 						'package.json': JSON.stringify({ type: packageType }),
-						'import-from-js.js': `
+						'import-from-js.js': outdent`
 						import assert from 'assert';
 						import { expectErrors } from './expect-errors';
 		
+						//# sourceMappingURL=shouldnt affect the file
+
 						// node: prefix
 						import 'node:fs';
 
@@ -453,9 +456,11 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						...files,
 						'package.json': JSON.stringify({ type: packageType }),
 
-						'import-from-ts.ts': `
+						'import-from-ts.ts': outdent`
 						import assert from 'assert';
 						import { expectErrors } from './expect-errors';
+
+						//# sourceMappingURL=shouldnt affect the file
 
 						// node: prefix
 						import 'node:fs';
