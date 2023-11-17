@@ -86,6 +86,13 @@ cli({
 		 */
 		if (!message) {
 			childProcess.kill(signal);
+			/**
+			 * if the child process is stuck in a loop, SIGINT
+			 * and SIGTERM have no effect on it, therefore we send
+			 * a SIGKILL if the childProcess.on('close') handler
+			 * defined below is not called within 10ms.
+			 */
+			setTimeout(() => childProcess.kill('SIGKILL'), 10);
 		}
 	};
 
