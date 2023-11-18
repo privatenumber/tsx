@@ -1,6 +1,6 @@
 import { cli } from 'cleye';
-import { transformSync } from '@esbuild-kit/core-utils';
 import { version } from '../package.json';
+import { transformSync } from './utils/transform';
 import { run } from './run';
 import { watchCommand } from './watch';
 import {
@@ -37,11 +37,6 @@ cli({
 			alias: 'h',
 			description: 'Show help',
 		},
-		eval: {
-			type: String,
-			alias: 'e',
-			description: 'Evaluate code inside the eval flag',
-		},
 	},
 	help: false,
 	ignoreArgv: ignoreAfterArgument(),
@@ -55,27 +50,71 @@ cli({
 		console.log(`${'-'.repeat(45)}\n`);
 	}
 
-	const argvsToRun = removeArgvFlags(tsxFlags);
+	const interceptFlags = {
+		eval: {
+			type: String,
+			alias: 'e',
+		},
+		print: {
+			type: String,
+			alias: 'p',
+		},
+	};
 
-	if (argv.flags.eval) {
+	const { flags: interceptedFlags } = cli({
+		flags: {
+			...interceptFlags,
+			inputType: {
+				type: String,
+				default: 'commonjs'
+			},
+		},
+		help: false,
+		ignoreArgv: ignoreAfterArgument(),
+	});
+
+	const argvsToRun = removeArgvFlags({
+		...tsxFlags,
+		...interceptFlags,
+	});
+
+	const { inputType } = interceptedFlags;
+	if (interceptedFlags.eval) {
 		const transformed = transformSync(
-			argv.flags.eval,
-			'/tmp/tsx_temporarily_stored_cache_file_for_the_code.ts',
+			interceptedFlags.eval,
+			'/eval.ts',
 			{
-				loader: 'ts',
+				format: inputType === 'module' ? 'esm' : 'cjs',
 				tsconfigRaw: {
 					compilerOptions: {
 						preserveValueImports: true,
 					},
 				},
-				define: {
-					require: 'global.require',
+				banner: '',
+				footer: '',
+			},
+		);
+
+		argvsToRun.push('--eval', transformed.code);
+	}
+
+	if (interceptedFlags.print) {
+		const transformed = transformSync(
+			interceptedFlags.print,
+			'/eval.ts',
+			{
+				format: inputType === 'module' ? 'esm' : 'cjs',
+				tsconfigRaw: {
+					compilerOptions: {
+						preserveValueImports: true,
+					},
 				},
 				banner: '',
 				footer: '',
 			},
 		);
-		argvsToRun[1] = transformed.code;
+
+		argvsToRun.push('--print', transformed.code);
 	}
 
 	const childProcess = run(

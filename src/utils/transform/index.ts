@@ -24,6 +24,7 @@ export function transformSync(
 	const define: { [key: string]: string } = {};
 
 	if (!(filePath.endsWith('.cjs') || filePath.endsWith('.cts'))) {
+		// TODO: test this
 		define['import.meta.url'] = `'${pathToFileURL(filePath)}'`;
 	}
 
