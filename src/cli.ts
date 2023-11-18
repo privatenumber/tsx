@@ -85,11 +85,6 @@ cli({
 			'/eval.ts',
 			{
 				format: inputType === 'module' ? 'esm' : 'cjs',
-				tsconfigRaw: {
-					compilerOptions: {
-						preserveValueImports: true,
-					},
-				},
 				banner: '',
 				footer: '',
 			},
@@ -104,11 +99,6 @@ cli({
 			'/eval.ts',
 			{
 				format: inputType === 'module' ? 'esm' : 'cjs',
-				tsconfigRaw: {
-					compilerOptions: {
-						preserveValueImports: true,
-					},
-				},
 				banner: '',
 				footer: '',
 			},
