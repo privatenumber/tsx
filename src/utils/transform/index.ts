@@ -13,7 +13,10 @@ import {
 	applyTransformers,
 	type Transformed,
 } from './apply-transformers';
-import { getEsbuildOptions } from './get-esbuild-options';
+import {
+	cacheConfig,
+	patchOptions,
+} from './get-esbuild-options';
 
 // Used by cjs-loader
 export function transformSync(
@@ -28,14 +31,15 @@ export function transformSync(
 		define['import.meta.url'] = `'${pathToFileURL(filePath)}'`;
 	}
 
-	const esbuildOptions = getEsbuildOptions({
+	const esbuildOptions = {
+		...cacheConfig,
 		format: 'cjs',
 		sourcefile: filePath,
 		define,
 		banner: '(()=>{',
 		footer: '})()',
 		...extendOptions,
-	});
+	} as const;
 
 	const hash = sha1([
 		code,
@@ -51,16 +55,11 @@ export function transformSync(
 			code,
 			[
 				// eslint-disable-next-line @typescript-eslint/no-shadow
-				(filePath, code) => {
-					// eslint-disable-next-line @typescript-eslint/no-shadow
-					const transformed = esbuildTransformSync(code, esbuildOptions);
-					if (esbuildOptions.sourcefile !== filePath) {
-						transformed.map = transformed.map.replace(
-							JSON.stringify(esbuildOptions.sourcefile),
-							JSON.stringify(filePath),
-						);
-					}
-					return transformed;
+				(_filePath, code) => {
+					const patchResults = patchOptions(esbuildOptions);
+					return patchResults(
+						esbuildTransformSync(code, esbuildOptions),
+					);
 				},
 				transformDynamicImport,
 			] as const,
@@ -85,11 +84,12 @@ export async function transform(
 	filePath: string,
 	extendOptions?: TransformOptions,
 ): Promise<Transformed> {
-	const esbuildOptions = getEsbuildOptions({
+	const esbuildOptions = {
+		...cacheConfig,
 		format: 'esm',
 		sourcefile: filePath,
 		...extendOptions,
-	});
+	} as const;
 
 	const hash = sha1([
 		code,
@@ -105,16 +105,11 @@ export async function transform(
 			code,
 			[
 				// eslint-disable-next-line @typescript-eslint/no-shadow
-				async (filePath, code) => {
-					// eslint-disable-next-line @typescript-eslint/no-shadow
-					const transformed = await esbuildTransform(code, esbuildOptions);
-					if (esbuildOptions.sourcefile !== filePath) {
-						transformed.map = transformed.map.replace(
-							JSON.stringify(esbuildOptions.sourcefile),
-							JSON.stringify(filePath),
-						);
-					}
-					return transformed;
+				async (_filePath, code) => {
+					const patchResults = patchOptions(esbuildOptions);
+					return patchResults(
+						await esbuildTransform(code, esbuildOptions),
+					);
 				},
 				transformDynamicImport,
 			] as const,

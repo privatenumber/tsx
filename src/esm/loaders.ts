@@ -8,7 +8,7 @@ import type { TransformOptions } from 'esbuild';
 import { transform } from '../utils/transform';
 import { transformDynamicImport } from '../utils/transform/transform-dynamic-import';
 import { resolveTsPath } from '../utils/resolve-ts-path';
-import { installSourceMapSupport, shouldStripSourceMap, stripSourceMap } from '../source-map';
+import { installSourceMapSupport } from '../source-map';
 import { importAttributes } from '../utils/node-features';
 import {
 	tsconfigPathsMatcher,
@@ -281,12 +281,7 @@ export const load: LoadHook = async function (
 	}
 
 	const filePath = url.startsWith('file://') ? fileURLToPath(url) : url;
-	let code = loaded.source.toString();
-
-	// Strip source maps if originally disabled
-	if (shouldStripSourceMap) {
-		code = stripSourceMap(code);
-	}
+	const code = loaded.source.toString();
 
 	if (
 		// Support named imports in JSON modules
