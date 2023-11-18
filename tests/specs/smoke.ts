@@ -338,6 +338,10 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 		
 						//# sourceMappingURL=shouldnt affect the file
 
+						// const shouldntAffectFile = \`
+						// //# sourceMappingURL=\`;
+						//# sourceMappingURL=shouldnt affect the file
+
 						// node: prefix
 						import 'node:fs';
 
@@ -462,6 +466,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						import assert from 'assert';
 						import { expectErrors } from './expect-errors';
 
+						// const shouldntAffectFile = \`
+						// //# sourceMappingURL=\`;
 						//# sourceMappingURL=shouldnt affect the file
 
 						// node: prefix
