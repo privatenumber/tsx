@@ -123,7 +123,7 @@ export default testSuite(({ describe }) => {
 				if (typeof map !== 'string') {
 					expect(map.sources.length).toBe(1);
 					expect(map.sources[0]).toBe(fileName);
-					expect(map.names).toStrictEqual(['named']);	
+					expect(map.names).toStrictEqual(['named']);
 				}
 			});
 		});
