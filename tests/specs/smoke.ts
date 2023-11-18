@@ -81,7 +81,7 @@ export default 1;
 const sourcemap = {
 	test: (
 		extension: string,
-	) => `const { stack } = new Error(); const searchString = '/index.${extension}:SOURCEMAP_LINE'; assert(stack.includes(searchString), \`Expected \${searchString} in stack: \${stack}\`)`,
+	) => `const { stack } = new Error(); const searchString = 'index.${extension}:SOURCEMAP_LINE'; assert(stack.includes(searchString), \`Expected \${searchString} in stack: \${stack}\`)`,
 	tag: (
 		strings: TemplateStringsArray,
 		...values: string[]
