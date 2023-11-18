@@ -8,7 +8,7 @@ import {
 	createFilesMatcher,
 } from 'get-tsconfig';
 import type { TransformOptions } from 'esbuild';
-import { installSourceMapSupport, shouldStripSourceMap, stripSourceMap } from '../source-map';
+import { installSourceMapSupport } from '../source-map';
 import { transformSync } from '../utils/transform';
 import { transformDynamicImport } from '../utils/transform/transform-dynamic-import';
 import { resolveTsPath } from '../utils/resolve-ts-path';
@@ -68,11 +68,6 @@ const transformer = (
 	}
 
 	let code = fs.readFileSync(filePath, 'utf8');
-
-	// Strip source maps if originally disabled
-	if (shouldStripSourceMap) {
-		code = stripSourceMap(code);
-	}
 
 	if (filePath.endsWith('.cjs')) {
 		// Contains native ESM check
