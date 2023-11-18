@@ -79,7 +79,9 @@ export default 1;
 `;
 
 const sourcemap = {
-	test: 'const { stack } = new Error(); assert(stack.includes(\':SOURCEMAP_LINE\'), \'Expected SOURCEMAP_LINE in stack:\' + stack)',
+	test: (
+		extension: string,
+	) => `const { stack } = new Error(); const searchString = '/index.${extension}:SOURCEMAP_LINE'; assert(stack.includes(searchString), \`Expected \${searchString} in stack: \${stack}\`)`,
 	tag: (
 		strings: TemplateStringsArray,
 		...values: string[]
@@ -104,7 +106,7 @@ const files = {
 	const assert = require('node:assert');
 	assert(${cjsContextCheck}, 'Should have CJS context');
 	${preserveName}
-	${sourcemap.test}
+	${sourcemap.test('cjs')}
 	exports.named = 'named';
 	`,
 
@@ -143,7 +145,7 @@ const files = {
 	const bar = <T>(value: T) => fn<T>();
 
 	${preserveName}
-	${sourcemap.test}
+	${sourcemap.test('ts')}
 	export const cjsContext = ${cjsContextCheck};
 	${tsCheck};
 	`,
@@ -156,7 +158,7 @@ const files = {
 	${declareReact}
 	export const jsx = ${jsxCheck};
 	${preserveName}
-	${sourcemap.test}
+	${sourcemap.test('jsx')}
 	`,
 
 	'tsx/index.tsx': sourcemap.tag`
@@ -166,7 +168,7 @@ const files = {
 	${declareReact}
 	export const jsx = ${jsxCheck};
 	${preserveName}
-	${sourcemap.test}
+	${sourcemap.test('tsx')}
 	`,
 
 	'mts/index.mts': sourcemap.tag`
@@ -174,7 +176,7 @@ const files = {
 	export const mjsHasCjsContext = ${cjsContextCheck};
 	${tsCheck};
 	${preserveName}
-	${sourcemap.test}
+	${sourcemap.test('mts')}
 	`,
 
 	'cts/index.cts': sourcemap.tag`
@@ -182,7 +184,7 @@ const files = {
 	assert(${cjsContextCheck}, 'Should have CJS context');
 	${tsCheck};
 	${preserveName}
-	${sourcemap.test}
+	${sourcemap.test('cts')}
 	`,
 
 	'expect-errors.js': `
