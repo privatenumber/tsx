@@ -57,6 +57,7 @@ export default testSuite(async ({ describe }) => {
 				[
 					async (data) => {
 						if (data.includes('hello world\n')) {
+							await setTimeout(1000);
 							fixtureWatch.writeFile('value.js', 'export const value = \'goodbye world\';');
 							return true;
 						}
