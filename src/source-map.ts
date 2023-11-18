@@ -10,26 +10,7 @@ type PortMessage = {
 	map: RawSourceMap;
 };
 
-// If Node.js has source map disabled, we should strip source maps to speed up processing
-export const shouldStripSourceMap = (
-	('sourceMapsEnabled' in process)
-	&& process.sourceMapsEnabled === false
-);
-
-const sourceMapPrefix = '\n//# sourceMappingURL=';
-
-export const stripSourceMap = (code: string) => {
-	const sourceMapIndex = code.indexOf(sourceMapPrefix);
-	if (sourceMapIndex === -1) {
-		return code;
-	}
-
-	const nextNewLine = code.indexOf('\n', sourceMapIndex + sourceMapPrefix.length);
-	const afterSourceMap = nextNewLine === -1 ? '' : code.slice(nextNewLine);
-	return code.slice(0, sourceMapIndex) + afterSourceMap;
-};
-
-const inlineSourceMapPrefix = `${sourceMapPrefix}data:application/json;base64,`;
+const inlineSourceMapPrefix = '\n//# sourceMappingURL=data:application/json;base64,';
 
 export const installSourceMapSupport = (
 	/**
