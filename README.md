@@ -236,6 +236,30 @@ argv: [ 'hello' ]
 	</a>
 </p>
 
+### VS Code Debugging
+You can setup debugging in VS Code by adding the --inspect flag to the tsx command
+```sh
+$ tsx --inspect ./file.ts
+```
+
+To be able to attach the debugger to the port that the --inspect argument opens, add the following to your .vscode/launch.json file ([more info](https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_attaching-to-nodejs))
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach to Process",
+      "type": "node",
+      "request": "attach",
+      "port": 9229
+    }
+  ]
+}
+```
+
+You can now start debugging by clicking F5 (or Run -> Start Debugging), and selecting the "Attach to Process"-option.
+
 ## Support
 
 If there's a problem you're encountering or something you need help with, don't hesitate to take advantage of my [_Priority Support_ service](https://github.com/sponsors/privatenumber) where you can ask me questions in an exclusive forum. I'm well equppied to assist you with this project and would be happy to help you out! 🙂
