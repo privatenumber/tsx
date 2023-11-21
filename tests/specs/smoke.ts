@@ -418,6 +418,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						);
 
 						console.log(JSON.stringify({
+							'import.meta.url': import.meta.url,
 							js,
 							json,
 							cjs,
@@ -439,6 +440,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						console.log(p);
 					});
 					expect(p.failed).toBe(false);
+					expect(p.stdout).toMatch(`"import.meta.url":"file://${path.join(fixture.path, 'import-from-js.js')}"`);
 					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
 					expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
 					expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
@@ -599,6 +601,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						);
 
 						console.log(JSON.stringify({
+							'import.meta.url': import.meta.url,
 							js,
 							json,
 							jsx,
@@ -620,6 +623,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 							console.log(p);
 						});
 						expect(p.failed).toBe(false);
+						expect(p.stdout).toMatch(`"import.meta.url":"file://${path.join(fixture.path, 'import-from-ts.ts')}"`);
 						expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
 						expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
 						expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
