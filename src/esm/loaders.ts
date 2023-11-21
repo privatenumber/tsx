@@ -5,11 +5,11 @@ import type {
 	ResolveFnOutput, ResolveHookContext, LoadHook, GlobalPreloadHook, InitializeHook,
 } from 'module';
 import type { TransformOptions } from 'esbuild';
-import { transform } from '../utils/transform';
-import { transformDynamicImport } from '../utils/transform/transform-dynamic-import';
-import { resolveTsPath } from '../utils/resolve-ts-path';
-import { installSourceMapSupport } from '../source-map';
-import { importAttributes } from '../utils/node-features';
+import { transform } from '../utils/transform/index.js';
+import { transformDynamicImport } from '../utils/transform/transform-dynamic-import.js';
+import { resolveTsPath } from '../utils/resolve-ts-path.js';
+import { installSourceMapSupport } from '../source-map.js';
+import { importAttributes } from '../utils/node-features.js';
 import {
 	tsconfigPathsMatcher,
 	fileMatcher,

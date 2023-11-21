@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
-import type { RawSourceMap } from '../../source-map';
-import { parseEsm } from '../es-module-lexer';
+import type { RawSourceMap } from '../../source-map.js';
+import { parseEsm } from '../es-module-lexer.js';
 
 export const version = '1';
 

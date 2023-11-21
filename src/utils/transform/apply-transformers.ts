@@ -1,6 +1,6 @@
 import remapping from '@ampproject/remapping';
 import type { SourceMapInput } from '@ampproject/remapping';
-import type { RawSourceMap } from '../../source-map';
+import type { RawSourceMap } from '../../source-map.js';
 
 type SourceMap = SourceMapInput | RawSourceMap;
 

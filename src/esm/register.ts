@@ -1,6 +1,6 @@
 import module from 'node:module';
 import { MessageChannel } from 'node:worker_threads';
-import { installSourceMapSupport } from '../source-map';
+import { installSourceMapSupport } from '../source-map.js';
 
 export const registerLoader = () => {
 	const { port1, port2 } = new MessageChannel();

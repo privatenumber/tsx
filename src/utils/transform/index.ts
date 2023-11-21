@@ -5,18 +5,18 @@ import {
 	transformSync as esbuildTransformSync,
 	version as esbuildVersion,
 } from 'esbuild';
-import { sha1 } from '../sha1';
-import { version as transformDynamicImportVersion, transformDynamicImport } from './transform-dynamic-import';
-import cache from './cache';
+import { sha1 } from '../sha1.js';
+import { version as transformDynamicImportVersion, transformDynamicImport } from './transform-dynamic-import.js';
+import cache from './cache.js';
 import {
 	applyTransformersSync,
 	applyTransformers,
 	type Transformed,
-} from './apply-transformers';
+} from './apply-transformers.js';
 import {
 	cacheConfig,
 	patchOptions,
-} from './get-esbuild-options';
+} from './get-esbuild-options.js';
 
 // Used by cjs-loader
 export function transformSync(

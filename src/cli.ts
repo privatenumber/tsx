@@ -3,12 +3,12 @@ import {
 	transformSync as esbuildTransformSync,
 } from 'esbuild';
 import { version } from '../package.json';
-import { run } from './run';
-import { watchCommand } from './watch';
+import { run } from './run.js';
+import { watchCommand } from './watch/index.js';
 import {
 	removeArgvFlags,
 	ignoreAfterArgument,
-} from './remove-argv-flags';
+} from './remove-argv-flags.js';
 
 const tsxFlags = {
 	noCache: {

@@ -3,7 +3,7 @@ import { pathToFileURL } from 'url';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import outdent from 'outdent';
-import type { NodeApis } from '../utils/tsx';
+import type { NodeApis } from '../utils/tsx.js';
 
 const cjsContextCheck = 'typeof module !== \'undefined\'';
 const tsCheck = '1 as number';

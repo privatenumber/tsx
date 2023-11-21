@@ -1,4 +1,4 @@
-import { parseEsm } from './es-module-lexer';
+import { parseEsm } from './es-module-lexer.js';
 
 /*
 Previously, this regex was used as a naive ESM catch,

@@ -4,16 +4,16 @@ import { constants as osConstants } from 'os';
 import path from 'path';
 import { command } from 'cleye';
 import { watch } from 'chokidar';
-import { run } from '../run';
+import { run } from '../run.js';
 import {
 	removeArgvFlags,
 	ignoreAfterArgument,
-} from '../remove-argv-flags';
+} from '../remove-argv-flags.js';
 import {
 	clearScreen,
 	debounce,
 	log,
-} from './utils';
+} from './utils.js';
 
 const killProcess = async (
 	childProcess: ChildProcess,

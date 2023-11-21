@@ -2,9 +2,9 @@ import path from 'path';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import packageJson from '../../package.json';
-import { tsx, tsxPath } from '../utils/tsx';
-import { ptyShell, isWindows } from '../utils/pty-shell';
-import { expectMatchInOrder } from '../utils/expect-match-in-order';
+import { tsx, tsxPath } from '../utils/tsx.js';
+import { ptyShell, isWindows } from '../utils/pty-shell/index';
+import { expectMatchInOrder } from '../utils/expect-match-in-order.js';
 
 export default testSuite(({ describe }) => {
 	describe('CLI', ({ describe, test }) => {

@@ -1,6 +1,6 @@
 import { testSuite } from 'manten';
 import { tsx } from '../utils/tsx';
-import { processInteract } from '../utils/process-interact';
+import { processInteract } from '../utils/process-interact.js';
 
 export default testSuite(async ({ describe }) => {
 	describe('REPL', ({ test }) => {

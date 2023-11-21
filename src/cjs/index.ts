@@ -8,11 +8,11 @@ import {
 	createFilesMatcher,
 } from 'get-tsconfig';
 import type { TransformOptions } from 'esbuild';
-import { installSourceMapSupport } from '../source-map';
-import { transformSync } from '../utils/transform';
-import { transformDynamicImport } from '../utils/transform/transform-dynamic-import';
-import { resolveTsPath } from '../utils/resolve-ts-path';
-import { isESM } from '../utils/esm-pattern';
+import { installSourceMapSupport } from '../source-map.js';
+import { transformSync } from '../utils/transform/index.js';
+import { transformDynamicImport } from '../utils/transform/transform-dynamic-import.js';
+import { resolveTsPath } from '../utils/resolve-ts-path.js';
+import { isESM } from '../utils/esm-pattern.js';
 
 const isRelativePathPattern = /^\.{1,2}\//;
 const isTsFilePatten = /\.[cm]?tsx?$/;
