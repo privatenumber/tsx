@@ -69,6 +69,40 @@ export default testSuite(({ describe }) => {
 			});
 		});
 
+		describe('eval & print', ({ test }) => {
+			test('TypeScript', async () => {
+				const tsxProcess = await tsx({
+					args: ['--eval', 'console.log(require("fs") && module as string)'],
+				});
+
+				expect(tsxProcess.exitCode).toBe(0);
+				expect(tsxProcess.stdout).toMatch("id: '[eval]'");
+				expect(tsxProcess.stderr).toBe('');
+			});
+
+			test('--input-type=module is respected', async () => {
+				const tsxProcess = await tsx({
+					args: ['--eval', 'console.log(JSON.stringify([typeof require, import.meta.url]))', '--input-type=module'],
+				});
+
+				expect(tsxProcess.exitCode).toBe(0);
+				const [requireDefined, importMetaUrl] = JSON.parse(tsxProcess.stdout);
+				expect(requireDefined).toBe('undefined');
+				expect(importMetaUrl.endsWith('/[eval1]')).toBeTruthy();
+				expect(tsxProcess.stderr).toBe('');
+			});
+
+			test('--print', async () => {
+				const tsxProcess = await tsx({
+					args: ['--print', 'require("fs") && module as string'],
+				});
+
+				expect(tsxProcess.exitCode).toBe(0);
+				expect(tsxProcess.stdout).toMatch("id: '[eval]'");
+				expect(tsxProcess.stderr).toBe('');
+			});
+		});
+
 		test('Node.js test runner', async ({ onTestFinish }) => {
 			const fixture = await createFixture({
 				'test.ts': `
