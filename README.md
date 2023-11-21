@@ -27,23 +27,25 @@
 </p>
 
 ## About
-`tsx` is a CLI command (alternative to `node`) for seamlessly running TypeScript & ESM, in both `commonjs` & `module` package types.
+`tsx` is a CLI command (alternative to `node`) for seamlessly running TypeScript & ESM in both `commonjs` & `module` package types.
 
-It's powered by [esbuild](https://esbuild.github.io/) so it's insanely fast.
+This is for you if you ever wanted:
+- A command that can _just run_ TypeScript code without dealing with configuration
+- Better interoperability in codebases that use ESM and CJS dependencies
+- Something really fast it's unnoticeable!
 
-Want to just run TypeScript code? Try tsx:
+### Quick start
+Try tsx now without setup! Just pass in a TypeScript file:
 
 ```sh
 npx tsx ./script.ts
 ```
 
-How does it compare to [ts-node](https://github.com/TypeStrong/ts-node)? Checkout the [comparison](https://github.com/privatenumber/ts-runtime-comparison).
-
 ### Mission
-tsx strives to:
-1. Enhance Node.js with TypeScript compatibility
-2. Improve ESM <-> CJS interoperability
+1. Enhance Node.js with TypeScript support
+2. Improve ESM <-> CJS interoperability as the ecosystem migrates to ESM
 3. Support the [LTS versions of Node.js](https://endoflife.date/nodejs)
+
 
 ## Install
 
@@ -53,7 +55,7 @@ If you're using it in an npm project, install it as a development dependency:
 npm install --save-dev tsx
 ```
 
-You can reference it directly in the `package.json#scripts` object:
+Then you can reference it directly in the `package.json#scripts` object (you don't need npx here):
 ```json5
 {
     "scripts": {
@@ -84,8 +86,14 @@ tsx ...
 
 ## Usage
 
-`tsx` is designed to be a drop-in replacement for `node`, so you can use it just the way you would use Node.js. All command-line arguments (with the exception of a few) are propagated to Node.js.
+### tsx is a Node.js wrapper
 
+_tsx_ wraps around Node.js to enhance it with TypeScript support. Because it's a drop-in replacement for `node`, it supports all [Node.js command-line flags](https://nodejs.org/docs/latest-v20.x/api/cli.html).
+
+```sh
+# --no-warnings is a Node.js flag
+tsx --no-warnings ./file.ts
+```
 
 ### Run TypeScript / ESM / CJS module
 
