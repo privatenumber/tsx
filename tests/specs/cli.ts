@@ -69,7 +69,7 @@ export default testSuite(({ describe }) => {
 			});
 		});
 
-		describe('eval', ({ test }) => {
+		describe('eval & print', ({ test }) => {
 			test('TypeScript', async () => {
 				const tsxProcess = await tsx({
 					args: ['--eval', 'console.log(require("fs") && module as string)'],
@@ -80,28 +80,19 @@ export default testSuite(({ describe }) => {
 				expect(tsxProcess.stderr).toBe('');
 			});
 
-			test('--input-type=module', async () => {
+			test('--input-type=module is respected', async () => {
 				const tsxProcess = await tsx({
-					args: ['--eval', 'console.log(import.meta.url)', '--input-type=module'],
+					args: ['--eval', 'console.log(JSON.stringify([typeof require, import.meta.url]))', '--input-type=module'],
 				});
 
 				expect(tsxProcess.exitCode).toBe(0);
-				expect(tsxProcess.stdout).toBe('file:///eval.ts');
+				const [requireDefined, importMetaUrl] = JSON.parse(tsxProcess.stdout);
+				expect(requireDefined).toBe('undefined');
+				expect(importMetaUrl.endsWith('/[eval1]')).toBeTruthy();
 				expect(tsxProcess.stderr).toBe('');
 			});
 
-			test('fails to access __dirname with --input-type=module', async () => {
-				const tsxProcess = await tsx({
-					args: ['--eval', 'console.log(__dirname)', '--input-type=module'],
-				});
-
-				expect(tsxProcess.exitCode).toBe(1);
-				expect(tsxProcess.stderr).toMatch('ReferenceError: __dirname is not defined in ES module scope');
-			});
-		});
-
-		describe('print', ({ test }) => {
-			test('TypeScript', async () => {
+			test('--print', async () => {
 				const tsxProcess = await tsx({
 					args: ['--print', 'require("fs") && module as string'],
 				});

@@ -1,6 +1,8 @@
 import { cli } from 'cleye';
+import {
+	transformSync as esbuildTransformSync,
+} from 'esbuild';
 import { version } from '../package.json';
-import { transformSync } from './utils/transform';
 import { run } from './run';
 import { watchCommand } from './watch';
 import {
@@ -64,10 +66,7 @@ cli({
 	const { flags: interceptedFlags } = cli({
 		flags: {
 			...interceptFlags,
-			inputType: {
-				type: String,
-				default: 'commonjs'
-			},
+			inputType: String,
 		},
 		help: false,
 		ignoreArgv: ignoreAfterArgument(),
@@ -78,33 +77,21 @@ cli({
 		...interceptFlags,
 	});
 
-	const { inputType } = interceptedFlags;
-	if (interceptedFlags.eval) {
-		const transformed = transformSync(
-			interceptedFlags.eval,
-			'/eval.ts',
+	const evalTypes = ['print', 'eval'] as const;
+	const evalType = evalTypes.find(type => Boolean(interceptedFlags[type]));
+	if (evalType) {
+		const { inputType } = interceptedFlags;
+		const evalCode = interceptedFlags[evalType]!;
+		const transformed = esbuildTransformSync(
+			evalCode,
 			{
+				loader: 'default',
+				sourcefile: '/eval.ts',
 				format: inputType === 'module' ? 'esm' : 'cjs',
-				banner: '',
-				footer: '',
 			},
 		);
 
-		argvsToRun.push('--eval', transformed.code);
-	}
-
-	if (interceptedFlags.print) {
-		const transformed = transformSync(
-			interceptedFlags.print,
-			'/eval.ts',
-			{
-				format: inputType === 'module' ? 'esm' : 'cjs',
-				banner: '',
-				footer: '',
-			},
-		);
-
-		argvsToRun.push('--print', transformed.code);
+		argvsToRun.push(`--${evalType}`, transformed.code);
 	}
 
 	const childProcess = run(
