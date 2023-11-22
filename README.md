@@ -235,9 +235,11 @@ Create the following configuration file in your project to setup debugging in VS
 {
     "version": "0.2.0",
 
-    // Each config in this array will show up as an option in the debug drop-down
     "configurations": [
-        // See below for configurations to add...
+		/*
+        Each config in this array is an option in the debug drop-down
+        See below for configurations to add...
+		*/
     ],
 }
 ```
