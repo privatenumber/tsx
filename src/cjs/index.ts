@@ -73,7 +73,7 @@ const transformer = (
 		// Contains native ESM check
 		const transformed = transformDynamicImport(filePath, code);
 		if (transformed) {
-			code = applySourceMap(transformed, filePath);
+			code = applySourceMap(transformed);
 		}
 	} else if (
 		transformTs
@@ -89,7 +89,7 @@ const transformer = (
 			},
 		);
 
-		code = applySourceMap(transformed, filePath);
+		code = applySourceMap(transformed);
 	}
 
 	module._compile(code, filePath);
