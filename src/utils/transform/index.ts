@@ -1,12 +1,16 @@
 import { pathToFileURL } from 'url';
-import type { TransformOptions } from 'esbuild';
 import {
 	transform as esbuildTransform,
 	transformSync as esbuildTransformSync,
 	version as esbuildVersion,
+	type TransformOptions,
+	type TransformFailure,
 } from 'esbuild';
 import { sha1 } from '../sha1.js';
-import { version as transformDynamicImportVersion, transformDynamicImport } from './transform-dynamic-import.js';
+import {
+	version as transformDynamicImportVersion,
+	transformDynamicImport,
+} from './transform-dynamic-import.js';
 import cache from './cache.js';
 import {
 	applyTransformersSync,
@@ -17,6 +21,21 @@ import {
 	cacheConfig,
 	patchOptions,
 } from './get-esbuild-options.js';
+
+const handleEsbuildError = (
+	error: TransformFailure,
+) => {
+	const [firstError] = error.errors;
+	let errorMessage = `[esbuild Error]: ${firstError.text}`;
+
+	if (firstError.location) {
+		const { file, line, column } = firstError.location;
+		errorMessage += `\n    at ${file}:${line}:${column}`;
+	}
+
+	console.error(errorMessage);
+	process.exit(1);
+};
 
 // Used by cjs-loader
 export function transformSync(
@@ -56,22 +75,24 @@ export function transformSync(
 				// eslint-disable-next-line @typescript-eslint/no-shadow
 				(_filePath, code) => {
 					const patchResults = patchOptions(esbuildOptions);
-					return patchResults(
-						esbuildTransformSync(code, esbuildOptions),
-					);
+					try {
+						return patchResults(
+							esbuildTransformSync(code, esbuildOptions),
+						);
+					} catch (error) {
+						handleEsbuildError(error as TransformFailure);
+
+						/**
+						 * esbuild warnings are ignored because they're usually caught
+						 * at runtime by Node.js with better errors + stack traces
+						 */
+					}
 				},
 				transformDynamicImport,
 			],
 		);
 
 		cache.set(hash, transformed);
-	}
-
-	if (transformed.warnings && transformed.warnings.length > 0) {
-		const { warnings } = transformed;
-		for (const warning of warnings) {
-			console.error(warning);
-		}
 	}
 
 	return transformed;
@@ -106,22 +127,24 @@ export async function transform(
 				// eslint-disable-next-line @typescript-eslint/no-shadow
 				async (_filePath, code) => {
 					const patchResults = patchOptions(esbuildOptions);
-					return patchResults(
-						await esbuildTransform(code, esbuildOptions),
-					);
+					try {
+						return patchResults(
+							await esbuildTransform(code, esbuildOptions),
+						);
+					} catch (error) {
+						handleEsbuildError(error as TransformFailure);
+
+						/**
+						 * esbuild warnings are ignored because they're usually caught
+						 * at runtime by Node.js with better errors + stack traces
+						 */
+					}
 				},
 				transformDynamicImport,
 			],
 		);
 
 		cache.set(hash, transformed);
-	}
-
-	if (transformed.warnings && transformed.warnings.length > 0) {
-		const { warnings } = transformed;
-		for (const warning of warnings) {
-			console.error(warning);
-		}
 	}
 
 	return transformed;

@@ -1,5 +1,5 @@
 import repl, { type REPLServer, type REPLEval } from 'repl';
-import { transform } from './utils/transform/index.js';
+import { transform } from 'esbuild';
 
 function patchEval(nodeRepl: REPLServer) {
 	const { eval: defaultEval } = nodeRepl;
@@ -7,8 +7,8 @@ function patchEval(nodeRepl: REPLServer) {
 		try {
 			const transformed = await transform(
 				code,
-				filename,
 				{
+					sourcefile: filename,
 					loader: 'ts',
 					tsconfigRaw: {
 						compilerOptions: {

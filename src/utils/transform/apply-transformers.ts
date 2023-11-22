@@ -8,7 +8,6 @@ type MaybePromise<T> = T | Promise<T>;
 type TransformerResult = {
 	code: string;
 	map: SourceMap;
-	warnings?: unknown[];
 } | undefined;
 
 type Transformer<
@@ -21,7 +20,6 @@ type Transformer<
 export type Transformed = {
 	code: string;
 	map: SourceMap;
-	warnings?: unknown[];
 };
 
 export const applyTransformersSync = (
@@ -30,7 +28,6 @@ export const applyTransformersSync = (
 	transformers: Transformer<TransformerResult>[],
 ): Transformed => {
 	const maps: SourceMap[] = [];
-	const warnings: unknown[] = [];
 	const result = { code };
 
 	for (const transformer of transformers) {
@@ -39,17 +36,12 @@ export const applyTransformersSync = (
 		if (transformed) {
 			Object.assign(result, transformed);
 			maps.unshift(transformed.map);
-
-			if (transformed.warnings) {
-				warnings.push(...transformed.warnings);
-			}
 		}
 	}
 
 	return {
 		...result,
 		map: remapping(maps as SourceMapInput[], () => null),
-		warnings,
 	};
 };
 
@@ -59,7 +51,6 @@ export const applyTransformers = async (
 	transformers: Transformer<MaybePromise<TransformerResult>>[],
 ): Promise<Transformed> => {
 	const maps: SourceMap[] = [];
-	const warnings: unknown[] = [];
 	const result = { code };
 
 	for (const transformer of transformers) {
@@ -68,16 +59,11 @@ export const applyTransformers = async (
 		if (transformed) {
 			Object.assign(result, transformed);
 			maps.unshift(transformed.map);
-
-			if (transformed.warnings) {
-				warnings.push(...transformed.warnings);
-			}
 		}
 	}
 
 	return {
 		...result,
 		map: remapping(maps as SourceMapInput[], () => null),
-		warnings,
 	};
 };
