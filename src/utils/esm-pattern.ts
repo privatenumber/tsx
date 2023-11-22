@@ -26,7 +26,10 @@ export const isESM = (code: string) => {
 			const [imports, exports] = parseEsm(code);
 			return imports.length > 0 || exports.length > 0;
 		} catch {
-			// If it fails to parse, there's a syntax error. Let esbuild handle it
+			/**
+			 * If it fails to parse, there's a syntax error
+			 * Let esbuild handle it for better error messages
+			 */
 			return true;
 		}
 	}
