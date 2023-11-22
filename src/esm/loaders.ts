@@ -1,4 +1,3 @@
-import type { MessagePort } from 'node:worker_threads';
 import path from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
 import type {
@@ -37,8 +36,6 @@ type resolve = (
 	recursiveCall?: boolean,
 ) => MaybePromise<ResolveFnOutput>;
 
-let mainThreadPort: MessagePort | undefined;
-
 type SendToParent = (data: {
 	type: 'dependency';
 	path: string;
@@ -52,7 +49,6 @@ export const initialize: InitializeHook = async (data) => {
 	}
 
 	const { port } = data;
-	mainThreadPort = port;
 	sendToParent = port.postMessage.bind(port);
 };
 
@@ -61,7 +57,6 @@ export const initialize: InitializeHook = async (data) => {
  * but it shares a closure with the new load hook
  */
 export const globalPreload: GlobalPreloadHook = ({ port }) => {
-	mainThreadPort = port;
 	sendToParent = port.postMessage.bind(port);
 
 	return `
@@ -298,18 +293,14 @@ export const load: LoadHook = async function (
 
 		return {
 			format: 'module',
-			source: applySourceMap(transformed, url, mainThreadPort),
+			source: applySourceMap(transformed),
 		};
 	}
 
 	if (loaded.format === 'module') {
 		const dynamicImportTransformed = transformDynamicImport(filePath, code);
 		if (dynamicImportTransformed) {
-			loaded.source = applySourceMap(
-				dynamicImportTransformed,
-				url,
-				mainThreadPort,
-			);
+			loaded.source = applySourceMap(dynamicImportTransformed);
 		}
 	}
 
