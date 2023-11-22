@@ -6,12 +6,6 @@ type SourceMap = SourceMapInput | RawSourceMap;
 
 type MaybePromise<T> = T | Promise<T>;
 
-type IntersectionArray<T extends unknown[]> = (
-	T extends [infer FirstElement, ...infer RestElements]
-		? FirstElement & IntersectionArray<RestElements>
-		: unknown
-);
-
 type TransformerResult = {
 	code: string;
 	map: SourceMap;
@@ -25,30 +19,16 @@ type Transformer<
 	code: string,
 ) => ReturnType;
 
-type Results<
-	Array_ extends Transformer<MaybePromise<TransformerResult>>[]
-> = {
-	[Key in keyof Array_]: (
-		Array_[Key] extends Transformer<infer ReturnType>
-			? Awaited<ReturnType>
-			: unknown
-	);
-};
-
-type AddSourceMap<T> = Omit<T, 'map'> & { map: RawSourceMap };
-
 export type Transformed = {
 	code: string;
 	map: RawSourceMap;
 	warnings?: unknown[];
 };
 
-export const applyTransformersSync = <
-	T extends Readonly<Transformer<TransformerResult>[]>,
->(
+export const applyTransformersSync = (
 	filePath: string,
 	code: string,
-	transformers: T,
+	transformers: Transformer<TransformerResult>[],
 ) => {
 	const maps: SourceMap[] = [];
 	const warnings: unknown[] = [];
@@ -69,17 +49,15 @@ export const applyTransformersSync = <
 
 	return {
 		...result,
-		map: remapping(maps as SourceMapInput[], () => null),
+		map: remapping(maps as SourceMapInput[], () => null) as unknown as RawSourceMap,
 		warnings,
-	} as unknown as AddSourceMap<IntersectionArray<Results<[...T]>>>;
+	};
 };
 
-export const applyTransformers = async <
-	T extends Readonly<Transformer<MaybePromise<TransformerResult>>[]>,
->(
+export const applyTransformers = async (
 	filePath: string,
 	code: string,
-	transformers: T,
+	transformers: Transformer<MaybePromise<TransformerResult>>[],
 ) => {
 	const maps: SourceMap[] = [];
 	const warnings: unknown[] = [];
@@ -100,7 +78,7 @@ export const applyTransformers = async <
 
 	return {
 		...result,
-		map: remapping(maps as SourceMapInput[], () => null),
+		map: remapping(maps as SourceMapInput[], () => null) as unknown as RawSourceMap,
 		warnings,
-	} as unknown as AddSourceMap<IntersectionArray<Results<[...T]>>>;
+	};
 };

@@ -61,7 +61,7 @@ export function transformSync(
 					);
 				},
 				transformDynamicImport,
-			] as const,
+			],
 		);
 
 		cache.set(hash, transformed);
@@ -111,7 +111,7 @@ export async function transform(
 					);
 				},
 				transformDynamicImport,
-			] as const,
+			],
 		);
 
 		cache.set(hash, transformed);
