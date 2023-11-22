@@ -1,5 +1,6 @@
 import path from 'path';
 import type { TransformOptions, TransformResult } from 'esbuild';
+import type { SourceMap } from './apply-transformers.js';
 
 export const baseConfig = Object.freeze({
 	target: `node${process.versions.node}`,
@@ -55,12 +56,17 @@ export const patchOptions = (
 	return (
 		result: TransformResult,
 	) => {
-		if (options.sourcefile !== originalSourcefile) {
-			result.map = result.map.replace(
-				JSON.stringify(options.sourcefile),
-				JSON.stringify(originalSourcefile),
-			);
+		if (result.map) {
+			if (options.sourcefile !== originalSourcefile) {
+				result.map = result.map.replace(
+					JSON.stringify(options.sourcefile),
+					JSON.stringify(originalSourcefile),
+				);
+			}
+
+			result.map = JSON.parse(result.map);
 		}
-		return result;
+
+		return result as TransformResult & { map: SourceMap };
 	};
 };

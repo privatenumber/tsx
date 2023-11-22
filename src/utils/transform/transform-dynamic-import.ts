@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
-import type { RawSourceMap } from '../../source-map.js';
 import { parseEsm } from '../es-module-lexer.js';
+import type { SourceMap } from './apply-transformers.js';
 
 export const version = '1';
 
@@ -53,7 +53,7 @@ export const transformDynamicImport = (
 		 * Since we're only transforming import()s, I think this may be overkill
 		 */
 		// hires: 'boundary',
-	}) as unknown as RawSourceMap;
+	}) as SourceMap;
 
 	return {
 		code: newCode,

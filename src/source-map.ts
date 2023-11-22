@@ -1,13 +1,11 @@
 import type { MessagePort } from 'node:worker_threads';
 import sourceMapSupport, { type UrlAndMap } from 'source-map-support';
-import type { Transformed } from './utils/transform/apply-transformers';
-import { isolatedLoader } from './utils/node-features';
-
-export type RawSourceMap = UrlAndMap['map'];
+import type { Transformed, SourceMap } from './utils/transform/apply-transformers.js';
+import { isolatedLoader } from './utils/node-features.js';
 
 type PortMessage = {
 	filePath: string;
-	map: RawSourceMap;
+	map: SourceMap;
 };
 
 const inlineSourceMapPrefix = '\n//# sourceMappingURL=data:application/json;base64,';
@@ -48,13 +46,17 @@ export const installSourceMapSupport = (
 		);
 	}
 
-	const sourcemaps = new Map<string, RawSourceMap>();
+	const sourcemaps = new Map<string, SourceMap>();
 
 	sourceMapSupport.install({
 		environment: 'node',
 		retrieveSourceMap(url) {
 			const map = sourcemaps.get(url);
-			return map ? { url, map } : null;
+			return (
+				map
+					? ({ url, map } as unknown as UrlAndMap)
+					: null
+			);
 		},
 	});
 

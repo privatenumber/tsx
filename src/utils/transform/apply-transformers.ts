@@ -1,8 +1,7 @@
 import remapping from '@ampproject/remapping';
 import type { SourceMapInput } from '@ampproject/remapping';
-import type { RawSourceMap } from '../../source-map.js';
 
-type SourceMap = SourceMapInput | RawSourceMap;
+export type SourceMap = ReturnType<typeof remapping>;
 
 type MaybePromise<T> = T | Promise<T>;
 
@@ -21,7 +20,7 @@ type Transformer<
 
 export type Transformed = {
 	code: string;
-	map: RawSourceMap;
+	map: SourceMap;
 	warnings?: unknown[];
 };
 
@@ -29,7 +28,7 @@ export const applyTransformersSync = (
 	filePath: string,
 	code: string,
 	transformers: Transformer<TransformerResult>[],
-) => {
+): Transformed => {
 	const maps: SourceMap[] = [];
 	const warnings: unknown[] = [];
 	const result = { code };
@@ -49,7 +48,7 @@ export const applyTransformersSync = (
 
 	return {
 		...result,
-		map: remapping(maps as SourceMapInput[], () => null) as unknown as RawSourceMap,
+		map: remapping(maps as SourceMapInput[], () => null),
 		warnings,
 	};
 };
@@ -58,7 +57,7 @@ export const applyTransformers = async (
 	filePath: string,
 	code: string,
 	transformers: Transformer<MaybePromise<TransformerResult>>[],
-) => {
+): Promise<Transformed> => {
 	const maps: SourceMap[] = [];
 	const warnings: unknown[] = [];
 	const result = { code };
@@ -78,7 +77,7 @@ export const applyTransformers = async (
 
 	return {
 		...result,
-		map: remapping(maps as SourceMapInput[], () => null) as unknown as RawSourceMap,
+		map: remapping(maps as SourceMapInput[], () => null),
 		warnings,
 	};
 };
