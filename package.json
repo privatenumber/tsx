@@ -61,11 +61,11 @@
 	"devDependencies": {
 		"@ampproject/remapping": "^2.2.1",
 		"@pvtnbr/eslint-config": "^0.37.0",
-		"@types/cross-spawn": "^6.0.3",
-		"@types/node": "^20.9.0",
-		"@types/react": "^18.2.21",
-		"@types/semver": "^7.5.1",
-		"@types/source-map-support": "^0.5.7",
+		"@types/cross-spawn": "^6.0.6",
+		"@types/node": "^20.9.4",
+		"@types/react": "^18.2.38",
+		"@types/semver": "^7.5.6",
+		"@types/source-map-support": "^0.5.10",
 		"cachedir": "^2.4.0",
 		"chokidar": "^3.5.3",
 		"clean-pkg-json": "^1.2.0",
@@ -88,19 +88,14 @@
 		"semver": "^7.5.4",
 		"simple-git-hooks": "^2.9.0",
 		"strip-ansi": "^7.1.0",
-		"type-fest": "^4.3.1",
+		"type-fest": "^4.8.2",
 		"type-flag": "^3.0.0",
-		"typescript": "^5.2.2"
+		"typescript": "^5.3.2"
 	},
 	"eslintConfig": {
 		"extends": "@pvtnbr",
 		"ignorePatterns": [
 			"tests/fixtures"
 		]
-	},
-	"pnpm": {
-		"patchedDependencies": {
-			"@types/node@20.9.0": "patches/@types__node@20.9.0.patch"
-		}
 	}
 }
