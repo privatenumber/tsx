@@ -224,6 +224,94 @@ $ ./file.ts hello
 argv: [ 'hello' ]
 ```
 
+### VS Code Debugging
+
+#### Setup
+
+Create the following configuration file in your project to setup debugging in VS Code:
+
+`.vscode/launch.json`
+```json5
+{
+    "version": "0.2.0",
+
+    // Each config in this array will show up as an option in the debug drop-down
+    "configurations": [
+        // See below for configurations to add...
+    ],
+}
+```
+
+#### Debugging method 1: Run tsx directly from VSCode
+
+1. Add the following configuration to the `configurations` array in `.vscode/launch.json`:
+	```json5
+	{
+	    "name": "tsx",
+	    "type": "node",
+	    "request": "launch",
+
+	    // Debug current file in VSCode
+	    "program": "${file}",
+
+	    /*
+		Path to tsx binary
+		Assuming locally installed
+		*/
+	    "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/tsx",
+
+	    /*
+		Open terminal when debugging starts (Optional)
+		Useful to see console.logs
+		*/
+	    "console": "integratedTerminal",
+	    "internalConsoleOptions": "neverOpen",
+
+	    // Files to exclude from debugger (e.g. call stack)
+	    "skipFiles": [
+	        // Node.js internal core modules
+	        "<node_internals>/**",
+
+	        // Ignore all dependencies (optional)
+	        "${workspaceFolder}/node_modules/**",
+	    ],
+	}
+	```
+
+2. In VSCode, open the file you want to run
+
+3. Go to VSCode's debug panel, select "tsx" in the drop down, and hit the play button (<kbd>F5</kbd>).
+
+#### Debugging method 2: Attach to a running Node.js process
+
+> This method works for any Node.js process and it's not specific to tsx
+
+1. Add the following configuration to the `configurations` array in `.vscode/launch.json`:
+	```json
+	{
+	    "name": "Attach to process",
+	    "type": "node",
+	    "request": "attach",
+	    "port": 9229,
+	    "skipFiles": [
+	        // Node.js internal core modules
+	        "<node_internals>/**",
+
+	        // Ignore all dependencies (optional)
+	        "${workspaceFolder}/node_modules/**",
+	    ],
+	}
+	```
+2. Run tsx with `--inspect-brk` in a terminal window:
+
+	```sh
+	tsx --inspect-brk ./your-file.ts 
+	```
+
+3. Go to VSCode's debug panel, select "Attach to process" in the drop down, and hit the play button (<kbd>F5</kbd>).
+
+See the [VSCode documentation on _Launch Configuration_](https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_launch-configuration) for more information.
+
 <br>
 
 <p align="center">
@@ -235,30 +323,6 @@ argv: [ 'hello' ]
 		</picture>
 	</a>
 </p>
-
-### VS Code Debugging
-You can setup debugging in VS Code by adding the --inspect flag to the tsx command
-```sh
-$ tsx --inspect ./file.ts
-```
-
-To be able to attach the debugger to the port that the --inspect argument opens, add the following to your .vscode/launch.json file ([more info](https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_attaching-to-nodejs))
-
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Attach to Process",
-      "type": "node",
-      "request": "attach",
-      "port": 9229
-    }
-  ]
-}
-```
-
-You can now start debugging by clicking F5 (or Run -> Start Debugging), and selecting the "Attach to Process"-option.
 
 ## Support
 
