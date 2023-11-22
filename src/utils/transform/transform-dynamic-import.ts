@@ -2,7 +2,7 @@ import MagicString from 'magic-string';
 import { parseEsm } from '../es-module-lexer.js';
 import type { SourceMap } from './apply-transformers.js';
 
-export const version = '1';
+export const version = '2';
 
 const toEsmFunctionString = ((imported: Record<string, unknown>) => {
 	const d = 'default';
