@@ -1,5 +1,5 @@
 import repl, { type REPLServer, type REPLEval } from 'repl';
-import { transform } from './utils/transform';
+import { transform } from './utils/transform/index.js';
 
 function patchEval(nodeRepl: REPLServer) {
 	const { eval: defaultEval } = nodeRepl;

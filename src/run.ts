@@ -3,14 +3,14 @@ import { pathToFileURL } from 'url';
 import spawn from 'cross-spawn';
 import { supportsModuleRegister } from './utils/node-features';
 
-export function run(
+export const run = (
 	argv: string[],
 	options?: {
 		noCache?: boolean;
 		tsconfigPath?: string;
 		ipc?: boolean;
 	},
-) {
+) => {
 	const environment = { ...process.env };
 	const stdio: StdioOptions = [
 		'inherit', // stdin
@@ -45,4 +45,4 @@ export function run(
 			env: environment,
 		},
 	);
-}
+};

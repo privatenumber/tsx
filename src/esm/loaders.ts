@@ -1,15 +1,14 @@
-import type { MessagePort } from 'node:worker_threads';
 import path from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
 import type {
 	ResolveFnOutput, ResolveHookContext, LoadHook, GlobalPreloadHook, InitializeHook,
 } from 'module';
 import type { TransformOptions } from 'esbuild';
-import { transform } from '../utils/transform';
-import { transformDynamicImport } from '../utils/transform/transform-dynamic-import';
-import { resolveTsPath } from '../utils/resolve-ts-path';
-import { installSourceMapSupport, shouldStripSourceMap, stripSourceMap } from '../source-map';
-import { importAttributes } from '../utils/node-features';
+import { transform } from '../utils/transform/index.js';
+import { transformDynamicImport } from '../utils/transform/transform-dynamic-import.js';
+import { resolveTsPath } from '../utils/resolve-ts-path.js';
+import { installSourceMapSupport } from '../source-map.js';
+import { importAttributes } from '../utils/node-features.js';
 import {
 	tsconfigPathsMatcher,
 	fileMatcher,
@@ -37,8 +36,6 @@ type resolve = (
 	recursiveCall?: boolean,
 ) => MaybePromise<ResolveFnOutput>;
 
-let mainThreadPort: MessagePort | undefined;
-
 type SendToParent = (data: {
 	type: 'dependency';
 	path: string;
@@ -52,7 +49,6 @@ export const initialize: InitializeHook = async (data) => {
 	}
 
 	const { port } = data;
-	mainThreadPort = port;
 	sendToParent = port.postMessage.bind(port);
 };
 
@@ -61,7 +57,6 @@ export const initialize: InitializeHook = async (data) => {
  * but it shares a closure with the new load hook
  */
 export const globalPreload: GlobalPreloadHook = ({ port }) => {
-	mainThreadPort = port;
 	sendToParent = port.postMessage.bind(port);
 
 	return `
@@ -281,12 +276,7 @@ export const load: LoadHook = async function (
 	}
 
 	const filePath = url.startsWith('file://') ? fileURLToPath(url) : url;
-	let code = loaded.source.toString();
-
-	// Strip source maps if originally disabled
-	if (shouldStripSourceMap) {
-		code = stripSourceMap(code);
-	}
+	const code = loaded.source.toString();
 
 	if (
 		// Support named imports in JSON modules
@@ -303,18 +293,14 @@ export const load: LoadHook = async function (
 
 		return {
 			format: 'module',
-			source: applySourceMap(transformed, url, mainThreadPort),
+			source: applySourceMap(transformed),
 		};
 	}
 
 	if (loaded.format === 'module') {
 		const dynamicImportTransformed = transformDynamicImport(filePath, code);
 		if (dynamicImportTransformed) {
-			loaded.source = applySourceMap(
-				dynamicImportTransformed,
-				url,
-				mainThreadPort,
-			);
+			loaded.source = applySourceMap(dynamicImportTransformed);
 		}
 	}
 

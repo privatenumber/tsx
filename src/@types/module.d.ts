@@ -9,6 +9,12 @@ declare global {
 }
 
 declare module 'module' {
+	// https://nodejs.org/api/module.html#loadurl-context-nextload
+	interface LoadHookContext {
+		importAttributes: ImportAssertions;
+	}
+
+	// CommonJS
 	export const _extensions: NodeJS.RequireExtensions;
 
 	export type Parent = {

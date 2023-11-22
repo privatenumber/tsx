@@ -1,16 +1,9 @@
 import remapping from '@ampproject/remapping';
 import type { SourceMapInput } from '@ampproject/remapping';
-import type { RawSourceMap } from '../../source-map';
 
-type SourceMap = SourceMapInput | RawSourceMap;
+export type SourceMap = ReturnType<typeof remapping>;
 
 type MaybePromise<T> = T | Promise<T>;
-
-type IntersectionArray<T extends unknown[]> = (
-	T extends [infer FirstElement, ...infer RestElements]
-		? FirstElement & IntersectionArray<RestElements>
-		: unknown
-);
 
 type TransformerResult = {
 	code: string;
@@ -25,31 +18,17 @@ type Transformer<
 	code: string,
 ) => ReturnType;
 
-type Results<
-	Array_ extends Transformer<MaybePromise<TransformerResult>>[]
-> = {
-	[Key in keyof Array_]: (
-		Array_[Key] extends Transformer<infer ReturnType>
-			? Awaited<ReturnType>
-			: unknown
-	);
-};
-
-type AddSourceMap<T> = Omit<T, 'map'> & { map: RawSourceMap };
-
 export type Transformed = {
 	code: string;
-	map: RawSourceMap;
+	map: SourceMap;
 	warnings?: unknown[];
 };
 
-export function applyTransformersSync<
-	T extends Readonly<Transformer<TransformerResult>[]>,
->(
+export const applyTransformersSync = (
 	filePath: string,
 	code: string,
-	transformers: T,
-) {
+	transformers: Transformer<TransformerResult>[],
+): Transformed => {
 	const maps: SourceMap[] = [];
 	const warnings: unknown[] = [];
 	const result = { code };
@@ -71,16 +50,14 @@ export function applyTransformersSync<
 		...result,
 		map: remapping(maps as SourceMapInput[], () => null),
 		warnings,
-	} as unknown as AddSourceMap<IntersectionArray<Results<[...T]>>>;
-}
+	};
+};
 
-export async function applyTransformers<
-	T extends Readonly<Transformer<MaybePromise<TransformerResult>>[]>,
->(
+export const applyTransformers = async (
 	filePath: string,
 	code: string,
-	transformers: T,
-) {
+	transformers: Transformer<MaybePromise<TransformerResult>>[],
+): Promise<Transformed> => {
 	const maps: SourceMap[] = [];
 	const warnings: unknown[] = [];
 	const result = { code };
@@ -102,5 +79,5 @@ export async function applyTransformers<
 		...result,
 		map: remapping(maps as SourceMapInput[], () => null),
 		warnings,
-	} as unknown as AddSourceMap<IntersectionArray<Results<[...T]>>>;
-}
+	};
+};

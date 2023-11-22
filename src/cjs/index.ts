@@ -8,11 +8,11 @@ import {
 	createFilesMatcher,
 } from 'get-tsconfig';
 import type { TransformOptions } from 'esbuild';
-import { installSourceMapSupport, shouldStripSourceMap, stripSourceMap } from '../source-map';
-import { transformSync } from '../utils/transform';
-import { transformDynamicImport } from '../utils/transform/transform-dynamic-import';
-import { resolveTsPath } from '../utils/resolve-ts-path';
-import { isESM } from '../utils/esm-pattern';
+import { installSourceMapSupport } from '../source-map.js';
+import { transformSync } from '../utils/transform/index.js';
+import { transformDynamicImport } from '../utils/transform/transform-dynamic-import.js';
+import { resolveTsPath } from '../utils/resolve-ts-path.js';
+import { isESM } from '../utils/esm-pattern.js';
 
 const isRelativePathPattern = /^\.{1,2}\//;
 const isTsFilePatten = /\.[cm]?tsx?$/;
@@ -69,16 +69,11 @@ const transformer = (
 
 	let code = fs.readFileSync(filePath, 'utf8');
 
-	// Strip source maps if originally disabled
-	if (shouldStripSourceMap) {
-		code = stripSourceMap(code);
-	}
-
 	if (filePath.endsWith('.cjs')) {
 		// Contains native ESM check
 		const transformed = transformDynamicImport(filePath, code);
 		if (transformed) {
-			code = applySourceMap(transformed, filePath);
+			code = applySourceMap(transformed);
 		}
 	} else if (
 		transformTs
@@ -94,7 +89,7 @@ const transformer = (
 			},
 		);
 
-		code = applySourceMap(transformed, filePath);
+		code = applySourceMap(transformed);
 	}
 
 	module._compile(code, filePath);
