@@ -255,15 +255,15 @@ Create the following configuration file in your project to setup debugging in VS
 	    "program": "${file}",
 
 	    /*
-		Path to tsx binary
-		Assuming locally installed
-		*/
+	    Path to tsx binary
+	    Assuming locally installed
+	    */
 	    "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/tsx",
 
 	    /*
-		Open terminal when debugging starts (Optional)
-		Useful to see console.logs
-		*/
+	    Open terminal when debugging starts (Optional)
+	    Useful to see console.logs
+	    */
 	    "console": "integratedTerminal",
 	    "internalConsoleOptions": "neverOpen",
 
