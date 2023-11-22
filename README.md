@@ -224,7 +224,7 @@ $ ./file.ts hello
 argv: [ 'hello' ]
 ```
 
-### VS Code Debugging
+### VS Code debugging
 
 #### Setup
 
