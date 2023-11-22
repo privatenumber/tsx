@@ -52,7 +52,7 @@ export const transformDynamicImport = (
 		 * The performance hit on this is very high
 		 * Since we're only transforming import()s, I think this may be overkill
 		 */
-		// hires: 'boundary',
+		hires: 'boundary',
 	}) as SourceMap;
 
 	return {
