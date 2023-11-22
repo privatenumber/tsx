@@ -43,13 +43,13 @@ export type Transformed = {
 	warnings?: unknown[];
 };
 
-export function applyTransformersSync<
+export const applyTransformersSync = <
 	T extends Readonly<Transformer<TransformerResult>[]>,
 >(
 	filePath: string,
 	code: string,
 	transformers: T,
-) {
+) => {
 	const maps: SourceMap[] = [];
 	const warnings: unknown[] = [];
 	const result = { code };
@@ -72,15 +72,15 @@ export function applyTransformersSync<
 		map: remapping(maps as SourceMapInput[], () => null),
 		warnings,
 	} as unknown as AddSourceMap<IntersectionArray<Results<[...T]>>>;
-}
+};
 
-export async function applyTransformers<
+export const applyTransformers = async <
 	T extends Readonly<Transformer<MaybePromise<TransformerResult>>[]>,
 >(
 	filePath: string,
 	code: string,
 	transformers: T,
-) {
+) => {
 	const maps: SourceMap[] = [];
 	const warnings: unknown[] = [];
 	const result = { code };
@@ -103,4 +103,4 @@ export async function applyTransformers<
 		map: remapping(maps as SourceMapInput[], () => null),
 		warnings,
 	} as unknown as AddSourceMap<IntersectionArray<Results<[...T]>>>;
-}
+};
