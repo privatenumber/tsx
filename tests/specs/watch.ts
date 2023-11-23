@@ -69,7 +69,8 @@ export default testSuite(async ({ describe }) => {
 
 			tsxProcess.kill();
 
-			await tsxProcess;
+			const { all } = await tsxProcess;
+			expect(all!.startsWith('hello world\n')).toBe(true);
 		}, 10_000);
 
 		test('suppresses warnings & clear screen', async () => {
@@ -100,6 +101,7 @@ export default testSuite(async ({ describe }) => {
 			const { all } = await tsxProcess;
 			expect(all).not.toMatch('Warning');
 			expect(all).toMatch('\u001Bc');
+			expect(all!.startsWith('["')).toBeTruthy();
 		}, 10_000);
 
 		test('passes flags', async () => {

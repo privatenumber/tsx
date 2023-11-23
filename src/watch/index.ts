@@ -112,18 +112,21 @@ export const watchCommand = command({
 			return;
 		}
 
-		// If running process
-		if (runProcess?.exitCode === null) {
-			log('restarting');
-			waitingExits = true;
-			await killProcess(runProcess);
-			waitingExits = false;
-		} else {
-			log('rerunning');
-		}
+		// If not first run
+		if (runProcess) {
+			// If process still running
+			if (runProcess.exitCode === null) {
+				log('restarting');
+				waitingExits = true;
+				await killProcess(runProcess);
+				waitingExits = false;
+			} else {
+				log('rerunning');
+			}
 
-		if (options.clearScreen) {
-			process.stdout.write(clearScreen);
+			if (options.clearScreen) {
+				process.stdout.write(clearScreen);
+			}
 		}
 
 		runProcess = spawnProcess();
