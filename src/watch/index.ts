@@ -194,6 +194,7 @@ export const watchCommand = command({
 				...options.ignore,
 			],
 			ignorePermissionErrors: true,
+			disableGlobbing: true,
 		},
 	).on('all', reRun);
 
