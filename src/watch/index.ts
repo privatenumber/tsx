@@ -4,6 +4,7 @@ import { constants as osConstants } from 'os';
 import path from 'path';
 import { command } from 'cleye';
 import { watch } from 'chokidar';
+import { lightMagenta, lightGreen, yellow } from 'kolorist';
 import { run } from '../run.js';
 import {
 	removeArgvFlags,
@@ -105,9 +106,11 @@ export const watchCommand = command({
 	};
 
 	let waitingExits = false;
-	const reRun = debounce(async () => {
+	const reRun = debounce(async (event?: string, filePath?: string) => {
+		const message = event ? `${event ? lightMagenta(event) : ''}${filePath ? ` at ${lightGreen(filePath)}` : ''}` : '';
+
 		if (waitingExits) {
-			log('forcing restart');
+			log(message, yellow('Force restarting previous process'));
 			runProcess!.kill('SIGKILL');
 			return;
 		}
@@ -116,12 +119,12 @@ export const watchCommand = command({
 		if (runProcess) {
 			// If process still running
 			if (runProcess.exitCode === null) {
-				log('restarting');
+				log(message, yellow('Restarting process'));
 				waitingExits = true;
 				await killProcess(runProcess);
 				waitingExits = false;
 			} else {
-				log('rerunning');
+				log(message, yellow('Rerunning process'));
 			}
 
 			if (options.clearScreen) {
@@ -134,7 +137,7 @@ export const watchCommand = command({
 
 	reRun();
 
-	function exit(signal: NodeJS.Signals) {
+	const exit = (signal: NodeJS.Signals) => {
 		/**
 		 * In CLI mode where there is only one run, we can inherit the child's exit code.
 		 * But in watch mode, the exit code should reflect the kill signal.
@@ -152,9 +155,9 @@ export const watchCommand = command({
 			 */
 			128 + osConstants.signals[signal],
 		);
-	}
+	};
 
-	function relaySignal(signal: NodeJS.Signals) {
+	const relaySignal = (signal: NodeJS.Signals) => {
 		// Child is still running
 		if (runProcess && runProcess.exitCode === null) {
 			// Wait for child to exit
@@ -163,7 +166,7 @@ export const watchCommand = command({
 		} else {
 			exit(signal);
 		}
-	}
+	};
 
 	process.once('SIGINT', relaySignal);
 	process.once('SIGTERM', relaySignal);
@@ -198,5 +201,5 @@ export const watchCommand = command({
 	).on('all', reRun);
 
 	// On "Return" key
-	process.stdin.on('data', reRun);
+	process.stdin.on('data', () => reRun('Return key'));
 });
