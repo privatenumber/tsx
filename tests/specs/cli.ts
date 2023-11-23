@@ -231,6 +231,8 @@ export default testSuite(({ describe }) => {
 				});
 
 				await tsxProcess;
+
+				// Enforce that child process is killed
 				expect(() => process.kill(childPid!, 0)).toThrow();
 			}, 10_000);
 
@@ -254,7 +256,13 @@ export default testSuite(({ describe }) => {
 
 				await setTimeout(100);
 
-				expect(() => process.kill(childPid!, 1)).not.toThrow();
+				if (process.platform === 'win32') {
+					// Enforce that child process is killed
+					expect(() => process.kill(childPid!, 0)).toThrow();
+				} else {
+					// Kill child process
+					expect(() => process.kill(childPid!, 'SIGKILL')).not.toThrow();
+				}
 				await tsxProcess;
 			}, 10_000);
 
