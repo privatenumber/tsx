@@ -30,7 +30,8 @@ const relaySignals = (
 
 	const waitForSignalFromChild = () => {
 		const p = new Promise<NodeJS.Signals | undefined>((resolve) => {
-			setTimeout(() => resolve(undefined), 10);
+			// Aribrary timeout based on flaky tests
+			setTimeout(() => resolve(undefined), 30);
 			waitForSignal = resolve;
 		});
 

@@ -9,11 +9,9 @@ import { nodeVersions } from './utils/node-versions';
 		await runTestSuite(import('./specs/transform'));
 
 		for (const nodeVersion of nodeVersions) {
-			await describe(`Node ${nodeVersion}`, async ({ runTestSuite }) => {
-				const node = await createNode(nodeVersion);
-
+			const node = await createNode(nodeVersion);
+			await describe(`Node ${node.version}`, async ({ runTestSuite }) => {
 				await runTestSuite(import('./specs/cli'), node);
-
 				await runTestSuite(
 					import('./specs/smoke'),
 					node,

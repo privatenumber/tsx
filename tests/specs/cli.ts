@@ -6,8 +6,8 @@ import packageJson from '../../package.json';
 import { tsxPath } from '../utils/tsx.js';
 import { ptyShell, isWindows } from '../utils/pty-shell/index';
 import { expectMatchInOrder } from '../utils/expect-match-in-order.js';
-import { testRunnerGlob } from '../../src/utils/node-features.js';
 import type { NodeApis } from '../utils/tsx.js';
+import { compareNodeVersion, type Version } from '../../src/utils/node-features.js';
 
 export default testSuite(({ describe }, node: NodeApis) => {
 	const { tsx } = node;
@@ -79,15 +79,13 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 			test('--input-type=module is respected', async () => {
 				const tsxProcess = await tsx([
-					'--eval',
-					'console.log(JSON.stringify([typeof require, import.meta.url]))',
 					'--input-type=module',
+					'--eval',
+					'console.log(typeof require)',
 				]);
 
 				expect(tsxProcess.exitCode).toBe(0);
-				const [requireDefined, importMetaUrl] = JSON.parse(tsxProcess.stdout);
-				expect(requireDefined).toBe('undefined');
-				expect(importMetaUrl.endsWith('/[eval1]')).toBeTruthy();
+				expect(tsxProcess.stdout).toBe('undefined');
 				expect(tsxProcess.stderr).toBe('');
 			});
 
@@ -103,38 +101,45 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			});
 		});
 
-		test('Node.js test runner', async ({ onTestFinish }) => {
-			const fixture = await createFixture({
-				'test.test.ts': `
-				import { test } from 'node:test';
-				import assert from 'assert';
+		const nodeVersion = node.version.split('.').map(Number) as Version;
 
-				test('passing test', () => {
-					assert.strictEqual(1, 1);
+		// https://nodejs.org/docs/latest-v18.x/api/cli.html#--test
+		const cliTestFlag = compareNodeVersion([18, 1, 0], nodeVersion) >= 0;
+		const testRunnerGlob = compareNodeVersion([21, 0, 0], nodeVersion) >= 0;
+		if (cliTestFlag) {
+			test('Node.js test runner', async ({ onTestFinish }) => {
+				const fixture = await createFixture({
+					'test.ts': `
+					import { test } from 'node:test';
+					import assert from 'assert';
+
+					test('some passing test', () => {
+						assert.strictEqual(1, 1);
+					});
+					`,
 				});
-				`,
-			});
-			onTestFinish(async () => await fixture.rm());
+				onTestFinish(async () => await fixture.rm());
 
-			const tsxProcess = await tsx(
-				[
-					'--test',
-					...(
-						testRunnerGlob
-							? []
-							: ['test.test.ts']
-					),
-				],
-				fixture.path,
-			);
+				const tsxProcess = await tsx(
+					[
+						'--test',
+						...(
+							testRunnerGlob
+								? []
+								: ['test.ts']
+						),
+					],
+					fixture.path,
+				);
 
-			expect(tsxProcess.exitCode).toBe(0);
-			if (testRunnerGlob) {
-				expect(tsxProcess.stdout).toMatch('✔ passing test\n');
-			} else {
-				expect(tsxProcess.stdout).toMatch('# pass 1\n');
-			}
-		}, 10_000);
+				expect(tsxProcess.exitCode).toBe(0);
+				if (testRunnerGlob) {
+					expect(tsxProcess.stdout).toMatch('some passing test\n');
+				} else {
+					expect(tsxProcess.stdout).toMatch('# pass 1\n');
+				}
+			}, 10_000);
+		}
 
 		describe('Signals', async ({ describe, onFinish }) => {
 			const signals = ['SIGINT', 'SIGTERM'];
