@@ -130,15 +130,19 @@ cli({
 			type: String,
 			alias: 'p',
 		},
-	};
+	} as const;
 
-	const { flags: interceptedFlags } = cli({
+	const {
+		_: firstArgs,
+		flags: interceptedFlags,
+	} = cli({
 		flags: {
 			...interceptFlags,
 			inputType: String,
+			test: Boolean,
 		},
 		help: false,
-		ignoreArgv: ignoreAfterArgument(),
+		ignoreArgv: ignoreAfterArgument(false),
 	});
 
 	const argvsToRun = removeArgvFlags({
@@ -160,7 +164,15 @@ cli({
 			},
 		);
 
-		argvsToRun.push(`--${evalType}`, transformed.code);
+		argvsToRun.unshift(`--${evalType}`, transformed.code);
+	}
+
+	// Default --test glob to find TypeScript files
+	if (
+		interceptedFlags.test
+		&& firstArgs.length === 0
+	) {
+		argvsToRun.push('**/{test,test/**/*,test-*,*[.-_]test}.?(c|m)@(t|j)s');
 	}
 
 	const childProcess = run(

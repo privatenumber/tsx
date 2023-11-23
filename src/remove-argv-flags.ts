@@ -5,7 +5,7 @@ import {
 } from 'type-flag';
 
 export const ignoreAfterArgument = (
-	ignoreFirstArgument = true,
+	ignoreFirstArgument = true, // Used for watch
 ): TypeFlagOptions['ignore'] => {
 	let ignore = false;
 
