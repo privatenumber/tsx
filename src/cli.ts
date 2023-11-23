@@ -1,11 +1,14 @@
 import { cli } from 'cleye';
+import {
+	transformSync as esbuildTransformSync,
+} from 'esbuild';
 import { version } from '../package.json';
-import { run } from './run';
-import { watchCommand } from './watch';
+import { run } from './run.js';
+import { watchCommand } from './watch/index.js';
 import {
 	removeArgvFlags,
 	ignoreAfterArgument,
-} from './remove-argv-flags';
+} from './remove-argv-flags.js';
 
 const tsxFlags = {
 	noCache: {
@@ -49,8 +52,50 @@ cli({
 		console.log(`${'-'.repeat(45)}\n`);
 	}
 
+	const interceptFlags = {
+		eval: {
+			type: String,
+			alias: 'e',
+		},
+		print: {
+			type: String,
+			alias: 'p',
+		},
+	};
+
+	const { flags: interceptedFlags } = cli({
+		flags: {
+			...interceptFlags,
+			inputType: String,
+		},
+		help: false,
+		ignoreArgv: ignoreAfterArgument(),
+	});
+
+	const argvsToRun = removeArgvFlags({
+		...tsxFlags,
+		...interceptFlags,
+	});
+
+	const evalTypes = ['print', 'eval'] as const;
+	const evalType = evalTypes.find(type => Boolean(interceptedFlags[type]));
+	if (evalType) {
+		const { inputType } = interceptedFlags;
+		const evalCode = interceptedFlags[evalType]!;
+		const transformed = esbuildTransformSync(
+			evalCode,
+			{
+				loader: 'default',
+				sourcefile: '/eval.ts',
+				format: inputType === 'module' ? 'esm' : 'cjs',
+			},
+		);
+
+		argvsToRun.push(`--${evalType}`, transformed.code);
+	}
+
 	const childProcess = run(
-		removeArgvFlags(tsxFlags),
+		argvsToRun,
 		{
 			noCache: Boolean(argv.flags.noCache),
 			tsconfigPath: argv.flags.tsconfig,

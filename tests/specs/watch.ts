@@ -2,8 +2,8 @@ import path from 'path';
 import { setTimeout } from 'timers/promises';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
-import { tsx } from '../utils/tsx';
-import { processInteract } from '../utils/process-interact';
+import { tsx } from '../utils/tsx.js';
+import { processInteract } from '../utils/process-interact.js';
 
 export default testSuite(async ({ describe }) => {
 	describe('watch', async ({ test, describe, onFinish }) => {
@@ -57,6 +57,7 @@ export default testSuite(async ({ describe }) => {
 				[
 					async (data) => {
 						if (data.includes('hello world\n')) {
+							await setTimeout(1000);
 							fixtureWatch.writeFile('value.js', 'export const value = \'goodbye world\';');
 							return true;
 						}

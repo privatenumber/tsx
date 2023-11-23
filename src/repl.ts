@@ -2,7 +2,7 @@
 
 import repl, { type REPLEval } from 'repl';
 import { version } from '../package.json';
-import { transform } from './utils/transform';
+import { transform } from './utils/transform/index.js';
 
 // Copied from
 // https://github.com/nodejs/node/blob/v18.2.0/lib/internal/main/repl.js#L37

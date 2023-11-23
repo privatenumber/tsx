@@ -3,7 +3,7 @@ import { pathToFileURL } from 'url';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import outdent from 'outdent';
-import type { NodeApis } from '../utils/tsx';
+import type { NodeApis } from '../utils/tsx.js';
 
 const cjsContextCheck = 'typeof module !== \'undefined\'';
 const tsCheck = '1 as number';
@@ -79,7 +79,10 @@ export default 1;
 `;
 
 const sourcemap = {
-	test: 'const { stack } = new Error(); assert(stack.includes(\':SOURCEMAP_LINE\'), \'Expected SOURCEMAP_LINE in stack:\' + stack)',
+	// Adding the dynamic import helps test the import transformation's source map
+	test: (
+		extension: string,
+	) => `import('fs');\nconst { stack } = new Error(); const searchString = 'index.${extension}:SOURCEMAP_LINE'; assert(stack.includes(searchString), \`Expected \${searchString} in stack: \${stack}\`)`,
 	tag: (
 		strings: TemplateStringsArray,
 		...values: string[]
@@ -104,7 +107,7 @@ const files = {
 	const assert = require('node:assert');
 	assert(${cjsContextCheck}, 'Should have CJS context');
 	${preserveName}
-	${sourcemap.test}
+	${sourcemap.test('cjs')}
 	exports.named = 'named';
 	`,
 
@@ -143,7 +146,7 @@ const files = {
 	const bar = <T>(value: T) => fn<T>();
 
 	${preserveName}
-	${sourcemap.test}
+	${sourcemap.test('ts')}
 	export const cjsContext = ${cjsContextCheck};
 	${tsCheck};
 	`,
@@ -156,7 +159,7 @@ const files = {
 	${declareReact}
 	export const jsx = ${jsxCheck};
 	${preserveName}
-	${sourcemap.test}
+	${sourcemap.test('jsx')}
 	`,
 
 	'tsx/index.tsx': sourcemap.tag`
@@ -166,7 +169,7 @@ const files = {
 	${declareReact}
 	export const jsx = ${jsxCheck};
 	${preserveName}
-	${sourcemap.test}
+	${sourcemap.test('tsx')}
 	`,
 
 	'mts/index.mts': sourcemap.tag`
@@ -174,7 +177,7 @@ const files = {
 	export const mjsHasCjsContext = ${cjsContextCheck};
 	${tsCheck};
 	${preserveName}
-	${sourcemap.test}
+	${sourcemap.test('mts')}
 	`,
 
 	'cts/index.cts': sourcemap.tag`
@@ -182,7 +185,7 @@ const files = {
 	assert(${cjsContextCheck}, 'Should have CJS context');
 	${tsCheck};
 	${preserveName}
-	${sourcemap.test}
+	${sourcemap.test('cts')}
 	`,
 
 	'expect-errors.js': `
@@ -333,7 +336,9 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						'import-from-js.js': outdent`
 						import assert from 'assert';
 						import { expectErrors } from './expect-errors';
-		
+
+						const shouldntAffectFile = \`
+						//# sourceMappingURL=\`;
 						//# sourceMappingURL=shouldnt affect the file
 
 						// node: prefix
@@ -414,6 +419,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						);
 
 						console.log(JSON.stringify({
+							'import.meta.url': import.meta.url,
 							js,
 							json,
 							cjs,
@@ -435,6 +441,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						console.log(p);
 					});
 					expect(p.failed).toBe(false);
+					expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(path.join(fixture.path, 'import-from-js.js'))}"`);
 					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
 					expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
 					expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
@@ -460,6 +467,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						import assert from 'assert';
 						import { expectErrors } from './expect-errors';
 
+						const shouldntAffectFile = \`
+						//# sourceMappingURL=\`;
 						//# sourceMappingURL=shouldnt affect the file
 
 						// node: prefix
@@ -593,6 +602,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						);
 
 						console.log(JSON.stringify({
+							'import.meta.url': import.meta.url,
 							js,
 							json,
 							jsx,
@@ -614,6 +624,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 							console.log(p);
 						});
 						expect(p.failed).toBe(false);
+						expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(path.join(fixture.path, 'import-from-ts.ts'))}"`);
 						expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
 						expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
 						expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');

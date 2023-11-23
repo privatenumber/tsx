@@ -1,43 +1,8 @@
-import type { MessagePort } from 'node:worker_threads';
-import sourceMapSupport, { type UrlAndMap } from 'source-map-support';
-import type { Transformed } from './utils/transform/apply-transformers';
-import { isolatedLoader } from './utils/node-features';
+import type { Transformed } from './utils/transform/apply-transformers.js';
 
-export type RawSourceMap = UrlAndMap['map'];
+const inlineSourceMapPrefix = '\n//# sourceMappingURL=data:application/json;base64,';
 
-type PortMessage = {
-	filePath: string;
-	map: RawSourceMap;
-};
-
-// If Node.js has source map disabled, we should strip source maps to speed up processing
-export const shouldStripSourceMap = (
-	('sourceMapsEnabled' in process)
-	&& process.sourceMapsEnabled === false
-);
-
-const sourceMapPrefix = '\n//# sourceMappingURL=';
-
-export const stripSourceMap = (code: string) => {
-	const sourceMapIndex = code.indexOf(sourceMapPrefix);
-	if (sourceMapIndex === -1) {
-		return code;
-	}
-
-	const nextNewLine = code.indexOf('\n', sourceMapIndex + sourceMapPrefix.length);
-	const afterSourceMap = nextNewLine === -1 ? '' : code.slice(nextNewLine);
-	return code.slice(0, sourceMapIndex) + afterSourceMap;
-};
-
-const inlineSourceMapPrefix = `${sourceMapPrefix}data:application/json;base64,`;
-
-export const installSourceMapSupport = (
-	/**
-	 * To support Node v20 where loaders are executed in its own thread
-	 * https://nodejs.org/docs/latest-v20.x/api/esm.html#globalpreload
-	 */
-	loaderPort?: MessagePort,
-) => {
+export const installSourceMapSupport = () => {
 	const hasNativeSourceMapSupport = (
 		/**
 		 * Check if native source maps are supported by seeing if the API is available
@@ -67,33 +32,5 @@ export const installSourceMapSupport = (
 		);
 	}
 
-	const sourcemaps = new Map<string, RawSourceMap>();
-
-	sourceMapSupport.install({
-		environment: 'node',
-		retrieveSourceMap(url) {
-			const map = sourcemaps.get(url);
-			return map ? { url, map } : null;
-		},
-	});
-
-	if (isolatedLoader && loaderPort) {
-		loaderPort.addListener(
-			'message',
-			({ filePath, map }: PortMessage) => sourcemaps.set(filePath, map),
-		);
-	}
-
-	return (
-		{ code, map }: Transformed,
-		filePath: string,
-		mainThreadPort?: MessagePort,
-	) => {
-		if (isolatedLoader && mainThreadPort) {
-			mainThreadPort.postMessage({ filePath, map } satisfies PortMessage);
-		} else {
-			sourcemaps.set(filePath, map);
-		}
-		return code;
-	};
+	return ({ code }: Transformed) => code;
 };

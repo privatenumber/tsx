@@ -3,11 +3,9 @@
 		"strict": true,
 		"isolatedModules": true,
 		"esModuleInterop": true,
-		"moduleResolution": "node",
-		"resolveJsonModule": true,
+		"moduleResolution": "Bundler",
 		"skipLibCheck": true,
-		"jsx": "preserve",
-
+		"noEmit": true,
 		"module": "esnext",
 		"target": "esnext"
 	},

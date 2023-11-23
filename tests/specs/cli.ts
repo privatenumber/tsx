@@ -2,9 +2,9 @@ import path from 'path';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import packageJson from '../../package.json';
-import { tsx, tsxPath } from '../utils/tsx';
-import { ptyShell, isWindows } from '../utils/pty-shell';
-import { expectMatchInOrder } from '../utils/expect-match-in-order';
+import { tsx, tsxPath } from '../utils/tsx.js';
+import { ptyShell, isWindows } from '../utils/pty-shell/index';
+import { expectMatchInOrder } from '../utils/expect-match-in-order.js';
 
 export default testSuite(({ describe }) => {
 	describe('CLI', ({ describe, test }) => {
@@ -66,6 +66,40 @@ export default testSuite(({ describe }) => {
 					expect(tsxProcess.stdout).not.toMatch('tsx');
 					expect(tsxProcess.stderr).toBe('');
 				});
+			});
+		});
+
+		describe('eval & print', ({ test }) => {
+			test('TypeScript', async () => {
+				const tsxProcess = await tsx({
+					args: ['--eval', 'console.log(require("fs") && module as string)'],
+				});
+
+				expect(tsxProcess.exitCode).toBe(0);
+				expect(tsxProcess.stdout).toMatch("id: '[eval]'");
+				expect(tsxProcess.stderr).toBe('');
+			});
+
+			test('--input-type=module is respected', async () => {
+				const tsxProcess = await tsx({
+					args: ['--eval', 'console.log(JSON.stringify([typeof require, import.meta.url]))', '--input-type=module'],
+				});
+
+				expect(tsxProcess.exitCode).toBe(0);
+				const [requireDefined, importMetaUrl] = JSON.parse(tsxProcess.stdout);
+				expect(requireDefined).toBe('undefined');
+				expect(importMetaUrl.endsWith('/[eval1]')).toBeTruthy();
+				expect(tsxProcess.stderr).toBe('');
+			});
+
+			test('--print', async () => {
+				const tsxProcess = await tsx({
+					args: ['--print', 'require("fs") && module as string'],
+				});
+
+				expect(tsxProcess.exitCode).toBe(0);
+				expect(tsxProcess.stdout).toMatch("id: '[eval]'");
+				expect(tsxProcess.stderr).toBe('');
 			});
 		});
 

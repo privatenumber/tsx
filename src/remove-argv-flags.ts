@@ -24,10 +24,10 @@ export const ignoreAfterArgument = (
 	};
 };
 
-export function removeArgvFlags(
+export const removeArgvFlags = (
 	tsxFlags: Flags,
 	argv = process.argv.slice(2),
-) {
+) => {
 	typeFlag(
 		tsxFlags,
 		argv,
@@ -37,4 +37,4 @@ export function removeArgvFlags(
 	);
 
 	return argv;
-}
+};

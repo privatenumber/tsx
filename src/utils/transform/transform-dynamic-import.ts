@@ -1,8 +1,8 @@
 import MagicString from 'magic-string';
-import type { RawSourceMap } from '../../source-map';
-import { parseEsm } from '../es-module-lexer';
+import { parseEsm } from '../es-module-lexer.js';
+import type { SourceMap } from './apply-transformers.js';
 
-export const version = '1';
+export const version = '2';
 
 const toEsmFunctionString = ((imported: Record<string, unknown>) => {
 	const d = 'default';
@@ -52,8 +52,8 @@ export const transformDynamicImport = (
 		 * The performance hit on this is very high
 		 * Since we're only transforming import()s, I think this may be overkill
 		 */
-		// hires: 'boundary',
-	}) as unknown as RawSourceMap;
+		hires: 'boundary',
+	}) as SourceMap;
 
 	return {
 		code: newCode,

@@ -1,19 +1,41 @@
 import { pathToFileURL } from 'url';
-import type { TransformOptions } from 'esbuild';
 import {
 	transform as esbuildTransform,
 	transformSync as esbuildTransformSync,
 	version as esbuildVersion,
+	type TransformOptions,
+	type TransformFailure,
 } from 'esbuild';
-import { sha1 } from '../sha1';
-import { version as transformDynamicImportVersion, transformDynamicImport } from './transform-dynamic-import';
-import cache from './cache';
+import { sha1 } from '../sha1.js';
+import {
+	version as transformDynamicImportVersion,
+	transformDynamicImport,
+} from './transform-dynamic-import.js';
+import cache from './cache.js';
 import {
 	applyTransformersSync,
 	applyTransformers,
 	type Transformed,
-} from './apply-transformers';
-import { getEsbuildOptions } from './get-esbuild-options';
+} from './apply-transformers.js';
+import {
+	cacheConfig,
+	patchOptions,
+} from './get-esbuild-options.js';
+
+const handleEsbuildError = (
+	error: TransformFailure,
+) => {
+	const [firstError] = error.errors;
+	let errorMessage = `[esbuild Error]: ${firstError.text}`;
+
+	if (firstError.location) {
+		const { file, line, column } = firstError.location;
+		errorMessage += `\n    at ${file}:${line}:${column}`;
+	}
+
+	console.error(errorMessage);
+	process.exit(1);
+};
 
 // Used by cjs-loader
 export function transformSync(
@@ -27,14 +49,15 @@ export function transformSync(
 		define['import.meta.url'] = `'${pathToFileURL(filePath)}'`;
 	}
 
-	const esbuildOptions = getEsbuildOptions({
+	const esbuildOptions = {
+		...cacheConfig,
 		format: 'cjs',
 		sourcefile: filePath,
 		define,
 		banner: '(()=>{',
 		footer: '})()',
 		...extendOptions,
-	});
+	} as const;
 
 	const hash = sha1([
 		code,
@@ -50,29 +73,26 @@ export function transformSync(
 			code,
 			[
 				// eslint-disable-next-line @typescript-eslint/no-shadow
-				(filePath, code) => {
-					// eslint-disable-next-line @typescript-eslint/no-shadow
-					const transformed = esbuildTransformSync(code, esbuildOptions);
-					if (esbuildOptions.sourcefile !== filePath) {
-						transformed.map = transformed.map.replace(
-							JSON.stringify(esbuildOptions.sourcefile),
-							JSON.stringify(filePath),
+				(_filePath, code) => {
+					const patchResults = patchOptions(esbuildOptions);
+					try {
+						return patchResults(
+							esbuildTransformSync(code, esbuildOptions),
 						);
+					} catch (error) {
+						handleEsbuildError(error as TransformFailure);
+
+						/**
+						 * esbuild warnings are ignored because they're usually caught
+						 * at runtime by Node.js with better errors + stack traces
+						 */
 					}
-					return transformed;
 				},
 				transformDynamicImport,
-			] as const,
+			],
 		);
 
 		cache.set(hash, transformed);
-	}
-
-	if (transformed.warnings && transformed.warnings.length > 0) {
-		const { warnings } = transformed;
-		for (const warning of warnings) {
-			console.error(warning);
-		}
 	}
 
 	return transformed;
@@ -84,11 +104,12 @@ export async function transform(
 	filePath: string,
 	extendOptions?: TransformOptions,
 ): Promise<Transformed> {
-	const esbuildOptions = getEsbuildOptions({
+	const esbuildOptions = {
+		...cacheConfig,
 		format: 'esm',
 		sourcefile: filePath,
 		...extendOptions,
-	});
+	} as const;
 
 	const hash = sha1([
 		code,
@@ -104,29 +125,26 @@ export async function transform(
 			code,
 			[
 				// eslint-disable-next-line @typescript-eslint/no-shadow
-				async (filePath, code) => {
-					// eslint-disable-next-line @typescript-eslint/no-shadow
-					const transformed = await esbuildTransform(code, esbuildOptions);
-					if (esbuildOptions.sourcefile !== filePath) {
-						transformed.map = transformed.map.replace(
-							JSON.stringify(esbuildOptions.sourcefile),
-							JSON.stringify(filePath),
+				async (_filePath, code) => {
+					const patchResults = patchOptions(esbuildOptions);
+					try {
+						return patchResults(
+							await esbuildTransform(code, esbuildOptions),
 						);
+					} catch (error) {
+						handleEsbuildError(error as TransformFailure);
+
+						/**
+						 * esbuild warnings are ignored because they're usually caught
+						 * at runtime by Node.js with better errors + stack traces
+						 */
 					}
-					return transformed;
 				},
 				transformDynamicImport,
-			] as const,
+			],
 		);
 
 		cache.set(hash, transformed);
-	}
-
-	if (transformed.warnings && transformed.warnings.length > 0) {
-		const { warnings } = transformed;
-		for (const warning of warnings) {
-			console.error(warning);
-		}
 	}
 
 	return transformed;
