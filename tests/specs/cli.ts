@@ -3,11 +3,14 @@ import { setTimeout } from 'timers/promises';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import packageJson from '../../package.json';
-import { tsx, tsxPath } from '../utils/tsx.js';
+import { tsxPath } from '../utils/tsx.js';
 import { ptyShell, isWindows } from '../utils/pty-shell/index';
 import { expectMatchInOrder } from '../utils/expect-match-in-order.js';
+import { testRunnerGlob } from '../../src/utils/node-features.js';
+import type { NodeApis } from '../utils/tsx.js';
 
-export default testSuite(({ describe }) => {
+export default testSuite(({ describe }, node: NodeApis) => {
+	const { tsx } = node;
 	describe('CLI', ({ describe, test }) => {
 		describe('argv', async ({ describe, onFinish }) => {
 			const fixture = await createFixture({
@@ -18,22 +21,18 @@ export default testSuite(({ describe }) => {
 
 			describe('version', ({ test }) => {
 				test('shows version', async () => {
-					const tsxProcess = await tsx({
-						args: ['--version'],
-					});
+					const tsxProcess = await tsx(['--version']);
 
 					expect(tsxProcess.exitCode).toBe(0);
-					expect(tsxProcess.stdout).toBe(`tsx v${packageJson.version}\nnode ${process.version}`);
+					expect(tsxProcess.stdout).toBe(`tsx v${packageJson.version}\nnode v${node.version}`);
 					expect(tsxProcess.stderr).toBe('');
 				});
 
 				test('doesn\'t show version with file', async () => {
-					const tsxProcess = await tsx({
-						args: [
-							path.join(fixture.path, 'log-argv.ts'),
-							'--version',
-						],
-					});
+					const tsxProcess = await tsx([
+						path.join(fixture.path, 'log-argv.ts'),
+						'--version',
+					]);
 
 					expect(tsxProcess.exitCode).toBe(0);
 					expect(tsxProcess.stdout).toMatch('"--version"');
@@ -44,9 +43,7 @@ export default testSuite(({ describe }) => {
 
 			describe('help', ({ test }) => {
 				test('shows help', async () => {
-					const tsxProcess = await tsx({
-						args: ['--help'],
-					});
+					const tsxProcess = await tsx(['--help']);
 
 					expect(tsxProcess.exitCode).toBe(0);
 					expect(tsxProcess.stdout).toMatch('Node.js runtime enhanced with esbuild for loading TypeScript & ESM');
@@ -55,12 +52,10 @@ export default testSuite(({ describe }) => {
 				});
 
 				test('doesn\'t show help with file', async () => {
-					const tsxProcess = await tsx({
-						args: [
-							path.join(fixture.path, 'log-argv.ts'),
-							'--help',
-						],
-					});
+					const tsxProcess = await tsx([
+						path.join(fixture.path, 'log-argv.ts'),
+						'--help',
+					]);
 
 					expect(tsxProcess.exitCode).toBe(0);
 					expect(tsxProcess.stdout).toMatch('"--help"');
@@ -72,9 +67,10 @@ export default testSuite(({ describe }) => {
 
 		describe('eval & print', ({ test }) => {
 			test('TypeScript', async () => {
-				const tsxProcess = await tsx({
-					args: ['--eval', 'console.log(require("fs") && module as string)'],
-				});
+				const tsxProcess = await tsx([
+					'--eval',
+					'console.log(require("fs") && module as string)',
+				]);
 
 				expect(tsxProcess.exitCode).toBe(0);
 				expect(tsxProcess.stdout).toMatch("id: '[eval]'");
@@ -82,9 +78,11 @@ export default testSuite(({ describe }) => {
 			});
 
 			test('--input-type=module is respected', async () => {
-				const tsxProcess = await tsx({
-					args: ['--eval', 'console.log(JSON.stringify([typeof require, import.meta.url]))', '--input-type=module'],
-				});
+				const tsxProcess = await tsx([
+					'--eval',
+					'console.log(JSON.stringify([typeof require, import.meta.url]))',
+					'--input-type=module',
+				]);
 
 				expect(tsxProcess.exitCode).toBe(0);
 				const [requireDefined, importMetaUrl] = JSON.parse(tsxProcess.stdout);
@@ -94,9 +92,10 @@ export default testSuite(({ describe }) => {
 			});
 
 			test('--print', async () => {
-				const tsxProcess = await tsx({
-					args: ['--print', 'require("fs") && module as string'],
-				});
+				const tsxProcess = await tsx([
+					'--print',
+					'require("fs") && module as string',
+				]);
 
 				expect(tsxProcess.exitCode).toBe(0);
 				expect(tsxProcess.stdout).toMatch("id: '[eval]'");
@@ -106,7 +105,7 @@ export default testSuite(({ describe }) => {
 
 		test('Node.js test runner', async ({ onTestFinish }) => {
 			const fixture = await createFixture({
-				'test.ts': `
+				'test.test.ts': `
 				import { test } from 'node:test';
 				import assert from 'assert';
 
@@ -117,15 +116,24 @@ export default testSuite(({ describe }) => {
 			});
 			onTestFinish(async () => await fixture.rm());
 
-			const tsxProcess = await tsx({
-				args: [
+			const tsxProcess = await tsx(
+				[
 					'--test',
-					path.join(fixture.path, 'test.ts'),
+					...(
+						testRunnerGlob
+							? []
+							: ['test.test.ts']
+					),
 				],
-			});
+				fixture.path,
+			);
 
-			expect(tsxProcess.stdout).toMatch('# pass 1\n');
 			expect(tsxProcess.exitCode).toBe(0);
+			if (testRunnerGlob) {
+				expect(tsxProcess.stdout).toMatch('✔ passing test\n');
+			} else {
+				expect(tsxProcess.stdout).toMatch('# pass 1\n');
+			}
 		}, 10_000);
 
 		describe('Signals', async ({ describe, onFinish }) => {
@@ -172,11 +180,9 @@ export default testSuite(({ describe }) => {
 			describe('Relays kill signal', ({ test }) => {
 				for (const signal of signals) {
 					test(signal, async ({ onTestFail }) => {
-						const tsxProcess = tsx({
-							args: [
-								path.join(fixture.path, 'catch-signals.js'),
-							],
-						});
+						const tsxProcess = tsx([
+							path.join(fixture.path, 'catch-signals.js'),
+						]);
 
 						tsxProcess.stdout!.once('data', () => {
 							tsxProcess.kill(signal, {
@@ -213,11 +219,9 @@ export default testSuite(({ describe }) => {
 			});
 
 			test('Kills child when unresponsive (infinite loop)', async () => {
-				const tsxProcess = tsx({
-					args: [
-						path.join(fixture.path, 'infinite-loop.js'),
-					],
-				});
+				const tsxProcess = tsx([
+					path.join(fixture.path, 'infinite-loop.js'),
+				]);
 
 				const childPid = await new Promise<number>((resolve) => {
 					tsxProcess.stdout!.once('data', (data) => {
@@ -237,11 +241,9 @@ export default testSuite(({ describe }) => {
 			}, 10_000);
 
 			test('Doesn\'t kill child when responsive (ignores signal)', async () => {
-				const tsxProcess = tsx({
-					args: [
-						path.join(fixture.path, 'ignores-signals.js'),
-					],
-				});
+				const tsxProcess = tsx([
+					path.join(fixture.path, 'ignores-signals.js'),
+				]);
 
 				const childPid = await new Promise<number>((resolve) => {
 					tsxProcess.stdout!.once('data', (data) => {
@@ -270,7 +272,7 @@ export default testSuite(({ describe }) => {
 				test('Exit code', async () => {
 					const output = await ptyShell(
 						[
-							`${process.execPath} ${tsxPath} ${path.join(fixture.path, 'keep-alive.js')}\r`,
+							`${node.path} ${tsxPath} ${path.join(fixture.path, 'keep-alive.js')}\r`,
 							stdout => stdout.includes('READY') && '\u0003',
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
@@ -281,7 +283,7 @@ export default testSuite(({ describe }) => {
 				test('Catchable', async () => {
 					const output = await ptyShell(
 						[
-							`${process.execPath} ${tsxPath} ${path.join(fixture.path, 'catch-signals.js')}\r`,
+							`${node.path} ${tsxPath} ${path.join(fixture.path, 'catch-signals.js')}\r`,
 							stdout => stdout.includes('READY') && '\u0003',
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],

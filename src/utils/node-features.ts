@@ -21,3 +21,7 @@ export const importAttributes = (
 	compareNodeVersion([21, 0, 0]) >= 0
 	|| compareNodeVersion([20, 10, 0]) >= 0
 );
+
+// Added in v21.0.0
+// https://github.com/nodejs/node/releases/tag/v21.0.0
+export const testRunnerGlob = compareNodeVersion([21, 0, 0]) >= 0;

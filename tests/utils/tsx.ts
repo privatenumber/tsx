@@ -42,6 +42,7 @@ export const createNode = async (
 
 	return {
 		version: node.version,
+		path: node.path,
 		tsx: (
 			args: string[],
 			cwd?: string,

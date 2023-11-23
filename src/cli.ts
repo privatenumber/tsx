@@ -10,6 +10,7 @@ import {
 	removeArgvFlags,
 	ignoreAfterArgument,
 } from './remove-argv-flags.js';
+import { testRunnerGlob } from './utils/node-features.js';
 
 const relaySignals = (
 	childProcess: ChildProcess,
@@ -169,7 +170,8 @@ cli({
 
 	// Default --test glob to find TypeScript files
 	if (
-		interceptedFlags.test
+		testRunnerGlob
+		&& interceptedFlags.test
 		&& firstArgs.length === 0
 	) {
 		argvsToRun.push('**/{test,test/**/*,test-*,*[.-_]test}.?(c|m)@(t|j)s');
