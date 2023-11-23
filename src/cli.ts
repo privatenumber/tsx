@@ -1,3 +1,4 @@
+import type { ChildProcess } from 'child_process';
 import { cli } from 'cleye';
 import {
 	transformSync as esbuildTransformSync,
@@ -9,6 +10,75 @@ import {
 	removeArgvFlags,
 	ignoreAfterArgument,
 } from './remove-argv-flags.js';
+
+const relaySignals = (
+	childProcess: ChildProcess,
+) => {
+	let waitForSignal: undefined | ((signal: NodeJS.Signals) => void);
+
+	childProcess.on(
+		'message',
+		(
+			data: { type: string; signal: NodeJS.Signals },
+		) => {
+			if (data && data.type === 'kill' && waitForSignal) {
+				waitForSignal(data.signal);
+			}
+		},
+	);
+
+	const waitForSignalFromChild = () => {
+		const p = new Promise<NodeJS.Signals | undefined>((resolve) => {
+			setTimeout(() => resolve(undefined), 10);
+			waitForSignal = resolve;
+		});
+
+		p.then(
+			() => {
+				waitForSignal = undefined;
+			},
+			() => {},
+		);
+
+		return p;
+	};
+
+	const relaySignalToChild = async (
+		signal: NodeJS.Signals,
+	) => {
+		/**
+		 * This callback is triggered if the parent receives a signal
+		 *
+		 * Child could also receive a signal at the same time if it detected
+		 * a keypress or was sent a signal via process group
+		 *
+		 * The preflight registers a signal handler on the child to
+		 * tell the parent if it also received a signal which we wait for here
+		 */
+		const signalFromChild = await waitForSignalFromChild();
+
+		/**
+		 * If child didn't receive a signal, it's either because it was
+		 * sent to the parent directly via kill PID or the child is
+		 * irresponsive (e.g. infinite loop)
+		 * Relay signal to child.
+		 */
+		if (signalFromChild !== signal) {
+			childProcess.kill(signal);
+
+			/**
+			 * If child is irresponsive (e.g. infinite loop), we need to force kill it
+			 */
+			const isChildResponsive = await waitForSignalFromChild();
+			if (isChildResponsive !== signal) {
+				childProcess.kill('SIGKILL');
+			}
+		}
+	};
+
+	process.on('SIGINT', relaySignalToChild);
+	process.on('SIGTERM', relaySignalToChild);
+};
 
 const tsxFlags = {
 	noCache: {
@@ -102,47 +172,7 @@ cli({
 		},
 	);
 
-	const relaySignal = async (signal: NodeJS.Signals) => {
-		const message = await Promise.race([
-			/**
-			 * If child received a signal, it detected a keypress or
-			 * was sent a signal via process group.
-			 *
-			 * Ignore it and let child handle it.
-			 */
-			new Promise<NodeJS.Signals>((resolve) => {
-				function onKillSignal(data: { type: string; signal: NodeJS.Signals }) {
-					if (data && data.type === 'kill') {
-						resolve(data.signal);
-						childProcess.off('message', onKillSignal);
-					}
-				}
-
-				childProcess.on('message', onKillSignal);
-			}),
-			new Promise((resolve) => {
-				setTimeout(resolve, 10);
-			}),
-		]);
-
-		/**
-		 * If child didn't receive a signal, it was sent to the parent
-		 * directly via kill PID. Relay it to child.
-		 */
-		if (!message) {
-			childProcess.kill(signal);
-			/**
-			 * if the child process is stuck in a loop, SIGINT
-			 * and SIGTERM have no effect on it, therefore we send
-			 * a SIGKILL if the childProcess.on('close') handler
-			 * defined below is not called within 10ms.
-			 */
-			setTimeout(() => childProcess.kill('SIGKILL'), 10);
-		}
-	};
-
-	process.on('SIGINT', relaySignal);
-	process.on('SIGTERM', relaySignal);
+	relaySignals(childProcess);
 
 	childProcess.on(
 		'close',
