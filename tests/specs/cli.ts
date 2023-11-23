@@ -1,4 +1,5 @@
 import path from 'path';
+import { setTimeout } from 'timers/promises';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import packageJson from '../../package.json';
@@ -128,12 +129,10 @@ export default testSuite(({ describe }) => {
 		}, 10_000);
 
 		describe('Signals', async ({ describe, onFinish }) => {
+			const signals = ['SIGINT', 'SIGTERM'];
 			const fixture = await createFixture({
 				'catch-signals.js': `
-				const signals = [
-					'SIGINT',
-					'SIGTERM',
-				];
+				const signals = ${JSON.stringify(signals)};
 				
 				for (const name of signals) {
 					process.on(name, () => {
@@ -153,12 +152,24 @@ export default testSuite(({ describe }) => {
 				setTimeout(() => {}, 1e5);
 				console.log('READY');
 				`,
+				'infinite-loop.js': `
+				console.log(process.pid);
+				while (true) {}
+				`,
+				'ignores-signals.js': `
+				console.log(process.pid);
+				process.on('SIGINT', () => {
+					console.log('Refusing SIGINT');
+				});
+				process.on('SIGTERM', () => {
+					console.log('Refusing SIGTERM');
+				});
+				setTimeout(() => {}, 1e5);
+				`,
 			});
 			onFinish(async () => await fixture.rm());
 
 			describe('Relays kill signal', ({ test }) => {
-				const signals = ['SIGINT', 'SIGTERM'];
-
 				for (const signal of signals) {
 					test(signal, async ({ onTestFail }) => {
 						const tsxProcess = tsx({
@@ -200,6 +211,60 @@ export default testSuite(({ describe }) => {
 					}, 10_000);
 				}
 			});
+
+			test('Kills child when unresponsive (infinite loop)', async () => {
+				const tsxProcess = tsx({
+					args: [
+						path.join(fixture.path, 'infinite-loop.js'),
+					],
+				});
+
+				const childPid = await new Promise<number>((resolve) => {
+					tsxProcess.stdout!.once('data', (data) => {
+						resolve(Number(data.toString()));
+					});
+				});
+
+				// Send SIGINT to child
+				tsxProcess.kill('SIGINT', {
+					forceKillAfterTimeout: false,
+				});
+
+				await tsxProcess;
+
+				// Enforce that child process is killed
+				expect(() => process.kill(childPid!, 0)).toThrow();
+			}, 10_000);
+
+			test('Doesn\'t kill child when responsive (ignores signal)', async () => {
+				const tsxProcess = tsx({
+					args: [
+						path.join(fixture.path, 'ignores-signals.js'),
+					],
+				});
+
+				const childPid = await new Promise<number>((resolve) => {
+					tsxProcess.stdout!.once('data', (data) => {
+						resolve(Number(data.toString()));
+					});
+				});
+
+				// Send SIGINT to child
+				tsxProcess.kill('SIGINT', {
+					forceKillAfterTimeout: false,
+				});
+
+				await setTimeout(100);
+
+				if (process.platform === 'win32') {
+					// Enforce that child process is killed
+					expect(() => process.kill(childPid!, 0)).toThrow();
+				} else {
+					// Kill child process
+					expect(() => process.kill(childPid!, 'SIGKILL')).not.toThrow();
+				}
+				await tsxProcess;
+			}, 10_000);
 
 			describe('Ctrl + C', ({ test }) => {
 				test('Exit code', async () => {

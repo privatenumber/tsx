@@ -18,7 +18,7 @@ require('./cjs/index.cjs');
 
 // If a parent process is detected
 if (process.send) {
-	function relaySignal(signal: NodeJS.Signals) {
+	const relaySignal = (signal: NodeJS.Signals) => {
 		process.send!({
 			type: 'kill',
 			signal,
@@ -31,7 +31,7 @@ if (process.send) {
 		if (process.listenerCount(signal) === 0) {
 			process.exit(128 + osConstants.signals[signal]);
 		}
-	}
+	};
 
 	const relaySignals = ['SIGINT', 'SIGTERM'] as const;
 	type RelaySignals = typeof relaySignals[number];
@@ -39,8 +39,11 @@ if (process.send) {
 		process.on(signal, relaySignal);
 	}
 
-	// Reduce the listenerCount to hide the one set above
-	const { listenerCount } = process;
+	/**
+	 * Hide relaySignal from process.listeners() and process.listenerCount()
+	 */
+	const { listenerCount, listeners } = process;
+
 	process.listenerCount = function (eventName) {
 		let count = Reflect.apply(listenerCount, this, arguments);
 		if (relaySignals.includes(eventName as RelaySignals)) {
@@ -49,8 +52,6 @@ if (process.send) {
 		return count;
 	};
 
-	// Also hide relaySignal from process.listeners()
-	const { listeners } = process;
 	process.listeners = function (eventName) {
 		const result: BaseEventListener[] = Reflect.apply(listeners, this, arguments);
 		if (relaySignals.includes(eventName as RelaySignals)) {
