@@ -60,14 +60,13 @@ const relaySignals = (
 		/**
 		 * If child didn't receive a signal, it's either because it was
 		 * sent to the parent directly via kill PID or the child is
-		 * irresponsive (e.g. infinite loop)
-		 * Relay signal to child.
+		 * unresponsive (e.g. infinite loop). Relay signal to child.
 		 */
 		if (signalFromChild !== signal) {
 			childProcess.kill(signal);
 
 			/**
-			 * If child is irresponsive (e.g. infinite loop), we need to force kill it
+			 * If child is unresponsive (e.g. infinite loop), we need to force kill it
 			 */
 			const isChildResponsive = await waitForSignalFromChild();
 			if (isChildResponsive !== signal) {
