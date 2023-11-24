@@ -12,20 +12,21 @@ export const log = (...messages: unknown[]) => console.log(
 // https://github.com/sindresorhus/ansi-escapes/blob/2b3b59c56ff77a/index.js#L80
 export const clearScreen = '\u001Bc';
 
-export function debounce(
-	originalFunction: () => void,
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const debounce = <T extends (this: unknown, ...args: any[]) => void>(
+	originalFunction: T,
 	duration: number,
-) {
+): T => {
 	let timeout: NodeJS.Timeout | undefined;
 
-	return () => {
+	return function () {
 		if (timeout) {
 			clearTimeout(timeout);
 		}
 
 		timeout = setTimeout(
-			() => originalFunction(),
+			() => Reflect.apply(originalFunction, this, arguments),
 			duration,
 		);
-	};
-}
+	} as T;
+};

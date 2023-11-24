@@ -2,6 +2,7 @@ import path from 'path';
 import { setTimeout } from 'timers/promises';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
+import stripAnsi from 'strip-ansi';
 import { tsx } from '../utils/tsx.js';
 import { processInteract } from '../utils/process-interact.js';
 
@@ -62,6 +63,7 @@ export default testSuite(async ({ describe }) => {
 							return true;
 						}
 					},
+					data => stripAnsi(data).includes('[tsx] change in ./value.js Rerunning...\n'),
 					data => data.includes('goodbye world\n'),
 				],
 				5000,

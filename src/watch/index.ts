@@ -4,6 +4,7 @@ import { constants as osConstants } from 'os';
 import path from 'path';
 import { command } from 'cleye';
 import { watch } from 'chokidar';
+import { lightMagenta, lightGreen, yellow } from 'kolorist';
 import { run } from '../run.js';
 import {
 	removeArgvFlags,
@@ -14,18 +15,6 @@ import {
 	debounce,
 	log,
 } from './utils.js';
-
-const killProcess = async (
-	childProcess: ChildProcess,
-) => {
-	const waitForExit = new Promise((resolve) => {
-		childProcess.on('exit', resolve);
-	});
-
-	childProcess.kill();
-
-	await waitForExit;
-};
 
 const flags = {
 	noCache: {
@@ -74,8 +63,13 @@ export const watchCommand = command({
 	};
 
 	let runProcess: ChildProcess | undefined;
+	let exiting = false;
 
 	const spawnProcess = () => {
+		if (exiting) {
+			return;
+		}
+
 		const childProcess = run(rawArgvs, options);
 
 		childProcess.on('message', (data) => {
@@ -95,7 +89,6 @@ export const watchCommand = command({
 				);
 
 				if (path.isAbsolute(dependencyPath)) {
-					// console.log('adding', dependencyPath);
 					watcher.add(dependencyPath);
 				}
 			}
@@ -104,10 +97,40 @@ export const watchCommand = command({
 		return childProcess;
 	};
 
-	let waitingExits = false;
-	const reRun = debounce(async () => {
-		if (waitingExits) {
-			log('forcing restart');
+	let waitingChildExit = false;
+
+	const killProcess = async (
+		childProcess: ChildProcess,
+		signal: NodeJS.Signals = 'SIGTERM',
+		forceKillOnTimeout = 5000,
+	) => {
+		let exited = false;
+		const waitForExit = new Promise<number | null>((resolve) => {
+			childProcess.on('exit', (exitCode) => {
+				exited = true;
+				waitingChildExit = false;
+				resolve(exitCode);
+			});
+		});
+
+		waitingChildExit = true;
+		childProcess.kill(signal);
+
+		setTimeout(() => {
+			if (!exited) {
+				log(yellow(`Process didn't exit in ${Math.floor(forceKillOnTimeout / 1000)}s. Force killing...`));
+				childProcess.kill('SIGKILL');
+			}
+		}, forceKillOnTimeout);
+
+		return await waitForExit;
+	};
+
+	const reRun = debounce(async (event?: string, filePath?: string) => {
+		const reason = event ? `${event ? lightMagenta(event) : ''}${filePath ? ` in ${lightGreen(`./${filePath}`)}` : ''}` : '';
+
+		if (waitingChildExit) {
+			log(reason, yellow('Process hasn\'t exited. Killing process...'));
 			runProcess!.kill('SIGKILL');
 			return;
 		}
@@ -116,12 +139,10 @@ export const watchCommand = command({
 		if (runProcess) {
 			// If process still running
 			if (runProcess.exitCode === null) {
-				log('restarting');
-				waitingExits = true;
+				log(reason, yellow('Restarting...'));
 				await killProcess(runProcess);
-				waitingExits = false;
 			} else {
-				log('rerunning');
+				log(reason, yellow('Rerunning...'));
 			}
 
 			if (options.clearScreen) {
@@ -134,39 +155,33 @@ export const watchCommand = command({
 
 	reRun();
 
-	function exit(signal: NodeJS.Signals) {
-		/**
-		 * In CLI mode where there is only one run, we can inherit the child's exit code.
-		 * But in watch mode, the exit code should reflect the kill signal.
-		 */
+	const relaySignal = (signal: NodeJS.Signals) => {
+		// Disable further spawns
+		exiting = true;
 
-		process.exit(
-			/**
-			 * https://nodejs.org/api/process.html#exit-codes
-			 * >128 Signal Exits: If Node.js receives a fatal signal such as SIGKILL or SIGHUP,
-			 * then its exit code will be 128 plus the value of the signal code. This is a
-			 * standard POSIX practice, since exit codes are defined to be 7-bit integers, and
-			 * signal exits set the high-order bit, and then contain the value of the signal
-			 * code. For example, signal SIGABRT has value 6, so the expected exit code will be
-			 * 128 + 6, or 134.
-			 */
-			128 + osConstants.signals[signal],
-		);
-	}
+		// Child is still running, kill it
+		if (runProcess?.exitCode === null) {
+			if (waitingChildExit) {
+				log(yellow('Previous process hasn\'t exited yet. Force killing...'));
+			}
 
-	function relaySignal(signal: NodeJS.Signals) {
-		// Child is still running
-		if (runProcess && runProcess.exitCode === null) {
-			// Wait for child to exit
-			runProcess.on('close', () => exit(signal));
-			runProcess.kill(signal);
+			killProcess(
+				runProcess,
+				// Second Ctrl+C force kills
+				waitingChildExit ? 'SIGKILL' : signal,
+			).then(
+				(exitCode) => {
+					process.exit(exitCode ?? 0);
+				},
+				() => {},
+			);
 		} else {
-			exit(signal);
+			process.exit(osConstants.signals[signal]);
 		}
-	}
+	};
 
-	process.once('SIGINT', relaySignal);
-	process.once('SIGTERM', relaySignal);
+	process.on('SIGINT', relaySignal);
+	process.on('SIGTERM', relaySignal);
 
 	/**
 	 * Ideally, we can get a list of files loaded from the run above
@@ -198,5 +213,5 @@ export const watchCommand = command({
 	).on('all', reRun);
 
 	// On "Return" key
-	process.stdin.on('data', reRun);
+	process.stdin.on('data', () => reRun('Return key'));
 });
