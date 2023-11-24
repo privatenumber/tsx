@@ -127,10 +127,10 @@ export const watchCommand = command({
 	};
 
 	const reRun = debounce(async (event?: string, filePath?: string) => {
-		const message = event ? `${event ? lightMagenta(event) : ''}${filePath ? ` in ${lightGreen(`./${filePath}`)}` : ''}` : '';
+		const reason = event ? `${event ? lightMagenta(event) : ''}${filePath ? ` in ${lightGreen(`./${filePath}`)}` : ''}` : '';
 
 		if (waitingChildExit) {
-			log(message, yellow('Process hasn\'t exited. Killing process...'));
+			log(reason, yellow('Process hasn\'t exited. Killing process...'));
 			runProcess!.kill('SIGKILL');
 			return;
 		}
@@ -139,10 +139,10 @@ export const watchCommand = command({
 		if (runProcess) {
 			// If process still running
 			if (runProcess.exitCode === null) {
-				log(message, yellow('Restarting...'));
+				log(reason, yellow('Restarting...'));
 				await killProcess(runProcess);
 			} else {
-				log(message, yellow('Rerunning...'));
+				log(reason, yellow('Rerunning...'));
 			}
 
 			if (options.clearScreen) {
@@ -161,6 +161,10 @@ export const watchCommand = command({
 
 		// Child is still running, kill it
 		if (runProcess?.exitCode === null) {
+			if (waitingChildExit) {
+				log(yellow('Previous process hasn\'t exited yet. Force killing...'));
+			}
+
 			killProcess(
 				runProcess,
 				// Second Ctrl+C force kills

@@ -9,10 +9,7 @@ export const registerLoader = () => {
 	if (process.send) {
 		port1.addListener('message', (message) => {
 			if (message.type === 'dependency') {
-				process.send!(message, undefined, undefined, (_error) => {
-					// Errors if the parent process is killed during watch
-					// e.g. reload (via Return) and hit Ctrl+C immediately
-				});
+				process.send!(message);
 			}
 		});
 	}
