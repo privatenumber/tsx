@@ -42,7 +42,7 @@ jobs:
 
     - name: Get Node.js cache directory
       shell: bash
-      run: echo "NVE_CACHE=$(node -e 'console.log(require("cachedir")("nve"))')" >> $GITHUB_ENV
+      run: echo "NVE_CACHE=$(node -p 'require("cachedir")("nve")')" >> $GITHUB_ENV
 
     - name: Cache Node.js versions
       uses: actions/cache@v3
