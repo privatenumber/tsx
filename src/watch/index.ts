@@ -127,7 +127,7 @@ export const watchCommand = command({
 	};
 
 	const reRun = debounce(async (event?: string, filePath?: string) => {
-		const message = event ? `${event ? lightMagenta(event) : ''}${filePath ? ` in ${lightGreen('./' + filePath)}` : ''}` : '';
+		const message = event ? `${event ? lightMagenta(event) : ''}${filePath ? ` in ${lightGreen(`./${filePath}`)}` : ''}` : '';
 
 		if (waitingChildExit) {
 			log(message, yellow('Process hasn\'t exited. Killing process...'));
