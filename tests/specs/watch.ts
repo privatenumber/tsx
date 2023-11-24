@@ -62,6 +62,7 @@ export default testSuite(async ({ describe }) => {
 							return true;
 						}
 					},
+					data => data.includes('[tsx] change in ./value.js Rerunning...\n'),
 					data => data.includes('goodbye world\n'),
 				],
 				5000,
