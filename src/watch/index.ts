@@ -16,18 +16,6 @@ import {
 	log,
 } from './utils.js';
 
-const killProcess = async (
-	childProcess: ChildProcess,
-) => {
-	const waitForExit = new Promise((resolve) => {
-		childProcess.on('exit', resolve);
-	});
-
-	childProcess.kill();
-
-	await waitForExit;
-};
-
 const flags = {
 	noCache: {
 		type: Boolean,
@@ -75,8 +63,13 @@ export const watchCommand = command({
 	};
 
 	let runProcess: ChildProcess | undefined;
+	let exiting = false;
 
 	const spawnProcess = () => {
+		if (exiting) {
+			return;
+		}
+
 		const childProcess = run(rawArgvs, options);
 
 		childProcess.on('message', (data) => {
@@ -96,7 +89,6 @@ export const watchCommand = command({
 				);
 
 				if (path.isAbsolute(dependencyPath)) {
-					// console.log('adding', dependencyPath);
 					watcher.add(dependencyPath);
 				}
 			}
@@ -105,12 +97,40 @@ export const watchCommand = command({
 		return childProcess;
 	};
 
-	let waitingExits = false;
+	let waitingChildExit = false;
+
+	const killProcess = async (
+		childProcess: ChildProcess,
+		signal: NodeJS.Signals = 'SIGTERM',
+		forceKillOnTimeout = 5000,
+	) => {
+		let exited = false;
+		const waitForExit = new Promise<number | null>((resolve) => {
+			childProcess.on('exit', (exitCode) => {
+				exited = true;
+				waitingChildExit = false;
+				resolve(exitCode);
+			});
+		});
+
+		waitingChildExit = true;
+		childProcess.kill(signal);
+
+		setTimeout(() => {
+			if (!exited) {
+				log(yellow(`Process didn't exit in ${Math.floor(forceKillOnTimeout / 1000)}s. Force killing...`));
+				childProcess.kill('SIGKILL');
+			}
+		}, forceKillOnTimeout);
+
+		return await waitForExit;
+	};
+
 	const reRun = debounce(async (event?: string, filePath?: string) => {
 		const message = event ? `${event ? lightMagenta(event) : ''}${filePath ? ` at ${lightGreen(filePath)}` : ''}` : '';
 
-		if (waitingExits) {
-			log(message, yellow('Force restarting previous process'));
+		if (waitingChildExit) {
+			log(message, yellow('Process hasn\'t exited. Killing process...'));
 			runProcess!.kill('SIGKILL');
 			return;
 		}
@@ -119,12 +139,10 @@ export const watchCommand = command({
 		if (runProcess) {
 			// If process still running
 			if (runProcess.exitCode === null) {
-				log(message, yellow('Restarting process'));
-				waitingExits = true;
+				log(message, yellow('Restarting...'));
 				await killProcess(runProcess);
-				waitingExits = false;
 			} else {
-				log(message, yellow('Rerunning process'));
+				log(message, yellow('Rerunning...'));
 			}
 
 			if (options.clearScreen) {
@@ -137,39 +155,30 @@ export const watchCommand = command({
 
 	reRun();
 
-	const exit = (signal: NodeJS.Signals) => {
-		/**
-		 * In CLI mode where there is only one run, we can inherit the child's exit code.
-		 * But in watch mode, the exit code should reflect the kill signal.
-		 */
-
-		process.exit(
-			/**
-			 * https://nodejs.org/api/process.html#exit-codes
-			 * >128 Signal Exits: If Node.js receives a fatal signal such as SIGKILL or SIGHUP,
-			 * then its exit code will be 128 plus the value of the signal code. This is a
-			 * standard POSIX practice, since exit codes are defined to be 7-bit integers, and
-			 * signal exits set the high-order bit, and then contain the value of the signal
-			 * code. For example, signal SIGABRT has value 6, so the expected exit code will be
-			 * 128 + 6, or 134.
-			 */
-			128 + osConstants.signals[signal],
-		);
-	};
-
 	const relaySignal = (signal: NodeJS.Signals) => {
-		// Child is still running
-		if (runProcess && runProcess.exitCode === null) {
-			// Wait for child to exit
-			runProcess.on('close', () => exit(signal));
-			runProcess.kill(signal);
+		// Disable further spawns
+		exiting = true;
+
+		// Child is still running, kill it
+		if (runProcess?.exitCode === null) {
+			killProcess(
+				runProcess,
+				// Second Ctrl+C force kills
+				waitingChildExit ? 'SIGKILL' : signal,
+				1000,
+			).then(
+				(exitCode) => {
+					process.exit(exitCode ?? 0);
+				},
+				() => {},
+			);
 		} else {
-			exit(signal);
+			process.exit(osConstants.signals[signal]);
 		}
 	};
 
-	process.once('SIGINT', relaySignal);
-	process.once('SIGTERM', relaySignal);
+	process.on('SIGINT', relaySignal);
+	process.on('SIGTERM', relaySignal);
 
 	/**
 	 * Ideally, we can get a list of files loaded from the run above
