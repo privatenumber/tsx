@@ -1,4 +1,4 @@
-import type { ChildProcess } from 'child_process';
+import type { ChildProcess, Serializable } from 'child_process';
 import { cli } from 'cleye';
 import {
 	transformSync as esbuildTransformSync,
@@ -187,6 +187,15 @@ cli({
 	);
 
 	relaySignals(childProcess);
+
+	if (process.send) {
+		childProcess.on('message', (message) => {
+			process.send!(message);
+		});
+		process.on('message', (message) => {
+			childProcess.send(message as Serializable);
+		});
+	}
 
 	childProcess.on(
 		'close',

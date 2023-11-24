@@ -2,11 +2,11 @@ import path from 'path';
 import { setTimeout } from 'timers/promises';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
+import { execa } from 'execa';
 import packageJson from '../../package.json';
-import { tsxPath } from '../utils/tsx.js';
 import { ptyShell, isWindows } from '../utils/pty-shell/index';
 import { expectMatchInOrder } from '../utils/expect-match-in-order.js';
-import type { NodeApis } from '../utils/tsx.js';
+import { tsxPath, type NodeApis } from '../utils/tsx.js';
 import { compareNodeVersion, type Version } from '../../src/utils/node-features.js';
 
 export default testSuite(({ describe }, node: NodeApis) => {
@@ -303,6 +303,35 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					]);
 				}, 10_000);
 			});
+		});
+
+		// Relays to child
+		test('relays messages to child', async ({ onTestFinish }) => {
+			const fixture = await createFixture({
+				'file.js': `
+				console.log('READY');
+				process.on('message', (received) => {
+					console.log({ received });
+					process.send(received);
+				});
+				`,
+			});
+
+			onTestFinish(async () => await fixture.rm());
+
+			const tsx = execa(tsxPath, ['file.js'], {
+				cwd: fixture.path,
+				stdio: ['ipc'],
+				reject: false,
+			});
+
+			tsx.on('message', (message) => {
+				console.log('from test', message);
+				tsx.kill();
+			});
+			tsx.send('hello');
+
+			console.log(await tsx);
 		});
 	});
 });
