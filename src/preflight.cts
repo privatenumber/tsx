@@ -5,19 +5,6 @@ import './suppress-warnings.cjs';
 
 type BaseEventListener = () => void;
 
-/**
- * Hook require() to transform to CJS
- *
- * This needs to be loaded via --require flag so subsequent --require
- * flags can support TypeScript.
- *
- * This is also added in loader.ts for the loader API.
- * Although it is required twice, it's not executed twice because
- * it's cached.
- */
-// eslint-disable-next-line import/no-unresolved
-require('./cjs/index.cjs');
-
 const bindHiddenSignalsHandler = (
 	signals: NodeJS.Signals[],
 	handler: NodeJS.SignalsListener,
@@ -52,6 +39,19 @@ const bindHiddenSignalsHandler = (
 // ESM Loader spawns child with same flags as parent
 // TODO: maybe we can also remove these flags?
 if (isMainThread) {
+	/**
+	 * Hook require() to transform to CJS
+	 *
+	 * This needs to be loaded via --require flag so subsequent --require
+	 * flags can support TypeScript.
+	 *
+	 * This is also added in loader.ts for the loader API.
+	 * Although it is required twice, it's not executed twice because
+	 * it's cached.
+	 */
+	// eslint-disable-next-line import/no-unresolved
+	require('./cjs/index.cjs');
+
 	(async () => {
 		const sendToClient = await creatingClient;
 
