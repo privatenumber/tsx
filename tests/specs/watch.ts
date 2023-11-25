@@ -3,10 +3,10 @@ import { setTimeout } from 'timers/promises';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import stripAnsi from 'strip-ansi';
-import { tsx } from '../utils/tsx.js';
+import type { NodeApis } from '../utils/tsx.js';
 import { processInteract } from '../utils/process-interact.js';
 
-export default testSuite(async ({ describe }) => {
+export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 	describe('watch', async ({ test, describe, onFinish }) => {
 		const fixture = await createFixture({
 			// Unnecessary TS to test syntax
@@ -15,9 +15,7 @@ export default testSuite(async ({ describe }) => {
 		onFinish(async () => await fixture.rm());
 
 		test('require file path', async () => {
-			const tsxProcess = await tsx({
-				args: ['watch'],
-			});
+			const tsxProcess = await tsx(['watch']);
 			expect(tsxProcess.exitCode).toBe(1);
 			expect(tsxProcess.stderr).toMatch('Error: Missing required parameter "script path"');
 		});
@@ -35,13 +33,13 @@ export default testSuite(async ({ describe }) => {
 			});
 			onTestFinish(async () => await fixtureWatch.rm());
 
-			const tsxProcess = tsx({
-				args: [
+			const tsxProcess = tsx(
+				[
 					'watch',
 					'index.js',
 				],
-				cwd: fixtureWatch.path,
-			});
+				fixtureWatch.path,
+			);
 
 			onTestFail(async () => {
 				if (tsxProcess.exitCode === null) {
@@ -76,13 +74,13 @@ export default testSuite(async ({ describe }) => {
 		}, 10_000);
 
 		test('suppresses warnings & clear screen', async () => {
-			const tsxProcess = tsx({
-				args: [
+			const tsxProcess = tsx(
+				[
 					'watch',
 					'log-argv.ts',
 				],
-				cwd: fixture.path,
-			});
+				fixture.path,
+			);
 
 			await processInteract(
 				tsxProcess.stdout!,
@@ -107,14 +105,14 @@ export default testSuite(async ({ describe }) => {
 		}, 10_000);
 
 		test('passes flags', async () => {
-			const tsxProcess = tsx({
-				args: [
+			const tsxProcess = tsx(
+				[
 					'watch',
 					'log-argv.ts',
 					'--some-flag',
 				],
-				cwd: fixture.path,
-			});
+				fixture.path,
+			);
 
 			await processInteract(
 				tsxProcess.stdout!,
@@ -143,13 +141,13 @@ export default testSuite(async ({ describe }) => {
 				`,
 			});
 
-			const tsxProcess = tsx({
-				args: [
+			const tsxProcess = tsx(
+				[
 					'watch',
 					'index.js',
 				],
-				cwd: fixtureExit.path,
-			});
+				fixtureExit.path,
+			);
 
 			onTestFail(async () => {
 				if (tsxProcess.exitCode === null) {
@@ -187,9 +185,7 @@ export default testSuite(async ({ describe }) => {
 
 		describe('help', ({ test }) => {
 			test('shows help', async () => {
-				const tsxProcess = await tsx({
-					args: ['watch', '--help'],
-				});
+				const tsxProcess = await tsx(['watch', '--help']);
 
 				expect(tsxProcess.exitCode).toBe(0);
 				expect(tsxProcess.stdout).toMatch('Run the script and watch for changes');
@@ -197,14 +193,14 @@ export default testSuite(async ({ describe }) => {
 			});
 
 			test('passes down --help to file', async ({ onTestFail }) => {
-				const tsxProcess = tsx({
-					args: [
+				const tsxProcess = tsx(
+					[
 						'watch',
 						'log-argv.ts',
 						'--help',
 					],
-					cwd: fixture.path,
-				});
+					fixture.path,
+				);
 
 				await processInteract(
 					tsxProcess.stdout!,
@@ -244,16 +240,16 @@ export default testSuite(async ({ describe }) => {
 
 				onTestFinish(async () => await fixtureGlob.rm());
 
-				const tsxProcess = tsx({
-					cwd: fixtureGlob.path,
-					args: [
+				const tsxProcess = tsx(
+					[
 						'watch',
 						'--clear-screen=false',
 						`--ignore=${fileA}`,
 						`--ignore=${path.join(fixtureGlob.path, 'directory/*')}`,
 						entryFile,
 					],
-				});
+					fixtureGlob.path,
+				);
 
 				onTestFail(async () => {
 					// If timed out, force kill process

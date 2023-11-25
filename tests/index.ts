@@ -4,7 +4,6 @@ import { nodeVersions } from './utils/node-versions';
 
 (async () => {
 	await describe('tsx', async ({ runTestSuite, describe }) => {
-		await runTestSuite(import('./specs/watch'));
 		await runTestSuite(import('./specs/repl'));
 		await runTestSuite(import('./specs/transform'));
 
@@ -12,6 +11,7 @@ import { nodeVersions } from './utils/node-versions';
 			const node = await createNode(nodeVersion);
 			await describe(`Node ${node.version}`, async ({ runTestSuite }) => {
 				await runTestSuite(import('./specs/cli'), node);
+				await runTestSuite(import('./specs/watch'), node);
 				await runTestSuite(
 					import('./specs/smoke'),
 					node,
