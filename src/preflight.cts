@@ -16,9 +16,40 @@ type BaseEventListener = () => void;
 // eslint-disable-next-line import/no-unresolved
 require('./cjs/index.cjs');
 
+const bindHiddenSignalsHandler = (
+	signals: NodeJS.Signals[],
+	handler: NodeJS.SignalsListener,
+) => {
+	type RelaySignals = typeof signals[number];
+	for (const signal of signals) {
+		process.on(signal, handler);
+	}
+
+	/**
+	 * Hide relaySignal from process.listeners() and process.listenerCount()
+	 */
+	const { listenerCount, listeners } = process;
+
+	process.listenerCount = function (eventName) {
+		let count = Reflect.apply(listenerCount, this, arguments);
+		if (signals.includes(eventName as RelaySignals)) {
+			count -= 1;
+		}
+		return count;
+	};
+
+	process.listeners = function (eventName) {
+		const result: BaseEventListener[] = Reflect.apply(listeners, this, arguments);
+		if (signals.includes(eventName as RelaySignals)) {
+			return result.filter(listener => listener !== handler);
+		}
+		return result;
+	};
+};
+
 // If a parent process is detected
 if (process.send) {
-	const relaySignal = (signal: NodeJS.Signals) => {
+	bindHiddenSignalsHandler(['SIGINT', 'SIGTERM'], (signal: NodeJS.Signals) => {
 		process.send!({
 			type: 'kill',
 			signal,
@@ -31,32 +62,5 @@ if (process.send) {
 		if (process.listenerCount(signal) === 0) {
 			process.exit(128 + osConstants.signals[signal]);
 		}
-	};
-
-	const relaySignals = ['SIGINT', 'SIGTERM'] as const;
-	type RelaySignals = typeof relaySignals[number];
-	for (const signal of relaySignals) {
-		process.on(signal, relaySignal);
-	}
-
-	/**
-	 * Hide relaySignal from process.listeners() and process.listenerCount()
-	 */
-	const { listenerCount, listeners } = process;
-
-	process.listenerCount = function (eventName) {
-		let count = Reflect.apply(listenerCount, this, arguments);
-		if (relaySignals.includes(eventName as RelaySignals)) {
-			count -= 1;
-		}
-		return count;
-	};
-
-	process.listeners = function (eventName) {
-		const result: BaseEventListener[] = Reflect.apply(listeners, this, arguments);
-		if (relaySignals.includes(eventName as RelaySignals)) {
-			return result.filter(listener => listener !== relaySignal);
-		}
-		return result;
-	};
+	});
 }
