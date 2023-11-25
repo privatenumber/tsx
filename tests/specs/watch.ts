@@ -33,7 +33,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					'value.js': 'export const value = \'hello world\';',
 				});
 				onTestFinish(async () => await fixtureWatch.rm());
-	
+
 				const tsxProcess = tsx(
 					[
 						'watch',
@@ -41,7 +41,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					],
 					fixtureWatch.path,
 				);
-	
+
 				onTestFail(async () => {
 					if (tsxProcess.exitCode === null) {
 						console.log('Force killing hanging process\n\n');
@@ -51,7 +51,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						});
 					}
 				});
-	
+
 				await processInteract(
 					tsxProcess.stdout!,
 					[
@@ -67,9 +67,9 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					],
 					5000,
 				);
-	
+
 				tsxProcess.kill();
-	
+
 				const { all } = await tsxProcess;
 				expect(all!.startsWith('hello world\n')).toBe(true);
 			}, 10_000);
