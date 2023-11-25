@@ -61,14 +61,17 @@ export const globalPreload: GlobalPreloadHook = ({ port }) => {
 
 	return `
 	const require = getBuiltin('module').createRequire("${import.meta.url}");
-	require('tsx/source-map').installSourceMapSupport();
-	if (process.send) {
+	require('../source-map.cjs').installSourceMapSupport();
+	// TODO pkgroll needs to build import maps as entry points
+	const { creatingClient } = require('#ipc/client.js');
+	console.log(creatingClient);
+	creatingClient.then((sendToParent) => {
 		port.addListener('message', (message) => {
 			if (message.type === 'dependency') {
-				process.send(message);
+				sendToParent(message);
 			}
 		});
-	}
+	});
 	port.unref(); // Allows process to exit without waiting for port to close
 	`;
 };

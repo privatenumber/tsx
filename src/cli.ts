@@ -11,22 +11,24 @@ import {
 	ignoreAfterArgument,
 } from './remove-argv-flags.js';
 import { testRunnerGlob } from './utils/node-features.js';
+import { createIpcServer } from './utils/ipc/server.js';
+import type { Server } from 'net';
 
 const relaySignals = (
 	childProcess: ChildProcess,
+	ipcSocket: Server,
 ) => {
 	let waitForSignal: undefined | ((signal: NodeJS.Signals) => void);
 
-	childProcess.on(
-		'message',
-		(
-			data: { type: string; signal: NodeJS.Signals },
-		) => {
-			if (data && data.type === 'kill' && waitForSignal) {
-				waitForSignal(data.signal);
-			}
-		},
-	);
+	ipcSocket.on('data', (data: { type: string; signal: NodeJS.Signals }) => {
+		if (
+			data
+			&& data.type === 'kill'
+			&& waitForSignal
+		) {
+			waitForSignal(data.signal);
+		}
+	});
 
 	const waitForSignalFromChild = () => {
 		const p = new Promise<NodeJS.Signals | undefined>((resolve) => {
@@ -113,7 +115,7 @@ cli({
 	},
 	help: false,
 	ignoreArgv: ignoreAfterArgument(),
-}, (argv) => {
+}, async (argv) => {
 	if (argv.flags.version) {
 		process.stdout.write(`tsx v${version}\nnode `);
 	} else if (argv.flags.help) {
@@ -178,6 +180,8 @@ cli({
 		argvsToRun.push('**/{test,test/**/*,test-*,*[.-_]test}.?(c|m)@(t|j)s');
 	}
 
+	const ipc = await createIpcServer();
+
 	const childProcess = run(
 		argvsToRun,
 		{
@@ -186,10 +190,13 @@ cli({
 		},
 	);
 
-	relaySignals(childProcess);
+	relaySignals(childProcess, ipc);
 
 	childProcess.on(
 		'close',
-		code => process.exit(code!),
+		code => {
+			// ipc.close();
+			process.exit(code!);
+		},
 	);
 });
