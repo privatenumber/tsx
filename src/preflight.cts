@@ -1,6 +1,6 @@
 import { constants as osConstants } from 'os';
-import { creatingClient } from './utils/ipc/client.js';
 import { isMainThread } from 'node:worker_threads';
+import { creatingClient } from './utils/ipc/client.js';
 import './suppress-warnings.cjs';
 
 type BaseEventListener = () => void;
@@ -54,13 +54,13 @@ const bindHiddenSignalsHandler = (
 if (isMainThread) {
 	(async () => {
 		const sendToClient = await creatingClient;
-	
+
 		bindHiddenSignalsHandler(['SIGINT', 'SIGTERM'], (signal: NodeJS.Signals) => {
 			sendToClient({
 				type: 'kill',
 				signal,
 			});
-	
+
 			/**
 			 * If the user has not registered a signal handler, we need to emulate
 			 * the default behavior when there are no other handlers set

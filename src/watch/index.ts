@@ -10,12 +10,12 @@ import {
 	removeArgvFlags,
 	ignoreAfterArgument,
 } from '../remove-argv-flags.js';
+import { createIpcServer } from '../utils/ipc/server.js';
 import {
 	clearScreen,
 	debounce,
 	log,
 } from './utils.js';
-import { createIpcServer } from '../utils/ipc/server.js';
 
 const flags = {
 	noCache: {

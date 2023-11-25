@@ -13,7 +13,7 @@ import { transformSync } from '../utils/transform/index.js';
 import { transformDynamicImport } from '../utils/transform/transform-dynamic-import.js';
 import { resolveTsPath } from '../utils/resolve-ts-path.js';
 import { isESM } from '../utils/esm-pattern.js';
-import { creatingClient, type SendToClient} from '../utils/ipc/client.js';
+import { creatingClient, type SendToClient } from '../utils/ipc/client.js';
 
 const isRelativePathPattern = /^\.{1,2}\//;
 const isTsFilePatten = /\.[cm]?tsx?$/;

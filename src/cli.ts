@@ -1,4 +1,5 @@
 import type { ChildProcess } from 'child_process';
+import type { Server } from 'net';
 import { cli } from 'cleye';
 import {
 	transformSync as esbuildTransformSync,
@@ -12,7 +13,6 @@ import {
 } from './remove-argv-flags.js';
 import { testRunnerGlob } from './utils/node-features.js';
 import { createIpcServer } from './utils/ipc/server.js';
-import type { Server } from 'net';
 
 const relaySignals = (
 	childProcess: ChildProcess,
@@ -194,7 +194,7 @@ cli({
 
 	childProcess.on(
 		'close',
-		code => {
+		(code) => {
 			// ipc.close();
 			process.exit(code!);
 		},

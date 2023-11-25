@@ -28,7 +28,7 @@ export const createIpcServer = () => new Promise<net.Server>((resolve, reject) =
 			// console.log({ data, string: data.toString() });
 			// server.emit('data', JSON.parse(data));
 		});
-	});	
+	});
 	server.listen(pipePath, () => resolve(server));
 	server.on('error', reject);
 
