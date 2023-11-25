@@ -1,5 +1,5 @@
 import path from 'path';
-import { tmpdir } from '../tmp-dir.js';
+import { tmpdir } from '../temporary-directory.js';
 
 export const getPipePath = (processId: number) => {
 	const pipePath = path.join(tmpdir, `tsx_${processId}`);

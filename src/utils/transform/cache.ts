@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { readJsonFile } from '../read-json-file.js';
-import { tmpdir } from '../tmp-dir.js';
+import { tmpdir } from '../temporary-directory.js';
 import type { Transformed } from './apply-transformers.js';
 
 const noop = () => {};
