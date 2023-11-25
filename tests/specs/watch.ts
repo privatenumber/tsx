@@ -20,58 +20,60 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 			expect(tsxProcess.stderr).toMatch('Error: Missing required parameter "script path"');
 		});
 
-		test('watch files for changes', async ({ onTestFinish, onTestFail }) => {
-			const fixtureWatch = await createFixture({
-				'package.json': JSON.stringify({
-					type: 'module',
-				}),
-				'index.js': `
-				import { value } from './value.js';
-				console.log(value);
-				`,
-				'value.js': 'export const value = \'hello world\';',
-			});
-			onTestFinish(async () => await fixtureWatch.rm());
-
-			const tsxProcess = tsx(
-				[
-					'watch',
-					'index.js',
-				],
-				fixtureWatch.path,
-			);
-
-			onTestFail(async () => {
-				if (tsxProcess.exitCode === null) {
-					console.log('Force killing hanging process\n\n');
-					tsxProcess.kill('SIGKILL');
-					console.log({
-						tsxProcess: await tsxProcess,
-					});
-				}
-			});
-
-			await processInteract(
-				tsxProcess.stdout!,
-				[
-					async (data) => {
-						if (data.includes('hello world\n')) {
-							await setTimeout(1000);
-							fixtureWatch.writeFile('value.js', 'export const value = \'goodbye world\';');
-							return true;
-						}
-					},
-					data => stripAnsi(data).includes('[tsx] change in ./value.js Rerunning...\n'),
-					data => data.includes('goodbye world\n'),
-				],
-				5000,
-			);
-
-			tsxProcess.kill();
-
-			const { all } = await tsxProcess;
-			expect(all!.startsWith('hello world\n')).toBe(true);
-		}, 10_000);
+		for (const packageType of ['module', 'commonjs'] as const) {
+			test(`watch files for changes in ${packageType} package`, async ({ onTestFinish, onTestFail }) => {
+				const fixtureWatch = await createFixture({
+					'package.json': JSON.stringify({
+						type: packageType,
+					}),
+					'index.js': `
+					import { value } from './value.js';
+					console.log(value);
+					`,
+					'value.js': 'export const value = \'hello world\';',
+				});
+				onTestFinish(async () => await fixtureWatch.rm());
+	
+				const tsxProcess = tsx(
+					[
+						'watch',
+						'index.js',
+					],
+					fixtureWatch.path,
+				);
+	
+				onTestFail(async () => {
+					if (tsxProcess.exitCode === null) {
+						console.log('Force killing hanging process\n\n');
+						tsxProcess.kill('SIGKILL');
+						console.log({
+							tsxProcess: await tsxProcess,
+						});
+					}
+				});
+	
+				await processInteract(
+					tsxProcess.stdout!,
+					[
+						async (data) => {
+							if (data.includes('hello world\n')) {
+								await setTimeout(1000);
+								fixtureWatch.writeFile('value.js', 'export const value = \'goodbye world\';');
+								return true;
+							}
+						},
+						data => stripAnsi(data).includes('[tsx] change in ./value.js Rerunning...\n'),
+						data => data.includes('goodbye world\n'),
+					],
+					5000,
+				);
+	
+				tsxProcess.kill();
+	
+				const { all } = await tsxProcess;
+				expect(all!.startsWith('hello world\n')).toBe(true);
+			}, 10_000);
+		}
 
 		test('suppresses warnings & clear screen', async () => {
 			const tsxProcess = tsx(
