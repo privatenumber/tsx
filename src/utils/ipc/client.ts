@@ -9,7 +9,6 @@ const connectToServer = () => new Promise<SendToParent | void>((resolve) => {
 	const socket: net.Socket = net.createConnection(
 		pipePath,
 		() => {
-			console.log('connected to server!');
 			resolve((data) => {
 				const messageBuffer = Buffer.from(JSON.stringify(data));
 				const lengthBuffer = Buffer.alloc(4);
@@ -24,8 +23,7 @@ const connectToServer = () => new Promise<SendToParent | void>((resolve) => {
 	 * - Called as a loader
 	 * - Nested process when using --test
 	 */
-	socket.on('error', (error) => {
-		console.warn(error);
+	socket.on('error', () => {
 		resolve();
 	});
 

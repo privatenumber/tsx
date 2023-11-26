@@ -38,18 +38,17 @@ export const createIpcServer = () => new Promise<net.Server>(async (resolve, rej
 	await fs.promises.mkdir(tmpdir, { recursive: true });
 	server.listen(pipePath, () => {
 		resolve(server);
+
+		process.on('exit', () => {
+			server.close();
+
+			try {
+				fs.rmSync(pipePath);
+			} catch {}
+		});
 	});
 	server.on('error', reject);
 
 	// Prevent Node from waiting for this socket to close before exiting
 	server.unref();
-
-	process.on('exit', () => {
-		server.close();
-		try {
-			fs.rmSync(pipePath);
-		} catch (error) {
-			console.log('Failed to remove pipe', error);
-		}
-	});
 });
