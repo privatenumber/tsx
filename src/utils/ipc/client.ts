@@ -8,12 +8,15 @@ const connectToServer = () => new Promise<SendToParent | void>((resolve) => {
 	const pipePath = getPipePath(process.ppid);
 	const socket: net.Socket = net.createConnection(
 		pipePath,
-		() => resolve((data) => {
-			const messageBuffer = Buffer.from(JSON.stringify(data));
-			const lengthBuffer = Buffer.alloc(4);
-			lengthBuffer.writeInt32BE(messageBuffer.length, 0);
-			socket.write(Buffer.concat([lengthBuffer, messageBuffer]));
-		}),
+		() => {
+			console.log('connected to server!');
+			resolve((data) => {
+				const messageBuffer = Buffer.from(JSON.stringify(data));
+				const lengthBuffer = Buffer.alloc(4);
+				lengthBuffer.writeInt32BE(messageBuffer.length, 0);
+				socket.write(Buffer.concat([lengthBuffer, messageBuffer]));
+			});
+		},
 	);
 
 	/**
@@ -21,7 +24,10 @@ const connectToServer = () => new Promise<SendToParent | void>((resolve) => {
 	 * - Called as a loader
 	 * - Nested process when using --test
 	 */
-	socket.on('error', () => resolve());
+	socket.on('error', (error) => {
+		console.warn(error);
+		resolve();
+	});
 
 	// Prevent Node from waiting for this socket to close before exiting
 	socket.unref();

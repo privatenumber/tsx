@@ -215,7 +215,6 @@ cli({
 	childProcess.on(
 		'close',
 		(exitCode) => {
-			// ipc.close();
 
 			// If there's no exit code, it's likely killed by a signal
 			// https://nodejs.org/api/process.html#process_exit_codes
