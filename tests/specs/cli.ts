@@ -262,8 +262,16 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					console.log(result);
 				});
 
-				// This is the exit code I get from testing manually with Node
-				expect(result.exitCode).toBe(130);
+				/**
+				 * https://nodejs.org/api/process.html#signal-events
+				 * Sending SIGINT, SIGTERM, and SIGKILL will cause the unconditional termination of
+				 * the target process, and afterwards, subprocess will report that the process was
+				 * terminated by signal.
+				 */
+				if (process.platform !== 'win32') {
+					// This is the exit code I get from testing manually with Node
+					expect(result.exitCode).toBe(130);
+				}
 
 				// Enforce that child process is killed
 				expect(isProcessAlive(childPid!)).toBe(false);
