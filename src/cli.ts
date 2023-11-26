@@ -66,7 +66,6 @@ const relaySignals = (
 		 * unresponsive (e.g. infinite loop). Relay signal to child.
 		 */
 		if (signalFromChild !== signal) {
-			console.log('relaying', signal);
 			childProcess.kill(signal);
 
 			/**
@@ -76,7 +75,7 @@ const relaySignals = (
 			if (isChildResponsive !== signal) {
 				// This seems to run before the handler registered at the bottom of this file
 				// Seems the lastest handler is called first
-				childProcess.on('exit', (a) => {
+				childProcess.on('exit', () => {
 					/**
 					 * Even though this may not be a SIGKILL, I've confirmed Ctrl+C on an infinite looping
 					 * file exits with 130, which is 128 + 2 (SIGINT)
