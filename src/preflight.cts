@@ -63,7 +63,7 @@ if (isMainThread) {
 					type: 'kill',
 					signal,
 				});
-	
+
 				/**
 				 * If the user has not registered a signal handler, we need to emulate
 				 * the default behavior when there are no other handlers set

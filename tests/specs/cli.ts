@@ -278,7 +278,8 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				test('Exit code', async () => {
 					const output = await ptyShell(
 						[
-							`${tsxPath} ${path.join(fixture.path, 'keep-alive.js')}\r`,
+							// Windows doesn't support shebangs
+							`${node.path} ${tsxPath} ${path.join(fixture.path, 'keep-alive.js')}\r`,
 							stdout => stdout.includes('READY') && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
@@ -289,7 +290,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				test('Catchable', async () => {
 					const output = await ptyShell(
 						[
-							`${tsxPath} ${path.join(fixture.path, 'catch-signals.js')}\r`,
+							`${node.path} ${tsxPath} ${path.join(fixture.path, 'catch-signals.js')}\r`,
 							stdout => stdout.includes('READY') && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
