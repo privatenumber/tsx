@@ -9,16 +9,16 @@ export const registerLoader = () => {
 	installSourceMapSupport();
 
 	creatingClient.then((sendToClient) => {
-		console.log('create clikent');
-		port1.addListener('message', (message) => {
+		port1.on('message', (message) => {
 			if (message.type === 'dependency') {
 				sendToClient(message);
 			}
 		});
-	});
 
-	// Allows process to exit without waiting for port to close
-	port1.unref();
+		// Allows process to exit without waiting for port to close
+		// Has to be called after .on()
+		port1.unref();
+	});
 
 	module.register(
 		'./index.mjs',

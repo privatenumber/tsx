@@ -1,8 +1,9 @@
 import net from 'net';
+import fs from 'fs/promises';
+import { tmpdir } from '../temporary-directory.js';
 import { getPipePath } from './get-pipe-path.js';
 
-export const createIpcServer = () => new Promise<net.Server>((resolve, reject) => {
-	const pipePath = getPipePath(process.pid);
+export const createIpcServer = () => new Promise<net.Server>(async (resolve, reject) => {
 	const server = net.createServer((socket) => {
 		let buffer = Buffer.alloc(0);
 
@@ -29,6 +30,12 @@ export const createIpcServer = () => new Promise<net.Server>((resolve, reject) =
 			// server.emit('data', JSON.parse(data));
 		});
 	});
+
+	await fs.mkdir(tmpdir, {
+		recursive: true,
+	});
+
+	const pipePath = getPipePath(process.pid);
 	server.listen(pipePath, () => resolve(server));
 	server.on('error', reject);
 
