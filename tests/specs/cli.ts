@@ -149,9 +149,11 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			}, 10_000);
 		}
 
-		describe('Signals', async ({ describe, onFinish }) => {
+		describe('Signals', async ({ describe, test, onFinish }) => {
 			const signals = ['SIGINT', 'SIGTERM'];
 			const fixture = await createFixture({
+				'propagates-signal.js': 'process.exit(process.argv[2])',
+
 				'catch-signals.js': `
 				const signals = ${JSON.stringify(signals)};
 				
@@ -189,6 +191,15 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				`,
 			});
 			onFinish(async () => await fixture.rm());
+
+			test('Propagates signal', async () => {
+				const exitCode = Math.floor(Math.random() * 100);
+				const tsxProcess = await tsx([
+					path.join(fixture.path, 'propagates-signal.js'),
+					exitCode.toString(),
+				]);
+				expect(tsxProcess.exitCode).toBe(exitCode);
+			}, 10_000);
 
 			describe('Relays kill signal', ({ test }) => {
 				for (const signal of signals) {
@@ -242,15 +253,22 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					});
 				});
 
-				// Send SIGINT to child
 				tsxProcess.kill('SIGINT', {
 					forceKillAfterTimeout: false,
 				});
 
 				const result = await tsxProcess;
 
-				// TODO: Is this correct?
-				expect(result.exitCode).toBe(0);
+				/**
+				 * https://nodejs.org/api/process.html#signal-events
+				 * Sending SIGINT, SIGTERM, and SIGKILL will cause the unconditional termination of
+				 * the target process, and afterwards, subprocess will report that the process was
+				 * terminated by signal.
+				 */
+				if (process.platform !== 'win32') {
+					// This is the exit code I get from testing manually with Node
+					expect(result.exitCode).toBe(130);
+				}
 
 				// Enforce that child process is killed
 				expect(isProcessAlive(childPid!)).toBe(false);
@@ -275,16 +293,20 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				await setTimeout(100);
 
 				if (process.platform === 'win32') {
-					// Enforce that child process is killed
 					expect(isProcessAlive(childPid!)).toBe(false);
 				} else {
 					expect(isProcessAlive(childPid!)).toBe(true);
 					process.kill(childPid!, 'SIGKILL');
+					// Note: SIGKILLing tsx process will leave the child hanging
 				}
+
 				const result = await tsxProcess;
 
-				// TODO: Is this correct?
-				expect(result.exitCode).toBe(0);
+				// See test above
+				if (process.platform !== 'win32') {
+					// This is the exit code I get from testing manually with Node
+					expect(result.exitCode).toBe(137);
+				}
 			}, 10_000);
 
 			describe('Ctrl + C', ({ test }) => {

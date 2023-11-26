@@ -47,7 +47,7 @@ export const ptyShell = (
 				currentStdin = getStdin(stdins);
 			}
 		} else if (outString.includes(commandCaret)) {
-			childProcess.kill('SIGKILL');
+			childProcess.kill();
 		}
 	});
 
