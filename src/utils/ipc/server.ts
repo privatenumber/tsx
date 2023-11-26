@@ -44,7 +44,11 @@ export const createIpcServer = () => new Promise<net.Server>(async (resolve, rej
 
 			try {
 				fs.rmSync(pipePath);
-			} catch {}
+			} catch (err) {
+				if (process.platform === 'win32') {
+					console.log(111, err);
+				}	
+			}
 		});
 	});
 	server.on('error', reject);
