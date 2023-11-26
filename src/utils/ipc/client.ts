@@ -4,7 +4,7 @@ import { getPipePath } from './get-pipe-path.js';
 export type SendToParent = (data: Record<string, unknown>) => void;
 
 // TODO: Handle when the loader is called directly
-const createIpcClient = () => new Promise<SendToParent | void>((resolve) => {
+const connectToServer = () => new Promise<SendToParent | void>((resolve) => {
 	const pipePath = getPipePath(process.ppid);
 	const socket: net.Socket = net.createConnection(
 		pipePath,
@@ -27,4 +27,4 @@ const createIpcClient = () => new Promise<SendToParent | void>((resolve) => {
 	socket.unref();
 });
 
-export const creatingClient = createIpcClient();
+export const connectingToServer = connectToServer();

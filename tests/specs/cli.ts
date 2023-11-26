@@ -273,17 +273,17 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				await tsxProcess;
 			}, 10_000);
 
-			// describe('Ctrl + C', ({ test }) => {
-			// test('Exit code', async () => {
-			// 	const output = await ptyShell(
-			// 		[
-			// 			`${tsxPath} ${path.join(fixture.path, 'keep-alive.js')}\r`,
-			// 			stdout => stdout.includes('READY') && '\u0003',
-			// 			`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
-			// 		],
-			// 	);
-			// 	expect(output).toMatch(/EXIT_CODE:\s+130/);
-			// }, 10_000);
+			describe('Ctrl + C', ({ test }) => {
+				test('Exit code', async () => {
+					const output = await ptyShell(
+						[
+							`${tsxPath} ${path.join(fixture.path, 'keep-alive.js')}\r`,
+							stdout => stdout.includes('READY') && '\u0003',
+							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
+						],
+					);
+					expect(output).toMatch(/EXIT_CODE:\s+130/);
+				}, 10_000);
 
 			// test('Catchable', async () => {
 			// 	const output = await ptyShell(
@@ -302,7 +302,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			// 		/EXIT_CODE:\s+200/,
 			// 	]);
 			// }, 10_000);
-			// });
+			});
 		});
 	});
 });

@@ -9,7 +9,7 @@ import { transformDynamicImport } from '../utils/transform/transform-dynamic-imp
 import { resolveTsPath } from '../utils/resolve-ts-path.js';
 import { installSourceMapSupport } from '../source-map.js';
 import { importAttributes } from '../utils/node-features.js';
-import { creatingClient, type SendToParent } from '../utils/ipc/client.js';
+import { connectingToServer, type SendToParent } from '../utils/ipc/client.js';
 import {
 	tsconfigPathsMatcher,
 	fileMatcher,
@@ -221,8 +221,8 @@ export const resolve: resolve = async function (
 	}
 };
 
-let sendToParent: SendToParent | undefined;
-creatingClient.then((c) => {
+let sendToParent: SendToParent | void;
+connectingToServer.then((c) => {
 	sendToParent = c;
 });
 
