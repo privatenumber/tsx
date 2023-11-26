@@ -60,7 +60,7 @@ if (isMainThread) {
 		if (sendToParent) {
 			bindHiddenSignalsHandler(['SIGINT', 'SIGTERM'], (signal: NodeJS.Signals) => {
 				sendToParent({
-					type: 'kill',
+					type: 'signal',
 					signal,
 				});
 

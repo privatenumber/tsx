@@ -24,7 +24,7 @@ const relaySignals = (
 	ipcSocket.on('data', (data: { type: string; signal: NodeJS.Signals }) => {
 		if (
 			data
-			&& data.type === 'kill'
+			&& data.type === 'signal'
 			&& waitForSignal
 		) {
 			waitForSignal(data.signal);
