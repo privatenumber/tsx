@@ -242,7 +242,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				}
 			});
 
-			test('Kills child when unresponsive (infinite loop)', async () => {
+			test('Kills child when unresponsive (infinite loop)', async ({ onTestFail }) => {
 				const tsxProcess = tsx([
 					path.join(fixture.path, 'infinite-loop.js'),
 				]);
@@ -258,6 +258,9 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				});
 
 				const result = await tsxProcess;
+				onTestFail(() => {
+					console.log(result);
+				});
 
 				// This is the exit code I get from testing manually with Node
 				expect(result.exitCode).toBe(130);
@@ -266,7 +269,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				expect(isProcessAlive(childPid!)).toBe(false);
 			}, 10_000);
 
-			test('Doesn\'t kill child when responsive (ignores signal)', async () => {
+			test('Doesn\'t kill child when responsive (ignores signal)', async ({ onTestFail }) => {
 				const tsxProcess = tsx([
 					path.join(fixture.path, 'ignores-signals.js'),
 				]);
@@ -293,6 +296,9 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				}
 
 				const result = await tsxProcess;
+				onTestFail(() => {
+					console.log(result);
+				});
 
 				// This is the exit code I get from testing manually with Node
 				expect(result.exitCode).toBe(137);
