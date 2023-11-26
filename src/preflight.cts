@@ -10,7 +10,17 @@ const bindHiddenSignalsHandler = (
 ) => {
 	type RelaySignals = typeof signals[number];
 	for (const signal of signals) {
-		process.on(signal, handler);
+		process.on(signal, function (receivedSignal) {
+			handler(receivedSignal);
+
+			/**
+			 * Since we're setting a custom signal handler, we need to emulate the
+			 * default behavior when there are no other handlers set
+			 */
+			if (process.listenerCount(signal) === 0) {
+				process.exit(128 + osConstants.signals[signal]);
+			}
+		});
 	}
 
 	/**
@@ -60,14 +70,6 @@ if (isMainThread) {
 				type: 'kill',
 				signal,
 			});
-
-			/**
-			 * Since we're setting a custom signal handler, we need to emulate the
-			 * default behavior when there are no other handlers set
-			 */
-			if (process.listenerCount(signal) === 0) {
-				process.exit(128 + osConstants.signals[signal]);
-			}
 		});
 	}
 }
