@@ -5,7 +5,7 @@ export const getPipePath = (processId: number) => {
 	const pipePath = path.join(tmpdir, `${processId}.pipe`);
 	return (
 		process.platform === 'win32'
-			? `\\\\.\\pipe\\${pipePath}`
+			? `\\\\?\\pipe\\${pipePath}`
 			: pipePath
 	);
 };
