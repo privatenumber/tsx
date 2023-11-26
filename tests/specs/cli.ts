@@ -311,6 +311,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 			describe('Ctrl + C', ({ test }) => {
 				const CtrlC = '\u0003';
+
 				test('Exit code', async () => {
 					const output = await ptyShell(
 						[
@@ -326,6 +327,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				test('Catchable', async () => {
 					const output = await ptyShell(
 						[
+							// Windows doesn't support shebangs
 							`${node.path} ${tsxPath} ${path.join(fixture.path, 'catch-signals.js')}\r`,
 							stdout => stdout.includes('READY') && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
@@ -350,7 +352,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
 					);
-					expect(output).toMatch(/EXIT_CODE:\s+0/);
+					expect(output).toMatch(/EXIT_CODE:\s+130/);
 				}, 10_000);
 			});
 		});
