@@ -310,11 +310,14 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			}, 10_000);
 
 			describe('Ctrl + C', ({ test }) => {
+				const CtrlC = '\u0003';
+
 				test('Exit code', async () => {
 					const output = await ptyShell(
 						[
+							// Windows doesn't support shebangs
 							`${node.path} ${tsxPath} ${path.join(fixture.path, 'keep-alive.js')}\r`,
-							stdout => stdout.includes('READY') && '\u0003',
+							stdout => stdout.includes('READY') && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
 					);
@@ -324,8 +327,9 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				test('Catchable', async () => {
 					const output = await ptyShell(
 						[
+							// Windows doesn't support shebangs
 							`${node.path} ${tsxPath} ${path.join(fixture.path, 'catch-signals.js')}\r`,
-							stdout => stdout.includes('READY') && '\u0003',
+							stdout => stdout.includes('READY') && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
 					);
@@ -337,6 +341,18 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						'SIGINT HANDLER COMPLETED\r\n',
 						/EXIT_CODE:\s+200/,
 					]);
+				}, 10_000);
+
+				test('Infinite loop', async () => {
+					const output = await ptyShell(
+						[
+							// Windows doesn't support shebangs
+							`${node.path} ${tsxPath} ${path.join(fixture.path, 'infinite-loop.js')}\r`,
+							stdout => /\d+\r\n/.test(stdout) && CtrlC,
+							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
+						],
+					);
+					expect(output).toMatch(/EXIT_CODE:\s+130/);
 				}, 10_000);
 			});
 		});
