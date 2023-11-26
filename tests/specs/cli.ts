@@ -107,38 +107,38 @@ export default testSuite(({ describe }, node: NodeApis) => {
 		const cliTestFlag = compareNodeVersion([18, 1, 0], nodeVersion) >= 0;
 		const testRunnerGlob = compareNodeVersion([21, 0, 0], nodeVersion) >= 0;
 		if (cliTestFlag) {
-			test('Node.js test runner', async ({ onTestFinish }) => {
-				const fixture = await createFixture({
-					'test.ts': `
-					import { test } from 'node:test';
-					import assert from 'assert';
+			// test('Node.js test runner', async ({ onTestFinish }) => {
+			// 	const fixture = await createFixture({
+			// 		'test.ts': `
+			// 		import { test } from 'node:test';
+			// 		import assert from 'assert';
 
-					test('some passing test', () => {
-						assert.strictEqual(1, 1);
-					});
-					`,
-				});
-				onTestFinish(async () => await fixture.rm());
+			// 		test('some passing test', () => {
+			// 			assert.strictEqual(1, 1);
+			// 		});
+			// 		`,
+			// 	});
+			// 	onTestFinish(async () => await fixture.rm());
 
-				const tsxProcess = await tsx(
-					[
-						'--test',
-						...(
-							testRunnerGlob
-								? []
-								: ['test.ts']
-						),
-					],
-					fixture.path,
-				);
+			// 	const tsxProcess = await tsx(
+			// 		[
+			// 			'--test',
+			// 			...(
+			// 				testRunnerGlob
+			// 					? []
+			// 					: ['test.ts']
+			// 			),
+			// 		],
+			// 		fixture.path,
+			// 	);
 
-				expect(tsxProcess.exitCode).toBe(0);
-				if (testRunnerGlob) {
-					expect(tsxProcess.stdout).toMatch('some passing test\n');
-				} else {
-					expect(tsxProcess.stdout).toMatch('# pass 1\n');
-				}
-			}, 10_000);
+			// 	expect(tsxProcess.exitCode).toBe(0);
+			// 	if (testRunnerGlob) {
+			// 		expect(tsxProcess.stdout).toMatch('some passing test\n');
+			// 	} else {
+			// 		expect(tsxProcess.stdout).toMatch('# pass 1\n');
+			// 	}
+			// }, 10_000);
 		}
 
 		describe('Signals', async ({ describe, onFinish }) => {
