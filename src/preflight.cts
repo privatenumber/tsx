@@ -36,8 +36,10 @@ const bindHiddenSignalsHandler = (
 	};
 };
 
-// ESM Loader spawns child with same flags as parent
-// TODO: maybe we can also remove these flags?
+/**
+ * Seems module.register() calls the loader with the same Node arguments
+ * which causes this preflight to be loaded in the loader thread
+ */
 if (isMainThread) {
 	/**
 	 * Hook require() to transform to CJS
