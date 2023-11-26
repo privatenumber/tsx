@@ -285,23 +285,23 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					expect(output).toMatch(/EXIT_CODE:\s+130/);
 				}, 10_000);
 
-			// test('Catchable', async () => {
-			// 	const output = await ptyShell(
-			// 		[
-			// 			`${tsxPath} ${path.join(fixture.path, 'catch-signals.js')}\r`,
-			// 			stdout => stdout.includes('READY') && '\u0003',
-			// 			`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
-			// 		],
-			// 	);
+				test('Catchable', async () => {
+					const output = await ptyShell(
+						[
+							`${tsxPath} ${path.join(fixture.path, 'catch-signals.js')}\r`,
+							stdout => stdout.includes('READY') && '\u0003',
+							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
+						],
+					);
 
-			// 	expectMatchInOrder(output, [
-			// 		'READY\r\n',
-			// 		process.platform === 'win32' ? '' : '^C',
-			// 		'SIGINT\r\n',
-			// 		'SIGINT HANDLER COMPLETED\r\n',
-			// 		/EXIT_CODE:\s+200/,
-			// 	]);
-			// }, 10_000);
+					expectMatchInOrder(output, [
+						'READY\r\n',
+						process.platform === 'win32' ? '' : '^C',
+						'SIGINT\r\n',
+						'SIGINT HANDLER COMPLETED\r\n',
+						/EXIT_CODE:\s+200/,
+					]);
+				}, 10_000);
 			});
 		});
 	});
