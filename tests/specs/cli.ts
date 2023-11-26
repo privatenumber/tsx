@@ -122,7 +122,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					import assert from 'assert';
 
 					test('some passing test', () => {
-						assert.strictEqual(1, 1);
+						assert.strictEqual(1, 1 as number);
 					});
 					`,
 				});
@@ -140,12 +140,12 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					fixture.path,
 				);
 
-				expect(tsxProcess.exitCode).toBe(0);
 				if (testRunnerGlob) {
 					expect(tsxProcess.stdout).toMatch('some passing test\n');
 				} else {
 					expect(tsxProcess.stdout).toMatch('# pass 1\n');
 				}
+				expect(tsxProcess.exitCode).toBe(0);
 			}, 10_000);
 		}
 
