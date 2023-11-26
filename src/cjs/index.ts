@@ -50,9 +50,9 @@ const transformExtensions = [
 	'.mjs',
 ];
 
-let sendToClient: SendToParent | undefined;
-connectingToServer.then((c) => {
-	sendToClient = c;
+let sendToParent: SendToParent | void;
+connectingToServer.then((_sendToParent) => {
+	sendToParent = _sendToParent;
 });
 
 const transformer = (
@@ -60,8 +60,8 @@ const transformer = (
 	filePath: string,
 ) => {
 	// For tracking dependencies in watch mode
-	if (sendToClient) {
-		sendToClient({
+	if (sendToParent) {
+		sendToParent({
 			type: 'dependency',
 			path: filePath,
 		});

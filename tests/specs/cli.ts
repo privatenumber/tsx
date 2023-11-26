@@ -274,11 +274,12 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			}, 10_000);
 
 			describe('Ctrl + C', ({ test }) => {
+				const CtrlC = '\u0003';
 				test('Exit code', async () => {
 					const output = await ptyShell(
 						[
 							`${tsxPath} ${path.join(fixture.path, 'keep-alive.js')}\r`,
-							stdout => stdout.includes('READY') && '\u0003',
+							stdout => stdout.includes('READY') && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
 					);
@@ -289,7 +290,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					const output = await ptyShell(
 						[
 							`${tsxPath} ${path.join(fixture.path, 'catch-signals.js')}\r`,
-							stdout => stdout.includes('READY') && '\u0003',
+							stdout => stdout.includes('READY') && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
 					);

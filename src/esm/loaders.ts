@@ -222,8 +222,8 @@ export const resolve: resolve = async function (
 };
 
 let sendToParent: SendToParent | void;
-connectingToServer.then((c) => {
-	sendToParent = c;
+connectingToServer.then((_sendToParent) => {
+	sendToParent = _sendToParent;
 });
 
 const contextAttributesProperty = importAttributes ? 'importAttributes' : 'importAssertions';
