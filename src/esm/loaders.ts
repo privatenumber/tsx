@@ -47,10 +47,10 @@ export const initialize: InitializeHook = async (data) => {
  * Technically globalPreload is deprecated so it should be in loaders-deprecated
  * but it shares a closure with the new load hook
  */
-export const globalPreload: GlobalPreloadHook = ({ port }) => `
-	const require = getBuiltin('module').createRequire("${import.meta.url}");
-	require('../source-map.cjs').installSourceMapSupport();
-	`;
+export const globalPreload: GlobalPreloadHook = () => `
+const require = getBuiltin('module').createRequire("${import.meta.url}");
+require('../source-map.cjs').installSourceMapSupport();
+`;
 
 const resolveExplicitPath = async (
 	defaultResolve: NextResolve,
