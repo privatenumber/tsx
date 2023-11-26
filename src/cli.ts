@@ -77,11 +77,6 @@ const relaySignals = (
 				// This seems to run before the handler registered at the bottom of this file
 				// Seems the lastest handler is called first
 				childProcess.on('exit', (a) => {
-					console.log({
-						signal,
-						a,
-						exitCode: osConstants.signals[signal],
-					});
 					/**
 					 * Even though this may not be a SIGKILL, I've confirmed Ctrl+C on an infinite looping
 					 * file exits with 130, which is 128 + 2 (SIGINT)
@@ -98,7 +93,6 @@ const relaySignals = (
 					process.exit(128 + exitCode);
 				});
 
-				console.log('force kill');
 				childProcess.kill('SIGKILL');
 			}
 		}
