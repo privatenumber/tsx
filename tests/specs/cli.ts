@@ -20,134 +20,134 @@ const isProcessAlive = (pid: number) => {
 export default testSuite(({ describe }, node: NodeApis) => {
 	const { tsx } = node;
 	describe('CLI', ({ describe, test }) => {
-		// describe('argv', async ({ describe, onFinish }) => {
-		// 	const fixture = await createFixture({
-		// 		// Unnecessary TS to test syntax
-		// 		'log-argv.ts': 'console.log(JSON.stringify(process.argv) as string)',
-		// 	});
-		// 	onFinish(async () => await fixture.rm());
+		describe('argv', async ({ describe, onFinish }) => {
+			const fixture = await createFixture({
+				// Unnecessary TS to test syntax
+				'log-argv.ts': 'console.log(JSON.stringify(process.argv) as string)',
+			});
+			onFinish(async () => await fixture.rm());
 
-		// 	describe('version', ({ test }) => {
-		// 		test('shows version', async () => {
-		// 			const tsxProcess = await tsx(['--version']);
+			describe('version', ({ test }) => {
+				test('shows version', async () => {
+					const tsxProcess = await tsx(['--version']);
 
-		// 			expect(tsxProcess.exitCode).toBe(0);
-		// 			expect(tsxProcess.stdout).toBe(`tsx v${packageJson.version}\nnode v${node.version}`);
-		// 			expect(tsxProcess.stderr).toBe('');
-		// 		});
+					expect(tsxProcess.exitCode).toBe(0);
+					expect(tsxProcess.stdout).toBe(`tsx v${packageJson.version}\nnode v${node.version}`);
+					expect(tsxProcess.stderr).toBe('');
+				});
 
-		// 		test('doesn\'t show version with file', async () => {
-		// 			const tsxProcess = await tsx([
-		// 				path.join(fixture.path, 'log-argv.ts'),
-		// 				'--version',
-		// 			]);
+				test('doesn\'t show version with file', async () => {
+					const tsxProcess = await tsx([
+						path.join(fixture.path, 'log-argv.ts'),
+						'--version',
+					]);
 
-		// 			expect(tsxProcess.exitCode).toBe(0);
-		// 			expect(tsxProcess.stdout).toMatch('"--version"');
-		// 			expect(tsxProcess.stdout).not.toMatch(packageJson.version);
-		// 			expect(tsxProcess.stderr).toBe('');
-		// 		});
-		// 	});
+					expect(tsxProcess.exitCode).toBe(0);
+					expect(tsxProcess.stdout).toMatch('"--version"');
+					expect(tsxProcess.stdout).not.toMatch(packageJson.version);
+					expect(tsxProcess.stderr).toBe('');
+				});
+			});
 
-		// 	describe('help', ({ test }) => {
-		// 		test('shows help', async () => {
-		// 			const tsxProcess = await tsx(['--help']);
+			describe('help', ({ test }) => {
+				test('shows help', async () => {
+					const tsxProcess = await tsx(['--help']);
 
-		// 			expect(tsxProcess.exitCode).toBe(0);
-		// 			expect(tsxProcess.stdout).toMatch('Node.js runtime enhanced with esbuild for loading TypeScript & ESM');
-		// 			expect(tsxProcess.stdout).toMatch('Usage: node [options] [ script.js ] [arguments]');
-		// 			expect(tsxProcess.stderr).toBe('');
-		// 		});
+					expect(tsxProcess.exitCode).toBe(0);
+					expect(tsxProcess.stdout).toMatch('Node.js runtime enhanced with esbuild for loading TypeScript & ESM');
+					expect(tsxProcess.stdout).toMatch('Usage: node [options] [ script.js ] [arguments]');
+					expect(tsxProcess.stderr).toBe('');
+				});
 
-		// 		test('doesn\'t show help with file', async () => {
-		// 			const tsxProcess = await tsx([
-		// 				path.join(fixture.path, 'log-argv.ts'),
-		// 				'--help',
-		// 			]);
+				test('doesn\'t show help with file', async () => {
+					const tsxProcess = await tsx([
+						path.join(fixture.path, 'log-argv.ts'),
+						'--help',
+					]);
 
-		// 			expect(tsxProcess.exitCode).toBe(0);
-		// 			expect(tsxProcess.stdout).toMatch('"--help"');
-		// 			expect(tsxProcess.stdout).not.toMatch('tsx');
-		// 			expect(tsxProcess.stderr).toBe('');
-		// 		});
-		// 	});
-		// });
+					expect(tsxProcess.exitCode).toBe(0);
+					expect(tsxProcess.stdout).toMatch('"--help"');
+					expect(tsxProcess.stdout).not.toMatch('tsx');
+					expect(tsxProcess.stderr).toBe('');
+				});
+			});
+		});
 
-		// describe('eval & print', ({ test }) => {
-		// 	test('TypeScript', async () => {
-		// 		const tsxProcess = await tsx([
-		// 			'--eval',
-		// 			'console.log(require("fs") && module as string)',
-		// 		]);
+		describe('eval & print', ({ test }) => {
+			test('TypeScript', async () => {
+				const tsxProcess = await tsx([
+					'--eval',
+					'console.log(require("fs") && module as string)',
+				]);
 
-		// 		expect(tsxProcess.exitCode).toBe(0);
-		// 		expect(tsxProcess.stdout).toMatch("id: '[eval]'");
-		// 		expect(tsxProcess.stderr).toBe('');
-		// 	});
+				expect(tsxProcess.exitCode).toBe(0);
+				expect(tsxProcess.stdout).toMatch("id: '[eval]'");
+				expect(tsxProcess.stderr).toBe('');
+			});
 
-		// 	test('--input-type=module is respected', async () => {
-		// 		const tsxProcess = await tsx([
-		// 			'--input-type=module',
-		// 			'--eval',
-		// 			'console.log(typeof require)',
-		// 		]);
+			test('--input-type=module is respected', async () => {
+				const tsxProcess = await tsx([
+					'--input-type=module',
+					'--eval',
+					'console.log(typeof require)',
+				]);
 
-		// 		expect(tsxProcess.exitCode).toBe(0);
-		// 		expect(tsxProcess.stdout).toBe('undefined');
-		// 		expect(tsxProcess.stderr).toBe('');
-		// 	});
+				expect(tsxProcess.exitCode).toBe(0);
+				expect(tsxProcess.stdout).toBe('undefined');
+				expect(tsxProcess.stderr).toBe('');
+			});
 
-		// 	test('--print', async () => {
-		// 		const tsxProcess = await tsx([
-		// 			'--print',
-		// 			'require("fs") && module as string',
-		// 		]);
+			test('--print', async () => {
+				const tsxProcess = await tsx([
+					'--print',
+					'require("fs") && module as string',
+				]);
 
-		// 		expect(tsxProcess.exitCode).toBe(0);
-		// 		expect(tsxProcess.stdout).toMatch("id: '[eval]'");
-		// 		expect(tsxProcess.stderr).toBe('');
-		// 	});
-		// });
+				expect(tsxProcess.exitCode).toBe(0);
+				expect(tsxProcess.stdout).toMatch("id: '[eval]'");
+				expect(tsxProcess.stderr).toBe('');
+			});
+		});
 
-		// const nodeVersion = node.version.split('.').map(Number) as Version;
+		const nodeVersion = node.version.split('.').map(Number) as Version;
 
-		// // https://nodejs.org/docs/latest-v18.x/api/cli.html#--test
-		// const cliTestFlag = compareNodeVersion([18, 1, 0], nodeVersion) >= 0;
-		// const testRunnerGlob = compareNodeVersion([21, 0, 0], nodeVersion) >= 0;
-		// if (cliTestFlag) {
-		// 	test('Node.js test runner', async ({ onTestFinish }) => {
-		// 		const fixture = await createFixture({
-		// 			'test.ts': `
-		// 			import { test } from 'node:test';
-		// 			import assert from 'assert';
+		// https://nodejs.org/docs/latest-v18.x/api/cli.html#--test
+		const cliTestFlag = compareNodeVersion([18, 1, 0], nodeVersion) >= 0;
+		const testRunnerGlob = compareNodeVersion([21, 0, 0], nodeVersion) >= 0;
+		if (cliTestFlag) {
+			test('Node.js test runner', async ({ onTestFinish }) => {
+				const fixture = await createFixture({
+					'test.ts': `
+					import { test } from 'node:test';
+					import assert from 'assert';
 
-		// 			test('some passing test', () => {
-		// 				assert.strictEqual(1, 1);
-		// 			});
-		// 			`,
-		// 		});
-		// 		onTestFinish(async () => await fixture.rm());
+					test('some passing test', () => {
+						assert.strictEqual(1, 1);
+					});
+					`,
+				});
+				onTestFinish(async () => await fixture.rm());
 
-		// 		const tsxProcess = await tsx(
-		// 			[
-		// 				'--test',
-		// 				...(
-		// 					testRunnerGlob
-		// 						? []
-		// 						: ['test.ts']
-		// 				),
-		// 			],
-		// 			fixture.path,
-		// 		);
+				const tsxProcess = await tsx(
+					[
+						'--test',
+						...(
+							testRunnerGlob
+								? []
+								: ['test.ts']
+						),
+					],
+					fixture.path,
+				);
 
-		// 		expect(tsxProcess.exitCode).toBe(0);
-		// 		if (testRunnerGlob) {
-		// 			expect(tsxProcess.stdout).toMatch('some passing test\n');
-		// 		} else {
-		// 			expect(tsxProcess.stdout).toMatch('# pass 1\n');
-		// 		}
-		// 	}, 10_000);
-		// }
+				expect(tsxProcess.exitCode).toBe(0);
+				if (testRunnerGlob) {
+					expect(tsxProcess.stdout).toMatch('some passing test\n');
+				} else {
+					expect(tsxProcess.stdout).toMatch('# pass 1\n');
+				}
+			}, 10_000);
+		}
 
 		describe('Signals', async ({ describe, test, onFinish }) => {
 			const signals = ['SIGINT', 'SIGTERM'];
@@ -192,57 +192,57 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			});
 			onFinish(async () => await fixture.rm());
 
-			// test('Propagates signal', async () => {
-			// 	const exitCode = Math.floor(Math.random() * 100);
-			// 	const tsxProcess = await tsx([
-			// 		path.join(fixture.path, 'propagates-signal.js'),
-			// 		exitCode.toString(),
-			// 	]);
-			// 	expect(tsxProcess.exitCode).toBe(exitCode);
-			// }, 10_000);
+			test('Propagates signal', async () => {
+				const exitCode = Math.floor(Math.random() * 100);
+				const tsxProcess = await tsx([
+					path.join(fixture.path, 'propagates-signal.js'),
+					exitCode.toString(),
+				]);
+				expect(tsxProcess.exitCode).toBe(exitCode);
+			}, 10_000);
 
-			// describe('Relays kill signal', ({ test }) => {
-			// 	for (const signal of signals) {
-			// 		test(signal, async ({ onTestFail }) => {
-			// 			const tsxProcess = tsx([
-			// 				path.join(fixture.path, 'catch-signals.js'),
-			// 			]);
+			describe('Relays kill signal', ({ test }) => {
+				for (const signal of signals) {
+					test(signal, async ({ onTestFail }) => {
+						const tsxProcess = tsx([
+							path.join(fixture.path, 'catch-signals.js'),
+						]);
 
-			// 			tsxProcess.stdout!.once('data', () => {
-			// 				tsxProcess.kill(signal, {
-			// 					forceKillAfterTimeout: false,
-			// 				});
-			// 			});
+						tsxProcess.stdout!.once('data', () => {
+							tsxProcess.kill(signal, {
+								forceKillAfterTimeout: false,
+							});
+						});
 
-			// 			const tsxProcessResolved = await tsxProcess;
+						const tsxProcessResolved = await tsxProcess;
 
-			// 			onTestFail(() => {
-			// 				console.log(tsxProcessResolved);
-			// 			});
+						onTestFail(() => {
+							console.log(tsxProcessResolved);
+						});
 
-			// 			if (process.platform === 'win32') {
-			// 				/**
-			// 				 * Windows doesn't support sending signals to processes.
-			// 				 * https://nodejs.org/api/process.html#signal-events
-			// 				 *
-			// 				 * Sending SIGINT, SIGTERM, and SIGKILL will cause the unconditional termination
-			// 				 * of the target process, and afterwards, subprocess will report that the process
-			// 				 * was terminated by signal.
-			// 				 */
-			// 				expect(tsxProcessResolved.stdout).toBe('READY');
-			// 			} else {
-			// 				expect(tsxProcessResolved.exitCode).toBe(200);
-			// 				expectMatchInOrder(tsxProcessResolved.stdout, [
-			// 					'READY\n',
-			// 					`${signal}\n`,
-			// 					`${signal} HANDLER COMPLETED`,
-			// 				]);
-			// 			}
-			// 		}, 10_000);
-			// 	}
-			// });
+						if (process.platform === 'win32') {
+							/**
+							 * Windows doesn't support sending signals to processes.
+							 * https://nodejs.org/api/process.html#signal-events
+							 *
+							 * Sending SIGINT, SIGTERM, and SIGKILL will cause the unconditional termination
+							 * of the target process, and afterwards, subprocess will report that the process
+							 * was terminated by signal.
+							 */
+							expect(tsxProcessResolved.stdout).toBe('READY');
+						} else {
+							expect(tsxProcessResolved.exitCode).toBe(200);
+							expectMatchInOrder(tsxProcessResolved.stdout, [
+								'READY\n',
+								`${signal}\n`,
+								`${signal} HANDLER COMPLETED`,
+							]);
+						}
+					}, 10_000);
+				}
+			});
 
-			test('Kills child when unresponsive (infinite loop)', async ({ onTestFail }) => {
+			test('Kills child when unresponsive (infinite loop)', async () => {
 				const tsxProcess = tsx([
 					path.join(fixture.path, 'infinite-loop.js'),
 				]);
@@ -258,9 +258,6 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				});
 
 				const result = await tsxProcess;
-				onTestFail(() => {
-					console.log(result);
-				});
 
 				/**
 				 * https://nodejs.org/api/process.html#signal-events
@@ -277,71 +274,71 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				expect(isProcessAlive(childPid!)).toBe(false);
 			}, 10_000);
 
-			// test('Doesn\'t kill child when responsive (ignores signal)', async ({ onTestFail }) => {
-			// 	const tsxProcess = tsx([
-			// 		path.join(fixture.path, 'ignores-signals.js'),
-			// 	]);
+			test('Doesn\'t kill child when responsive (ignores signal)', async () => {
+				const tsxProcess = tsx([
+					path.join(fixture.path, 'ignores-signals.js'),
+				]);
 
-			// 	const childPid = await new Promise<number>((resolve) => {
-			// 		tsxProcess.stdout!.once('data', (data) => {
-			// 			resolve(Number(data.toString()));
-			// 		});
-			// 	});
+				const childPid = await new Promise<number>((resolve) => {
+					tsxProcess.stdout!.once('data', (data) => {
+						resolve(Number(data.toString()));
+					});
+				});
 
-			// 	// Send SIGINT to child
-			// 	tsxProcess.kill('SIGINT', {
-			// 		forceKillAfterTimeout: false,
-			// 	});
+				// Send SIGINT to child
+				tsxProcess.kill('SIGINT', {
+					forceKillAfterTimeout: false,
+				});
 
-			// 	await setTimeout(100);
+				await setTimeout(100);
 
-			// 	if (process.platform === 'win32') {
-			// 		expect(isProcessAlive(childPid!)).toBe(false);
-			// 	} else {
-			// 		expect(isProcessAlive(childPid!)).toBe(true);
-			// 		process.kill(childPid!, 'SIGKILL');
-			// 		// Note: SIGKILLing tsx process will leave the child hanging
-			// 	}
+				if (process.platform === 'win32') {
+					expect(isProcessAlive(childPid!)).toBe(false);
+				} else {
+					expect(isProcessAlive(childPid!)).toBe(true);
+					process.kill(childPid!, 'SIGKILL');
+					// Note: SIGKILLing tsx process will leave the child hanging
+				}
 
-			// 	const result = await tsxProcess;
-			// 	onTestFail(() => {
-			// 		console.log(result);
-			// 	});
+				const result = await tsxProcess;
 
-			// 	// This is the exit code I get from testing manually with Node
-			// 	expect(result.exitCode).toBe(137);
-			// }, 10_000);
+				// See test above
+				if (process.platform !== 'win32') {
+					// This is the exit code I get from testing manually with Node
+					expect(result.exitCode).toBe(137);
+				}
+			}, 10_000);
 
-			// describe('Ctrl + C', ({ test }) => {
-			// 	test('Exit code', async () => {
-			// 		const output = await ptyShell(
-			// 			[
-			// 				`${node.path} ${tsxPath} ${path.join(fixture.path, 'keep-alive.js')}\r`,
-			// 				stdout => stdout.includes('READY') && '\u0003',
-			// 				`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
-			// 			],
-			// 		);
-			// 		expect(output).toMatch(/EXIT_CODE:\s+130/);
-			// 	}, 10_000);
+			describe('Ctrl + C', ({ test }) => {
+				test('Exit code', async () => {
+					const output = await ptyShell(
+						[
+							`${node.path} ${tsxPath} ${path.join(fixture.path, 'keep-alive.js')}\r`,
+							stdout => stdout.includes('READY') && '\u0003',
+							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
+						],
+					);
+					expect(output).toMatch(/EXIT_CODE:\s+130/);
+				}, 10_000);
 
-			// 	test('Catchable', async () => {
-			// 		const output = await ptyShell(
-			// 			[
-			// 				`${node.path} ${tsxPath} ${path.join(fixture.path, 'catch-signals.js')}\r`,
-			// 				stdout => stdout.includes('READY') && '\u0003',
-			// 				`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
-			// 			],
-			// 		);
+				test('Catchable', async () => {
+					const output = await ptyShell(
+						[
+							`${node.path} ${tsxPath} ${path.join(fixture.path, 'catch-signals.js')}\r`,
+							stdout => stdout.includes('READY') && '\u0003',
+							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
+						],
+					);
 
-			// 		expectMatchInOrder(output, [
-			// 			'READY\r\n',
-			// 			process.platform === 'win32' ? '' : '^C',
-			// 			'SIGINT\r\n',
-			// 			'SIGINT HANDLER COMPLETED\r\n',
-			// 			/EXIT_CODE:\s+200/,
-			// 		]);
-			// 	}, 10_000);
-			// });
+					expectMatchInOrder(output, [
+						'READY\r\n',
+						process.platform === 'win32' ? '' : '^C',
+						'SIGINT\r\n',
+						'SIGINT HANDLER COMPLETED\r\n',
+						/EXIT_CODE:\s+200/,
+					]);
+				}, 10_000);
+			});
 		});
 	});
 });
