@@ -27,7 +27,7 @@ export const ptyShell = (
 		fileURLToPath(new URL('node-pty.mjs', import.meta.url)),
 		[shell],
 		{
-			stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
+			stdio: 'pipe',
 		},
 	);
 
@@ -35,10 +35,10 @@ export const ptyShell = (
 
 	let currentStdin = getStdin(stdins);
 
-	const output: Buffer[] = [];
+	let buffer = Buffer.alloc(0);
 	childProcess.stdout!.on('data', (data) => {
-		output.push(data);
-		const outString = data.toString();
+		buffer = Buffer.concat([buffer, data]);
+		const outString = stripAnsi(data.toString());
 
 		if (currentStdin) {
 			const stdin = currentStdin(outString);
@@ -47,7 +47,7 @@ export const ptyShell = (
 				currentStdin = getStdin(stdins);
 			}
 		} else if (outString.includes(commandCaret)) {
-			childProcess.kill('SIGTERM');
+			childProcess.kill();
 		}
 	});
 
@@ -56,8 +56,7 @@ export const ptyShell = (
 	});
 
 	childProcess.on('exit', () => {
-		let outString = Buffer.concat(output).toString();
-		outString = stripAnsi(outString);
+		const outString = stripAnsi(buffer.toString());
 		resolve(outString);
 	});
 });
