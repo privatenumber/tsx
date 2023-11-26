@@ -9,6 +9,14 @@ import { expectMatchInOrder } from '../utils/expect-match-in-order.js';
 import { tsxPath, type NodeApis } from '../utils/tsx.js';
 import { compareNodeVersion, type Version } from '../../src/utils/node-features.js';
 
+const isProcessAlive = (pid: number) => {
+	try {
+		process.kill(pid, 0);
+		return true;
+	} catch {}
+	return false;
+};
+
 export default testSuite(({ describe }, node: NodeApis) => {
 	const { tsx } = node;
 	describe('CLI', ({ describe, test }) => {
@@ -114,7 +122,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					import assert from 'assert';
 
 					test('some passing test', () => {
-						assert.strictEqual(1, 1);
+						assert.strictEqual(1, 1 as number);
 					});
 					`,
 				});
@@ -132,18 +140,20 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					fixture.path,
 				);
 
-				expect(tsxProcess.exitCode).toBe(0);
 				if (testRunnerGlob) {
 					expect(tsxProcess.stdout).toMatch('some passing test\n');
 				} else {
 					expect(tsxProcess.stdout).toMatch('# pass 1\n');
 				}
+				expect(tsxProcess.exitCode).toBe(0);
 			}, 10_000);
 		}
 
-		describe('Signals', async ({ describe, onFinish }) => {
+		describe('Signals', async ({ describe, test, onFinish }) => {
 			const signals = ['SIGINT', 'SIGTERM'];
 			const fixture = await createFixture({
+				'propagates-signal.js': 'process.exit(process.argv[2])',
+
 				'catch-signals.js': `
 				const signals = ${JSON.stringify(signals)};
 				
@@ -181,6 +191,15 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				`,
 			});
 			onFinish(async () => await fixture.rm());
+
+			test('Propagates signal', async () => {
+				const exitCode = Math.floor(Math.random() * 100);
+				const tsxProcess = await tsx([
+					path.join(fixture.path, 'propagates-signal.js'),
+					exitCode.toString(),
+				]);
+				expect(tsxProcess.exitCode).toBe(exitCode);
+			}, 10_000);
 
 			describe('Relays kill signal', ({ test }) => {
 				for (const signal of signals) {
@@ -234,15 +253,25 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					});
 				});
 
-				// Send SIGINT to child
 				tsxProcess.kill('SIGINT', {
 					forceKillAfterTimeout: false,
 				});
 
-				await tsxProcess;
+				const result = await tsxProcess;
+
+				/**
+				 * https://nodejs.org/api/process.html#signal-events
+				 * Sending SIGINT, SIGTERM, and SIGKILL will cause the unconditional termination of
+				 * the target process, and afterwards, subprocess will report that the process was
+				 * terminated by signal.
+				 */
+				if (process.platform !== 'win32') {
+					// This is the exit code I get from testing manually with Node
+					expect(result.exitCode).toBe(130);
+				}
 
 				// Enforce that child process is killed
-				expect(() => process.kill(childPid!, 0)).toThrow();
+				expect(isProcessAlive(childPid!)).toBe(false);
 			}, 10_000);
 
 			test('Doesn\'t kill child when responsive (ignores signal)', async () => {
@@ -264,21 +293,31 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				await setTimeout(100);
 
 				if (process.platform === 'win32') {
-					// Enforce that child process is killed
-					expect(() => process.kill(childPid!, 0)).toThrow();
+					expect(isProcessAlive(childPid!)).toBe(false);
 				} else {
-					// Kill child process
-					expect(() => process.kill(childPid!, 'SIGKILL')).not.toThrow();
+					expect(isProcessAlive(childPid!)).toBe(true);
+					process.kill(childPid!, 'SIGKILL');
+					// Note: SIGKILLing tsx process will leave the child hanging
 				}
-				await tsxProcess;
+
+				const result = await tsxProcess;
+
+				// See test above
+				if (process.platform !== 'win32') {
+					// This is the exit code I get from testing manually with Node
+					expect(result.exitCode).toBe(137);
+				}
 			}, 10_000);
 
 			describe('Ctrl + C', ({ test }) => {
+				const CtrlC = '\u0003';
+
 				test('Exit code', async () => {
 					const output = await ptyShell(
 						[
+							// Windows doesn't support shebangs
 							`${node.path} ${tsxPath} ${path.join(fixture.path, 'keep-alive.js')}\r`,
-							stdout => stdout.includes('READY') && '\u0003',
+							stdout => stdout.includes('READY') && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
 					);
@@ -288,8 +327,9 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				test('Catchable', async () => {
 					const output = await ptyShell(
 						[
+							// Windows doesn't support shebangs
 							`${node.path} ${tsxPath} ${path.join(fixture.path, 'catch-signals.js')}\r`,
-							stdout => stdout.includes('READY') && '\u0003',
+							stdout => stdout.includes('READY') && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
 					);
@@ -301,6 +341,18 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						'SIGINT HANDLER COMPLETED\r\n',
 						/EXIT_CODE:\s+200/,
 					]);
+				}, 10_000);
+
+				test('Infinite loop', async () => {
+					const output = await ptyShell(
+						[
+							// Windows doesn't support shebangs
+							`${node.path} ${tsxPath} ${path.join(fixture.path, 'infinite-loop.js')}\r`,
+							stdout => /\d+\r\n/.test(stdout) && CtrlC,
+							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
+						],
+					);
+					expect(output).toMatch(/EXIT_CODE:\s+130/);
 				}, 10_000);
 			});
 		});
@@ -319,19 +371,19 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 			onTestFinish(async () => await fixture.rm());
 
-			const tsx = execa(tsxPath, ['file.js'], {
+			const tsxProcess = execa(tsxPath, ['file.js'], {
 				cwd: fixture.path,
 				stdio: ['ipc'],
 				reject: false,
 			});
 
-			tsx.on('message', (message) => {
+			tsxProcess.on('message', (message) => {
 				console.log('from test', message);
-				tsx.kill();
+				tsxProcess.kill();
 			});
-			tsx.send('hello');
+			tsxProcess.send('hello');
 
-			console.log(await tsx);
+			console.log(await tsxProcess);
 		});
 	});
 });

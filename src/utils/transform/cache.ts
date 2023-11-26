@@ -2,26 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { readJsonFile } from '../read-json-file.js';
+import { tmpdir } from '../temporary-directory.js';
 import type { Transformed } from './apply-transformers.js';
 
-const getTime = () => Math.floor(Date.now() / 1e8);
-
-const tmpdir = os.tmpdir();
 const noop = () => {};
-
-/**
- * Cache directory is based on the user's identifier
- * to avoid permission issues when accessed by a different user
- */
-const { geteuid } = process;
-const userId = (
-	geteuid
-		// For Linux users with virtual users on CI (e.g. Docker)
-		? geteuid()
-
-		// Use username on Windows because it doesn't have id
-		: os.userInfo().username
-);
+const getTime = () => Math.floor(Date.now() / 1e8);
 
 class FileCache<ReturnType> extends Map<string, ReturnType> {
 	/**
@@ -34,14 +19,10 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 	 * Note on Windows, temp files are not cleaned up automatically.
 	 * https://superuser.com/a/1599897
 	 */
-	cacheDirectory = path.join(
-		// Write permissions by anyone
-		tmpdir,
-		`tsx-${userId}`,
-	);
+	cacheDirectory = tmpdir;
 
 	// Maintained so we can remove it on Windows
-	oldCacheDirectory = path.join(tmpdir, 'tsx');
+	oldCacheDirectory = path.join(os.tmpdir(), 'tsx');
 
 	cacheFiles: {
 		time: number;

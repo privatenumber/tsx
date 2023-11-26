@@ -61,7 +61,7 @@ export const globalPreload: GlobalPreloadHook = ({ port }) => {
 
 	return `
 	const require = getBuiltin('module').createRequire("${import.meta.url}");
-	require('tsx/source-map').installSourceMapSupport(port);
+	require('tsx/source-map').installSourceMapSupport();
 	if (process.send) {
 		port.addListener('message', (message) => {
 			if (message.type === 'dependency') {
