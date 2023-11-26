@@ -9,6 +9,14 @@ import { expectMatchInOrder } from '../utils/expect-match-in-order.js';
 import type { NodeApis } from '../utils/tsx.js';
 import { compareNodeVersion, type Version } from '../../src/utils/node-features.js';
 
+const isProcessAlive = (pid: number) => {
+	try {
+		process.kill(pid, 0);
+		return true;
+	} catch {}
+	return false;
+};
+
 export default testSuite(({ describe }, node: NodeApis) => {
 	const { tsx } = node;
 	describe('CLI', ({ describe, test }) => {
@@ -239,10 +247,13 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					forceKillAfterTimeout: false,
 				});
 
-				await tsxProcess;
+				const result = await tsxProcess;
+
+				// TODO: Is this correct?
+				expect(result.exitCode).toBe(0);
 
 				// Enforce that child process is killed
-				expect(() => process.kill(childPid!, 0)).toThrow();
+				expect(isProcessAlive(childPid!)).toBe(false);
 			}, 10_000);
 
 			test('Doesn\'t kill child when responsive (ignores signal)', async () => {
@@ -265,12 +276,15 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 				if (process.platform === 'win32') {
 					// Enforce that child process is killed
-					expect(() => process.kill(childPid!, 0)).toThrow();
+					expect(isProcessAlive(childPid!)).toBe(false);
 				} else {
-					// Kill child process
-					expect(() => process.kill(childPid!, 'SIGKILL')).not.toThrow();
+					expect(isProcessAlive(childPid!)).toBe(true);
+					process.kill(childPid!, 'SIGKILL');
 				}
-				await tsxProcess;
+				const result = await tsxProcess;
+
+				// TODO: Is this correct?
+				expect(result.exitCode).toBe(0);
 			}, 10_000);
 
 			describe('Ctrl + C', ({ test }) => {
@@ -303,6 +317,18 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						'SIGINT HANDLER COMPLETED\r\n',
 						/EXIT_CODE:\s+200/,
 					]);
+				}, 10_000);
+
+				test('Infinite loop', async () => {
+					const output = await ptyShell(
+						[
+							// Windows doesn't support shebangs
+							`${node.path} ${tsxPath} ${path.join(fixture.path, 'infinite-loop.js')}\r`,
+							stdout => /\d+\r\n/.test(stdout) && CtrlC,
+							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
+						],
+					);
+					expect(output).toMatch(/EXIT_CODE:\s+0/);
 				}, 10_000);
 			});
 		});
