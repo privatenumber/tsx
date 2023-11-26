@@ -9,6 +9,7 @@ import { transformDynamicImport } from '../utils/transform/transform-dynamic-imp
 import { resolveTsPath } from '../utils/resolve-ts-path.js';
 import { installSourceMapSupport } from '../source-map.js';
 import { importAttributes } from '../utils/node-features.js';
+import { creatingClient, type SendToParent } from '../utils/ipc/client.js';
 import {
 	tsconfigPathsMatcher,
 	fileMatcher,
@@ -36,45 +37,20 @@ type resolve = (
 	recursiveCall?: boolean,
 ) => MaybePromise<ResolveFnOutput>;
 
-type SendToParent = (data: {
-	type: 'dependency';
-	path: string;
-}) => void;
-
-let sendToParent: SendToParent | undefined = process.send ? process.send.bind(process) : undefined;
-
 export const initialize: InitializeHook = async (data) => {
 	if (!data) {
 		throw new Error('tsx must be loaded with --import instead of --loader\nThe --loader flag was deprecated in Node v20.6.0');
 	}
-
-	const { port } = data;
-	sendToParent = port.postMessage.bind(port);
 };
 
 /**
  * Technically globalPreload is deprecated so it should be in loaders-deprecated
  * but it shares a closure with the new load hook
  */
-export const globalPreload: GlobalPreloadHook = ({ port }) => {
-	sendToParent = port.postMessage.bind(port);
-
-	return `
+export const globalPreload: GlobalPreloadHook = ({ port }) => `
 	const require = getBuiltin('module').createRequire("${import.meta.url}");
 	require('../source-map.cjs').installSourceMapSupport();
-	// TODO pkgroll needs to build import maps as entry points
-	const { creatingClient } = require('#ipc/client.js');
-	console.log(creatingClient);
-	creatingClient.then((sendToParent) => {
-		port.addListener('message', (message) => {
-			if (message.type === 'dependency') {
-				sendToParent(message);
-			}
-		});
-	});
-	port.unref(); // Allows process to exit without waiting for port to close
 	`;
-};
 
 const resolveExplicitPath = async (
 	defaultResolve: NextResolve,
@@ -244,6 +220,11 @@ export const resolve: resolve = async function (
 		throw error;
 	}
 };
+
+let sendToParent: SendToParent | undefined;
+creatingClient.then((c) => {
+	sendToParent = c;
+});
 
 const contextAttributesProperty = importAttributes ? 'importAttributes' : 'importAssertions';
 
