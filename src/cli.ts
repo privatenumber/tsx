@@ -1,3 +1,4 @@
+import { constants as osConstants } from 'os';
 import type { ChildProcess } from 'child_process';
 import { cli } from 'cleye';
 import {
@@ -72,6 +73,29 @@ const relaySignals = (
 			 */
 			const isChildResponsive = await waitForSignalFromChild();
 			if (isChildResponsive !== signal) {
+				// This seems to run before the handler registered at the bottom of this file
+				// Seems the lastest handler is called first
+				childProcess.on('exit', (a) => {
+					console.log({
+						signal,
+						a,
+						exitCode: osConstants.signals[signal],
+					});
+					/**
+					 * Even though this may not be a SIGKILL, I've confirmed Ctrl+C on an infinite looping
+					 * file exits with 130, which is 128 + 2 (SIGINT)
+					 *
+					 * https://nodejs.org/api/process.html#exit-codes
+					 * >128 Signal Exits: If Node.js receives a fatal signal such as SIGKILL or SIGHUP,
+					 * then its exit code will be 128 plus the value of the signal code. This is a
+					 * standard POSIX practice, since exit codes are defined to be 7-bit integers, and
+					 * signal exits set the high-order bit, and then contain the value of the signal code.
+					 * For example, signal SIGABRT has value 6, so the expected exit code will be 128 + 6,
+					 * or 134.
+					 */
+					const exitCode = osConstants.signals[signal];
+					process.exit(128 + exitCode);
+				});
 				childProcess.kill('SIGKILL');
 			}
 		}
@@ -190,6 +214,13 @@ cli({
 
 	childProcess.on(
 		'close',
-		code => process.exit(code!),
+		(exitCode) => {
+			// If there's no exit code, it's likely killed by a signal
+			// https://nodejs.org/api/process.html#process_exit_codes
+			if (exitCode === null) {
+				exitCode = osConstants.signals[childProcess.signalCode!] + 128;
+			}
+			process.exit(exitCode);
+		},
 	);
 });

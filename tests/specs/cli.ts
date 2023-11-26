@@ -152,6 +152,8 @@ export default testSuite(({ describe }, node: NodeApis) => {
 		describe('Signals', async ({ describe, onFinish }) => {
 			const signals = ['SIGINT', 'SIGTERM'];
 			const fixture = await createFixture({
+				'propagates-signal.js': 'process.exit(process.argv[2])',
+
 				'catch-signals.js': `
 				const signals = ${JSON.stringify(signals)};
 				
@@ -189,6 +191,15 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				`,
 			});
 			onFinish(async () => await fixture.rm());
+
+			test('Propagates signal', async () => {
+				const exitCode = Math.floor(Math.random() * 100);
+				const tsxProcess = await tsx([
+					path.join(fixture.path, 'propagates-signal.js'),
+					exitCode.toString(),
+				]);
+				expect(tsxProcess.exitCode).toBe(exitCode);
+			}, 10_000);
 
 			describe('Relays kill signal', ({ test }) => {
 				for (const signal of signals) {
@@ -246,10 +257,10 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					forceKillAfterTimeout: false,
 				});
 
-				await tsxProcess;
+				const result = await tsxProcess;
 
-				// TODO: Is this correct?
-				// expect(result.exitCode).toBe(0);
+				// This is the exit code I get from testing manually with Node
+				expect(result.exitCode).toBe(130);
 
 				// Enforce that child process is killed
 				expect(isProcessAlive(childPid!)).toBe(false);
@@ -274,18 +285,17 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				await setTimeout(100);
 
 				if (process.platform === 'win32') {
-					// Enforce that child process is killed
 					expect(isProcessAlive(childPid!)).toBe(false);
 				} else {
-					// Kill child process
 					expect(isProcessAlive(childPid!)).toBe(true);
 					process.kill(childPid!, 'SIGKILL');
+					// Note: SIGKILLing tsx process will leave the child hanging
 				}
 
-				await tsxProcess;
+				const result = await tsxProcess;
 
-				// TODO: Is this correct?
-				// expect(result.exitCode).toBe(0);
+				// This is the exit code I get from testing manually with Node
+				expect(result.exitCode).toBe(137);
 			}, 10_000);
 
 			describe('Ctrl + C', ({ test }) => {
