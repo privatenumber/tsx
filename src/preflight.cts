@@ -55,11 +55,11 @@ if (isMainThread) {
 	require('./cjs/index.cjs');
 
 	(async () => {
-		const sendToClient = await connectingToServer;
+		const sendToParent = await connectingToServer;
 
-		if (sendToClient) {
+		if (sendToParent) {
 			bindHiddenSignalsHandler(['SIGINT', 'SIGTERM'], (signal: NodeJS.Signals) => {
-				sendToClient({
+				sendToParent({
 					type: 'kill',
 					signal,
 				});
