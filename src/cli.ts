@@ -66,6 +66,7 @@ const relaySignals = (
 		 * unresponsive (e.g. infinite loop). Relay signal to child.
 		 */
 		if (signalFromChild !== signal) {
+			console.log('relaying', signal);
 			childProcess.kill(signal);
 
 			/**
@@ -96,6 +97,8 @@ const relaySignals = (
 					const exitCode = osConstants.signals[signal];
 					process.exit(128 + exitCode);
 				});
+
+				console.log('force kill');
 				childProcess.kill('SIGKILL');
 			}
 		}
