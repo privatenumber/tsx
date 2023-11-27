@@ -7,18 +7,11 @@ import packageJson from '../../package.json';
 import { ptyShell, isWindows } from '../utils/pty-shell/index';
 import { expectMatchInOrder } from '../utils/expect-match-in-order.js';
 import { tsxPath, type NodeApis } from '../utils/tsx.js';
-import { compareNodeVersion, type Version } from '../../src/utils/node-features.js';
-
-const isProcessAlive = (pid: number) => {
-	try {
-		process.kill(pid, 0);
-		return true;
-	} catch {}
-	return false;
-};
+import { isProcessAlive } from '../utils/is-process-alive.js';
 
 export default testSuite(({ describe }, node: NodeApis) => {
 	const { tsx } = node;
+
 	describe('CLI', ({ describe, test }) => {
 		describe('argv', async ({ describe, onFinish }) => {
 			const fixture = await createFixture({
@@ -109,12 +102,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			});
 		});
 
-		const nodeVersion = node.version.split('.').map(Number) as Version;
-
-		// https://nodejs.org/docs/latest-v18.x/api/cli.html#--test
-		const cliTestFlag = compareNodeVersion([18, 1, 0], nodeVersion) >= 0;
-		const testRunnerGlob = compareNodeVersion([21, 0, 0], nodeVersion) >= 0;
-		if (cliTestFlag) {
+		if (node.supports.cliTestFlag) {
 			test('Node.js test runner', async ({ onTestFinish }) => {
 				const fixture = await createFixture({
 					'test.ts': `
@@ -132,7 +120,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					[
 						'--test',
 						...(
-							testRunnerGlob
+							node.supports.testRunnerGlob
 								? []
 								: ['test.ts']
 						),
@@ -140,7 +128,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					fixture.path,
 				);
 
-				if (testRunnerGlob) {
+				if (node.supports.testRunnerGlob) {
 					expect(tsxProcess.stdout).toMatch('some passing test\n');
 				} else {
 					expect(tsxProcess.stdout).toMatch('# pass 1\n');
