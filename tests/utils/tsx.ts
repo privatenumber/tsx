@@ -2,6 +2,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { execaNode } from 'execa';
 import getNode from 'get-node';
+import { compareNodeVersion, type Version } from './node-features.js';
 
 type Options = {
 	args: string[];
@@ -11,6 +12,8 @@ type Options = {
 
 const __dirname = fileURLToPath(import.meta.url);
 export const tsxPath = path.join(__dirname, '../../../dist/cli.mjs');
+export const cjsPatchPath = path.join(__dirname, '../../../dist/cjs/index.cjs');
+export const hookPath = path.join(__dirname, '../../../dist/esm/index.cjs');
 
 export const tsx = (
 	options: Options,
@@ -38,11 +41,26 @@ export const createNode = async (
 	const node = await getNode(nodeVersion, {
 		progress: true,
 	});
-	console.log('Got node', Date.now() - startTime, node);
+	console.log(`Got node in ${Date.now() - startTime}ms`, node);
+
+	const versionParsed = node.version.split('.').map(Number) as Version;
+	const supports = {
+		moduleRegister: compareNodeVersion([20, 6, 0], versionParsed) >= 0,
+
+		// https://nodejs.org/docs/latest-v18.x/api/cli.html#--test
+		cliTestFlag: compareNodeVersion([18, 1, 0], versionParsed) >= 0,
+
+		testRunnerGlob: compareNodeVersion([21, 0, 0], versionParsed) >= 0,
+	};
+	const hookFlag = supports.moduleRegister ? '--import' : '--loader';
 
 	return {
 		version: node.version,
+
 		path: node.path,
+
+		supports,
+
 		tsx: (
 			args: string[],
 			cwd?: string,
@@ -61,6 +79,24 @@ export const createNode = async (
 				all: true,
 			},
 		),
+
+		cjsPatched: (
+			args: string[],
+			cwd?: string,
+		) => execaNode(args[0], args.slice(1), {
+			cwd,
+			nodePath: node.path,
+			nodeOptions: ['--require', cjsPatchPath],
+		}),
+
+		hook: (
+			args: string[],
+			cwd?: string,
+		) => execaNode(args[0], args.slice(1), {
+			cwd,
+			nodePath: node.path,
+			nodeOptions: [hookFlag, hookPath],
+		}),
 	};
 };
 
