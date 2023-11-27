@@ -10,7 +10,7 @@ const bindHiddenSignalsHandler = (
 ) => {
 	type RelaySignals = typeof signals[number];
 	for (const signal of signals) {
-		process.on(signal, function (receivedSignal) {
+		process.on(signal, (receivedSignal) => {
 			handler(receivedSignal);
 
 			/**
