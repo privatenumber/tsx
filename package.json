@@ -59,7 +59,7 @@
 	},
 	"devDependencies": {
 		"@ampproject/remapping": "^2.2.1",
-		"@pvtnbr/eslint-config": "^0.37.1",
+		"@pvtnbr/eslint-config": "^0.38.0",
 		"@types/cross-spawn": "^6.0.6",
 		"@types/node": "^20.9.4",
 		"@types/react": "^18.2.38",
