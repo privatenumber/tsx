@@ -1,6 +1,6 @@
 import { isMainThread } from 'node:worker_threads';
 import { constants as osConstants } from 'os';
-import './suppress-warnings.cts';
+import './suppress-warnings.cjs';
 
 type BaseEventListener = () => void;
 
