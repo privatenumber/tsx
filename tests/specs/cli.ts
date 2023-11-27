@@ -2,7 +2,6 @@ import path from 'path';
 import { setTimeout } from 'timers/promises';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
-import { execa } from 'execa';
 import packageJson from '../../package.json';
 import { ptyShell, isWindows } from '../utils/pty-shell/index';
 import { expectMatchInOrder } from '../utils/expect-match-in-order.js';
@@ -345,7 +344,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			});
 		});
 
-		test('relays messages to child', async ({ onTestFinish }) => {
+		test('relays ipc message to child and back', async ({ onTestFinish }) => {
 			const fixture = await createFixture({
 				'file.js': `
 				process.on('message', (received) => {
@@ -357,7 +356,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 			onTestFinish(async () => await fixture.rm());
 
-			const tsxProcess = execa(tsxPath, ['file.js'], {
+			const tsxProcess = tsx(['file.js'], {
 				cwd: fixture.path,
 				stdio: ['ipc'],
 				reject: false,

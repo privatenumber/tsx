@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'url';
-import { execaNode } from 'execa';
+import { execaNode, type NodeOptions } from 'execa';
 import getNode from 'get-node';
 import { compareNodeVersion, type Version } from './node-features.js';
 
@@ -62,12 +62,11 @@ export const createNode = async (
 
 		tsx: (
 			args: string[],
-			cwd?: string,
+			cwdOrOptions?: string | NodeOptions,
 		) => execaNode(
 			tsxPath,
 			args,
 			{
-				cwd,
 				env: {
 					TSX_DISABLE_CACHE: '1',
 					DEBUG: '1',
@@ -76,6 +75,11 @@ export const createNode = async (
 				nodeOptions: [],
 				reject: false,
 				all: true,
+				...(
+					typeof cwdOrOptions === 'string'
+						? { cwd: cwdOrOptions }
+						: cwdOrOptions
+				),
 			},
 		),
 
