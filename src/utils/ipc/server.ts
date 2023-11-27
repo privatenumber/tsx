@@ -25,7 +25,7 @@ const bufferData = (
 	};
 };
 
-export const createIpcServer = () => new Promise<net.Server>(async (resolve, reject) => {
+export const createIpcServer = async () => {
 	const server = net.createServer((socket) => {
 		socket.on('data', bufferData((message: Buffer) => {
 			const data = JSON.parse(message.toString());
@@ -34,35 +34,37 @@ export const createIpcServer = () => new Promise<net.Server>(async (resolve, rej
 	});
 
 	const pipePath = getPipePath(process.pid);
-
 	await fs.promises.mkdir(tmpdir, { recursive: true });
-	server.listen(pipePath, () => {
-		resolve(server);
 
-		process.on('exit', () => {
-			server.close();
-
-			/**
-			 * Only clean on Unix
-			 *
-			 * https://nodejs.org/api/net.html#ipc-support:
-			 * On Windows, the local domain is implemented using a named pipe.
-			 * The path must refer to an entry in \\?\pipe\ or \\.\pipe\.
-			 * Any characters are permitted, but the latter may do some processing
-			 * of pipe names, such as resolving .. sequences. Despite how it might
-			 * look, the pipe namespace is flat. Pipes will not persist. They are
-			 * removed when the last reference to them is closed. Unlike Unix domain
-			 * sockets, Windows will close and remove the pipe when the owning process exits.
-			 */
-			if (process.platform !== 'win32') {
-				try {
-					fs.rmSync(pipePath);
-				} catch {}
-			}
-		});
+	await new Promise<void>((resolve, reject) => {
+		server.listen(pipePath, resolve);
+		server.on('error', reject);
 	});
-	server.on('error', reject);
 
 	// Prevent Node from waiting for this socket to close before exiting
 	server.unref();
-});
+
+	process.on('exit', () => {
+		server.close();
+
+		/**
+		 * Only clean on Unix
+		 *
+		 * https://nodejs.org/api/net.html#ipc-support:
+		 * On Windows, the local domain is implemented using a named pipe.
+		 * The path must refer to an entry in \\?\pipe\ or \\.\pipe\.
+		 * Any characters are permitted, but the latter may do some processing
+		 * of pipe names, such as resolving .. sequences. Despite how it might
+		 * look, the pipe namespace is flat. Pipes will not persist. They are
+		 * removed when the last reference to them is closed. Unlike Unix domain
+		 * sockets, Windows will close and remove the pipe when the owning process exits.
+		 */
+		if (process.platform !== 'win32') {
+			try {
+				fs.rmSync(pipePath);
+			} catch {}
+		}
+	});
+
+	return server;
+};

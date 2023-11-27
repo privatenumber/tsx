@@ -51,9 +51,12 @@ const transformExtensions = [
 ];
 
 let sendToParent: SendToParent | void;
-connectingToServer.then((_sendToParent) => {
-	sendToParent = _sendToParent;
-});
+connectingToServer.then(
+	(_sendToParent) => {
+		sendToParent = _sendToParent;
+	},
+	() => {},
+);
 
 const transformer = (
 	module: Module,
