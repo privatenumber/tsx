@@ -9,6 +9,7 @@ import { transformDynamicImport } from '../utils/transform/transform-dynamic-imp
 import { resolveTsPath } from '../utils/resolve-ts-path.js';
 import { installSourceMapSupport } from '../source-map.js';
 import { importAttributes } from '../utils/node-features.js';
+import { connectingToServer, type SendToParent } from '../utils/ipc/client.js';
 import {
 	tsconfigPathsMatcher,
 	fileMatcher,
@@ -36,42 +37,20 @@ type resolve = (
 	recursiveCall?: boolean,
 ) => MaybePromise<ResolveFnOutput>;
 
-type SendToParent = (data: {
-	type: 'dependency';
-	path: string;
-}) => void;
-
-let sendToParent: SendToParent | undefined = process.send ? process.send.bind(process) : undefined;
-
 export const initialize: InitializeHook = async (data) => {
 	if (!data) {
 		throw new Error('tsx must be loaded with --import instead of --loader\nThe --loader flag was deprecated in Node v20.6.0');
 	}
-
-	const { port } = data;
-	sendToParent = port.postMessage.bind(port);
 };
 
 /**
  * Technically globalPreload is deprecated so it should be in loaders-deprecated
  * but it shares a closure with the new load hook
  */
-export const globalPreload: GlobalPreloadHook = ({ port }) => {
-	sendToParent = port.postMessage.bind(port);
-
-	return `
-	const require = getBuiltin('module').createRequire("${import.meta.url}");
-	require('tsx/source-map').installSourceMapSupport();
-	if (process.send) {
-		port.addListener('message', (message) => {
-			if (message.type === 'dependency') {
-				process.send(message);
-			}
-		});
-	}
-	port.unref(); // Allows process to exit without waiting for port to close
-	`;
-};
+export const globalPreload: GlobalPreloadHook = () => `
+const require = getBuiltin('module').createRequire("${import.meta.url}");
+require('../source-map.cjs').installSourceMapSupport();
+`;
 
 const resolveExplicitPath = async (
 	defaultResolve: NextResolve,
@@ -241,6 +220,14 @@ export const resolve: resolve = async function (
 		throw error;
 	}
 };
+
+let sendToParent: SendToParent | void;
+connectingToServer.then(
+	(_sendToParent) => {
+		sendToParent = _sendToParent;
+	},
+	() => {},
+);
 
 const contextAttributesProperty = importAttributes ? 'importAttributes' : 'importAssertions';
 

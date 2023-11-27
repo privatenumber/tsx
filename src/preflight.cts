@@ -1,5 +1,6 @@
-import { isMainThread } from 'node:worker_threads';
 import { constants as osConstants } from 'os';
+import { isMainThread } from 'node:worker_threads';
+import { connectingToServer } from './utils/ipc/client.js';
 import './suppress-warnings.cjs';
 
 type BaseEventListener = () => void;
@@ -63,13 +64,16 @@ if (isMainThread) {
 	// eslint-disable-next-line import/no-unresolved
 	require('./cjs/index.cjs');
 
-	// If a parent process is detected
-	if (process.send) {
-		bindHiddenSignalsHandler(['SIGINT', 'SIGTERM'], (signal: NodeJS.Signals) => {
-			process.send!({
-				type: 'kill',
-				signal,
+	(async () => {
+		const sendToParent = await connectingToServer;
+
+		if (sendToParent) {
+			bindHiddenSignalsHandler(['SIGINT', 'SIGTERM'], (signal: NodeJS.Signals) => {
+				sendToParent({
+					type: 'signal',
+					signal,
+				});
 			});
-		});
-	}
+		}
+	})();
 }

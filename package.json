@@ -35,7 +35,7 @@
 	"bin": "./dist/cli.mjs",
 	"scripts": {
 		"prepare": "pnpm simple-git-hooks",
-		"build": "pkgroll --target=node12.19 --minify",
+		"build": "pkgroll --target=node12.19",
 		"lint": "eslint --cache .",
 		"type-check": "tsc --noEmit",
 		"test": "pnpm build && node ./dist/cli.mjs tests/index.ts",

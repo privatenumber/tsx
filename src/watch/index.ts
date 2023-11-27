@@ -10,6 +10,7 @@ import {
 	removeArgvFlags,
 	ignoreAfterArgument,
 } from '../remove-argv-flags.js';
+import { createIpcServer } from '../utils/ipc/server.js';
 import {
 	clearScreen,
 	debounce,
@@ -52,7 +53,7 @@ export const watchCommand = command({
 	 * Remove once cleye supports error callbacks on missing arguments
 	 */
 	ignoreArgv: ignoreAfterArgument(false),
-}, (argv) => {
+}, async (argv) => {
 	const rawArgvs = removeArgvFlags(flags, process.argv.slice(3));
 	const options = {
 		noCache: argv.flags.noCache,
@@ -65,36 +66,36 @@ export const watchCommand = command({
 	let runProcess: ChildProcess | undefined;
 	let exiting = false;
 
+	const server = await createIpcServer();
+
+	server.on('data', (data) => {
+		// Collect run-time dependencies to watch
+		if (
+			data
+			&& typeof data === 'object'
+			&& 'type' in data
+			&& data.type === 'dependency'
+			&& 'path' in data
+			&& typeof data.path === 'string'
+		) {
+			const dependencyPath = (
+				data.path.startsWith('file:')
+					? fileURLToPath(data.path)
+					: data.path
+			);
+
+			if (path.isAbsolute(dependencyPath)) {
+				watcher.add(dependencyPath);
+			}
+		}
+	});
+
 	const spawnProcess = () => {
 		if (exiting) {
 			return;
 		}
 
-		const childProcess = run(rawArgvs, options);
-
-		childProcess.on('message', (data) => {
-			// Collect run-time dependencies to watch
-			if (
-				data
-				&& typeof data === 'object'
-				&& 'type' in data
-				&& data.type === 'dependency'
-				&& 'path' in data
-				&& typeof data.path === 'string'
-			) {
-				const dependencyPath = (
-					data.path.startsWith('file:')
-						? fileURLToPath(data.path)
-						: data.path
-				);
-
-				if (path.isAbsolute(dependencyPath)) {
-					watcher.add(dependencyPath);
-				}
-			}
-		});
-
-		return childProcess;
+		return run(rawArgvs, options);
 	};
 
 	let waitingChildExit = false;

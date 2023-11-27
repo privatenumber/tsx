@@ -357,7 +357,8 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				`,
 			});
 
-			onTestFinish(async () => await fixture.rm());
+			console.log(fixture);
+			// onTestFinish(async () => await fixture.rm());
 
 			const tsxProcess = execa(tsxPath, ['file.js'], {
 				cwd: fixture.path,
@@ -367,7 +368,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 			tsxProcess.on('message', (message) => {
 				console.log('from test', message);
-				tsxProcess.kill();
+				// tsxProcess.kill();
 			});
 			tsxProcess.send('hello');
 
