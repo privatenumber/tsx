@@ -3,10 +3,9 @@ import { setTimeout } from 'timers/promises';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import packageJson from '../../package.json';
-import { tsxPath } from '../utils/tsx.js';
 import { ptyShell, isWindows } from '../utils/pty-shell/index';
 import { expectMatchInOrder } from '../utils/expect-match-in-order.js';
-import type { NodeApis } from '../utils/tsx.js';
+import { tsxPath, type NodeApis } from '../utils/tsx.js';
 import { isProcessAlive } from '../utils/is-process-alive.js';
 
 export default testSuite(({ describe }, node: NodeApis) => {
@@ -343,6 +342,33 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					expect(output).toMatch(/EXIT_CODE:\s+130/);
 				}, 10_000);
 			});
+		});
+
+		test('relays ipc message to child and back', async ({ onTestFinish }) => {
+			const fixture = await createFixture({
+				'file.js': `
+				process.on('message', (received) => {
+					process.send('goodbye');
+					process.exit();
+				});
+				`,
+			});
+
+			onTestFinish(async () => await fixture.rm());
+
+			const tsxProcess = tsx(['file.js'], {
+				cwd: fixture.path,
+				stdio: ['ipc'],
+				reject: false,
+			});
+
+			tsxProcess.send('hello');
+			const received = await new Promise((resolve) => {
+				tsxProcess.once('message', resolve);
+			});
+			expect(received).toBe('goodbye');
+
+			await tsxProcess;
 		});
 	});
 });
