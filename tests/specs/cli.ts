@@ -345,20 +345,17 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			});
 		});
 
-		// Relays to child
 		test('relays messages to child', async ({ onTestFinish }) => {
 			const fixture = await createFixture({
 				'file.js': `
-				console.log('READY');
 				process.on('message', (received) => {
-					console.log({ received });
-					process.send(received);
+					process.send('goodbye');
+					process.exit();
 				});
 				`,
 			});
 
-			console.log(fixture);
-			// onTestFinish(async () => await fixture.rm());
+			onTestFinish(async () => await fixture.rm());
 
 			const tsxProcess = execa(tsxPath, ['file.js'], {
 				cwd: fixture.path,
@@ -366,13 +363,13 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				reject: false,
 			});
 
-			tsxProcess.on('message', (message) => {
-				console.log('from test', message);
-				// tsxProcess.kill();
-			});
 			tsxProcess.send('hello');
+			const received = await new Promise((resolve) => {
+				tsxProcess.once('message', resolve);
+			});
+			expect(received).toBe('goodbye');
 
-			console.log(await tsxProcess);
+			await tsxProcess;
 		});
 	});
 });

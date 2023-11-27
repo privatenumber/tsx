@@ -216,6 +216,9 @@ cli({
 		childProcess.on('message', (message) => {
 			process.send!(message);
 		});
+	}
+
+	if (childProcess.send) {
 		process.on('message', (message) => {
 			childProcess.send(message as Serializable);
 		});

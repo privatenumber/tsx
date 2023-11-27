@@ -16,8 +16,12 @@ export const run = (
 		'inherit', // stdin
 		'inherit', // stdout
 		'inherit', // stderr
-		'ipc', // parent-child communication
 	];
+
+	// If parent process spawns tsx with ipc, spawn child with ipc
+	if (process.send) {
+		stdio.push('ipc');
+	}
 
 	if (options) {
 		if (options.noCache) {
