@@ -1,4 +1,3 @@
-import path from 'path';
 import { fileURLToPath } from 'url';
 import { execaNode } from 'execa';
 import getNode from 'get-node';
@@ -10,10 +9,10 @@ type Options = {
 	cwd?: string;
 };
 
-const __dirname = fileURLToPath(import.meta.url);
-export const tsxPath = path.join(__dirname, '../../../dist/cli.mjs');
-export const cjsPatchPath = path.join(__dirname, '../../../dist/cjs/index.cjs');
-export const hookPath = path.join(__dirname, '../../../dist/esm/index.cjs');
+export const tsxPath = fileURLToPath(new URL('../../dist/cli.mjs', import.meta.url).toString());
+
+const cjsPatchPath = fileURLToPath(new URL('../../dist/cjs/index.cjs', import.meta.url).toString());
+const hookPath = new URL('../../dist/esm/index.cjs', import.meta.url).toString();
 
 export const tsx = (
 	options: Options,
