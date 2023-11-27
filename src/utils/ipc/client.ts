@@ -19,9 +19,9 @@ const connectToServer = () => new Promise<SendToParent | void>((resolve) => {
 	);
 
 	/**
-	 * Ignore error:
-	 * - Called as a loader
-	 * - Nested process when using --test
+	 * Ignore error when:
+	 * - Called as a loader and there is no server
+	 * - Nested process when using --test and the ppid is incorrect
 	 */
 	socket.on('error', () => {
 		resolve();
