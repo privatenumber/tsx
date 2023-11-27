@@ -1,3 +1,4 @@
+import type { StdioOptions } from 'child_process';
 import { pathToFileURL } from 'url';
 import spawn from 'cross-spawn';
 import { supportsModuleRegister } from './utils/node-features';
@@ -11,6 +12,12 @@ export const run = (
 	},
 ) => {
 	const environment = { ...process.env };
+	const stdio: StdioOptions = [
+		'inherit', // stdin
+		'inherit', // stdout
+		'inherit', // stderr
+		'ipc', // parent-child communication
+	];
 
 	if (options) {
 		if (options.noCache) {
@@ -34,7 +41,7 @@ export const run = (
 			...argv,
 		],
 		{
-			stdio: 'inherit',
+			stdio,
 			env: environment,
 		},
 	);
