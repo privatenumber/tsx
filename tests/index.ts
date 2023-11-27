@@ -12,6 +12,7 @@ import { nodeVersions } from './utils/node-versions';
 			await describe(`Node ${node.version}`, async ({ runTestSuite }) => {
 				await runTestSuite(import('./specs/cli'), node);
 				await runTestSuite(import('./specs/watch'), node);
+				await runTestSuite(import('./specs/loaders'), node);
 				await runTestSuite(
 					import('./specs/smoke'),
 					node,
