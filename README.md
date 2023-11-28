@@ -94,6 +94,7 @@ _tsx_ wraps around Node.js to enhance it with TypeScript support. Because it's a
 # --no-warnings is a Node.js flag
 tsx --no-warnings ./file.ts
 ```
+> Note: Node flags must go _before_ the file specification. 
 
 ### Run TypeScript / ESM / CJS module
 
