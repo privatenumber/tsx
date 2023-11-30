@@ -8,7 +8,7 @@ import { transform } from '../utils/transform/index.js';
 import { transformDynamicImport } from '../utils/transform/transform-dynamic-import.js';
 import { resolveTsPath } from '../utils/resolve-ts-path.js';
 import { installSourceMapSupport } from '../source-map.js';
-import { importAttributes } from '../utils/node-features.js';
+import { isFeatureSupported, importAttributes } from '../utils/node-features.js';
 import { connectingToServer, type SendToParent } from '../utils/ipc/client.js';
 import {
 	tsconfigPathsMatcher,
@@ -229,7 +229,11 @@ connectingToServer.then(
 	() => {},
 );
 
-const contextAttributesProperty = importAttributes ? 'importAttributes' : 'importAssertions';
+const contextAttributesProperty = (
+	isFeatureSupported(importAttributes)
+		? 'importAttributes'
+		: 'importAssertions'
+);
 
 export const load: LoadHook = async function (
 	url,

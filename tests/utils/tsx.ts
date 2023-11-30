@@ -1,7 +1,12 @@
 import { fileURLToPath } from 'url';
 import { execaNode, type NodeOptions } from 'execa';
 import getNode from 'get-node';
-import { compareNodeVersion, type Version } from './node-features.js';
+import {
+	isFeatureSupported,
+	moduleRegister,
+	testRunnerGlob,
+	type Version,
+} from '../../src/utils/node-features.js';
 
 type Options = {
 	args: string[];
@@ -44,18 +49,12 @@ export const createNode = async (
 
 	const versionParsed = node.version.split('.').map(Number) as Version;
 	const supports = {
-		moduleRegister: (
-			compareNodeVersion([20, 6, 0], versionParsed) >= 0
-			|| (
-				compareNodeVersion([20, 0, 0], versionParsed) < 0
-				&& compareNodeVersion([18, 19, 0], versionParsed) >= 0
-			)
-		),
+		moduleRegister: isFeatureSupported(moduleRegister, versionParsed),
+
+		testRunnerGlob: isFeatureSupported(testRunnerGlob, versionParsed),
 
 		// https://nodejs.org/docs/latest-v18.x/api/cli.html#--test
-		cliTestFlag: compareNodeVersion([18, 1, 0], versionParsed) >= 0,
-
-		testRunnerGlob: compareNodeVersion([21, 0, 0], versionParsed) >= 0,
+		cliTestFlag: isFeatureSupported([[18, 1, 0]], versionParsed),
 	};
 	const hookFlag = supports.moduleRegister ? '--import' : '--loader';
 

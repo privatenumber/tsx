@@ -12,7 +12,7 @@ import {
 	removeArgvFlags,
 	ignoreAfterArgument,
 } from './remove-argv-flags.js';
-import { testRunnerGlob } from './utils/node-features.js';
+import { isFeatureSupported, testRunnerGlob } from './utils/node-features.js';
 import { createIpcServer } from './utils/ipc/server.js';
 
 const relaySignals = (
@@ -193,7 +193,7 @@ cli({
 
 	// Default --test glob to find TypeScript files
 	if (
-		testRunnerGlob
+		isFeatureSupported(testRunnerGlob)
 		&& interceptedFlags.test
 		&& firstArgs.length === 0
 	) {
