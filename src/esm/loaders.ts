@@ -39,7 +39,7 @@ type resolve = (
 
 export const initialize: InitializeHook = async (data) => {
 	if (!data) {
-		throw new Error('tsx must be loaded with --import instead of --loader\nThe --loader flag was deprecated in Node v20.6.0');
+		throw new Error('tsx must be loaded with --import instead of --loader\nThe --loader flag was deprecated in Node v20.6.0 and v18.19.0');
 	}
 };
 
