@@ -46,7 +46,10 @@ export const createNode = async (
 	const supports = {
 		moduleRegister: (
 			compareNodeVersion([20, 6, 0], versionParsed) >= 0
-			|| compareNodeVersion([18, 19, 0], versionParsed) >= 0
+			|| (
+				compareNodeVersion([20, 0, 0], versionParsed) < 0
+				&& compareNodeVersion([18, 19, 0], versionParsed) >= 0
+			)
 		),
 
 		// https://nodejs.org/docs/latest-v18.x/api/cli.html#--test
