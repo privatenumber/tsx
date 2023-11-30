@@ -7,6 +7,7 @@ const latestMajor = (version: string) => (process.env.CI ? version : version.spl
 
 export const nodeVersions = [
 	latestMajor('21.2.0'),
+	'20.0',
 	...(
 		(
 			process.env.CI
@@ -14,8 +15,7 @@ export const nodeVersions = [
 		)
 			? [
 				latestMajor('20.10.0'),
-				// TODO:
-				// '20.0.0',
+				'20.0.0',
 				latestMajor('18.19.0'),
 				'18.0.0',
 			] as const

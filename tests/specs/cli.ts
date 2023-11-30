@@ -101,7 +101,13 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			});
 		});
 
-		if (node.supports.cliTestFlag) {
+		if (
+			node.supports.cliTestFlag
+
+			// node --test is broken in v20.0.0
+			// https://github.com/nodejs/node/issues/48467
+			&& node.version !== '20.0.0'
+		) {
 			test('Node.js test runner', async ({ onTestFinish }) => {
 				const fixture = await createFixture({
 					'test.ts': `
