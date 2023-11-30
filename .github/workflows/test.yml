@@ -14,10 +14,10 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Use Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
 
@@ -48,7 +48,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ${{ env.NVE_CACHE }}
-        key: ${{ runner.os }}-nodejs-${{ hashFiles('tests/utils/node-versions.ts') }}
+        key: ${{ runner.os }}-nodejs-${{ hashFiles('.nvmrc') }}-${{ hashFiles('tests/utils/node-versions.ts') }}
         restore-keys: ${{ runner.os }}-nodejs-
 
     - name: Test
