@@ -6,14 +6,14 @@
 const latestMajor = (version: string) => (process.env.CI ? version : version.split('.')[0]);
 
 export const nodeVersions = [
-	latestMajor('21.2.0'),
-	'20.0',
+	process.version,
 	...(
 		(
 			process.env.CI
 			&& process.platform !== 'win32'
 		)
 			? [
+				'21.0.0',
 				latestMajor('20.10.0'),
 				'20.0.0',
 				latestMajor('18.19.0'),
