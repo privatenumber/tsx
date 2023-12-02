@@ -283,7 +283,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					forceKillAfterTimeout: false,
 				});
 
-				await setTimeout(100);
+				await setTimeout(500);
 
 				if (process.platform === 'win32') {
 					expect(isProcessAlive(childPid!)).toBe(false);
@@ -291,12 +291,9 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					expect(isProcessAlive(childPid!)).toBe(true);
 					process.kill(childPid!, 'SIGKILL');
 					// Note: SIGKILLing tsx process will leave the child hanging
-				}
 
-				const result = await tsxProcess;
+					const result = await tsxProcess;
 
-				// See test above
-				if (process.platform !== 'win32') {
 					// This is the exit code I get from testing manually with Node
 					expect(result.exitCode).toBe(137);
 				}
