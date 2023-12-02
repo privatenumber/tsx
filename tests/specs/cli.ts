@@ -157,7 +157,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						setTimeout(() => {
 							console.log(name, 'HANDLER COMPLETED');
 							process.exit(200);
-						}, 100);
+						}, 200);
 					});
 				}
 				
