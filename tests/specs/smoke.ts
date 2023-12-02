@@ -230,7 +230,8 @@ const files = {
 				type: 'module',
 				exports: './index.js',
 			}),
-			'index.js': syntaxLowering,
+			'index.js': syntaxLowering + '\nexport * from "./empty-export.js"',
+			'empty-export.js': 'export {}',
 		},
 	},
 
