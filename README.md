@@ -34,6 +34,19 @@ This is for you if you ever wanted:
 - Better interoperability in codebases that use ESM and CJS dependencies
 - Something really fast it's unnoticeable!
 
+> [!TIP]
+> **tsx is not just for TypeScript!** It also helps Node load `module` type packages.
+>
+> If you're getting the following error, give _tsx_ a try!
+> ```
+> require('ESM package');
+> ^
+> 
+> Error [ERR_REQUIRE_ESM]: require() of ES Module <ESM package> from ./file.js not supported.
+> Instead change the require of <ESM package> in ./file.js to a dynamic import() which is available in all CommonJS modules.
+> ```
+
+
 ### Quick start
 Try tsx now without setup! Just pass in a TypeScript file:
 
@@ -45,7 +58,6 @@ npx tsx ./script.ts
 1. Enhance Node.js with TypeScript support
 2. Improve ESM <-> CJS interoperability as the ecosystem migrates to ESM
 3. Support the [LTS versions of Node.js](https://endoflife.date/nodejs)
-
 
 ## Install
 
