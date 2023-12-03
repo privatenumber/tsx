@@ -9,81 +9,50 @@ body:
 
   - type: checkboxes
     attributes:
-      label: Precheck
+      label: Acknowledgements
       description: Before starting the issue, please make sure you agree to the following.
       options:
         - label: I searched existing issues before opening this one to avoid duplicates
           required: true
 
-        - label: I'm able to reproduce this issue and prove it with a minimal reproduction
+        - label: I understand this is not a place for seek help, but to report a bug
           required: true
 
-        - label: I understand this is not a place to ask for free debugging support
+        - label: I understand that the bug must be proven first with a minimal reproduction
           required: true
 
-  - type: markdown
-    attributes:
-      value: |
-        ## 👀 Tell us about the bug
-        A _clear and concise_ description of what the bug is.
-
-  - type: textarea
-    attributes:
-      label: Problem
-      description: Please refrain from describing anything other than the problem.
-      placeholder: |
-        What's the problem?
-        Do you have an error stack trace?
-        Do you have screenshots?
-    validations:
-      required: true
-
-  - type: textarea
-    attributes:
-      label: Expected behavior
-      placeholder: |
-        What did you expect to happen?
-    validations:
-      required: true
+        - label: I will be polite, respectful, and considerate of people's time and effort
+          required: true
 
   - type: markdown
     attributes:
       value: |
         ## 📋 Minimal reproduction
-        > ⚠️ If a **minimal** reproduction is not provided, **the issue will be closed & locked.**
+        > ⚠️ **Issue closure warning**: Without a minimal reproduction URL, your issue will be closed & locked without response.
 
-        The minimal reproduction proves a bug exists in this project, allows others to debug it for you, and streamlines resolution.
+        The minimal reproduction is the core of your issue. Most times, this is all we look at to understand the problem.
+
+        When we debug your reproduction, we start by removing everything unncessary. Including converting TypeScript to JavaScript where possible, and removing _all_ unnecessary files & code (especially inside `node_modules`).
+        Minimizing the scope of the problem helps reveal the root cause.
 
         <details>
-          <summary><strong>How do I create a minimal reproduction?</strong></summary>
+            <summary><strong>Guidelines for creating a Minimal Reproduction</strong></summary>
 
-        1. Delete all unnecessary files and data. Keep it under 10 files.
+        1. **Eliminate extra files**: Limit to under 10 files. Discard non-essential files (like `LICENSE`, `.npmrc`, `.github`) and trim extraneous properties from `package.json`.
 
-            Delete irrelevant files (e.g. `LICENSE`, `.npmrc`, `.github`).
-            Do you have unnecessary dependencies, scripts, properties in `package.json`?
+        2. **Concentrate on the Issue**: Focus solely on the bug. Exclude unrelated frontend/backend components. If it's a TypeScript issue, convert to JavaScript for clarity. Aim for minimal lines of code in a single file.
 
-        2. Delete all unnecessary code. Reduce the scope.
+        3. **Configure 'start' script**: In `package.json`, ensure the `start` script clearly demonstrates the bug.
 
-            Try to narrow the scope of the reproduction as much as possible.
-            Is it a frontend or backend problem? Delete the other.
-            Is it a TypeScript problem? Try converting to JavaScript to see if it still exists.
-            Ideally, the code is reduced to a few lines of code in a single file.
+        4. **Thorough verification**: Test the reproduction yourself. Confirm immediate reproducibility, proper dependency declarations, and absence of redundant code or files. This mirrors the maintainers' process of scrutinizing every aspect.
 
-        3. Set the `start` script in `package.json` to the command that demonstrates the bug.
+        5. **Upload**: Share your minimal reproduction on [StackBlitz](https://stackblitz.com) or a new GitHub repository, ensuring it's accessible via a browser.
 
-        4. Verify the reproduction.
-
-            Try running it yourself, and check:
-            - Is the problem immediately reproducible?
-            - Are dependencies properly declared?
-            - Could I find more files or code that isn't necessary?
-
-        5. Upload the reproduction to [StackBlitz](https://stackblitz.com), or a new GitHub repository, so it can be opened in the browser.
         </details>
 
-        Starter template: [fork this template on StackBlitz](https://stackblitz.com/edit/node-huzszn?file=index.ts)
+        **Starter Template**: [Fork this StackBlitz template](https://stackblitz.com/edit/node-huzszn?file=index.ts)
 
-        The _smaller_ the reproduction, the _faster_ others can help you.
+        The more refined and concise your reproduction, the faster and more effectively maintainers can address your issue.
 
   - type: input
     attributes:
@@ -140,6 +109,25 @@ body:
         - Linux
     validations:
       required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## 🗒️ Extra information
+
+        This section is for complex issues that require further explaining.
+
+        Please focus more on minimizing the reproduction to get to the core of the issue. Usually, that's all we need to look at.
+
+  - type: textarea
+    attributes:
+      label: Problem & Expected behavior
+      value: |
+        Under 200 words:
+        - What happened?
+        - What did you expect instead?
+        - Do you have an error stack trace?
+        - Do you have screenshots?
 
   - type: markdown
     attributes:

@@ -18,6 +18,9 @@ body:
         - label: I understand tsx aims for TypeScript parity and will not support arbitrary Node.js enhancements
           required: true
 
+        - label: I understand this form is not for addressing a bug or seeking help
+          required: true
+
   - type: markdown
     attributes:
       value: |
