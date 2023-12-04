@@ -10,9 +10,13 @@
 - TypeScript REPL
 - Resolves `tsconfig.json` [`paths`](https://www.typescriptlang.org/tsconfig#paths)
 
-> **💡 Protip: Looking to bundle your TypeScript project?**
+
+> [!TIP]
+> **Do you need to compile your TypeScript projects?** Try [pkgroll](https://github.com/privatenumber/pkgroll)—the zero-config bundler _tsx_ uses!
 >
-> If you're looking for a dead simple way to bundle your TypeScript projects, take a look at [`pkgroll`](https://github.com/privatenumber/pkgroll). It's an esbuild-enhanced Rollup that's auto configured based on your `package.json`!
+> _pkgroll_ is a thin layer over Rollup that auto-configures it based on your `package.json` entry points.
+> 
+> It supports next-gen TS formats, export maps, `.d.ts` generation, and more!
 
 <br>
 
@@ -45,7 +49,6 @@ This is for you if you ever wanted:
 > Error [ERR_REQUIRE_ESM]: require() of ES Module <ESM package> from ./file.js not supported.
 > Instead change the require of <ESM package> in ./file.js to a dynamic import() which is available in all CommonJS modules.
 > ```
-
 
 ### Quick start
 Try tsx now without setup! Just pass in a TypeScript file:
