@@ -1,4 +1,5 @@
 const outdent = require('outdent');
+
 module.exports = {
 	addReleases: 'bottom',
 	successComment: outdent`
