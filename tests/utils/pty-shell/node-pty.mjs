@@ -21,5 +21,6 @@ spawned.onData((data) => {
 });
 
 spawned.onExit(({ exitCode }) => {
+	// eslint-disable-next-line n/no-process-exit
 	process.exit(exitCode);
 });

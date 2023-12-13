@@ -59,7 +59,7 @@
 	},
 	"devDependencies": {
 		"@ampproject/remapping": "^2.2.1",
-		"@pvtnbr/eslint-config": "^0.38.0",
+		"@pvtnbr/eslint-config": "github:privatenumber/eslint-config#npm/flat-config",
 		"@types/cross-spawn": "^6.0.6",
 		"@types/node": "^20.9.4",
 		"@types/react": "^18.2.38",
@@ -89,11 +89,5 @@
 		"type-fest": "^4.8.2",
 		"type-flag": "^3.0.0",
 		"typescript": "^5.3.2"
-	},
-	"eslintConfig": {
-		"extends": "@pvtnbr",
-		"ignorePatterns": [
-			"tests/fixtures"
-		]
 	}
 }

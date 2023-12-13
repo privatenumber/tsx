@@ -19,6 +19,7 @@ const bindHiddenSignalsHandler = (
 			 * default behavior when there are no other handlers set
 			 */
 			if (process.listenerCount(signal) === 0) {
+				// eslint-disable-next-line n/no-process-exit
 				process.exit(128 + osConstants.signals[signal]);
 			}
 		});
@@ -61,7 +62,7 @@ if (isMainThread) {
 	 * Although it is required twice, it's not executed twice because
 	 * it's cached.
 	 */
-	// eslint-disable-next-line import/no-unresolved
+	// eslint-disable-next-line import/no-unresolved, n/global-require
 	require('./cjs/index.cjs');
 
 	(async () => {

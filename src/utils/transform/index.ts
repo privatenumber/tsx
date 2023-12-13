@@ -34,6 +34,8 @@ const handleEsbuildError = (
 	}
 
 	console.error(errorMessage);
+
+	// eslint-disable-next-line n/no-process-exit
 	process.exit(1);
 };
 
