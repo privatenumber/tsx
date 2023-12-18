@@ -127,6 +127,7 @@ body:
         - What happened?
         - What did you expect instead?
         - Do you have an error stack trace?
+        - Do you have documentation links?
         - Do you have screenshots?
 
   - type: markdown
