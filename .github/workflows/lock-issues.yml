@@ -1,6 +1,7 @@
 name: Lock Issues & PRs
 
 on:
+  pull_request:
   schedule:
     - cron: '0 0 * * 0' # Every Sunday
 
@@ -14,7 +15,7 @@ jobs:
       discussions: write
 
     steps:
-      - name: Lock Issues & PRs
+      - name: Lock threads
         uses: dessant/lock-threads@v5
         with:
           github-token: ${{ github.token }}
