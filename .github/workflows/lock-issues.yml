@@ -24,3 +24,4 @@ jobs:
           add-pr-labels: 'outdated'
           discussion-inactive-days: '91'
           add-discussion-labels: 'outdated'
+          log-output: 'true'
