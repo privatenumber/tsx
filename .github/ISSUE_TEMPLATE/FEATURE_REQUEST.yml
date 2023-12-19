@@ -1,5 +1,5 @@
 name: 🌟 Feature request
-description: Have a great idea for this project? Tell us more!
+description: Missing feature from this project? Tell us more!
 labels: [enhancement, pending triage]
 body:
   - type: markdown
@@ -16,6 +16,9 @@ body:
           required: true
 
         - label: I understand tsx aims for TypeScript parity and will not support arbitrary Node.js enhancements
+          required: true
+
+        - label: This request cannot be made to Node.js directly, and is specific to tsx
           required: true
 
         - label: I understand this form is not for addressing a bug or seeking help
@@ -39,7 +42,7 @@ body:
     attributes:
       label: Motivations
       description: |
-        Describe the problem you’re tackling with this feature request.
+        Describe the problem you’re addressing with this feature request. If the motivation is feature parity, provide documentation links.
       placeholder: |
         How did you come across this idea?
     validations:
@@ -59,7 +62,7 @@ body:
     attributes:
       label: Additional context
       description: |
-        Anything else to share? Screenshots? Links?
+        Anything else to share? (e.g. screenshots & links)
 
   - type: markdown
     attributes:
