@@ -8,6 +8,7 @@ import os from 'os';
 const { geteuid } = process;
 const userId = (
 	geteuid
+
 		// For Linux users with virtual users on CI (e.g. Docker)
 		? geteuid()
 

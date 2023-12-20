@@ -290,6 +290,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				} else {
 					expect(isProcessAlive(childPid!)).toBe(true);
 					process.kill(childPid!, 'SIGKILL');
+
 					// Note: SIGKILLing tsx process will leave the child hanging
 
 					const result = await tsxProcess;

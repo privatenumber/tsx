@@ -168,6 +168,7 @@ export const watchCommand = command({
 
 			killProcess(
 				runProcess,
+
 				// Second Ctrl+C force kills
 				waitingChildExit ? 'SIGKILL' : signal,
 			).then(

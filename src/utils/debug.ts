@@ -27,6 +27,7 @@ export const time = <T extends (...args: any[]) => unknown>(
 		) {
 			(result as Promise<unknown>).then(
 				logTimeElapsed,
+
 				// Ignore error in this chain
 				() => {},
 			);

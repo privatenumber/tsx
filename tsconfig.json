@@ -1,13 +1,13 @@
 {
 	"compilerOptions": {
-		"strict": true,
-		"isolatedModules": true,
-		"esModuleInterop": true,
-		"moduleResolution": "Bundler",
-		"skipLibCheck": true,
-		"noEmit": true,
+		"target": "esnext",
 		"module": "esnext",
-		"target": "esnext"
+		"moduleResolution": "Bundler",
+		"strict": true,
+		"noEmit": true,
+		"esModuleInterop": true,
+		"isolatedModules": true,
+		"skipLibCheck": true
 	},
 	"include": [
 		"src"

@@ -17,10 +17,11 @@
 		"name": "Hiroki Osame",
 		"email": "hiroki.osame@gmail.com"
 	},
-	"type": "module",
 	"files": [
 		"dist"
 	],
+	"type": "module",
+	"bin": "./dist/cli.mjs",
 	"exports": {
 		"./package.json": "./package.json",
 		".": "./dist/loader.mjs",
@@ -32,7 +33,6 @@
 		"./preflight": "./dist/preflight.cjs",
 		"./repl": "./dist/repl.mjs"
 	},
-	"bin": "./dist/cli.mjs",
 	"scripts": {
 		"prepare": "pnpm simple-git-hooks",
 		"build": "pkgroll --target=node12.19 --minify",

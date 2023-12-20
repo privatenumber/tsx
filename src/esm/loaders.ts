@@ -71,11 +71,11 @@ const resolveExplicitPath = async (
 
 const extensions = ['.js', '.json', '.ts', '.tsx', '.jsx'] as const;
 
-async function tryExtensions(
+const tryExtensions = async (
 	specifier: string,
 	context: ResolveHookContext,
 	defaultResolve: NextResolve,
-) {
+) => {
 	const [specifierWithoutQuery, query] = specifier.split('?');
 	let throwError: Error | undefined;
 	for (const extension of extensions) {
@@ -99,13 +99,13 @@ async function tryExtensions(
 	}
 
 	throw throwError;
-}
+};
 
-async function tryDirectory(
+const tryDirectory = async (
 	specifier: string,
 	context: ResolveHookContext,
 	defaultResolve: NextResolve,
-) {
+) => {
 	const isExplicitDirectory = isDirectoryPattern.test(specifier);
 	const appendIndex = isExplicitDirectory ? 'index' : '/index';
 	const [specifierWithoutQuery, query] = specifier.split('?');
@@ -129,16 +129,16 @@ async function tryDirectory(
 		error.stack = error.stack!.replace(message, error.message);
 		throw error;
 	}
-}
+};
 
 const isRelativePathPattern = /^\.{1,2}\//;
 
-export const resolve: resolve = async function (
+export const resolve: resolve = async (
 	specifier,
 	context,
 	defaultResolve,
 	recursiveCall,
-) {
+) => {
 	// If directory, can be index.js, index.ts, etc.
 	if (isDirectoryPattern.test(specifier)) {
 		return await tryDirectory(specifier, context, defaultResolve);
@@ -170,6 +170,7 @@ export const resolve: resolve = async function (
 	 * Typescript gives .ts, .cts, or .mts priority over actual .js, .cjs, or .mjs extensions
 	 */
 	if (
+
 		// !recursiveCall &&
 		tsExtensionsPattern.test(context.parentURL!)
 	) {
@@ -178,6 +179,7 @@ export const resolve: resolve = async function (
 			for (const tsPath of tsPaths) {
 				try {
 					return await resolveExplicitPath(defaultResolve, tsPath, context);
+
 					// return await resolve(tsPath, context, defaultResolve, true);
 				} catch (error) {
 					const { code } = error as NodeError;
@@ -235,11 +237,11 @@ const contextAttributesProperty = (
 		: 'importAssertions'
 );
 
-export const load: LoadHook = async function (
+export const load: LoadHook = async (
 	url,
 	context,
 	defaultLoad,
-) {
+) => {
 	/*
 	Filter out node:*
 	Maybe only handle files that start with file://
@@ -270,6 +272,7 @@ export const load: LoadHook = async function (
 	const code = loaded.source.toString();
 
 	if (
+
 		// Support named imports in JSON modules
 		loaded.format === 'json'
 		|| tsExtensionsPattern.test(url)
