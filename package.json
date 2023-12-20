@@ -36,7 +36,7 @@
 	"scripts": {
 		"prepare": "pnpm simple-git-hooks",
 		"build": "pkgroll --target=node12.19 --minify",
-		"lint": "lint --cache .",
+		"lint": "lint --cache --node --ignore-pattern tests/fixtures .",
 		"type-check": "tsc --noEmit",
 		"test": "pnpm build && node ./dist/cli.mjs tests/index.ts",
 		"prepack": "pnpm build && clean-pkg-json"
@@ -59,7 +59,7 @@
 	},
 	"devDependencies": {
 		"@ampproject/remapping": "^2.2.1",
-		"@pvtnbr/eslint-config": "github:privatenumber/eslint-config#npm/cli",
+		"@pvtnbr/eslint-config": "github:privatenumber/eslint-config#npm/develop",
 		"@types/cross-spawn": "^6.0.6",
 		"@types/node": "^20.9.4",
 		"@types/react": "^18.2.38",

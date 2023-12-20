@@ -22,8 +22,8 @@ devDependencies:
     specifier: ^2.2.1
     version: 2.2.1
   '@pvtnbr/eslint-config':
-    specifier: github:privatenumber/eslint-config#npm/cli
-    version: github.com/privatenumber/eslint-config/b765382c191ba3e9e6a90dd5fd729fb88cc8d563(eslint@8.54.0)(typescript@5.3.2)
+    specifier: github:privatenumber/eslint-config#npm/develop
+    version: github.com/privatenumber/eslint-config/50a96c809b3f222dd5b062530af5edd5ffbe720e(eslint@8.54.0)(typescript@5.3.2)
   '@types/cross-spawn':
     specifier: ^6.0.6
     version: 6.0.6
@@ -2093,6 +2093,14 @@ packages:
       is-proto-prop: 2.0.0
     dev: true
 
+  /eslint-plugin-prefer-arrow-functions@3.2.4(eslint@8.54.0):
+    resolution: {integrity: sha512-HbPmlbO/iYQeVs2fuShNkGVJDfVfgSd84Vzxv+xlh+nIVoSsZvTj6yOqszw4mtG9JbiqMShVWqbVeoVsejE59w==}
+    peerDependencies:
+      eslint: '>=5.0.0'
+    dependencies:
+      eslint: 8.54.0
+    dev: true
+
   /eslint-plugin-promise@6.1.1(eslint@8.54.0):
     resolution: {integrity: sha512-tjqWDwVZQo7UIPMeDReOpUgHCmCiH+ePnVT+5zVapL0uuHnegBUs2smM13CzOs2Xb5+MHMRFTs9v24yjba4Oig==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
@@ -2189,6 +2197,22 @@ packages:
       semver: 7.5.4
       vue-eslint-parser: 9.3.2(eslint@8.54.0)
       xml-name-validator: 4.0.0
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /eslint-plugin-yml@1.11.0(eslint@8.54.0):
+    resolution: {integrity: sha512-NBZP1NDGy0u38pY5ieix75jxS9GNOJy9xd4gQa0rU4gWbfEsVhKDwuFaQ6RJpDbv6Lq5TtcAZS/YnAc0oeRw0w==}
+    engines: {node: ^14.17.0 || >=16.0.0}
+    peerDependencies:
+      eslint: '>=6.0.0'
+    dependencies:
+      debug: 4.3.4
+      eslint: 8.54.0
+      eslint-compat-utils: 0.1.2(eslint@8.54.0)
+      lodash: 4.17.21
+      natural-compare: 1.4.0
+      yaml-eslint-parser: 1.2.2
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -4729,6 +4753,15 @@ packages:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
     dev: true
 
+  /yaml-eslint-parser@1.2.2:
+    resolution: {integrity: sha512-pEwzfsKbTrB8G3xc/sN7aw1v6A6c/pKxLAkjclnAyo5g5qOh6eL9WGu0o3cSDQZKrTNk4KL4lQSwZW+nBkANEg==}
+    engines: {node: ^14.17.0 || >=16.0.0}
+    dependencies:
+      eslint-visitor-keys: 3.4.3
+      lodash: 4.17.21
+      yaml: 2.3.4
+    dev: true
+
   /yaml@2.3.4:
     resolution: {integrity: sha512-8aAvwVUSHpfEqTQ4w/KMlf3HcRdt50E5ODIQJBw1fQ5RL34xabzxtUlzTXVqc4rkZsPbvrXKWnABCD7kWSmocA==}
     engines: {node: '>= 14'}
@@ -4744,9 +4777,9 @@ packages:
     engines: {node: '>=12.20'}
     dev: true
 
-  github.com/privatenumber/eslint-config/b765382c191ba3e9e6a90dd5fd729fb88cc8d563(eslint@8.54.0)(typescript@5.3.2):
-    resolution: {tarball: https://codeload.github.com/privatenumber/eslint-config/tar.gz/b765382c191ba3e9e6a90dd5fd729fb88cc8d563}
-    id: github.com/privatenumber/eslint-config/b765382c191ba3e9e6a90dd5fd729fb88cc8d563
+  github.com/privatenumber/eslint-config/50a96c809b3f222dd5b062530af5edd5ffbe720e(eslint@8.54.0)(typescript@5.3.2):
+    resolution: {tarball: https://codeload.github.com/privatenumber/eslint-config/tar.gz/50a96c809b3f222dd5b062530af5edd5ffbe720e}
+    id: github.com/privatenumber/eslint-config/50a96c809b3f222dd5b062530af5edd5ffbe720e
     name: '@pvtnbr/eslint-config'
     version: 0.0.0-semantic-release
     hasBin: true
@@ -4767,12 +4800,14 @@ packages:
       eslint-plugin-markdown: 3.0.1(eslint@8.54.0)
       eslint-plugin-n: 16.4.0(eslint@8.54.0)
       eslint-plugin-no-use-extend-native: 0.5.0
+      eslint-plugin-prefer-arrow-functions: 3.2.4(eslint@8.54.0)
       eslint-plugin-promise: 6.1.1(eslint@8.54.0)
       eslint-plugin-react: 7.33.2(eslint@8.54.0)
       eslint-plugin-react-hooks: 4.6.0(eslint@8.54.0)
       eslint-plugin-regexp: 2.1.2(eslint@8.54.0)
       eslint-plugin-unicorn: 49.0.0(eslint@8.54.0)
       eslint-plugin-vue: 9.19.2(eslint@8.54.0)
+      eslint-plugin-yml: 1.11.0(eslint@8.54.0)
       get-conditions: 1.0.0
       get-tsconfig: 4.7.2
       globals: 13.24.0
@@ -4780,6 +4815,7 @@ packages:
       resolve-pkg-maps: 1.0.0
       tsx: 4.7.0
       vue-eslint-parser: 9.3.2(eslint@8.54.0)
+      yaml-eslint-parser: 1.2.2
     transitivePeerDependencies:
       - eslint-import-resolver-node
       - eslint-import-resolver-webpack
