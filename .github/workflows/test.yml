@@ -13,51 +13,51 @@ jobs:
     timeout-minutes: 5
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version-file: '.nvmrc'
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
 
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: 8
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
 
-    - name: Get pnpm store directory
-      shell: bash
-      run: echo "PNPM_STORE=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "PNPM_STORE=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-    - uses: actions/cache@v3
-      name: Cache pnpm
-      with:
-        path: ${{ env.PNPM_STORE }}
-        key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-        restore-keys: ${{ runner.os }}-pnpm-
+      - uses: actions/cache@v3
+        name: Cache pnpm
+        with:
+          path: ${{ env.PNPM_STORE }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: ${{ runner.os }}-pnpm-
 
-    - name: Install dependencies
-      run: pnpm install
+      - name: Install dependencies
+        run: pnpm install
 
-    - name: Get Node.js cache directory
-      shell: bash
-      run: echo "NVE_CACHE=$(node -p 'require("cachedir")("nve")')" >> $GITHUB_ENV
+      - name: Get Node.js cache directory
+        shell: bash
+        run: echo "NVE_CACHE=$(node -p 'require("cachedir")("nve")')" >> $GITHUB_ENV
 
-    - name: Cache Node.js versions
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.NVE_CACHE }}
-        key: ${{ runner.os }}-nodejs-${{ hashFiles('.nvmrc') }}-${{ hashFiles('tests/utils/node-versions.ts') }}
-        restore-keys: ${{ runner.os }}-nodejs-
+      - name: Cache Node.js versions
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.NVE_CACHE }}
+          key: ${{ runner.os }}-nodejs-${{ hashFiles('.nvmrc') }}-${{ hashFiles('tests/utils/node-versions.ts') }}
+          restore-keys: ${{ runner.os }}-nodejs-
 
-    - name: Test
-      run: pnpm test
+      - name: Test
+        run: pnpm test
 
-    - name: Type check
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: pnpm type-check
+      - name: Type check
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: pnpm type-check
 
-    - name: Lint
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: pnpm lint
+      - name: Lint
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: pnpm lint
