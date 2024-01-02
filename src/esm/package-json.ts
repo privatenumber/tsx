@@ -30,7 +30,9 @@ const readPackageJson = async (filePath: string) => {
 
 // From Node.js
 // https://github.com/nodejs/node/blob/e86a6383054623e5168384a83d8cd6ebfe1fb584/lib/internal/modules/esm/resolve.js#L229
-const findPackageJson = async (filePath: string) => {
+const findPackageJson = async (
+	filePath: string,
+) => {
 	let packageJsonUrl = new URL('package.json', filePath);
 
 	while (true) {
@@ -57,7 +59,9 @@ const findPackageJson = async (filePath: string) => {
 	}
 };
 
-export const getPackageType = async (filePath: string) => {
+export const getPackageType = async (
+	filePath: string,
+) => {
 	const packageJson = await findPackageJson(filePath);
 	return packageJson?.type ?? 'commonjs';
 };
