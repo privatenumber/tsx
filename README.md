@@ -275,7 +275,7 @@ Create the following configuration file in your project to setup debugging in VS
 	    Path to tsx binary
 	    Assuming locally installed
 	    */
-	    "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/tsx",
+	    "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/tsx",
 
 	    /*
 	    Open terminal when debugging starts (Optional)
