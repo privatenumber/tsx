@@ -23,7 +23,7 @@ devDependencies:
     version: 2.2.1
   '@pvtnbr/eslint-config':
     specifier: github:privatenumber/eslint-config#npm/develop
-    version: github.com/privatenumber/eslint-config/52939db0dea2e667fda968cf504cb38404b8332b(eslint@8.54.0)(typescript@5.3.2)
+    version: github.com/privatenumber/eslint-config/5d6c5543c47cc98ba297bb13dea979788ec0b223(eslint@8.54.0)(typescript@5.3.2)
   '@types/cross-spawn':
     specifier: ^6.0.6
     version: 6.0.6
@@ -4703,9 +4703,9 @@ packages:
     engines: {node: '>=12.20'}
     dev: true
 
-  github.com/privatenumber/eslint-config/52939db0dea2e667fda968cf504cb38404b8332b(eslint@8.54.0)(typescript@5.3.2):
-    resolution: {tarball: https://codeload.github.com/privatenumber/eslint-config/tar.gz/52939db0dea2e667fda968cf504cb38404b8332b}
-    id: github.com/privatenumber/eslint-config/52939db0dea2e667fda968cf504cb38404b8332b
+  github.com/privatenumber/eslint-config/5d6c5543c47cc98ba297bb13dea979788ec0b223(eslint@8.54.0)(typescript@5.3.2):
+    resolution: {tarball: https://codeload.github.com/privatenumber/eslint-config/tar.gz/5d6c5543c47cc98ba297bb13dea979788ec0b223}
+    id: github.com/privatenumber/eslint-config/5d6c5543c47cc98ba297bb13dea979788ec0b223
     name: '@pvtnbr/eslint-config'
     version: 0.0.0-semantic-release
     hasBin: true
