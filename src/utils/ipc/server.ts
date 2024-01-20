@@ -36,6 +36,20 @@ export const createIpcServer = async () => {
 	const pipePath = getPipePath(process.pid);
 	await fs.promises.mkdir(tmpdir, { recursive: true });
 
+	/**
+	 * Fix #457 (https://github.com/privatenumber/tsx/issues/457)
+	 *
+	 * Avoid the error "EADDRINUSE: address already in use"
+	 *
+	 * If the pipe file already exists, it means that the previous process has been closed abnormally.
+	 *
+	 * We can safely delete the pipe file, the previous process must has been closed,
+	 * as pid is unique at the same.
+	 */
+	if (fs.existsSync(pipePath)) {
+		await fs.promises.rm(pipePath);
+	}
+
 	await new Promise<void>((resolve, reject) => {
 		server.listen(pipePath, resolve);
 		server.on('error', reject);
