@@ -46,9 +46,9 @@ export const createIpcServer = async () => {
 	 * We can safely delete the pipe file, the previous process must has been closed,
 	 * as pid is unique at the same.
 	 */
-	if (fs.existsSync(pipePath)) {
-		await fs.promises.rm(pipePath);
-	}
+	await fs.promises.rm(pipePath, {
+		force: true,
+	});
 
 	await new Promise<void>((resolve, reject) => {
 		server.listen(pipePath, resolve);
