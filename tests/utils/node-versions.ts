@@ -9,11 +9,11 @@ export const nodeVersions = [
 	process.version,
 	...(
 		(
-			process.env.CI
-			&& process.platform !== 'win32'
+			process.platform !== 'win32'
 		)
 			? [
-				'21.5.0',
+				latestMajor('21.6.1'),
+				'21.0.0',
 				latestMajor('20.10.0'),
 				'20.0.0',
 				latestMajor('18.20.0'),
