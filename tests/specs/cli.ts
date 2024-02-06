@@ -63,6 +63,38 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					expect(tsxProcess.stderr).toBe('');
 				});
 			});
+
+			describe('paths', async () => {
+				test('normal path', async ({ onTestFinish }) => {
+					const fixture = await createFixture({
+						'normal_name.ts': 'console.log(JSON.stringify(process.argv) as string)',
+					});
+					onTestFinish(async () => await fixture.rm());
+
+					const tsxProcess = await tsx([
+						path.join(fixture.path, 'normal_name.ts'),
+					]);
+
+					expect(tsxProcess.exitCode).toBe(0);
+					expect(tsxProcess.stderr).toBe('');
+					expect(tsxProcess.failed).toBe(false);
+				});
+
+				test('path with \'-\'', async ({ onTestFinish }) => {
+					const fixture = await createFixture({
+						'weird \'-\' name.ts': 'console.log(JSON.stringify(process.argv) as string)',
+					});
+					onTestFinish(async () => await fixture.rm());
+
+					const tsxProcess = await tsx([
+						path.join(fixture.path, 'weird \'-\' name.ts'),
+					]);
+
+					expect(tsxProcess.exitCode).toBe(0);
+					expect(tsxProcess.stderr).not.toContain('[esbuild Error]: Invalid define value (must be an entity name or valid JSON syntax)');
+					expect(tsxProcess.failed).toBe(false);
+				});
+			});
 		});
 
 		describe('eval & print', ({ test }) => {
