@@ -46,7 +46,7 @@ export function transformSync(
 	const define: { [key: string]: string } = {};
 
 	if (!(filePath.endsWith('.cjs') || filePath.endsWith('.cts'))) {
-		define['import.meta.url'] = `'${pathToFileURL(filePath)}'`;
+		define['import.meta.url'] = JSON.stringify(pathToFileURL(filePath));
 	}
 
 	const esbuildOptions = {
