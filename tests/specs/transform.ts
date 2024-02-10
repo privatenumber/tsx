@@ -18,6 +18,7 @@ const fixtures = {
 	export default 'default value' as string;
 	export const named: string = 'named';
 	export const functionName: string = (function named() {}).name;
+	export const url = import.meta.url;
 	`,
 
 	esm: outdent`
@@ -32,6 +33,7 @@ const fixtures = {
 	export default 'default value';
 	export const named = 'named';
 	export const functionName = (function named() {}).name;
+	export const url = import.meta.url;
 	`,
 };
 
@@ -57,6 +59,7 @@ export default testSuite(({ describe }) => {
 					default: 'default value',
 					functionName: 'named',
 					named: 'named',
+					url: expect.stringMatching(/^file:\/\/\/.*\/file.js$/),
 				});
 			});
 
@@ -72,6 +75,24 @@ export default testSuite(({ describe }) => {
 
 			test('sourcemap file', () => {
 				const fileName = 'file.mts';
+				const transformed = transformSync(
+					fixtures.ts,
+					fileName,
+					{ format: 'esm' },
+				);
+
+				expect(transformed.map).not.toBe('');
+
+				const { map } = transformed;
+				if (typeof map !== 'string') {
+					expect(map.sources.length).toBe(1);
+					expect(map.sources[0]).toBe(fileName);
+					expect(map.names).toStrictEqual(['named']);
+				}
+			});
+
+			test('quotes in file path', () => {
+				const fileName = '\'"name.mts';
 				const transformed = transformSync(
 					fixtures.ts,
 					fileName,
@@ -106,6 +127,7 @@ export default testSuite(({ describe }) => {
 					default: 'default value',
 					functionName: 'named',
 					named: 'named',
+					url: expect.stringMatching(/^data:text\/javascript;base64,.+$/),
 				});
 			});
 
