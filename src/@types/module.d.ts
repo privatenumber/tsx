@@ -18,6 +18,7 @@ declare module 'module' {
 	export const _extensions: NodeJS.RequireExtensions;
 
 	export type Parent = {
+
 		/**
 		 * Can be null if the parent id is 'internal/preload' (e.g. via --require)
 		 * which doesn't have a file path.

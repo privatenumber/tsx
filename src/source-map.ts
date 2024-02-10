@@ -4,6 +4,7 @@ const inlineSourceMapPrefix = '\n//# sourceMappingURL=data:application/json;base
 
 export const installSourceMapSupport = () => {
 	const hasNativeSourceMapSupport = (
+
 		/**
 		 * Check if native source maps are supported by seeing if the API is available
 		 * https://nodejs.org/dist/latest-v18.x/docs/api/process.html#processsetsourcemapsenabledval

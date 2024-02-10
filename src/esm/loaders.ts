@@ -71,11 +71,11 @@ const resolveExplicitPath = async (
 
 const extensions = ['.js', '.json', '.ts', '.tsx', '.jsx'] as const;
 
-async function tryExtensions(
+const tryExtensions = async (
 	specifier: string,
 	context: ResolveHookContext,
 	defaultResolve: NextResolve,
-) {
+) => {
 	const [specifierWithoutQuery, query] = specifier.split('?');
 	let throwError: Error | undefined;
 	for (const extension of extensions) {
@@ -99,13 +99,13 @@ async function tryExtensions(
 	}
 
 	throw throwError;
-}
+};
 
-async function tryDirectory(
+const tryDirectory = async (
 	specifier: string,
 	context: ResolveHookContext,
 	defaultResolve: NextResolve,
-) {
+) => {
 	const isExplicitDirectory = isDirectoryPattern.test(specifier);
 	const appendIndex = isExplicitDirectory ? 'index' : '/index';
 	const [specifierWithoutQuery, query] = specifier.split('?');
@@ -129,16 +129,16 @@ async function tryDirectory(
 		error.stack = error.stack!.replace(message, error.message);
 		throw error;
 	}
-}
+};
 
 const isRelativePathPattern = /^\.{1,2}\//;
 
-export const resolve: resolve = async function (
+export const resolve: resolve = async (
 	specifier,
 	context,
 	defaultResolve,
 	recursiveCall,
-) {
+) => {
 	// If directory, can be index.js, index.ts, etc.
 	if (isDirectoryPattern.test(specifier)) {
 		return await tryDirectory(specifier, context, defaultResolve);
@@ -235,11 +235,11 @@ const contextAttributesProperty = (
 		: 'importAssertions'
 );
 
-export const load: LoadHook = async function (
+export const load: LoadHook = async (
 	url,
 	context,
 	defaultLoad,
-) {
+) => {
 	/*
 	Filter out node:*
 	Maybe only handle files that start with file://

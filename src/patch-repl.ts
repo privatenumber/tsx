@@ -1,7 +1,7 @@
 import repl, { type REPLServer, type REPLEval } from 'repl';
 import { transform } from 'esbuild';
 
-function patchEval(nodeRepl: REPLServer) {
+const patchEval = (nodeRepl: REPLServer) => {
 	const { eval: defaultEval } = nodeRepl;
 	const preEval: REPLEval = async function (code, context, filename, callback) {
 		try {
@@ -29,7 +29,7 @@ function patchEval(nodeRepl: REPLServer) {
 
 	// @ts-expect-error overwriting read-only property
 	nodeRepl.eval = preEval;
-}
+};
 
 const { start } = repl;
 repl.start = function () {

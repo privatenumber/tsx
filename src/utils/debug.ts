@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const time = <T extends (...args: any[]) => unknown>(
 	name: string,
 	_function: T,

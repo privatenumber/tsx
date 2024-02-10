@@ -172,11 +172,13 @@ export const watchCommand = command({
 				waitingChildExit ? 'SIGKILL' : signal,
 			).then(
 				(exitCode) => {
+					// eslint-disable-next-line n/no-process-exit
 					process.exit(exitCode ?? 0);
 				},
 				() => {},
 			);
 		} else {
+			// eslint-disable-next-line n/no-process-exit
 			process.exit(osConstants.signals[signal]);
 		}
 	};

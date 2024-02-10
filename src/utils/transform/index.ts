@@ -34,15 +34,17 @@ const handleEsbuildError = (
 	}
 
 	console.error(errorMessage);
+
+	// eslint-disable-next-line n/no-process-exit
 	process.exit(1);
 };
 
 // Used by cjs-loader
-export function transformSync(
+export const transformSync = (
 	code: string,
 	filePath: string,
 	extendOptions?: TransformOptions,
-): Transformed {
+): Transformed => {
 	const define: { [key: string]: string } = {};
 
 	if (!(filePath.endsWith('.cjs') || filePath.endsWith('.cts'))) {
@@ -96,14 +98,14 @@ export function transformSync(
 	}
 
 	return transformed;
-}
+};
 
 // Used by esm-loader
-export async function transform(
+export const transform = async (
 	code: string,
 	filePath: string,
 	extendOptions?: TransformOptions,
-): Promise<Transformed> {
+): Promise<Transformed> => {
 	const esbuildOptions = {
 		...cacheConfig,
 		format: 'esm',
@@ -148,4 +150,4 @@ export async function transform(
 	}
 
 	return transformed;
-}
+};
