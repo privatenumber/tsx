@@ -12,7 +12,9 @@
 
 
 > [!TIP]
-> **Do you need to compile your TypeScript projects?** Try [pkgroll](https://github.com/privatenumber/pkgroll)—the zero-config bundler _tsx_ uses!
+> **Build your TypeScript projects?**
+>
+> Try [pkgroll](https://github.com/privatenumber/pkgroll)—the zero-config bundler _tsx_ uses!
 >
 > _pkgroll_ is a thin layer over Rollup that auto-configures it based on your `package.json` entry points.
 > 
