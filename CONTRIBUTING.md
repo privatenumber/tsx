@@ -1,11 +1,21 @@
-# Contribution guidelines
+# Contribution guide
 
-Welcome! We're thrilled you're interested in contributing. To ensure a smooth and productive collaboration, follow these guidelines.
+Welcome! We're excited you're interested in contributing. To ensure a smooth and productive collaboration, follow these guidelines.
 
+## Goals of tsx
+
+1. Enhance Node.js with TypeScript support
+2. Improve ESM <-> CommonJS interoperability as the ecosystem migrates to ESM
+3. Support the [active LTS versions of Node.js](https://endoflife.date/nodejs)
 
 ## Issues
 
-### Opening an Issue
+> [!IMPORTANT]
+> Please be polite, respectful, and considerate of people's time and effort.
+>
+> This is an open source project relying on community contributions.
+
+### Opening a new Issue
 
 #### Minimal reproduction required
 
@@ -15,33 +25,36 @@ Provide a clear, minimal example of the issue. This helps contributors identify 
 
 Review the project documentation for known behaviors or caveats to avoid unnecessary issues.
 
-### Commenting on an Issue
+### Commenting on an existing Issue
 
-#### Issue objectives
+#### ⭐️ Issue objectives
 
 Issues serve as a platform for **contributors** to:
 1. Verify bugs
-2. Diagnose the underlying causes
+2. Diagnose the causes
 3. Brainstorm solutions
-4. Implement them effectively
+4. Implement fix
 
-#### Avoid detractive comments
+#### ✅ Be constructive
+
+Aim to contribute to the solution with research & PRs (tests + solutions).
+
+Be concise to save people's time.
+
+#### ❌ Avoid detractive comments
 
 Keep comments focused on fixing the issue.
 
-Off-topic remarks like "updates?" or comments discussing workarounds will be hidden.
+Off-topic comments like "updates?", "me too", or workarounds will be hidden. Focus on adding value.
 
 Issues may be locked post-verification to direct further conversation in PRs for more solution-oriented dialogue.
 
-#### Be constructive
-
-Aim to contribute to the discussion with research & PRs (tests, solutions).
-
-
 > [!TIP]
-> Get issues addressed faster! 💨
+> ⚡️ Get issues addressed faster!
 >
-> Sponsors can prioritize issues. For as little as $20/month (cost of dinner), you can directly fund engineering labor and ensure your needs are addressed quickly.
+> Sponsors can prioritize issues. By helping fund engineering labor, you can ensure your needs are addressed quickly!
+>
+> [Sponsor now →](https://github.com/sponsors/privatenumber)
 
 ## Pull requests
 
@@ -110,10 +123,16 @@ Use the absolute path to run `./dist/cli.mjs`:
 Use [`git-publish`](https://github.com/privatenumber/git-publish) to publish your changes to your GitHub fork. It can be shared with others and installed from for testing.
 
 
-## Funding
+## Giving back
 
-tsx has outgrown its "hobby project" status to become a tool used and loved by many: <img align="center" src="https://badgen.net/npm/dm/tsx">
+<img align="center" src="https://badgen.net/npm/dm/tsx">
 
-While it made it far without sponsorship, funding will help maintainers justify further investment over other paid work, accelerating development and growth.
+_tsx_ has outgrown its "hobby project" status to become a tool used and loved by many.
 
-If tsx is important to your workflow, [buy us coffee every month](https://github.com/sponsors/privatenumber) ❤️.
+While it made it far without sponsorship, funding will accelerate further development by making it easier for devs to choose tsx over other paid work.
+
+If tsx has helped you, help tsx back! ❤️
+
+Any amount makes a difference.
+
+[Sponsor now →](https://github.com/sponsors/privatenumber)
