@@ -1,15 +1,12 @@
 # tsx <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/v/tsx"></a> <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/dm/tsx"></a> <a href="https://packagephobia.now.sh/result?p=tsx"><img src="https://packagephobia.now.sh/badge?p=tsx"></a>
 
-> _TypeScript Execute (`tsx`)_: Node.js enhanced to run TypeScript & ESM files
+_TypeScript Execute (tsx)_: The easiest way to run TypeScript in Node.js
 
 ### Features
-- Blazing fast on-demand TypeScript & ESM compilation
-- Works in both [CommonJS and ESM packages](https://nodejs.org/api/packages.html#type)
-- Supports next-gen TypeScript extensions (`.cts` & `.mts`)
-- Hides experimental feature warnings
+- Super fast!
 - TypeScript REPL
-- Resolves `tsconfig.json` [`paths`](https://www.typescriptlang.org/tsconfig#paths)
-
+- Supports `tsconfig.json` [`paths`](https://www.typescriptlang.org/tsconfig#paths)
+- Works in both [CommonJS and ESM packages](https://nodejs.org/api/packages.html#type)
 
 > [!TIP]
 > **Build your TypeScript projects?**
@@ -33,50 +30,41 @@
 </p>
 
 ## About
-`tsx` is a CLI command (alternative to `node`) for seamlessly running TypeScript & ESM in both `commonjs` & `module` package types.
+`tsx` is a CLI command (alternative to `node`) for running TypeScript & ESM in both `commonjs` & `module` package types.
 
-This is for you if you ever wanted:
-- A command that can _just run_ TypeScript code without dealing with configuration
-- Better interoperability in codebases that use ESM and CJS dependencies
-- Something really fast it's unnoticeable!
+tsx is for you if you want:
+- A command to _just run_ TypeScript code without  configuration
+- Something so fast it's unnoticeable
+- Seamless integration across ESM and CJS dependencies
 
-> [!TIP]
-> **tsx is not just for TypeScript!** It also helps Node load `module` type packages.
->
-> If you're getting the following error, give _tsx_ a try!
-> ```
-> require('ESM package');
-> ^
-> 
-> Error [ERR_REQUIRE_ESM]: require() of ES Module <ESM package> from ./file.js not supported.
-> Instead change the require of <ESM package> in ./file.js to a dynamic import() which is available in all CommonJS modules.
-> ```
+	If you're getting the following error, give tsx a try!
 
-### Quick start
-Try tsx now without setup! Just pass in a TypeScript file:
+	```
+	Error [ERR_REQUIRE_ESM]: require() of ES Module <ESM package> from ./file.js not supported.
+	Instead change the require of <ESM package> in ./file.js to a dynamic import() which is available in all CommonJS modules.
+	```
+
+### ⚡️ Quick start
+Try it out  without setup! Just pass in a TypeScript file:
 
 ```sh
 npx tsx ./script.ts
 ```
 
-### Mission
-1. Enhance Node.js with TypeScript support
-2. Improve ESM <-> CJS interoperability as the ecosystem migrates to ESM
-3. Support the [LTS versions of Node.js](https://endoflife.date/nodejs)
-
-## Install
+## Installation
 
 ### Local installation
-If you're using it in an npm project, install it as a development dependency:
+
+To add tsx to an npm project as a development dependency:
 ```sh
 npm install --save-dev tsx
 ```
 
-Then you can reference it directly in the `package.json#scripts` object (you don't need npx here):
+You can reference it directly in the `package.json#scripts` object (you don't need `npx` here):
 ```json5
 {
     "scripts": {
-        "dev": "tsx ..."
+        "dev": "tsx ./file.ts"
     }
 }
 ```
@@ -89,7 +77,7 @@ npx tsx ...
 
 ### Global installation
 
-If you want to use it in any arbitrary project without [`npx`](https://docs.npmjs.com/cli/v8/commands/npx), install it globally:
+If you want to use tsx anywhere on your computer without [`npx`](https://docs.npmjs.com/cli/v8/commands/npx), install it globally:
 
 ```sh
 npm install --global tsx
@@ -331,21 +319,11 @@ Create the following configuration file in your project to setup debugging in VS
 
 See the [VSCode documentation on _Launch Configuration_](https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_launch-configuration) for more information.
 
-<br>
+## Contributing & Support
 
-<p align="center">
-	<a href="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=gold">
-		<picture>
-			<source width="830" media="(prefers-color-scheme: dark)" srcset="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=gold&image=dark">
-			<source width="830" media="(prefers-color-scheme: light)" srcset="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=gold&image">
-			<img width="830" src="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=gold&image" alt="Premium sponsor banner">
-		</picture>
-	</a>
-</p>
+If you're interested in contributing, please check out the [Contribution Guide](/CONTRIBUTING.md). Your collaboration will be greatly appreciated!
 
-## Support
-
-If there's a problem you're encountering or something you need help with, don't hesitate to take advantage of my [_Priority Support_ service](https://github.com/sponsors/privatenumber) where you can ask me questions in an exclusive forum. I'm well equppied to assist you with this project and would be happy to help you out! 🙂
+If you're encountering a problem, take advantage of my [_Priority Support_ service](https://github.com/sponsors/privatenumber) for as little as $25. I'd be happy to help you out! 🙂
 
 ## FAQ
 
@@ -403,23 +381,6 @@ TypeScript & ESM transformations are handled by [esbuild](https://esbuild.github
 For details, refer to esbuild's [JavaScript caveats](https://esbuild.github.io/content-types/#javascript-caveats) and [TypeScript caveats](https://esbuild.github.io/content-types/#typescript-caveats) documentation.
 
 ## Sponsors
-
-<p align="center">
-	<a href="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=silver1">
-		<picture>
-			<source width="410" media="(prefers-color-scheme: dark)" srcset="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=silver1&image=dark">
-			<source width="410" media="(prefers-color-scheme: light)" srcset="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=silver1&image">
-			<img width="410" src="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=silver1&image" alt="Premium sponsor banner">
-		</picture>
-	</a>
-	<a href="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=silver2">
-		<picture>
-			<source width="410" media="(prefers-color-scheme: dark)" srcset="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=silver2&image=dark">
-			<source width="410" media="(prefers-color-scheme: light)" srcset="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=silver2&image">
-			<img width="410" src="https://privatenumber-sponsors.vercel.app/api/sponsor?tier=silver2&image" alt="Premium sponsor banner">
-		</picture>
-	</a>
-</p>
 
 <p align="center">
 	<a href="https://github.com/sponsors/privatenumber">
