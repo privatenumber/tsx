@@ -205,6 +205,14 @@ If you only need to add TypeScript & ESM support in a CommonJS context, you can 
 node --require tsx/cjs ./file.ts
 ```
 
+You can also `require` the CJS loader from a commonjs script, enabling you to use typescript modules from that script:
+
+```js
+require('tsx/cjs')
+
+module.exports = require('./src/foo.ts')
+```
+
 ### Hashbang
 
 If you prefer to write scripts that doesn't need to be passed into tsx, you can declare it in the [hashbang](https://bash.cyberciti.biz/guide/Shebang).
