@@ -1,27 +1,27 @@
 name: 🐛 Bug report
-description: Run into a bug? File a report and get the help you need!
+description: Found a bug? File a report and let's get it fixed!
 labels: [bug, pending triage]
 body:
   - type: markdown
     attributes:
       value: |
-        > 💁‍♂️ Keep in mind this is a collaborative effort. Please do your best to debug, communicate, and demonstrate the problem.
+        > 💁‍♂️ This is a collaborative effort. Please do your best to debug, communicate, and demonstrate the problem.
 
   - type: checkboxes
     attributes:
       label: Acknowledgements
-      description: Before starting the issue, please make sure you agree to the following.
+      description: Before starting the issue...
       options:
-        - label: I searched existing issues before opening this one to avoid duplicates
+        - label: I searched existing issues to avoid duplicates
           required: true
 
-        - label: I understand this is not a place for seek help, but to report a bug
+        - label: I understand this is a place to report a confirmed bug (not seek debugging help)
           required: true
 
-        - label: I understand that the bug must be proven first with a minimal reproduction
+        - label: I understand this is a collaborative open source project, and relies on community contributions
           required: true
 
-        - label: I will be polite, respectful, and considerate of people's time and effort
+        - label: I have read and understood the [Contribution guide](/CONTRIBUTING.md)
           required: true
 
   - type: markdown
@@ -64,10 +64,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        > **🙋 Need help?**
+        > [!TIP]
+        > 🙋 Need help?
         >
-        > Get personalized help through my [_Priority Support_ service](https://github.com/sponsors/privatenumber).
-        > From minimal reproduction creation to debugging, I'm happy to assist you!
+        > Use [_Priority Support_](https://github.com/sponsors/privatenumber) for debugging help and implementation!
 
   - type: markdown
     attributes:
@@ -146,7 +146,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## 🚀 Need immediate attention?
-        Escalate this issue by becoming a [_Priority Patron_ sponsor](https://github.com/sponsors/privatenumber)! As a _Priority Patron_, your concern will receive prompt attention, ensuring faster and more efficient resolution.
+        ## 🚀 Need immediate help?
+        Escalate this issue by supporting the project as a [_Priority Patron_](https://github.com/sponsors/privatenumber)! Your concern will receive prompt attention, ensuring faster and more efficient resolution.
 
-        [👉 Become a _Priority Patron_ now!](https://github.com/sponsors/privatenumber)
+        [→ Become a _Priority Patron_!](https://github.com/sponsors/privatenumber)

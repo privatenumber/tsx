@@ -1,27 +1,30 @@
 name: 🌟 Feature request
-description: Missing feature from this project? Tell us more!
+description: Have a cool idea? Let's hear it!
 labels: [enhancement, pending triage]
 body:
   - type: markdown
     attributes:
       value: |
-        > 💁‍♂️ Keep in mind this is a collaborative effort. Please be polite & considerate, and follow this form to completion.
+        > 💁‍♂️ This is a collaborative effort. Please be polite & considerate, and follow this form.
 
   - type: checkboxes
     attributes:
-      label: Precheck
-      description: Before starting the issue, please make sure you agree to the following.
+      label: Acknowledgements
+      description: Before starting the issue...
       options:
-        - label: I searched existing issues before opening this one to avoid duplicates
+        - label: I searched existing issues to avoid duplicates
           required: true
 
-        - label: I understand tsx aims for TypeScript parity and will not support arbitrary Node.js enhancements
+        - label: I understand tsx aims for TypeScript parity and is not for arbitrary Node.js enhancements
           required: true
 
         - label: This request cannot be made to Node.js directly, and is specific to tsx
           required: true
 
         - label: I understand this form is not for addressing a bug or seeking help
+          required: true
+
+        - label: I have read and understood the [Contribution guide](/CONTRIBUTING.md)
           required: true
 
   - type: markdown
@@ -67,9 +70,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        > **🙋 Experiencing a challenging problem and need expert assistance?**
+        > [!TIP]
+        > 🙋 Need help?
         >
-        > Get personalized help through my [_Priority Support_ service](https://github.com/sponsors/privatenumber). From debugging to implementation, I'm here to assist you!
+        > Use [_Priority Support_](https://github.com/sponsors/privatenumber) for debugging help and implementation!
 
   - type: markdown
     attributes:
@@ -87,7 +91,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## 🚀 Need immediate attention?
-        Escalate this issue by becoming a [_Priority Patron_ sponsor](https://github.com/sponsors/privatenumber)! As a _Priority Patron_, your concern will receive prompt attention, ensuring faster and more efficient resolution.
+        ## 🚀 Need immediate help?
+        Escalate this issue by supporting the project as a [_Priority Patron_](https://github.com/sponsors/privatenumber)! Your concern will receive prompt attention, ensuring faster and more efficient resolution.
 
-        [👉 Become a _Priority Patron_ now!](https://github.com/sponsors/privatenumber)
+        [→ Become a _Priority Patron_!](https://github.com/sponsors/privatenumber)
