@@ -13,9 +13,7 @@ _TypeScript Execute (tsx)_: The easiest way to run TypeScript in Node.js
 >
 > Try [pkgroll](https://github.com/privatenumber/pkgroll)—the zero-config bundler _tsx_ uses!
 >
-> _pkgroll_ is a thin layer over Rollup that auto-configures it based on your `package.json` entry points.
-> 
-> It supports next-gen TS formats, export maps, `.d.ts` generation, and more!
+> _pkgroll_ is a thin layer over Rollup that auto-configures it based on your `package.json` entry points. If you love tsx, you'll love pkgroll too!
 
 <br>
 

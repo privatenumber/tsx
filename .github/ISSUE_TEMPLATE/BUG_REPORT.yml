@@ -10,7 +10,6 @@ body:
   - type: checkboxes
     attributes:
       label: Acknowledgements
-      description: Before starting the issue...
       options:
         - label: I searched existing issues to avoid duplicates
           required: true
@@ -65,9 +64,7 @@ body:
     attributes:
       value: |
         > [!TIP]
-        > 🙋 Need help?
-        >
-        > Use [_Priority Support_](https://github.com/sponsors/privatenumber) for debugging help and implementation!
+        > **🙋 Need help?** Use [_Priority Support_](https://github.com/sponsors/privatenumber) for debugging help and implementation!
 
   - type: markdown
     attributes:
@@ -115,38 +112,39 @@ body:
       value: |
         ## 🗒️ Extra information
 
-        This section is for complex issues that require further explaining.
+        Let the code do the talking. Focus more on minimizing the reproduction to get to the core of the issue.
 
-        Please focus more on minimizing the reproduction to get to the core of the issue. Usually, that's all we need to look at.
+        This section is for more complex issues that require context.
 
   - type: textarea
     attributes:
-      label: Problem & Expected behavior
+      label: Problem & expected behavior (under 200 words)
       value: |
-        Under 200 words:
-        - What happened?
-        - What did you expect instead?
-        - Do you have an error stack trace?
-        - Do you have documentation links?
-        - Do you have screenshots?
+        - What happened
+        - What I expected
+        - Error stack trace
+        - Documentation links
+        - Screenshots
 
   - type: markdown
     attributes:
       value: |
         ## 🛠️ Contribute
-        It would be amazing if you can contribute to the project! This project is open source, free to use, and maintained by volunteers. This could be a great opportunity to give back and improve the project for everyone, including yourself.
+        This project relies on community contributions. It would be amazing for you to contribute!
 
   - type: checkboxes
     attributes:
       label: Contributions
       options:
         - label: I plan to open a pull request for this issue
-        - label: I plan to make a financial contribution to this project
+        - label: I plan to support the work financially (any amount helps)
 
   - type: markdown
     attributes:
       value: |
         ## 🚀 Need immediate help?
-        Escalate this issue by supporting the project as a [_Priority Patron_](https://github.com/sponsors/privatenumber)! Your concern will receive prompt attention, ensuring faster and more efficient resolution.
+        Escalate this issue by supporting the project as a [_Priority Patron_](https://github.com/sponsors/privatenumber)!
+
+        Your concern will receive prompt attention, ensuring faster and more efficient resolution.
 
         [→ Become a _Priority Patron_!](https://github.com/sponsors/privatenumber)
