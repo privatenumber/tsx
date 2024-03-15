@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        > 💁‍♂️ This is a collaborative effort. Please be polite & considerate, and follow this form.
+        💁‍♂️ This is a collaborative effort. Please be polite & considerate, and follow this form.
 
   - type: checkboxes
     attributes:
@@ -23,7 +23,7 @@ body:
         - label: I understand this form is not for addressing a bug or seeking help
           required: true
 
-        - label: I have read and understood the [Contribution guide](/CONTRIBUTING.md)
+        - label: I have read and understood the [Contribution guide](https://github.com/privatenumber/tsx/blob/develop/CONTRIBUTING.md)
           required: true
 
   - type: markdown
@@ -76,14 +76,16 @@ body:
     attributes:
       value: |
         ## 🛠️ Contribute
-        This project relies on community contributions. It would be amazing for you to contribute!
+        This project relies on community contributions.
+
+        It would be amazing for you to contribute!
 
   - type: checkboxes
     attributes:
       label: Contributions
       options:
-        - label: I plan to open a pull request for this issue
-        - label: I plan to support the work financially (any amount helps)
+        - label: I will open a pull request for this issue
+        - label: I will support the work financially (any amount helps)
 
   - type: markdown
     attributes:
