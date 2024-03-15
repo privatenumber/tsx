@@ -1,0 +1,48 @@
+TODO
+
+- [ ] Watch shouldnt log "rerunning" at the beginning
+
+- [ ] Refactor  cache from class to function. Can it not make the directory if t doesnt exist and doesnt need to save?
+
+- [ ] Resolver: allowJs
+
+- [ ] Import from monorepo
+
+- [ ] Watch to reload with Ctrl + R
+
+- [ ] Feature requ template: I am not addressing a bug with this form
+
+- [ ] docs: #!/usr/bin/env -S node --import=tsx/esm
+	Also, mention for hashbang it needs to be globally installed
+
+- [ ] docs: programmatic usage
+
+- Test
+	Using loaders directly and individually
+
+
+- you can pass in a missing file in watch??
+
+- Check if the named tunnel is deleted
+
+- node
+	- test for cjs source map
+	- fix for cjs source map
+	- docs: register parentURL is not documented
+	- test, does module.register respawn the file with the same node args? like --require
+
+
+Kevins Wedding			5/4
+	Beach hangout		5/5
+
+Romans Bachelor Party	5/24~26
+Romans Wedding 			5/30~6/1 (Inclusive)
+
+3pm: Work
+
+4pm: Workout
+	- 60 pushups
+	- 20 squats
+	- 20 lunges
+	- 50 situps
+	- stretch hips
