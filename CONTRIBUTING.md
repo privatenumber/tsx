@@ -45,9 +45,9 @@ Be concise to save people's time.
 
 Keep comments focused on fixing the issue.
 
-Off-topic comments like "updates?", "me too", or workarounds will be hidden. Focus on adding value.
+Comments like "updates?", "also happening in ...", or discussing workarounds will be hidden.
 
-Issues may be locked post-verification to direct further conversation in PRs for more solution-oriented dialogue.
+Issues may be locked post-verification to direct further conversation & action to PRs.
 
 > [!TIP]
 > **⚡️ Get issues addressed faster!**
