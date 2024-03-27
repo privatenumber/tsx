@@ -341,30 +341,25 @@ No. tsx is designed to be a simple TypeScript runner.
 
 If you need type-checking, you can use an IDE like [VS Code](https://code.visualstudio.com) and it will type-check as you code via [IntelliSense](https://code.visualstudio.com/docs/languages/typescript). Alternatively, you can run the TypeScript Compiler only for type-checking (e.g. `tsc --noEmit`) as a linting step.
 
-
 ### How is `tsx` different from [`ts-node`](https://github.com/TypeStrong/ts-node)?
 
-They're both tools to run TypeScript files. But tsx does a lot more to improve the experience of using Node.js.
+`tsx` and `ts-node` are both designed for executing TypeScript files in Node.js, but offer different approaches to suit user preferences.
 
-tsx _just works_. It's zero-config and doesn't require `tsconfig.json` to get started, making it easy for users that just want to run TypeScript code and not get caught up in the configuration.
+- **Simple installation** tsx is offered as a single binary without peer dependencies, and can be used without installation: `npx tsx ./script.ts`. In comparison, `ts-node` requires installing TypeScript or SWC as peer dependencies.
 
-It's a single binary with no peer-dependencies (e.g. TypeScript or esbuild), so there is no setup necessary, enabling usage that is elegant and frictionless for first-time users:
+- **Zero configuration** tsx _just works_. It doesn't require initial setup or a `tsconfig.json` file, and doesn't get in the way of running your code.
 
-```
-npx tsx ./script.ts
-```
+- **Sensible defaults** tsx employs sensible defaults based on file imports and Node.js version, removing the need for certain `tsconfig.json` settings (that are designed for compilation rather than runtime). In comparison, ts-node relies on TypeScript's defaults (e.g. [`ES3` target](https://www.typescriptlang.org/tsconfig#target)), which may be outdated.
 
-tsx is zero-config because it has smart detections built in. As a runtime, it detects what's imported to make many options in `tsconfig.json` redundant—which was designed for compiling matching files regardless of whether they're imported.
+- **Module adaptability** tsx automatically adapts between CommonJS and ESM modules, even supporting `require()` of ESM modules, facilitating a smoother transition as the Node.js ecosystem evolves.
 
-It seamlessly adapts between CommonJS and ESM package types by detecting how modules are loaded (`require()` or `import`) to determine how to compile them. It even adds support for `require()`ing ESM modules from CommonJS so you don't have to worry about your dependencies as the ecosystem migrates to ESM.
+- **Enhancements** tsx gracefully handles [new JS & TS syntax](https://esbuild.github.io/content-types/) and features based on the Node.js version. It also supports [`tsconfig.json` paths](https://www.typescriptlang.org/tsconfig#paths) out of the box.
 
-[Newer and unsupported syntax](https://esbuild.github.io/content-types/) & features like [importing `node:` prefixes](https://2ality.com/2021/12/node-protocol-imports.html) are downgraded by detecting the Node.js version. For large TypeScript codebases, it has [`tsconfig.json paths`](https://www.typescriptlang.org/tsconfig#paths) aliasing support out of the box.
+- **Speed** tsx utilizes [esbuild](https://esbuild.github.io/faq/#:~:text=typescript%20benchmark) to achieve rapid TypeScript compilation. In comparison, ts-node uses the TypeScript compiler by default. Because tsx doesn't type check, it's similar to `ts-node --esm --swc` (which uses the [SWC compiler](https://github.com/TypeStrong/ts-node#swc-1)).
 
-At the core, tsx is powered by esbuild for [blazing fast TypeScript compilation](https://esbuild.github.io/faq/#:~:text=typescript%20benchmark), whereas `ts-node` (by default) uses the TypeScript compiler. Because esbuild doesn't type check, `tsx` is similar to `ts-node --esm --swc` (which uses the [SWC compiler](https://github.com/TypeStrong/ts-node#swc-1)).
+- **Watcher** As a DX bonus, tsx also comes with watch mode to help you iterate faster!
 
-As a bonus, tsx also comes with a watcher to speed up your development.
-
-[Here's an exhaustive technical comparison](https://github.com/privatenumber/ts-runtime-comparison) between `tsx`, `ts-node`, and other runtimes.
+For a detailed technical comparison, you can refer to this [exhaustive comparison](https://github.com/privatenumber/ts-runtime-comparison) between `tsx`, `ts-node`, and other runtimes.
 
 ### Does it have a configuration file?
 
