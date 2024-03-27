@@ -7,14 +7,15 @@ const latestMajor = (version: string) => (process.env.CI ? version : version.spl
 
 export const nodeVersions = [
 	process.version,
+	latestMajor('21.6.1'),
+	latestMajor('20.11.0'),
 	...(
 		(
 			process.env.CI
 			&& process.platform !== 'win32'
 		)
 			? [
-				'21.5.0',
-				latestMajor('20.10.0'),
+				'21.0.0',
 				'20.0.0',
 				latestMajor('18.19.0'),
 				'18.0.0',
