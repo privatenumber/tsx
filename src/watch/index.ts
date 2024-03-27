@@ -36,6 +36,14 @@ const flags = {
 		type: [String],
 		description: 'Paths & globs to exclude from being watched',
 	},
+	include: {
+		type: [String],
+		description: 'Paths & globs to include from being watched',
+	},
+	exclude: {
+		type: [String],
+		description: 'Paths & globs to exclude from being watched (same as ignore flag)',
+	},
 } as const;
 
 export const watchCommand = command({
@@ -62,7 +70,6 @@ export const watchCommand = command({
 		ignore: argv.flags.ignore,
 		ipc: true,
 	};
-
 	let runProcess: ChildProcess | undefined;
 	let exiting = false;
 
@@ -195,7 +202,7 @@ export const watchCommand = command({
 	 * As an alternative, we watch cwd and all run-time dependencies
 	 */
 	const watcher = watch(
-		argv._,
+		[...argv._, ...argv.flags.include],
 		{
 			cwd: process.cwd(),
 			ignoreInitial: true,
@@ -210,6 +217,8 @@ export const watchCommand = command({
 				'**/{node_modules,bower_components,vendor}/**',
 
 				...options.ignore,
+
+				...argv.flags.exclude,
 			],
 			ignorePermissionErrors: true,
 		},
