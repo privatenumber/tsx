@@ -199,7 +199,11 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					test(signal, async ({ onTestFail }) => {
 						const tsxProcess = tsx([
 							path.join(fixture.path, 'catch-signals.js'),
-						]);
+						], {
+							env: {
+								DEBUG: '1',
+							},
+						});
 
 						tsxProcess.stdout!.once('data', () => {
 							tsxProcess.kill(signal, {
