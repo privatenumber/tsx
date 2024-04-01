@@ -322,6 +322,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							stdout => stdout.includes('READY') && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
+						8000,
 						{
 							env: {
 								DEBUG: '1',

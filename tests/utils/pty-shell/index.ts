@@ -1,3 +1,4 @@
+import { setTimeout } from 'timers/promises';
 import { fileURLToPath } from 'url';
 import { execaNode, type NodeOptions } from 'execa';
 import stripAnsi from 'strip-ansi';
@@ -20,10 +21,23 @@ const getStdin = (
 	);
 };
 
-export const ptyShell = (
+const throwTimeout = (
+	timeout: number,
+	abortController: AbortController,
+) => (
+	setTimeout(timeout, true, abortController).then(
+		() => {
+			throw new Error('Timeout');
+		},
+		() => {},
+	)
+);
+
+export const ptyShell = async (
 	stdins: StdInArray,
+	timeout?: number,
 	options?: NodeOptions<'utf8'>,
-) => new Promise<string>((resolve, reject) => {
+) => {
 	const childProcess = execaNode(
 		fileURLToPath(new URL('node-pty.mjs', import.meta.url)),
 		[shell],
@@ -32,8 +46,6 @@ export const ptyShell = (
 			stdio: 'pipe',
 		},
 	);
-
-	childProcess.on('error', reject);
 
 	let currentStdin = getStdin(stdins);
 
@@ -53,12 +65,39 @@ export const ptyShell = (
 		}
 	});
 
-	childProcess.stderr!.on('data', (data) => {
-		reject(new Error(stripAnsi(data.toString())));
-	});
+	const abortController = new AbortController();
 
-	childProcess.on('exit', () => {
-		const outString = stripAnsi(buffer.toString());
-		resolve(outString);
-	});
-});
+	const promises = [
+		new Promise<void>((resolve, reject) => {
+			childProcess.on('error', reject);
+			childProcess.stderr!.on('data', (data) => {
+				reject(new Error(stripAnsi(data.toString())));
+			});
+			childProcess.on('exit', resolve);
+		}),
+	];
+
+	if (typeof timeout === 'number') {
+		promises.push(throwTimeout(timeout, abortController));
+	}
+
+	try {
+		await Promise.race(promises);
+	} catch (error) {
+		if (error instanceof Error && error.message === 'Timeout') {
+			childProcess.kill();
+			const outString = stripAnsi(buffer.toString());
+
+			console.log('Incomplete output', {
+				outString,
+				stdins,
+			});
+		}
+
+		throw error;
+	} finally {
+		abortController.abort();
+	}
+
+	return stripAnsi(buffer.toString());
+};
