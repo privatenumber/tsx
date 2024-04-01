@@ -199,11 +199,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					test(signal, async ({ onTestFail }) => {
 						const tsxProcess = tsx([
 							path.join(fixture.path, 'catch-signals.js'),
-						], {
-							env: {
-								DEBUG: '1',
-							},
-						});
+						]);
 
 						tsxProcess.stdout!.once('data', () => {
 							tsxProcess.kill(signal, {
@@ -326,6 +322,11 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							stdout => stdout.includes('READY') && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
+						{
+							env: {
+								DEBUG: '1',
+							},
+						},
 					);
 
 					onTestFail(() => {

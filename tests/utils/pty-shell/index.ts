@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'url';
-import { execaNode } from 'execa';
+import { execaNode, type NodeOptions } from 'execa';
 import stripAnsi from 'strip-ansi';
 
 export const isWindows = process.platform === 'win32';
@@ -22,11 +22,13 @@ const getStdin = (
 
 export const ptyShell = (
 	stdins: StdInArray,
+	options?: NodeOptions<'utf8'>,
 ) => new Promise<string>((resolve, reject) => {
 	const childProcess = execaNode(
 		fileURLToPath(new URL('node-pty.mjs', import.meta.url)),
 		[shell],
 		{
+			...options,
 			stdio: 'pipe',
 		},
 	);
