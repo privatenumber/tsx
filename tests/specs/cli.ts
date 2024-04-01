@@ -314,7 +314,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					expect(output).toMatch(/EXIT_CODE:\s+130/);
 				}, 10_000);
 
-				test('Catchable', async () => {
+				test('Catchable', async ({ onTestFail }) => {
 					const output = await ptyShell(
 						[
 							// Windows doesn't support shebangs
@@ -323,6 +323,12 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
 					);
+
+					onTestFail(() => {
+						console.log({
+							output,
+						});
+					});
 
 					expectMatchInOrder(output, [
 						'READY\r\n',
