@@ -1,6 +1,8 @@
+import { setTimeout } from 'timers/promises';
 import { fileURLToPath } from 'url';
-import { execaNode } from 'execa';
+import { execaNode, type NodeOptions } from 'execa';
 import stripAnsi from 'strip-ansi';
+import split from 'split2';
 
 export const isWindows = process.platform === 'win32';
 const shell = isWindows ? 'powershell.exe' : 'bash';
@@ -9,54 +11,112 @@ const commandCaret = `${isWindows ? '>' : '$'} `;
 type ConditionalStdin = (outChunk: string) => string | false;
 type StdInArray = (string | ConditionalStdin)[];
 
-const getStdin = (
-	stdins: StdInArray,
-): ConditionalStdin | undefined => {
-	const stdin = stdins.shift();
-	return (
-		typeof stdin === 'string'
-			? outChunk => outChunk.includes(commandCaret) && stdin
-			: stdin
-	);
-};
+const throwTimeout = (
+	timeout: number,
+	abortController: AbortController,
+) => (
+	setTimeout(timeout, true, abortController).then(
+		() => {
+			throw new Error(`Timeout: ${timeout}ms`);
+		},
+		() => {},
+	)
+);
 
-export const ptyShell = (
+export const ptyShell = async (
 	stdins: StdInArray,
-) => new Promise<string>((resolve, reject) => {
+	timeout?: number,
+	options?: NodeOptions<'utf8'> & { debug?: string },
+) => {
 	const childProcess = execaNode(
 		fileURLToPath(new URL('node-pty.mjs', import.meta.url)),
 		[shell],
 		{
+			...options,
 			stdio: 'pipe',
 		},
 	);
 
-	childProcess.on('error', reject);
-
-	let currentStdin = getStdin(stdins);
+	let currentStdin = stdins.shift();
 
 	let buffer = Buffer.alloc(0);
 	childProcess.stdout!.on('data', (data) => {
 		buffer = Buffer.concat([buffer, data]);
-		const outString = stripAnsi(data.toString());
+		if (buffer.toString().endsWith(commandCaret)) {
+			if (!currentStdin) {
+				childProcess.kill();
+			} else if (typeof currentStdin === 'string') {
+				if (options?.debug) {
+					console.log({
+						name: options.debug,
+						send: currentStdin,
+					});
+				}
 
-		if (currentStdin) {
-			const stdin = currentStdin(outString);
-			if (stdin) {
-				childProcess.send(stdin);
-				currentStdin = getStdin(stdins);
+				childProcess.send(currentStdin);
+				currentStdin = stdins.shift();
 			}
-		} else if (outString.includes(commandCaret)) {
-			childProcess.kill();
 		}
 	});
 
-	childProcess.stderr!.on('data', (data) => {
-		reject(new Error(stripAnsi(data.toString())));
+	childProcess.stdout!.pipe(split()).on('data', (line) => {
+		line = stripAnsi(line);
+
+		if (options?.debug) {
+			console.log({ line });
+		}
+
+		if (typeof currentStdin === 'function') {
+			const send = currentStdin(line);
+			if (send) {
+				if (options?.debug) {
+					console.log({
+						name: options.debug,
+						send,
+					});
+				}
+				childProcess.send(send);
+				currentStdin = stdins.shift();
+			}
+		}
 	});
 
-	childProcess.on('exit', () => {
-		const outString = stripAnsi(buffer.toString());
-		resolve(outString);
-	});
-});
+	const abortController = new AbortController();
+
+	const promises = [
+		new Promise<void>((resolve, reject) => {
+			childProcess.on('error', reject);
+			childProcess.stderr!.on('data', (data) => {
+				reject(new Error(stripAnsi(data.toString())));
+			});
+			childProcess.on('exit', resolve);
+		}),
+	];
+
+	if (typeof timeout === 'number') {
+		promises.push(
+			throwTimeout(timeout, abortController).catch((error) => {
+				childProcess.kill();
+
+				if (options?.debug) {
+					const outString = stripAnsi(buffer.toString());
+					console.log('Incomplete output', {
+						name: options.debug,
+						outString,
+						stdins,
+					});
+				}
+
+				throw error;
+			}),
+		);
+	}
+
+	try {
+		await Promise.race(promises);
+	} finally {
+		abortController.abort();
+	}
+
+	return stripAnsi(buffer.toString());
+};

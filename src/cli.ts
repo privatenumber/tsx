@@ -15,6 +15,12 @@ import {
 import { isFeatureSupported, testRunnerGlob } from './utils/node-features.js';
 import { createIpcServer } from './utils/ipc/server.js';
 
+// const debug = (...messages: any[]) => {
+// 	if (process.env.DEBUG) {
+// 		console.log(...messages);
+// 	}
+// };
+
 const relaySignals = (
 	childProcess: ChildProcess,
 	ipcSocket: Server,
@@ -31,6 +37,12 @@ const relaySignals = (
 		}
 	});
 
+	/**
+	 * Wait for signal from preflight bindHiddenSignalsHandler
+	 * Ideally the timeout should be as low as possible
+	 * since the child lets the parent know that it received
+	 * the signal
+	 */
 	const waitForSignalFromChild = () => {
 		const p = new Promise<NodeJS.Signals | undefined>((resolve) => {
 			// Aribrary timeout based on flaky tests
@@ -62,12 +74,19 @@ const relaySignals = (
 		 */
 		const signalFromChild = await waitForSignalFromChild();
 
+		// debug({
+		// 	signalFromChild,
+		// });
+
 		/**
 		 * If child didn't receive a signal, it's either because it was
 		 * sent to the parent directly via kill PID or the child is
 		 * unresponsive (e.g. infinite loop). Relay signal to child.
 		 */
 		if (signalFromChild !== signal) {
+			// debug('killing child', {
+			// 	signal,
+			// });
 			childProcess.kill(signal);
 
 			/**
