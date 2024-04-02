@@ -11,7 +11,7 @@ body:
     attributes:
       label: Acknowledgements
       options:
-        - label: I searched existing issues to avoid duplicates
+        - label: I read the documentation and searched existing issues to avoid duplicates
           required: true
 
         - label: I understand tsx aims for TypeScript parity and is not for arbitrary Node.js enhancements
@@ -76,16 +76,16 @@ body:
     attributes:
       value: |
         ## 🛠️ Contribute
-        This project relies on community contributions.
+        **Features are expected to be worked on by those that want it.**
 
-        It would be amazing for you to contribute!
+        Offering financial support for the engineering work will likely speed up the resolution process.
 
   - type: checkboxes
     attributes:
       label: Contributions
       options:
-        - label: I will open a pull request for this issue
-        - label: I will support the work financially (any amount helps)
+        - label: I'm interested in working on this issue
+        - label: I'm willing to offer financial support
 
   - type: markdown
     attributes:
