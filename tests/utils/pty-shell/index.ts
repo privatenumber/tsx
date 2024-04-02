@@ -2,6 +2,7 @@ import { setTimeout } from 'timers/promises';
 import { fileURLToPath } from 'url';
 import { execaNode, type NodeOptions } from 'execa';
 import stripAnsi from 'strip-ansi';
+import split from 'split2';
 
 export const isWindows = process.platform === 'win32';
 const shell = isWindows ? 'powershell.exe' : 'bash';
@@ -9,17 +10,6 @@ const commandCaret = `${isWindows ? '>' : '$'} `;
 
 type ConditionalStdin = (outChunk: string) => string | false;
 type StdInArray = (string | ConditionalStdin)[];
-
-const getStdin = (
-	stdins: StdInArray,
-): ConditionalStdin | undefined => {
-	const stdin = stdins.shift();
-	return (
-		typeof stdin === 'string'
-			? outChunk => outChunk.includes(commandCaret) && stdin
-			: stdin
-	);
-};
 
 const throwTimeout = (
 	timeout: number,
@@ -36,7 +26,7 @@ const throwTimeout = (
 export const ptyShell = async (
 	stdins: StdInArray,
 	timeout?: number,
-	options?: NodeOptions<'utf8'> & { name?: string },
+	options?: NodeOptions<'utf8'> & { debug?: string },
 ) => {
 	const childProcess = execaNode(
 		fileURLToPath(new URL('node-pty.mjs', import.meta.url)),
@@ -47,29 +37,30 @@ export const ptyShell = async (
 		},
 	);
 
-	let currentStdin = getStdin(stdins);
+	let currentStdin = stdins.shift();
 
 	let buffer = Buffer.alloc(0);
 	childProcess.stdout!.on('data', (data) => {
 		buffer = Buffer.concat([buffer, data]);
-		const outString = stripAnsi(data.toString());
-
-		if (currentStdin) {
-			const stdin = currentStdin(outString);
-
-			console.log({
-				name: options?.name,
-				outString,
-				sending: stdin,
-				stdins,
-			});
-
-			if (stdin) {
-				childProcess.send(stdin);
-				currentStdin = getStdin(stdins);
+		if (buffer.toString().endsWith(commandCaret)) {
+			if (!currentStdin) {
+				childProcess.kill();
+			} else if (typeof currentStdin === 'string') {
+				childProcess.send(currentStdin);
+				currentStdin = stdins.shift();
 			}
-		} else if (outString.includes(commandCaret)) {
-			childProcess.kill();
+		}
+	});
+
+	childProcess.stdout!.pipe(split()).on('data', (line) => {
+		line = stripAnsi(line);
+
+		if (typeof currentStdin === 'function') {
+			const send = currentStdin(line);
+			if (send) {
+				childProcess.send(send);
+				currentStdin = stdins.shift();
+			}
 		}
 	});
 
@@ -96,11 +87,13 @@ export const ptyShell = async (
 			childProcess.kill();
 			const outString = stripAnsi(buffer.toString());
 
-			console.log('Incomplete output', {
-				name: options?.name,
-				outString,
-				stdins,
-			});
+			if (options?.debug) {
+				console.log('Incomplete output', {
+					name: options.debug,
+					outString,
+					stdins,
+				});
+			}
 		}
 
 		throw error;
