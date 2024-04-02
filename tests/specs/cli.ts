@@ -324,6 +324,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						],
 						8000,
 						{
+							name: 'catchable',
 							env: {
 								DEBUG: '1',
 							},
@@ -355,6 +356,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						],
 						8000,
 						{
+							name: 'infinite-loop',
 							env: {
 								DEBUG: '1',
 							},

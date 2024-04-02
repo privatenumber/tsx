@@ -36,7 +36,7 @@ const throwTimeout = (
 export const ptyShell = async (
 	stdins: StdInArray,
 	timeout?: number,
-	options?: NodeOptions<'utf8'>,
+	options?: NodeOptions<'utf8'> & { name?: string },
 ) => {
 	const childProcess = execaNode(
 		fileURLToPath(new URL('node-pty.mjs', import.meta.url)),
@@ -58,6 +58,7 @@ export const ptyShell = async (
 			const stdin = currentStdin(outString);
 			if (stdin) {
 				console.log({
+					name: options?.name,
 					outString,
 					sending: stdin,
 					stdins,
@@ -94,6 +95,7 @@ export const ptyShell = async (
 			const outString = stripAnsi(buffer.toString());
 
 			console.log('Incomplete output', {
+				name: options?.name,
 				outString,
 				stdins,
 			});
