@@ -94,26 +94,26 @@ export const ptyShell = async (
 	];
 
 	if (typeof timeout === 'number') {
-		promises.push(throwTimeout(timeout, abortController));
+		promises.push(
+			throwTimeout(timeout, abortController).catch((error) => {
+				childProcess.kill();
+
+				if (options?.debug) {
+					const outString = stripAnsi(buffer.toString());
+					console.log('Incomplete output', {
+						name: options.debug,
+						outString,
+						stdins,
+					});
+				}
+
+				throw error;
+			}),
+		);
 	}
 
 	try {
 		await Promise.race(promises);
-	} catch (error) {
-		if (error instanceof Error && error.message.startsWith('Timeout')) {
-			childProcess.kill();
-			const outString = stripAnsi(buffer.toString());
-
-			if (options?.debug) {
-				console.log('Incomplete output', {
-					name: options.debug,
-					outString,
-					stdins,
-				});
-			}
-		}
-
-		throw error;
 	} finally {
 		abortController.abort();
 	}
