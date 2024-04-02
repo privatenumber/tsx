@@ -364,7 +364,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					);
 
 					console.log({ output });
-					expect(output).toMatch(/EXIT_CODE:\s+130/);
+					expect(output).toMatch(/EXIT_CODE:[\s\r\n]+130/);
 				}, 10_000);
 			});
 		});
