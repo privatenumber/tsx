@@ -351,7 +351,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						[
 							// Windows doesn't support shebangs
 							`${node.path} ${tsxPath} ${path.join(fixture.path, 'infinite-loop.js')}\r`,
-							stdout => /^\d+$/.test(stdout) && CtrlC,
+							stdout => /^\r?\d+$/.test(stdout) && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
 						8000,
