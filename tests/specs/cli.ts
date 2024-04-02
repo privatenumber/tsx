@@ -324,7 +324,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						],
 						8000,
 						{
-							debug: 'catchable',
+							// debug: 'catchable',
 							env: {
 								DEBUG: '1',
 							},

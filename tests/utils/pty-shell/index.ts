@@ -55,6 +55,10 @@ export const ptyShell = async (
 	childProcess.stdout!.pipe(split()).on('data', (line) => {
 		line = stripAnsi(line);
 
+		if (options?.debug) {
+			console.log({ line });
+		}
+
 		if (typeof currentStdin === 'function') {
 			const send = currentStdin(line);
 			if (send) {
