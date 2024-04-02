@@ -15,11 +15,11 @@ import {
 import { isFeatureSupported, testRunnerGlob } from './utils/node-features.js';
 import { createIpcServer } from './utils/ipc/server.js';
 
-const debug = (...messages: any[]) => {
-	if (process.env.DEBUG) {
-		console.log(...messages);
-	}
-};
+// const debug = (...messages: any[]) => {
+// 	if (process.env.DEBUG) {
+// 		console.log(...messages);
+// 	}
+// };
 
 const relaySignals = (
 	childProcess: ChildProcess,
@@ -46,7 +46,7 @@ const relaySignals = (
 	const waitForSignalFromChild = () => {
 		const p = new Promise<NodeJS.Signals | undefined>((resolve) => {
 			// Aribrary timeout based on flaky tests
-			setTimeout(() => resolve(undefined), 50);
+			setTimeout(() => resolve(undefined), 30);
 			waitForSignal = resolve;
 		});
 
@@ -74,9 +74,9 @@ const relaySignals = (
 		 */
 		const signalFromChild = await waitForSignalFromChild();
 
-		debug({
-			signalFromChild,
-		});
+		// debug({
+		// 	signalFromChild,
+		// });
 
 		/**
 		 * If child didn't receive a signal, it's either because it was
@@ -84,9 +84,9 @@ const relaySignals = (
 		 * unresponsive (e.g. infinite loop). Relay signal to child.
 		 */
 		if (signalFromChild !== signal) {
-			debug('killing child', {
-				signal,
-			});
+			// debug('killing child', {
+			// 	signal,
+			// });
 			childProcess.kill(signal);
 
 			/**
