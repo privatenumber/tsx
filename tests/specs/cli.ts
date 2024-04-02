@@ -322,7 +322,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							stdout => stdout.includes('READY') && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
-						8000,
+						8_000,
 						{
 							env: {
 								DEBUG: '1',
@@ -353,6 +353,12 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							stdout => /\d+\r\n/.test(stdout) && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
+						8_000,
+						{
+							env: {
+								DEBUG: '1',
+							},
+						},
 					);
 					expect(output).toMatch(/EXIT_CODE:\s+130/);
 				}, 10_000);
