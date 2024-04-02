@@ -324,7 +324,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						],
 						8000,
 						{
-							// debug: 'catchable',
+							debug: 'catchable',
 							env: {
 								DEBUG: '1',
 							},
@@ -355,16 +355,15 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
 						8000,
-						{
-							debug: 'infinite-loop',
-							env: {
-								DEBUG: '1',
-							},
-						},
+						// {
+						// 	debug: 'infinite-loop',
+						// 	env: {
+						// 		DEBUG: '1',
+						// 	},
+						// },
 					);
 
-					console.log({ output });
-					expect(output).toMatch(/EXIT_CODE:[\s\r\n]+130/);
+					expect(output).toMatch(/EXIT_CODE:\s+130/);
 				}, 10_000);
 			});
 		});

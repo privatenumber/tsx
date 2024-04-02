@@ -46,7 +46,13 @@ export const ptyShell = async (
 			if (!currentStdin) {
 				childProcess.kill();
 			} else if (typeof currentStdin === 'string') {
-				console.log({ send: currentStdin });
+				if (options?.debug) {
+					console.log({
+						name: options.debug,
+						send: currentStdin,
+					});
+				}
+
 				childProcess.send(currentStdin);
 				currentStdin = stdins.shift();
 			}
@@ -63,7 +69,12 @@ export const ptyShell = async (
 		if (typeof currentStdin === 'function') {
 			const send = currentStdin(line);
 			if (send) {
-				console.log({ send });
+				if (options?.debug) {
+					console.log({
+						name: options.debug,
+						send,
+					});
+				}
 				childProcess.send(send);
 				currentStdin = stdins.shift();
 			}
