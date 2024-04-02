@@ -56,13 +56,15 @@ export const ptyShell = async (
 
 		if (currentStdin) {
 			const stdin = currentStdin(outString);
+
+			console.log({
+				name: options?.name,
+				outString,
+				sending: stdin,
+				stdins,
+			});
+
 			if (stdin) {
-				console.log({
-					name: options?.name,
-					outString,
-					sending: stdin,
-					stdins,
-				});
 				childProcess.send(stdin);
 				currentStdin = getStdin(stdins);
 			}
