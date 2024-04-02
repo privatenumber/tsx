@@ -27,7 +27,7 @@ const throwTimeout = (
 ) => (
 	setTimeout(timeout, true, abortController).then(
 		() => {
-			throw new Error('Timeout');
+			throw new Error(`Timeout: ${timeout}ms`);
 		},
 		() => {},
 	)
@@ -57,6 +57,11 @@ export const ptyShell = async (
 		if (currentStdin) {
 			const stdin = currentStdin(outString);
 			if (stdin) {
+				console.log({
+					outString,
+					sending: stdin,
+					stdins,
+				});
 				childProcess.send(stdin);
 				currentStdin = getStdin(stdins);
 			}
@@ -84,7 +89,7 @@ export const ptyShell = async (
 	try {
 		await Promise.race(promises);
 	} catch (error) {
-		if (error instanceof Error && error.message === 'Timeout') {
+		if (error instanceof Error && error.message.startsWith('Timeout')) {
 			childProcess.kill();
 			const outString = stripAnsi(buffer.toString());
 
