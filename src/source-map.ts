@@ -1,6 +1,8 @@
+import * as Semver from 'semver';
 import type { Transformed } from './utils/transform/apply-transformers.js';
 
 const inlineSourceMapPrefix = '\n//# sourceMappingURL=data:application/json;base64,';
+const isPrepareStackTraceExposed = Semver.satisfies(process.versions.node, '>=20.12.0');
 
 export const installSourceMapSupport = () => {
 	const hasNativeSourceMapSupport = (
@@ -18,7 +20,7 @@ export const installSourceMapSupport = () => {
 		 *
 		 * https://github.com/nodejs/node/blob/91193825551f9301b6ab52d96211b38889149892/lib/internal/errors.js#L141
 		 */
-		&& typeof Error.prepareStackTrace !== 'function'
+		&& isPrepareStackTraceExposed ? typeof Error.prepareStackTrace === 'function' : typeof Error.prepareStackTrace !== 'function'
 	);
 
 	if (hasNativeSourceMapSupport) {
