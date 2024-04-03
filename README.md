@@ -41,14 +41,14 @@ _TypeScript Execute (tsx)_: The easiest way to run TypeScript in Node.js
 <td>
 
 ```sh
-node file.js                                
+node file.js		
 ```
 
 </td>
 <td>
 
 ```sh
-tsx file.js                                 
+tsx file.js		
 ```
 
 </td>
