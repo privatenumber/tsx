@@ -30,14 +30,37 @@ _TypeScript Execute (tsx)_: The easiest way to run TypeScript in Node.js
 </p>
 
 ## About
-`tsx` is a CLI command (alternative to `node`) for running TypeScript & ESM in both `commonjs` & `module` package types.
+`tsx` is a CLI command you can use just like you would use `node`:
 
-tsx is for you if you want:
-- A command to _just run_ TypeScript code without  configuration
-- Something so fast it's unnoticeable
-- Seamless integration across ESM and CJS dependencies
+<table>
+<tr>
+<th>Before</th>
+<th>After</th>
+</tr>
+<tr>
+<td>
 
-	If you're getting the following error, give tsx a try!
+```sh
+node file.js                                
+```
+
+</td>
+<td>
+
+```sh
+tsx file.js                                 
+```
+
+</td>
+</tr>
+</table>
+
+
+Use it to enhance your Node.js experience:
+- _Just run_ TypeScript code without configuration
+- Seamless integration between CommonJS and ES Modules
+
+	You'll never get the following error again:
 
 	```
 	Error [ERR_REQUIRE_ESM]: require() of ES Module <ESM package> from ./file.js not supported.
@@ -45,7 +68,7 @@ tsx is for you if you want:
 	```
 
 ### ⚡️ Quick start
-Try it out  without setup! Just pass in a TypeScript file:
+Try it out  without setup using [npx](https://docs.npmjs.com/cli/v8/commands/npx)! Just pass in a TypeScript file:
 
 ```sh
 npx tsx ./script.ts
@@ -86,26 +109,25 @@ npm install --global tsx
 Then, you can call `tsx` directly:
 
 ```sh
-tsx ...
+tsx file.ts
 ```
+
+Now you can replace `node ...` with `tsx ...` in all your commands!
 
 ## Usage
 
-### tsx is a Node.js wrapper
+### Swap `node` out for `tsx`
 
-_tsx_ wraps around Node.js to enhance it with TypeScript support. Because it's a drop-in replacement for `node`, it supports all [Node.js command-line flags](https://nodejs.org/docs/latest-v20.x/api/cli.html).
+_tsx_ is an enhanced version of Node.js. If you have a `node ...` command, you can replace the `node` with `tsx` and it will just work.
 
-```sh
-# --no-warnings is a Node.js flag
-tsx --no-warnings ./file.ts
-```
-
-### Run TypeScript / ESM / CJS module
-
-Pass in a file to run:
+Because it's a drop-in replacement for `node`, it supports all [Node.js command-line flags](https://nodejs.org/docs/latest-v20.x/api/cli.html).
 
 ```sh
-tsx ./file.ts
+# Old command
+node --no-warnings --env-file=.env ./file.js
+
+# New command
+tsx --no-warnings --env-file=.env ./file.js
 ```
 
 #### Custom `tsconfig.json` path
