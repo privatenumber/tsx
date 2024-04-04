@@ -11,7 +11,7 @@ body:
     attributes:
       label: Acknowledgements
       options:
-        - label: I searched existing issues to avoid duplicates
+        - label: I read the documentation and searched existing issues to avoid duplicates
           required: true
 
         - label: I understand this is a place to report a confirmed bug (not seek debugging help)
@@ -115,9 +115,10 @@ body:
       value: |
         ## 🗒️ Extra information
 
-        Let the code do the talking. Focus more on minimizing the reproduction to get to the core of the issue.
+        > [!IMPORTANT]
+        > Only fill out this section for more complex issues that require context. I only read this section after validating the reproduction.
 
-        Only fill out this section for more complex issues that require context.
+        Let the code do the talking. Focus more on minimizing the reproduction to get to the core of the issue.
 
   - type: textarea
     attributes:
@@ -133,16 +134,16 @@ body:
     attributes:
       value: |
         ## 🛠️ Contribute
-        This project relies on community contributions.
+        **Bugs are expected to be fixed by those that are affected by it.**
 
-        It would be amazing for you to contribute!
+        Offering financial support for the engineering work will likely speed up the resolution process.
 
   - type: checkboxes
     attributes:
       label: Contributions
       options:
-        - label: I will open a pull request for this issue
-        - label: I will support the work financially (any amount helps)
+        - label: I'm interested in working on this issue
+        - label: I'm willing to offer financial support
 
   - type: markdown
     attributes:

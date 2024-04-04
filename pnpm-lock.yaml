@@ -36,6 +36,9 @@ devDependencies:
   '@types/semver':
     specifier: ^7.5.6
     version: 7.5.6
+  '@types/split2':
+    specifier: ^4.2.3
+    version: 4.2.3
   cachedir:
     specifier: ^2.4.0
     version: 2.4.0
@@ -99,6 +102,9 @@ devDependencies:
   simple-git-hooks:
     specifier: ^2.9.0
     version: 2.9.0
+  split2:
+    specifier: ^4.2.0
+    version: 4.2.0
   strip-ansi:
     specifier: ^7.1.0
     version: 7.1.0
@@ -1005,6 +1011,12 @@ packages:
 
   /@types/semver@7.5.6:
     resolution: {integrity: sha512-dn1l8LaMea/IjDoHNd9J52uBbInB796CDffS6VdIxvqYCPSG0V0DzHp76GpaWnlhg88uYyPbXCDIowa86ybd5A==}
+    dev: true
+
+  /@types/split2@4.2.3:
+    resolution: {integrity: sha512-59OXIlfUsi2k++H6CHgUQKEb2HKRokUA39HY1i1dS8/AIcqVjtAAFdf8u+HxTWK/4FUHMJQlKSZ4I6irCBJ1Zw==}
+    dependencies:
+      '@types/node': 20.9.4
     dev: true
 
   /@types/stack-utils@2.0.3:
@@ -4259,6 +4271,11 @@ packages:
 
   /spdx-license-ids@3.0.17:
     resolution: {integrity: sha512-sh8PWc/ftMqAAdFiBu6Fy6JUOYjqDJBJvIhpfDMyHrr0Rbp5liZqd4TjtQ/RgfLjKFZb+LMx5hpml5qOWy0qvg==}
+    dev: true
+
+  /split2@4.2.0:
+    resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
+    engines: {node: '>= 10.x'}
     dev: true
 
   /stack-utils@2.0.6:
