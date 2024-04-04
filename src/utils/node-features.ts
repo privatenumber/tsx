@@ -57,6 +57,7 @@ export const testRunnerGlob: Version[] = [
 // https://nodejs.org/docs/latest-v20.x/api/cli.html#--enable-source-maps
 // https://github.com/nodejs/node/pull/50827
 // Allow using --enable-source-maps together with custom Error.prepareStackTrace
-export const prepareStackTraceWithSourcemap: Version[] = [
+export const prepareStackTraceExposed: Version[] = [
 	[20, 12, 0],
+	[21, 6, 0],
 ];
