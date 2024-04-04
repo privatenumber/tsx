@@ -21,7 +21,7 @@ export const cacheConfig = {
 	 *
 	 * https://esbuild.github.io/api/#sources-content
 	 */
-	sourcesContent: false,
+	// sourcesContent: false,
 
 	/**
 	 * Smaller output for cache and marginal performance improvement:
