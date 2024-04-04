@@ -1,4 +1,5 @@
 import type { Transformed } from './utils/transform/apply-transformers.js';
+import { isFeatureSupported, prepareStackTraceWithSourcemap } from './utils/node-features.js';
 
 const inlineSourceMapPrefix = '\n//# sourceMappingURL=data:application/json;base64,';
 
@@ -18,7 +19,7 @@ export const installSourceMapSupport = () => {
 		 *
 		 * https://github.com/nodejs/node/blob/91193825551f9301b6ab52d96211b38889149892/lib/internal/errors.js#L141
 		 */
-		&& typeof Error.prepareStackTrace !== 'function'
+		&& (isFeatureSupported(prepareStackTraceWithSourcemap) || typeof Error.prepareStackTrace !== 'function')
 	);
 
 	if (hasNativeSourceMapSupport) {

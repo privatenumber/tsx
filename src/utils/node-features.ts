@@ -53,3 +53,10 @@ export const importAttributes: Version[] = [
 export const testRunnerGlob: Version[] = [
 	[21, 0, 0],
 ];
+
+// https://nodejs.org/docs/latest-v20.x/api/cli.html#--enable-source-maps
+// https://github.com/nodejs/node/pull/50827
+// Allow using --enable-source-maps together with custom Error.prepareStackTrace
+export const prepareStackTraceWithSourcemap: Version[] = [
+	[20, 12, 0],
+];
