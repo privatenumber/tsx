@@ -19,7 +19,7 @@ export const installSourceMapSupport = () => {
 		 *
 		 * https://github.com/nodejs/node/blob/91193825551f9301b6ab52d96211b38889149892/lib/internal/errors.js#L141
 		 */
-		&& (isFeatureSupported(prepareStackTraceExposed) || typeof Error.prepareStackTrace !== 'function')
+		// && (isFeatureSupported(prepareStackTraceExposed) || typeof Error.prepareStackTrace !== 'function')
 	);
 
 	if (hasNativeSourceMapSupport) {
