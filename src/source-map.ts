@@ -3,15 +3,11 @@ import type { Transformed } from './utils/transform/apply-transformers.js';
 const inlineSourceMapPrefix = '\n//# sourceMappingURL=data:application/json;base64,';
 
 export const installSourceMapSupport = () => {
-	const hasNativeSourceMapSupport = (
-
-		/**
-		 * Check if native source maps are supported by seeing if the API is available
-		 * https://nodejs.org/dist/latest-v18.x/docs/api/process.html#processsetsourcemapsenabledval
-		 */
-		'setSourceMapsEnabled' in process
-
-	);
+	/**
+	 * Check if native source maps are supported by seeing if the API is available
+	 * https://nodejs.org/dist/latest-v18.x/docs/api/process.html#processsetsourcemapsenabledval
+	 */
+	const hasNativeSourceMapSupport = 'setSourceMapsEnabled' in process;
 
 	if (hasNativeSourceMapSupport) {
 		process.setSourceMapsEnabled(true);
