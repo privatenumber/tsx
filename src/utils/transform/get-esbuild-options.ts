@@ -16,14 +16,6 @@ export const cacheConfig = {
 	sourcemap: true,
 
 	/**
-	 * Improve performance by generating smaller source maps
-	 * that doesn't include the original source code
-	 *
-	 * https://esbuild.github.io/api/#sources-content
-	 */
-	sourcesContent: false,
-
-	/**
 	 * Smaller output for cache and marginal performance improvement:
 	 * https://twitter.com/evanwallace/status/1396336348366180359?s=20
 	 *
