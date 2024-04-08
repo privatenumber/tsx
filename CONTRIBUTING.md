@@ -8,7 +8,7 @@ Welcome! We're excited you're interested in contributing. To ensure a smooth and
 2. Improve ESM ↔ CommonJS interoperability as the ecosystem migrates to ESM
 3. Support the [active LTS versions of Node.js](https://endoflife.date/nodejs)
 
-## Issues
+## Issues & Discussions
 
 > [!IMPORTANT]
 > Please be polite, respectful, and considerate of people's time and effort.
@@ -25,7 +25,7 @@ Provide a clear, minimal example of the issue. This helps contributors identify 
 
 Review the project documentation for known behaviors or caveats to avoid unnecessary issues.
 
-### Commenting on an existing Issue
+### Commenting on an existing Issue/Discussion
 
 #### ⭐️ Issue objectives
 
@@ -37,7 +37,7 @@ Issues serve as a platform for **contributors** to:
 
 #### ✅ Be constructive
 
-Aim to contribute to the solution with research & PRs (tests + solutions).
+Aim to contribute to the solution with research & PRs (tests + solutions). The goal is to land an improvement in tsx for everyone to benefit.
 
 Be concise to save people's time.
 
@@ -45,9 +45,9 @@ Be concise to save people's time.
 
 Keep comments focused on fixing the issue.
 
-Comments like "updates?", "also happening in ...", or discussing workarounds will be hidden.
+Off-topic comments, comments that don't add value (e.g. "updates?", "also happening in ..."), and discussing workarounds will be hidden or deleted.
 
-Issues may be locked post-verification to direct further conversation & action to PRs.
+After an issue is confirmed, the thread may sometimes be locked to direct further conversation & action to PRs.
 
 > [!TIP]
 > **⚡️ Get issues addressed faster!**
@@ -57,7 +57,6 @@ Issues may be locked post-verification to direct further conversation & action t
 > [Sponsor now →](https://github.com/sponsors/privatenumber)
 
 ## Pull requests
-
 
 #### Open an Issue first
 
