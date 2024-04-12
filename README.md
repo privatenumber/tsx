@@ -255,7 +255,7 @@ If you prefer to use a local `tsx` instead of the global one, you can use `npx`:
 
 _file.ts_
 ```ts
-#!/usr/bin/env npx tsx
+#!/usr/bin/env -S npx tsx
 
 console.log('argv:', process.argv.slice(2))
 ```
