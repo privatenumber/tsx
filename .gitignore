@@ -27,3 +27,6 @@ dist
 
 # Link config
 link.config.json
+
+# Vitepress
+docs/.vitepress/cache

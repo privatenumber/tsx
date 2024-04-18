@@ -39,7 +39,10 @@
 		"lint": "lint --node --cache .",
 		"type-check": "tsc --noEmit",
 		"test": "pnpm build && node ./dist/cli.mjs tests/index.ts",
-		"prepack": "pnpm build && clean-pkg-json"
+		"prepack": "pnpm build && clean-pkg-json",
+		"docs:dev": "pnpm --filter=docs dev",
+		"docs:build": "pnpm --filter=docs build",
+		"docs:preview": "pnpm --filter=docs preview"
 	},
 	"simple-git-hooks": {
 		"pre-commit": "pnpm lint-staged"
