@@ -1,6 +1,6 @@
 # What is _tsx_?
 
-`tsx` stands for _TypeScript Execute_, and it's a TypeScript enhanced Node.js.
+`tsx` stands for _TypeScript Execute_, and it's a simple command to run TypeScript in Node.js.
 
 Because `tsx` is basically an alias to `node`, you can use it the same way:
 
@@ -16,7 +16,7 @@ tsx file.js
 ```
 </div>
 
-<sub>Since it's Node.js underneath, all command-line flags are supported. Use `tsx` just like you would use `node`!</sub>
+<sub>Since it's Node.js underneath, all command-line flags are supported. Use `tsx` as you would use `node`!</sub>
 
 ## Features
 
@@ -55,7 +55,7 @@ TypeScript & ESM transformations are handled by [esbuild](https://esbuild.github
 - Only [certain `tsconfig.json` properties](https://esbuild.github.io/content-types/#tsconfig-json) are supported
 	- [`emitDecoratorMetadata`](https://www.typescriptlang.org/tsconfig#emitDecoratorMetadata) is not supported
 
-For details, refer to esbuild's [JavaScript caveats](https://esbuild.github.io/content-types/#javascript-caveats) and [TypeScript caveats](https://esbuild.github.io/content-types/#typescript-caveats) documentation.
+For details, see esbuild's [JavaScript caveats](https://esbuild.github.io/content-types/#javascript-caveats) and [TypeScript caveats](https://esbuild.github.io/content-types/#typescript-caveats) documentation.
 
 
 <style scoped>

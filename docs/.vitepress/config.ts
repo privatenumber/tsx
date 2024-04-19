@@ -46,8 +46,8 @@ export default defineConfig({
 			{
 				text: 'Integration',
 				items: [
-					{ text: 'Node.js', link: '/node' },
 					{ text: 'VSCode', link: '/vscode' },
+					{ text: 'Node.js', link: '/node' },
 				]
 			},
 			{
