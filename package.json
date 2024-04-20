@@ -82,7 +82,7 @@
 		"kolorist": "^1.8.0",
 		"lint-staged": "^15.1.0",
 		"magic-string": "^0.30.5",
-		"manten": "^1.2.0",
+		"manten": "github:privatenumber/manten#npm/retry",
 		"memfs": "^4.6.0",
 		"node-pty": "^1.0.0",
 		"outdent": "^0.8.0",
