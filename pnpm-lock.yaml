@@ -84,7 +84,7 @@ importers:
         version: 0.30.5
       manten:
         specifier: github:privatenumber/manten#npm/retry
-        version: https://codeload.github.com/privatenumber/manten/tar.gz/72bb5000249996a8955b29ceb14bb530578b0a7d
+        version: https://codeload.github.com/privatenumber/manten/tar.gz/2e97cf7f31003aa8e1b4e6be1bc1cbefe4e07261
       memfs:
         specifier: ^4.6.0
         version: 4.6.0(quill-delta@5.1.0)(rxjs@7.8.1)(tslib@2.6.2)
@@ -1844,8 +1844,8 @@ packages:
     resolution: {integrity: sha512-7xlpfBaQaP/T6Vh8MO/EqXSW5En6INHEvEXQiuff7Gku0PWjU3uf6w/j9o7O+SpB5fOAkrI5HeoNgwjEO0pFsA==}
     engines: {node: '>=12'}
 
-  manten@https://codeload.github.com/privatenumber/manten/tar.gz/72bb5000249996a8955b29ceb14bb530578b0a7d:
-    resolution: {tarball: https://codeload.github.com/privatenumber/manten/tar.gz/72bb5000249996a8955b29ceb14bb530578b0a7d}
+  manten@https://codeload.github.com/privatenumber/manten/tar.gz/2e97cf7f31003aa8e1b4e6be1bc1cbefe4e07261:
+    resolution: {tarball: https://codeload.github.com/privatenumber/manten/tar.gz/2e97cf7f31003aa8e1b4e6be1bc1cbefe4e07261}
     version: 0.0.0-semantic-release
 
   map-age-cleaner@0.1.3:
@@ -4525,7 +4525,7 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.4.15
 
-  manten@https://codeload.github.com/privatenumber/manten/tar.gz/72bb5000249996a8955b29ceb14bb530578b0a7d:
+  manten@https://codeload.github.com/privatenumber/manten/tar.gz/2e97cf7f31003aa8e1b4e6be1bc1cbefe4e07261:
     dependencies:
       expect: 29.7.0
 
