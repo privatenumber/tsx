@@ -17,6 +17,7 @@ import {
 	isJsonPattern,
 	getFormatFromFileUrl,
 	fileProtocol,
+	allowJs,
 	type MaybePromise,
 	type NodeError,
 } from './utils.js';
@@ -166,13 +167,11 @@ export const resolve: resolve = async (
 		}
 	}
 
-	/**
-	 * Typescript gives .ts, .cts, or .mts priority over actual .js, .cjs, or .mjs extensions
-	 */
-	if (
-		// !recursiveCall &&
-		tsExtensionsPattern.test(context.parentURL!)
-	) {
+	// Typescript gives .ts, .cts, or .mts priority over actual .js, .cjs, or .mjs extensions
+	//
+	// If `allowJs` is set in `tsconfig.json`, then we'll apply the same resolution logic
+	// to files without a TypeScript extension.
+	if (tsExtensionsPattern.test(context.parentURL!) || allowJs) {
 		const tsPaths = resolveTsPath(specifier);
 		if (tsPaths) {
 			for (const tsPath of tsPaths) {
