@@ -24,6 +24,7 @@ jobs:
       - name: Setup npmrc
         run: |
           npm config set '@pvtnbr:registry=https://npm.pkg.github.com'
+          npm set "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
