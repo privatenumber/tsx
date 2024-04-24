@@ -205,7 +205,10 @@ const resolveTsFilename = (
 
 	if (
 		parent?.filename
-		&& isTsFilePatten.test(parent.filename)
+		&& (
+			isTsFilePatten.test(parent.filename)
+			|| tsconfig?.config.compilerOptions?.allowJs
+		)
 		&& tsPath
 	) {
 		for (const tryTsPath of tsPath) {

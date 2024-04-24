@@ -222,7 +222,7 @@ const files = {
 	import './import-typescript-child.js';
 	`,
 
-	'import-typescript-child.js': sourcemap.tag`
+	'import-typescript-child.ts': sourcemap.tag`
 	console.log('imported');
 	`,
 
