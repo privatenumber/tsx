@@ -21,9 +21,9 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Setup pnpmrc
+      - name: Setup npmrc
         run: |
-          npm config set @pvtnbr:registry=https://npm.pkg.github.com
+          npm config set '@pvtnbr:registry=https://npm.pkg.github.com'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
