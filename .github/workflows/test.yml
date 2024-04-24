@@ -23,7 +23,6 @@ jobs:
 
       - name: Setup npmrc
         run: |
-          npm config set @pvtnbr:registry=https://npm.pkg.github.com/
           npm set "//npm.pkg.github.com/:_authToken=${{ secrets.GH_TOKEN }}"
           npm whoami --registry=https://npm.pkg.github.com/
 
@@ -32,16 +31,16 @@ jobs:
         with:
           version: 9
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: echo "PNPM_STORE=$(pnpm store path --silent)" >> $GITHUB_ENV
+      # - name: Get pnpm store directory
+      #   shell: bash
+      #   run: echo "PNPM_STORE=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
-        name: Cache pnpm
-        with:
-          path: ${{ env.PNPM_STORE }}
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: ${{ runner.os }}-pnpm-
+      # - uses: actions/cache@v3
+      #   name: Cache pnpm
+      #   with:
+      #     path: ${{ env.PNPM_STORE }}
+      #     key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+      #     restore-keys: ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
         run: pnpm install
