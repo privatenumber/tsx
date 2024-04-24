@@ -1,7 +1,7 @@
 import './patch-repl.js';
 
 // Hook require() to transform to CJS
-// eslint-disable-next-line import/no-unresolved
+// eslint-disable-next-line import-x/no-unresolved
 require('./cjs/index.cjs');
 
 /*
