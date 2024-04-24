@@ -73,5 +73,9 @@ export default defineConfig({
 				link: 'https://github.com/privatenumber/tsx',
 			},
 		],
+
+		search: {
+			provider: 'local',
+		},
 	},
 });
