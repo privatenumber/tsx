@@ -2,11 +2,19 @@ name: Release
 
 on:
   push:
-    branches: master
+    branches: [master, develop]
+
+permissions:
+  contents: write
 
 jobs:
   release:
     name: Release
+    if: (
+      github.repository_owner == 'pvtnbr' && github.ref_name =='develop'
+      ) || (
+      github.repository_owner == 'privatenumber' && github.ref_name =='master'
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -28,8 +36,22 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Prerelease to GitHub
+        if: github.repository_owner == 'pvtnbr'
+        run: |
+          jq '
+              .publishConfig.registry = "https://npm.pkg.github.com"
+            | .name = ("@" + env.GITHUB_REPOSITORY_OWNER + "/" + .name)
+            | .repository = env.GITHUB_REPOSITORY
+            | .release.branches = [
+                "master",
+                { name: "develop", prerelease: "rc", channel: "latest" }
+              ]
+            ' package.json > _package.json
+          mv _package.json package.json
+
       - name: Release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpx semantic-release
+        run: pnpm dlx semantic-release
