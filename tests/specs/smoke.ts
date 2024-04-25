@@ -218,6 +218,14 @@ const files = {
 
 	'file.txt': 'hello',
 
+	'import-typescript-parent.js': sourcemap.tag`
+	import './import-typescript-child.js';
+	`,
+
+	'import-typescript-child.ts': sourcemap.tag`
+	console.log('imported');
+	`,
+
 	node_modules: {
 		'pkg-commonjs': {
 			'package.json': JSON.stringify({
@@ -662,6 +670,17 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						expect(pTsconfigAllowJs.failed).toBe(true);
 						expect(pTsconfigAllowJs.stderr).toMatch('Error: No error thrown');
 						expect(pTsconfigAllowJs.stdout).toBe('');
+					});
+
+					test('allowJs in tsconfig.json', async ({ onTestFail }) => {
+						const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig/tsconfig-allowJs.json', 'import-typescript-parent.js'], fixture.path);
+						onTestFail((error) => {
+							console.error(error);
+							console.log(pTsconfigAllowJs);
+						});
+						expect(pTsconfigAllowJs.failed).toBe(false);
+						expect(pTsconfigAllowJs.stderr).toBe('');
+						expect(pTsconfigAllowJs.stdout).toBe('imported');
 					});
 				});
 			});
