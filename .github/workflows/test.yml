@@ -21,6 +21,9 @@ jobs:
         with:
           node-version-file: .nvmrc
 
+      - name: Authenticate GitHub registry
+        run: npm set "//npm.pkg.github.com:_authToken=${{ secrets.GH_TOKEN }}"
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
         with:

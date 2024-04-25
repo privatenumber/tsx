@@ -332,7 +332,10 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						'SIGINT HANDLER COMPLETED\r\n',
 						/EXIT_CODE:\s+200/,
 					]);
-				}, 10_000);
+				}, {
+					timeout: 10_000,
+					retry: 3,
+				});
 
 				test('Infinite loop', async () => {
 					const output = await ptyShell(

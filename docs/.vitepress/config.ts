@@ -15,6 +15,17 @@ export default defineConfig({
 
 	metaChunk: true,
 
+	head: [
+		[
+			'script',
+			{
+				src: 'https://beamanalytics.b-cdn.net/beam.min.js',
+				'data-token': 'ee893e1d-7484-4fb3-85b7-78c58b3d9c9e',
+				async: '',
+			},
+		],
+	],
+
 	themeConfig: {
 		siteTitle: 'tsx',
 
@@ -62,5 +73,9 @@ export default defineConfig({
 				link: 'https://github.com/privatenumber/tsx',
 			},
 		],
+
+		search: {
+			provider: 'local',
+		},
 	},
 });
