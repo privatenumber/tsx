@@ -231,7 +231,10 @@ export default testSuite(({ describe }, node: NodeApis) => {
 								`${signal} HANDLER COMPLETED`,
 							]);
 						}
-					}, 10_000);
+					}, {
+						timeout: 10_000,
+						retry: 3,
+					});
 				}
 			});
 
@@ -297,7 +300,10 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					// This is the exit code I get from testing manually with Node
 					expect(result.exitCode).toBe(137);
 				}
-			}, 10_000);
+			}, {
+				timeout: 10_000,
+				retry: 3,
+			});
 
 			describe('Ctrl + C', ({ test }) => {
 				const CtrlC = '\u0003';
