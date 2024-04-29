@@ -10,6 +10,8 @@ import { resolveTsPath } from '../utils/resolve-ts-path.js';
 import { installSourceMapSupport } from '../source-map.js';
 import { isFeatureSupported, importAttributes } from '../utils/node-features.js';
 import { parent } from '../utils/ipc/client.js';
+import type { NodeError } from '../types.js';
+import { isRelativePathPattern } from '../utils/is-relative-path-pattern.js';
 import {
 	tsconfigPathsMatcher,
 	fileMatcher,
@@ -20,7 +22,6 @@ import {
 	allowJs,
 	type MaybePromise,
 } from './utils.js';
-import type { NodeError } from '../types.js';
 
 const applySourceMap = installSourceMapSupport();
 
@@ -131,8 +132,6 @@ const tryDirectory = async (
 		throw error;
 	}
 };
-
-const isRelativePathPattern = /^\.{1,2}\//;
 
 export const resolve: resolve = async (
 	specifier,
