@@ -57,7 +57,3 @@ export const getFormatFromFileUrl = (fileUrl: string) => {
 };
 
 export type MaybePromise<T> = T | Promise<T>;
-
-export type NodeError = Error & {
-	code: string;
-};

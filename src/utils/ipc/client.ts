@@ -3,17 +3,22 @@ import { getPipePath } from './get-pipe-path.js';
 
 export type SendToParent = (data: Record<string, unknown>) => void;
 
+export type Parent = {
+	send: SendToParent | void;
+};
+
 const connectToServer = () => new Promise<SendToParent | void>((resolve) => {
 	const pipePath = getPipePath(process.ppid);
 	const socket: net.Socket = net.createConnection(
 		pipePath,
 		() => {
-			resolve((data) => {
+			const sendToParent: SendToParent = (data) => {
 				const messageBuffer = Buffer.from(JSON.stringify(data));
 				const lengthBuffer = Buffer.alloc(4);
 				lengthBuffer.writeInt32BE(messageBuffer.length, 0);
 				socket.write(Buffer.concat([lengthBuffer, messageBuffer]));
-			});
+			};
+			resolve(sendToParent);
 		},
 	);
 
@@ -30,4 +35,15 @@ const connectToServer = () => new Promise<SendToParent | void>((resolve) => {
 	socket.unref();
 });
 
+export const parent: Parent = {
+	send: undefined,
+};
+
 export const connectingToServer = connectToServer();
+
+connectingToServer.then(
+	(send) => {
+		parent.send = send;
+	},
+	() => {},
+);

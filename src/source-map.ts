@@ -2,6 +2,19 @@ import type { Transformed } from './utils/transform/apply-transformers.js';
 
 const inlineSourceMapPrefix = '\n//# sourceMappingURL=data:application/json;base64,';
 
+// If undefined, assume sourcemap is enabled
+export const shouldApplySourceMap = () => process.sourceMapsEnabled ?? true;
+
+export const inlineSourceMap = (
+	{ code, map }: Transformed,
+) => (
+	code
+	+ inlineSourceMapPrefix
+	+ Buffer.from(JSON.stringify(map), 'utf8').toString('base64')
+);
+
+const noSourceMap = ({ code }: Transformed) => code;
+
 export const installSourceMapSupport = () => {
 	/**
 	 * Check if native source maps are supported by seeing if the API is available
@@ -19,15 +32,8 @@ export const installSourceMapSupport = () => {
 
 	if (hasNativeSourceMapSupport) {
 		process.setSourceMapsEnabled(true);
-
-		return (
-			{ code, map }: Transformed,
-		) => (
-			code
-			+ inlineSourceMapPrefix
-			+ Buffer.from(JSON.stringify(map), 'utf8').toString('base64')
-		);
+		return inlineSourceMap;
 	}
 
-	return ({ code }: Transformed) => code;
+	return noSourceMap;
 };
