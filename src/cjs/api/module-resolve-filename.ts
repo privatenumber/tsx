@@ -1,9 +1,9 @@
 import path from 'path';
 import Module from 'module';
 import { createPathsMatcher } from 'get-tsconfig';
-import { resolveTsPath } from '../utils/resolve-ts-path.js';
-import type { NodeError } from '../types.js';
-import { isRelativePathPattern } from '../utils/is-relative-path-pattern.js';
+import { resolveTsPath } from '../../utils/resolve-ts-path.js';
+import type { NodeError } from '../../types.js';
+import { isRelativePathPattern } from '../../utils/is-relative-path-pattern.js';
 import {
 	isTsFilePatten,
 	tsconfig,

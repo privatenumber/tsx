@@ -26,6 +26,7 @@
 		"./package.json": "./package.json",
 		".": "./dist/loader.mjs",
 		"./cjs": "./dist/cjs/index.cjs",
+		"./cjs/api": "./dist/cjs/api/index.cjs",
 		"./esm": "./dist/esm/index.mjs",
 		"./cli": "./dist/cli.mjs",
 		"./source-map": "./dist/source-map.cjs",

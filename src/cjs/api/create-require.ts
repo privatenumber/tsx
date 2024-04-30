@@ -1,9 +1,9 @@
 import path from 'path';
 import Module from 'module';
 import { fileURLToPath } from 'url';
-import { isWindows } from '../utils/is-windows.js';
-import { patchExtensions } from './patch-extensions.js';
-import { resolveFilename } from './resolve-filename.js';
+import { isWindows } from '../../utils/is-windows.js';
+import { extensions } from './module-extensions.js';
+import { resolveFilename } from './module-resolve-filename.js';
 
 const isURL = (
 	self: URL | string,
@@ -56,9 +56,7 @@ export const createRequire = (
 	const require: NodeRequire = requirePath => m.require(requirePath);
 	require.resolve = resolve;
 	require.main = process.mainModule;
-	require.extensions = { ...Module._extensions };
-	console.log(require.extensions);
-	patchExtensions(require.extensions);
+	require.extensions = extensions;
 	require.cache = Module._cache;
 
 	return require;
