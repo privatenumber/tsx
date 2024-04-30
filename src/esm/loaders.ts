@@ -9,7 +9,9 @@ import { transformDynamicImport } from '../utils/transform/transform-dynamic-imp
 import { resolveTsPath } from '../utils/resolve-ts-path.js';
 import { installSourceMapSupport } from '../source-map.js';
 import { isFeatureSupported, importAttributes } from '../utils/node-features.js';
-import { connectingToServer, type SendToParent } from '../utils/ipc/client.js';
+import { parent } from '../utils/ipc/client.js';
+import type { NodeError } from '../types.js';
+import { isRelativePathPattern } from '../utils/is-relative-path-pattern.js';
 import {
 	tsconfigPathsMatcher,
 	fileMatcher,
@@ -19,7 +21,6 @@ import {
 	fileProtocol,
 	allowJs,
 	type MaybePromise,
-	type NodeError,
 } from './utils.js';
 
 const applySourceMap = installSourceMapSupport();
@@ -132,8 +133,6 @@ const tryDirectory = async (
 	}
 };
 
-const isRelativePathPattern = /^\.{1,2}\//;
-
 export const resolve: resolve = async (
 	specifier,
 	context,
@@ -220,14 +219,6 @@ export const resolve: resolve = async (
 	}
 };
 
-let sendToParent: SendToParent | void;
-connectingToServer.then(
-	(_sendToParent) => {
-		sendToParent = _sendToParent;
-	},
-	() => {},
-);
-
 const contextAttributesProperty = (
 	isFeatureSupported(importAttributes)
 		? 'importAttributes'
@@ -243,8 +234,8 @@ export const load: LoadHook = async (
 	Filter out node:*
 	Maybe only handle files that start with file://
 	*/
-	if (sendToParent) {
-		sendToParent({
+	if (parent.send) {
+		parent.send({
 			type: 'dependency',
 			path: url,
 		});
