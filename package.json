@@ -26,6 +26,10 @@
 		"./package.json": "./package.json",
 		".": "./dist/loader.mjs",
 		"./cjs": "./dist/cjs/index.cjs",
+		"./cjs/api": {
+			"types": "./dist/cjs/api/index.d.ts",
+			"default": "./dist/cjs/api/index.cjs"
+		},
 		"./esm": "./dist/esm/index.mjs",
 		"./cli": "./dist/cli.mjs",
 		"./source-map": "./dist/source-map.cjs",

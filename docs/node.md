@@ -43,9 +43,81 @@ node --import tsx/esm ./file.ts
 node --loader tsx/esm ./file.ts
 ```
 
-### CommonJS only
-If you only need to add TypeScript & ESM support in a CommonJS context, you can use the CJS loader:
+---
+
+# CommonJS
+
+If you only need to add TypeScript & ESM support in a CommonJS context.
+
+## Command-line API
+
+Pass tsx into the `--require` flag:
 
 ```sh
 node --require tsx/cjs ./file.ts
+```
+
+## Node.js API
+
+### Globally patching `require`
+
+#### Enabling TSX Enhancement
+
+To enhance the global `require()` function with TypeScript support, prepend your script with the following line:
+
+```js
+require('tsx/cjs')
+```
+
+#### Manual Registration & Unregistration
+
+To manually register and unregister the TypeScript enhancement on the global `require()`:
+
+```js
+const tsx = require('tsx/cjs/api')
+
+// Register tsx enhancement for all global require() calls
+const unregister = tsx.register()
+
+// Optionally, unregister the enhancement when needed
+unregister()
+```
+
+### Isolated `require()`
+
+In situations where TypeScript support is needed only for loading a specific file (e.g. within third-party packages) without affecting the global environment, you can utilize tsx's custom `require` function.
+
+Note the current file path must be passed in as the second argument so it knows how to resolve relative paths.
+
+#### CommonJS usage
+```js
+const tsx = require('tsx/cjs/api')
+
+const loaded = tsx.require('./file.ts', __filename)
+const filepath = tsx.require.resolve('./file.ts', __filename)
+```
+
+#### ESM usage
+```js
+import { require } from 'tsx/cjs/api'
+
+const loaded = require('./file.ts', import.meta.url)
+const filepath = require.resolve('./file.ts', import.meta.url)
+```
+
+#### Module graph
+
+If you're interested in seeing what files were loaded, you can traverse the CommonJS module graph. This can be useful for watchers:
+
+```js
+// To detect watch files, we can parse the CommonJS module graph
+const resolvedPath = require.resolve('./file', import.meta.url)
+
+const collectDependencies = module => [
+    module.filename,
+    ...module.children.flatMap(collectDependencies)
+]
+
+console.log(collectDependencies(require.cache[resolvedPath]))
+// ['/file.ts', '/foo.ts', '/bar.ts']
 ```
