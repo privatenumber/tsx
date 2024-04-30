@@ -1,4 +1,4 @@
-import 'module';
+import Module from 'module';
 
 declare global {
 	namespace NodeJS {
@@ -32,4 +32,14 @@ declare module 'module' {
 		isMain: boolean,
 		options?: Record<PropertyKey, unknown>,
 	): string;
+
+	// https://github.com/nodejs/node/blob/7c3dce0e4f296d863a3f9e4cdbadaee8b0280f79/lib/internal/modules/cjs/loader.js#L849
+	export function _nodeModulePaths(from: string): string[];
+
+	export function _resolveLookupPaths(
+		request: string,
+		parent: Module,
+	): string[];
+
+	export const _cache: Record<string, Module>;
 }

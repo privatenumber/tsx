@@ -27,7 +27,7 @@ const fileMatcher = tsconfig && createFilesMatcher(tsconfig);
 
 export const patchExtensions = (
 	extensions: NodeJS.RequireExtensions,
-	parent: Parent,
+	parent?: Parent,
 ) => {
 	const defaultLoader = extensions['.js'];
 
@@ -36,7 +36,7 @@ export const patchExtensions = (
 		filePath: string,
 	) => {
 		// For tracking dependencies in watch mode
-		if (parent.send) {
+		if (parent?.send) {
 			parent.send({
 				type: 'dependency',
 				path: filePath,

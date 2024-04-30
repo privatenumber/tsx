@@ -1,6 +1,7 @@
 import net from 'net';
 import fs from 'fs';
 import { tmpdir } from '../temporary-directory.js';
+import { isWindows } from '../is-windows.js';
 import { getPipePath } from './get-pipe-path.js';
 
 type OnMessage = (message: Buffer) => void;
@@ -73,7 +74,7 @@ export const createIpcServer = async () => {
 		 * removed when the last reference to them is closed. Unlike Unix domain
 		 * sockets, Windows will close and remove the pipe when the owning process exits.
 		 */
-		if (process.platform !== 'win32') {
+		if (!isWindows) {
 			try {
 				fs.rmSync(pipePath);
 			} catch {}
