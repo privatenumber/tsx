@@ -1,0 +1,2 @@
+"use strict";const p=`
+//# sourceMappingURL=data:application/json;base64,`,a=()=>{var e;return(e=process.sourceMapsEnabled)!=null?e:!0},r=({code:e,map:o})=>e+p+Buffer.from(JSON.stringify(o),"utf8").toString("base64"),s=({code:e})=>e,n=()=>"setSourceMapsEnabled"in process?(process.setSourceMapsEnabled(!0),r):s;exports.inlineSourceMap=r,exports.installSourceMapSupport=n,exports.shouldApplySourceMap=a;

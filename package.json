@@ -1,104 +1,47 @@
 {
-	"name": "tsx",
-	"version": "0.0.0-semantic-release",
-	"description": "TypeScript Execute (tsx): Node.js enhanced with esbuild to run TypeScript & ESM files",
-	"keywords": [
-		"esbuild",
-		"runtime",
-		"node",
-		"cjs",
-		"commonjs",
-		"esm",
-		"typescript"
-	],
-	"license": "MIT",
-	"repository": "privatenumber/tsx",
-	"author": {
-		"name": "Hiroki Osame",
-		"email": "hiroki.osame@gmail.com"
-	},
-	"files": [
-		"dist"
-	],
-	"type": "module",
-	"bin": "./dist/cli.mjs",
-	"exports": {
-		"./package.json": "./package.json",
-		".": "./dist/loader.mjs",
-		"./cjs": "./dist/cjs/index.cjs",
-		"./cjs/api": "./dist/cjs/api/index.cjs",
-		"./esm": "./dist/esm/index.mjs",
-		"./cli": "./dist/cli.mjs",
-		"./source-map": "./dist/source-map.cjs",
-		"./suppress-warnings": "./dist/suppress-warnings.cjs",
-		"./preflight": "./dist/preflight.cjs",
-		"./repl": "./dist/repl.mjs"
-	},
-	"scripts": {
-		"prepare": "pnpm simple-git-hooks",
-		"build": "pkgroll --target=node12.19 --minify",
-		"lint": "lintroll --node --cache .",
-		"type-check": "tsc --noEmit",
-		"test": "pnpm build && node ./dist/cli.mjs tests/index.ts",
-		"prepack": "pnpm build && clean-pkg-json",
-		"docs:dev": "pnpm --filter=docs dev",
-		"docs:build": "pnpm --filter=docs build",
-		"docs:preview": "pnpm --filter=docs preview"
-	},
-	"simple-git-hooks": {
-		"pre-commit": "pnpm lint-staged"
-	},
-	"lint-staged": {
-		"*.{js,ts,mjs,mts,cjs,cts,json}": "pnpm lint"
-	},
-	"engines": {
-		"node": ">=18.0.0"
-	},
-	"dependencies": {
-		"esbuild": "~0.19.10",
-		"get-tsconfig": "^4.7.2"
-	},
-	"optionalDependencies": {
-		"fsevents": "~2.3.3"
-	},
-	"devDependencies": {
-		"@ampproject/remapping": "^2.2.1",
-		"@types/cross-spawn": "^6.0.6",
-		"@types/node": "^20.9.4",
-		"@types/react": "^18.2.38",
-		"@types/semver": "^7.5.6",
-		"@types/split2": "^4.2.3",
-		"cachedir": "^2.4.0",
-		"chokidar": "^3.5.3",
-		"clean-pkg-json": "^1.2.0",
-		"cleye": "^1.3.2",
-		"cross-spawn": "^7.0.3",
-		"es-module-lexer": "^1.4.1",
-		"execa": "^8.0.1",
-		"fs-fixture": "^1.2.0",
-		"fs-require": "^1.6.0",
-		"get-node": "^15.0.0",
-		"kolorist": "^1.8.0",
-		"lint-staged": "^15.1.0",
-		"lintroll": "^1.4.1",
-		"magic-string": "^0.30.5",
-		"manten": "^1.3.0",
-		"memfs": "^4.6.0",
-		"node-pty": "^1.0.0",
-		"outdent": "^0.8.0",
-		"pkgroll": "^2.0.1",
-		"semver": "^7.5.4",
-		"simple-git-hooks": "^2.9.0",
-		"split2": "^4.2.0",
-		"strip-ansi": "^7.1.0",
-		"type-fest": "^4.8.2",
-		"type-flag": "^3.0.0",
-		"typescript": "^5.3.2"
-	},
-	"eslintConfig": {
-		"extends": "@pvtnbr",
-		"ignorePatterns": [
-			"tests/fixtures"
-		]
-	}
+  "name": "tsx",
+  "version": "0.0.0-semantic-release",
+  "description": "TypeScript Execute (tsx): Node.js enhanced with esbuild to run TypeScript & ESM files",
+  "keywords": [
+    "esbuild",
+    "runtime",
+    "node",
+    "cjs",
+    "commonjs",
+    "esm",
+    "typescript"
+  ],
+  "license": "MIT",
+  "repository": "privatenumber/tsx",
+  "author": {
+    "name": "Hiroki Osame",
+    "email": "hiroki.osame@gmail.com"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "bin": "./dist/cli.mjs",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": "./dist/loader.mjs",
+    "./cjs": "./dist/cjs/index.cjs",
+    "./cjs/api": "./dist/cjs/api/index.cjs",
+    "./esm": "./dist/esm/index.mjs",
+    "./cli": "./dist/cli.mjs",
+    "./source-map": "./dist/source-map.cjs",
+    "./suppress-warnings": "./dist/suppress-warnings.cjs",
+    "./preflight": "./dist/preflight.cjs",
+    "./repl": "./dist/repl.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "esbuild": "~0.19.10",
+    "get-tsconfig": "^4.7.2"
+  },
+  "optionalDependencies": {
+    "fsevents": "~2.3.3"
+  }
 }

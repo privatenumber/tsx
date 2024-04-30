@@ -1,0 +1,1 @@
+import o from"path";const s=Object.create(null);s[".js"]=[".ts",".tsx",".js",".jsx"],s[".jsx"]=[".tsx",".ts",".jsx",".js"],s[".cjs"]=[".cts"],s[".mjs"]=[".mts"];const a=t=>{const x=o.extname(t),[c,e]=o.extname(t).split("?"),n=s[c];if(n){const i=t.slice(0,-x.length);return n.map(r=>i+r+(e?`?${e}`:""))}},j=/^\.{1,2}\//;export{j as i,a as r};

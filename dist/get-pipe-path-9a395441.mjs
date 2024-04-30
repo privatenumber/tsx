@@ -1,0 +1,1 @@
+import o from"path";import{t as r}from"./temporary-directory-04b36185.mjs";const t=process.platform==="win32",s=i=>{const p=o.join(r,`${i}.pipe`);return t?`\\\\?\\pipe\\${p}`:p};export{s as g,t as i};
