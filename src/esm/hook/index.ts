@@ -6,14 +6,7 @@ export const initialize: InitializeHook = async (data) => {
 	}
 };
 
-/**
- * Technically globalPreload is deprecated so it should be in loaders-deprecated
- * but it shares a closure with the new load hook
- */
-export const globalPreload: GlobalPreloadHook = () => `
-const require = getBuiltin('module').createRequire('${import.meta.url}');
-process.setSourceMapsEnabled(true);
-`;
+export const globalPreload: GlobalPreloadHook = () => 'process.setSourceMapsEnabled(true);';
 
 export { load } from './load.js';
 export { resolve } from './resolve.js';

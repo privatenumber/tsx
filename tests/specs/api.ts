@@ -2,7 +2,9 @@ import path from 'node:path';
 import { execaNode } from 'execa';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
-import { tsxEsmPath, cjsApiPath, type NodeApis } from '../utils/tsx.js';
+import {
+	tsxEsmPath, tsxCjsApiPath, type NodeApis, tsxCjsPath,
+} from '../utils/tsx.js';
 
 const tsFiles = {
 	'file.ts': `
@@ -19,10 +21,25 @@ const tsFiles = {
 export default testSuite(({ describe }, node: NodeApis) => {
 	describe('API', ({ describe }) => {
 		describe('CommonJS', ({ test }) => {
+			test('cli', async ({ onTestFinish }) => {
+				const fixture = await createFixture({
+					'index.ts': 'import { message } from \'./file\';\n\nconsole.log(message, new Error().stack);',
+					...tsFiles,
+				});
+				onTestFinish(async () => await fixture.rm());
+
+				const { stdout } = await execaNode(path.join(fixture.path, 'index.ts'), {
+					nodePath: node.path,
+					nodeOptions: ['--require', tsxCjsPath],
+				});
+				expect(stdout).toContain('foo bar');
+				expect(stdout).toContain('index.ts:3:22');
+			});
+
 			test('register / unregister', async ({ onTestFinish }) => {
 				const fixture = await createFixture({
 					'register.cjs': `
-					const { register } = require(${JSON.stringify(cjsApiPath)});
+					const { register } = require(${JSON.stringify(tsxCjsApiPath)});
 					try {
 						require('./file');
 					} catch {
@@ -62,7 +79,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				test('loads', async ({ onTestFinish }) => {
 					const fixture = await createFixture({
 						'require.cjs': `
-						const tsx = require(${JSON.stringify(cjsApiPath)});
+						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
 						try {
 							require('./file');
 						} catch {
@@ -97,7 +114,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				test('catchable', async ({ onTestFinish }) => {
 					const fixture = await createFixture({
 						'require.cjs': `
-						const tsx = require(${JSON.stringify(cjsApiPath)});
+						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
 						try { tsx.require('./file', __filename); } catch {}
 						`,
 						'file.ts': 'if',
@@ -115,6 +132,22 @@ export default testSuite(({ describe }, node: NodeApis) => {
 		});
 
 		describe('node:module', ({ test }) => {
+			test('cli', async ({ onTestFinish }) => {
+				const fixture = await createFixture({
+					'package.json': JSON.stringify({ type: 'node:module' }),
+					'index.ts': 'import { message } from \'./file\';\n\nconsole.log(message, new Error().stack);',
+					...tsFiles,
+				});
+				onTestFinish(async () => await fixture.rm());
+
+				const { stdout } = await execaNode(path.join(fixture.path, 'index.ts'), {
+					nodePath: node.path,
+					nodeOptions: [node.supports.moduleRegister ? '--import' : '--loader', tsxEsmPath],
+				});
+				expect(stdout).toContain('foo bar');
+				expect(stdout).toContain('index.ts:3:22');
+			});
+
 			if (node.supports.moduleRegister) {
 				test('module.register', async ({ onTestFinish }) => {
 					const fixture = await createFixture({

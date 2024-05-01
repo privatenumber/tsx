@@ -12,8 +12,6 @@ import {
 	isJsonPattern,
 } from './utils.js';
 
-process.setSourceMapsEnabled(true);
-
 const contextAttributesProperty = (
 	isFeatureSupported(importAttributes)
 		? 'importAttributes'
