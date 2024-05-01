@@ -11,7 +11,7 @@ export const register = () => {
 
 	const { port1, port2 } = new MessageChannel();
 	module.register(
-		// Load new copy of loader so they can be registered multiple times
+		// Load new copy of loader so it can be registered multiple times
 		`./esm/index.mjs?${Date.now()}`,
 		{
 			parentURL: import.meta.url,
@@ -22,18 +22,19 @@ export const register = () => {
 		},
 	);
 
-	return async () => {
+	return () => {
 		port1.postMessage('deactivate');
-		await new Promise<void>((resolve) => {
+		if (sourceMapsEnabled === false) {
+			process.setSourceMapsEnabled(false);
+		}
+
+		// Not necessary to wait, but provide the option
+		return new Promise<void>((resolve) => {
 			port1.once('message', (message) => {
 				if (message === 'deactivated') {
 					resolve();
 				}
 			});
 		});
-
-		if (sourceMapsEnabled === false) {
-			process.setSourceMapsEnabled(false);
-		}
 	};
 };
