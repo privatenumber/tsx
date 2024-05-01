@@ -3,7 +3,11 @@ import { execaNode } from 'execa';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import {
-	tsxEsmPath, tsxCjsApiPath, type NodeApis, tsxCjsPath,
+	tsxCjsPath,
+	tsxCjsApiPath,
+	tsxEsmPath,
+	tsxEsmApiPath,
+	type NodeApis,
 } from '../utils/tsx.js';
 
 const tsFiles = {
@@ -131,10 +135,10 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			});
 		});
 
-		describe('node:module', ({ test }) => {
+		describe('module', ({ test }) => {
 			test('cli', async ({ onTestFinish }) => {
 				const fixture = await createFixture({
-					'package.json': JSON.stringify({ type: 'node:module' }),
+					'package.json': JSON.stringify({ type: 'module' }),
 					'index.ts': 'import { message } from \'./file\';\n\nconsole.log(message, new Error().stack);',
 					...tsFiles,
 				});
@@ -151,7 +155,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			if (node.supports.moduleRegister) {
 				test('module.register', async ({ onTestFinish }) => {
 					const fixture = await createFixture({
-						'package.json': JSON.stringify({ type: 'node:module' }),
+						'package.json': JSON.stringify({ type: 'module' }),
 						'module-register.mjs': `
 						import { register } from 'node:module';
 
@@ -177,6 +181,41 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					});
 
 					expect(stdout).toBe('Fails as expected\nfoo bar');
+				});
+
+				test('register / unregister', async ({ onTestFinish }) => {
+					const fixture = await createFixture({
+						'package.json': JSON.stringify({ type: 'module' }),
+						'register.mjs': `
+						import { register } from ${JSON.stringify(tsxEsmApiPath)};
+						try {
+							await import('./file.ts?1');
+						} catch {
+							console.log('Fails as expected 1');
+						}
+
+						const unregister = register();
+
+						const { message } = await import('./file?2');
+						console.log(message);
+
+						await unregister();
+
+						try {
+							await import('./file.ts?3');
+						} catch {
+							console.log('Fails as expected 2');
+						}
+						`,
+						...tsFiles,
+					});
+					onTestFinish(async () => await fixture.rm());
+
+					const { stdout } = await execaNode(path.join(fixture.path, 'register.mjs'), [], {
+						nodePath: node.path,
+						nodeOptions: [],
+					});
+					expect(stdout).toBe('Fails as expected 1\nfoo bar\nFails as expected 2');
 				});
 			}
 		});

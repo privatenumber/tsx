@@ -2,7 +2,7 @@ import module from 'node:module';
 import { MessageChannel, type MessagePort } from 'node:worker_threads';
 
 export type Data = {
-	port: MessagePort;
+	port?: MessagePort;
 };
 
 export const register = () => {
