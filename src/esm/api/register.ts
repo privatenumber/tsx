@@ -22,8 +22,12 @@ export const register = () => {
 
 	return () => {
 		port1.postMessage('deactivate');
-		return new Promise((resolve) => {
-			port1.once('message', resolve);
+		return new Promise<void>((resolve) => {
+			port1.once('message', (message) => {
+				if (message === 'deactivated') {
+					resolve();
+				}
+			});
 		});
 	};
 };

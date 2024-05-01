@@ -11,9 +11,11 @@ export const initialize: InitializeHook = async (data: Data | void) => {
 
 	if (data.port) {
 		// Unregister
-		data.port.on('message', () => {
-			active = false;
-			data.port!.postMessage('deactivated');
+		data.port.on('message', (message: string) => {
+			if (message === 'deactivate') {
+				active = false;
+				data.port!.postMessage('deactivated');
+			}
 		});
 	}
 };
