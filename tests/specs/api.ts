@@ -95,6 +95,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 						// Remove from cache
 						const loadedPath = tsx.require.resolve('./file', __filename);
+						console.log(loadedPath.split('/').pop());
 						delete require.cache[loadedPath];
 
 						try {
@@ -112,7 +113,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						nodeOptions: [],
 					});
 
-					expect(stdout).toBe('Fails as expected\nfoo bar\nUnpolluted global require');
+					expect(stdout).toBe('Fails as expected\nfoo bar\nfile.ts\nUnpolluted global require');
 				});
 
 				test('catchable', async ({ onTestFinish }) => {
@@ -212,6 +213,35 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					onTestFinish(async () => await fixture.rm());
 
 					const { stdout } = await execaNode(path.join(fixture.path, 'register.mjs'), [], {
+						nodePath: node.path,
+						nodeOptions: [],
+					});
+					expect(stdout).toBe('Fails as expected 1\nfoo bar\nFails as expected 2');
+				});
+
+				test('tsImport()', async ({ onTestFinish }) => {
+					const fixture = await createFixture({
+						'package.json': JSON.stringify({ type: 'module' }),
+						'import.mjs': `
+						import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+
+						await import('./file.ts?1').catch((error) => {
+							console.log('Fails as expected 1');
+						});
+
+						const { message } = await tsImport('./file.ts?2', import.meta.url);
+						console.log(message);
+
+						// Global not polluted
+						await import('./file.ts?3').catch((error) => {
+							console.log('Fails as expected 2');
+						});
+						`,
+						...tsFiles,
+					});
+					onTestFinish(async () => await fixture.rm());
+
+					const { stdout } = await execaNode(path.join(fixture.path, 'import.mjs'), [], {
 						nodePath: node.path,
 						nodeOptions: [],
 					});
