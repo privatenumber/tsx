@@ -4,25 +4,30 @@ import { register } from './global-require-patch.js';
 import { resolveFilename } from './module-resolve-filename.js';
 
 const getRequestContext = (
-	filepath: string | URL,
+	id: string,
+	fromFile: string | URL,
 ) => {
-	if (
-		(typeof filepath === 'string' && filepath.startsWith('file://'))
-		|| filepath instanceof URL
-	) {
-		filepath = fileURLToPath(filepath);
+	if (!fromFile) {
+		throw new Error('The current file path (__filename or import.meta.url) must be provided in the second argument of tsx.require()');
 	}
-	return path.dirname(filepath);
+
+	if (
+		(typeof fromFile === 'string' && fromFile.startsWith('file://'))
+		|| fromFile instanceof URL
+	) {
+		fromFile = fileURLToPath(fromFile);
+	}
+
+	return path.resolve(path.dirname(fromFile), id);
 };
 
 const tsxRequire = (
 	id: string,
 	fromFile: string | URL,
 ) => {
+	const contextId = getRequestContext(id, fromFile);
 	const unregister = register();
 	try {
-		const contextId = path.resolve(getRequestContext(fromFile), id);
-
 		// eslint-disable-next-line import-x/no-dynamic-require, n/global-require
 		return require(contextId);
 	} finally {
@@ -35,7 +40,7 @@ const resolve = (
 	fromFile: string | URL,
 	options?: { paths?: string[] | undefined },
 ) => {
-	const contextId = path.resolve(getRequestContext(fromFile), id);
+	const contextId = getRequestContext(id, fromFile);
 	return resolveFilename(contextId, module, false, options);
 };
 resolve.paths = require.resolve.paths;

@@ -15,6 +15,8 @@ type Options = {
 };
 
 export const tsxPath = fileURLToPath(new URL('../../dist/cli.mjs', import.meta.url).toString());
+export const cjsApiPath = fileURLToPath(new URL('../../dist/cjs/api/index.cjs', import.meta.url).toString());
+export const tsxEsmPath = new URL('../../dist/esm/index.mjs', import.meta.url).toString();
 
 const cjsPatchPath = fileURLToPath(new URL('../../dist/cjs/index.cjs', import.meta.url).toString());
 const hookPath = new URL('../../dist/esm/index.cjs', import.meta.url).toString();
