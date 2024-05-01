@@ -22,21 +22,15 @@ import {
 	patchOptions,
 } from './get-esbuild-options.js';
 
-const handleEsbuildError = (
+const formatEsbuildError = (
 	error: TransformFailure,
 ) => {
-	const [firstError] = error.errors;
-	let errorMessage = `[esbuild Error]: ${firstError.text}`;
-
-	if (firstError.location) {
-		const { file, line, column } = firstError.location;
-		errorMessage += `\n    at ${file}:${line}:${column}`;
-	}
-
-	console.error(errorMessage);
-
-	// eslint-disable-next-line n/no-process-exit
-	process.exit(1);
+	error.name = 'TransformError';
+	// @ts-expect-error deleting non-option property
+	delete error.errors;
+	// @ts-expect-error deleting non-option property
+	delete error.warnings;
+	throw error;
 };
 
 // Used by cjs-loader
@@ -76,19 +70,14 @@ export const transformSync = (
 			[
 				// eslint-disable-next-line @typescript-eslint/no-shadow
 				(_filePath, code) => {
-					const patchResults = patchOptions(esbuildOptions);
+					const patchResult = patchOptions(esbuildOptions);
+					let result;
 					try {
-						return patchResults(
-							esbuildTransformSync(code, esbuildOptions),
-						);
+						result = esbuildTransformSync(code, esbuildOptions);
 					} catch (error) {
-						handleEsbuildError(error as TransformFailure);
-
-						/**
-						 * esbuild warnings are ignored because they're usually caught
-						 * at runtime by Node.js with better errors + stack traces
-						 */
+						throw formatEsbuildError(error as TransformFailure);
 					}
+					return patchResult(result);
 				},
 				transformDynamicImport,
 			],
@@ -128,19 +117,14 @@ export const transform = async (
 			[
 				// eslint-disable-next-line @typescript-eslint/no-shadow
 				async (_filePath, code) => {
-					const patchResults = patchOptions(esbuildOptions);
+					const patchResult = patchOptions(esbuildOptions);
+					let result;
 					try {
-						return patchResults(
-							await esbuildTransform(code, esbuildOptions),
-						);
+						result = await esbuildTransform(code, esbuildOptions);
 					} catch (error) {
-						handleEsbuildError(error as TransformFailure);
-
-						/**
-						 * esbuild warnings are ignored because they're usually caught
-						 * at runtime by Node.js with better errors + stack traces
-						 */
+						throw formatEsbuildError(error as TransformFailure);
 					}
+					return patchResult(result);
 				},
 				transformDynamicImport,
 			],

@@ -58,39 +58,59 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				expect(stdout).toBe('Fails as expected\nfoo bar\nUnregistered');
 			});
 
-			test('tsx.require()', async ({ onTestFinish }) => {
-				const fixture = await createFixture({
-					'require.cjs': `
-					const tsx = require(${JSON.stringify(cjsApiPath)});
-					try {
-						require('./file');
-					} catch {
-						console.log('Fails as expected');
-					}
+			describe('tsx.require()', ({ test }) => {
+				test('loads', async ({ onTestFinish }) => {
+					const fixture = await createFixture({
+						'require.cjs': `
+						const tsx = require(${JSON.stringify(cjsApiPath)});
+						try {
+							require('./file');
+						} catch {
+							console.log('Fails as expected');
+						}
 
-					const loaded = tsx.require('./file', __filename);
-					console.log(loaded.message);
+						const loaded = tsx.require('./file', __filename);
+						console.log(loaded.message);
 
-					// Remove from cache
-					const loadedPath = tsx.require.resolve('./file', __filename);
-					delete require.cache[loadedPath];
+						// Remove from cache
+						const loadedPath = tsx.require.resolve('./file', __filename);
+						delete require.cache[loadedPath];
 
-					try {
-						require('./file');
-					} catch {
-						console.log('Unpolluted global require');
-					}
-					`,
-					...tsFiles,
+						try {
+							require('./file');
+						} catch {
+							console.log('Unpolluted global require');
+						}
+						`,
+						...tsFiles,
+					});
+					onTestFinish(async () => await fixture.rm());
+
+					const { stdout } = await execaNode(path.join(fixture.path, 'require.cjs'), [], {
+						nodePath: node.path,
+						nodeOptions: [],
+					});
+
+					expect(stdout).toBe('Fails as expected\nfoo bar\nUnpolluted global require');
 				});
-				onTestFinish(async () => await fixture.rm());
 
-				const { stdout } = await execaNode(path.join(fixture.path, 'require.cjs'), [], {
-					nodePath: node.path,
-					nodeOptions: [],
+				test('catchable', async ({ onTestFinish }) => {
+					const fixture = await createFixture({
+						'require.cjs': `
+						const tsx = require(${JSON.stringify(cjsApiPath)});
+						try { tsx.require('./file', __filename); } catch {}
+						`,
+						'file.ts': 'if',
+					});
+					onTestFinish(async () => await fixture.rm());
+
+					const { all } = await execaNode(path.join(fixture.path, 'require.cjs'), [], {
+						nodePath: node.path,
+						nodeOptions: [],
+						all: true,
+					});
+					expect(all).toBe('');
 				});
-
-				expect(stdout).toBe('Fails as expected\nfoo bar\nUnpolluted global require');
 			});
 		});
 
