@@ -11,8 +11,8 @@ export const initialize: InitializeHook = async (data) => {
  * but it shares a closure with the new load hook
  */
 export const globalPreload: GlobalPreloadHook = () => `
-const require = getBuiltin('module').createRequire("${import.meta.url}");
-require('../source-map.cjs').installSourceMapSupport();
+const require = getBuiltin('module').createRequire('${import.meta.url}');
+process.setSourceMapsEnabled(true);
 `;
 
 export { load } from './load.js';
