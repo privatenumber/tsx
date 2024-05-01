@@ -1,7 +1,7 @@
 import module from 'node:module';
-import { installSourceMapSupport } from '../source-map.js';
+import { installSourceMapSupport } from '../../source-map.js';
 
-export const registerLoader = () => {
+export const register = () => {
 	installSourceMapSupport();
 
 	module.register(
