@@ -83,6 +83,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				test('loads', async ({ onTestFinish }) => {
 					const fixture = await createFixture({
 						'require.cjs': `
+						const path = require('node:path');
 						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
 						try {
 							require('./file');
@@ -95,7 +96,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 						// Remove from cache
 						const loadedPath = tsx.require.resolve('./file', __filename);
-						console.log(loadedPath.split('/').pop());
+						console.log(loadedPath.split(path.sep).pop());
 						delete require.cache[loadedPath];
 
 						try {
