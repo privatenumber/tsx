@@ -32,8 +32,14 @@
 		},
 		"./esm": "./dist/esm/index.mjs",
 		"./esm/api": {
-			"types": "./dist/esm/api/index.d.mts",
-			"default": "./dist/esm/api/index.mjs"
+			"import": {
+				"types": "./dist/esm/api/index.d.mts",
+				"default": "./dist/esm/api/index.mjs"
+			},
+			"require": {
+				"types": "./dist/esm/api/index.d.cts",
+				"default": "./dist/esm/api/index.cjs"
+			}
 		},
 		"./cli": "./dist/cli.mjs",
 		"./suppress-warnings": "./dist/suppress-warnings.cjs",

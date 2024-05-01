@@ -70,6 +70,17 @@ register('tsx/esm', {
 const loaded = await import('./hello.ts')
 ```
 
+### Node.js API: Registration & Unregistration
+```js
+import { register } from 'tsx/esm/api'
+
+// register tsx enhancement
+const unregister = register()
+
+// Unregister when needed
+unregister()
+```
+
 ## Only CommonJS enhancement
 
 > For situations where you need TypeScript and ESM support only in a CommonJS context (using `.cjs` files or `package.json` with `"type": "commonjs"`).
@@ -82,21 +93,15 @@ Pass _tsx_ into the `--require` flag:
 node --require tsx/cjs ./file.ts
 ```
 
-### Node.js API
-
-#### Globally patching `require`
-
-##### Enabling TSX Enhancement
-
-Add the following line at the top of your entry file:
+This is the equivalent of adding the following at the top of your entry file, which you can also do:
 
 ```js
 require('tsx/cjs')
 ```
 
-##### Manual Registration & Unregistration
+### Node.js API: Registration & Unregistration
 
-To manually register and unregister the TypeScript enhancement:
+To manually register and unregister the tsx enhancement:
 
 ```js
 const tsx = require('tsx/cjs/api')
@@ -108,13 +113,37 @@ const unregister = tsx.register()
 unregister()
 ```
 
-## `tsx.require()`
+## Custom `import()` & `require()`
 
-For loading a TypeScript file without affecting the environment, `tsx` exports a custom `require(id, loadFromPath)` function.
+### `tsImport()`
+
+The `import()` function patched to support TypeScript. Since this only patches `import()`, it's inherently just the Module enhancement, so it cannot load CommonJS TypeScript files (`.cts` or `.ts` files in CommonJS context). However, it is great for supporting top-level await.
 
 Note, the current file path must be passed in as the second argument so it knows how to resolve relative paths.
 
-### CommonJS usage
+#### ESM usage
+
+```js
+import { tsImport } from 'tsx/esm/api'
+
+const loaded = await tsImport('./file.ts', import.meta.url)
+```
+
+#### CommonJS usage
+
+```js
+const { tsImport } = require('tsx/esm/api')
+
+const loaded = await tsImport('./file.ts', __filename)
+```
+
+### `tsx.require()`
+
+The `require()` function patched to support TypeScript and ESM. Since this only patches `require()`, it's inherently just the CommonJS enhancement, so it cannot load Module TypeScript files (`.mts` or `.ts` files in Module context).
+
+Note, the current file path must be passed in as the second argument so it knows how to resolve relative paths.
+
+#### CommonJS usage
 
 ```js
 const tsx = require('tsx/cjs/api')
@@ -123,7 +152,7 @@ const loaded = tsx.require('./file.ts', __filename)
 const filepath = tsx.require.resolve('./file.ts', __filename)
 ```
 
-### ESM usage
+#### ESM usage
 
 ```js
 import { require } from 'tsx/cjs/api'
@@ -132,7 +161,7 @@ const loaded = require('./file.ts', import.meta.url)
 const filepath = require.resolve('./file.ts', import.meta.url)
 ```
 
-### Module graph inspection
+#### Module graph inspection
 
 Because the CommonJS API tracks loaded modules in `require.cache`, you can use it to identify loaded files for dependency tracking. This can be useful when implementing a watcher.
 

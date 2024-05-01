@@ -1,14 +1,25 @@
+import { pathToFileURL } from 'node:url';
 import { register } from './register';
 
 const resolveSpecifier = (
 	specifier: string,
 	fromFile: string,
 ) => {
-	if (!fromFile || !fromFile.startsWith('file://')) {
+	if (!fromFile) {
 		throw new Error('The current file path (import.meta.url) must be provided in the second argument of tsImport()');
 	}
-	const resolvedUrl = new URL(specifier, fromFile).toString();
-	return resolvedUrl;
+
+	const base = (
+		fromFile.startsWith('file://')
+			? fromFile
+			: pathToFileURL(fromFile)
+	);
+	const resolvedUrl = new URL(specifier, base);
+
+	// A namespace query is added so we get our own module cache
+	resolvedUrl.searchParams.set('tsx', '');
+
+	return resolvedUrl.toString();
 };
 
 const tsImport = (

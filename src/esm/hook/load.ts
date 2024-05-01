@@ -22,10 +22,10 @@ const contextAttributesProperty = (
 export const load: LoadHook = async (
 	url,
 	context,
-	defaultLoad,
+	nextLoad,
 ) => {
 	if (!active) {
-		return defaultLoad(url, context);
+		return nextLoad(url, context);
 	}
 
 	/*
@@ -47,7 +47,7 @@ export const load: LoadHook = async (
 		context[contextAttributesProperty]!.type = 'json';
 	}
 
-	const loaded = await defaultLoad(url, context);
+	const loaded = await nextLoad(url, context);
 
 	// CommonJS and Internal modules (e.g. node:*)
 	if (!loaded.source) {

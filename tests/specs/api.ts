@@ -7,6 +7,7 @@ import {
 	tsxCjsApiPath,
 	tsxEsmPath,
 	tsxEsmApiPath,
+	tsxEsmApiCjsPath,
 	type NodeApis,
 } from '../utils/tsx.js';
 
@@ -137,7 +138,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			});
 		});
 
-		describe('module', ({ test }) => {
+		describe('module', ({ describe, test }) => {
 			test('cli', async ({ onTestFinish }) => {
 				const fixture = await createFixture({
 					'package.json': JSON.stringify({ type: 'module' }),
@@ -220,33 +221,73 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					expect(stdout).toBe('Fails as expected 1\nfoo bar\nFails as expected 2');
 				});
 
-				test('tsImport()', async ({ onTestFinish }) => {
-					const fixture = await createFixture({
-						'package.json': JSON.stringify({ type: 'module' }),
-						'import.mjs': `
-						import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
-
-						await import('./file.ts?1').catch((error) => {
-							console.log('Fails as expected 1');
+				// add CJS test
+				describe('tsImport()', ({ test }) => {
+					test('module', async ({ onTestFinish }) => {
+						const fixture = await createFixture({
+							'package.json': JSON.stringify({ type: 'module' }),
+							'import.mjs': `
+							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+	
+							await import('./file.ts').catch((error) => {
+								console.log('Fails as expected 1');
+							});
+	
+							const { message } = await tsImport('./file.ts', import.meta.url);
+							console.log(message);
+	
+							const { message: message2 } = await tsImport('./file.ts?with-query', import.meta.url);
+							console.log(message2);
+	
+							// Global not polluted
+							await import('./file.ts?nocache').catch((error) => {
+								console.log('Fails as expected 2');
+							});
+							`,
+							...tsFiles,
 						});
+						onTestFinish(async () => await fixture.rm());
 
-						const { message } = await tsImport('./file.ts?2', import.meta.url);
-						console.log(message);
-
-						// Global not polluted
-						await import('./file.ts?3').catch((error) => {
-							console.log('Fails as expected 2');
+						const { stdout } = await execaNode(path.join(fixture.path, 'import.mjs'), [], {
+							nodePath: node.path,
+							nodeOptions: [],
 						});
-						`,
-						...tsFiles,
+						expect(stdout).toBe('Fails as expected 1\nfoo bar\nfoo bar\nFails as expected 2');
 					});
-					onTestFinish(async () => await fixture.rm());
 
-					const { stdout } = await execaNode(path.join(fixture.path, 'import.mjs'), [], {
-						nodePath: node.path,
-						nodeOptions: [],
+					test('commonjs', async ({ onTestFinish }) => {
+						const fixture = await createFixture({
+							'package.json': JSON.stringify({ type: 'module' }),
+							'import.cjs': `
+							const { tsImport } = require(${JSON.stringify(tsxEsmApiCjsPath)});
+	
+							(async () => {
+								await import('./file.ts').catch((error) => {
+									console.log('Fails as expected 1');
+								});
+		
+								const { message } = await tsImport('./file.ts', __filename);
+								console.log(message);
+		
+								const { message: message2 } = await tsImport('./file.ts?with-query', __filename);
+								console.log(message2);
+		
+								// Global not polluted
+								await import('./file.ts?nocache').catch((error) => {
+									console.log('Fails as expected 2');
+								});
+							})();
+							`,
+							...tsFiles,
+						});
+						onTestFinish(async () => await fixture.rm());
+
+						const { stdout } = await execaNode(path.join(fixture.path, 'import.cjs'), [], {
+							nodePath: node.path,
+							nodeOptions: [],
+						});
+						expect(stdout).toBe('Fails as expected 1\nfoo bar\nfoo bar\nFails as expected 2');
 					});
-					expect(stdout).toBe('Fails as expected 1\nfoo bar\nFails as expected 2');
 				});
 			}
 		});

@@ -19,6 +19,7 @@ export const tsxCjsPath = fileURLToPath(new URL('../../dist/cjs/index.cjs', impo
 export const tsxCjsApiPath = fileURLToPath(new URL('../../dist/cjs/api/index.cjs', import.meta.url).toString());
 export const tsxEsmPath = new URL('../../dist/esm/index.mjs', import.meta.url).toString();
 export const tsxEsmApiPath = new URL('../../dist/esm/api/index.mjs', import.meta.url).toString();
+export const tsxEsmApiCjsPath = fileURLToPath(new URL('../../dist/esm/api/index.cjs', import.meta.url).toString());
 
 const cjsPatchPath = fileURLToPath(new URL('../../dist/cjs/index.cjs', import.meta.url).toString());
 const hookPath = new URL('../../dist/esm/index.cjs', import.meta.url).toString();

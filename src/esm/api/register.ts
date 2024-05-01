@@ -6,11 +6,13 @@ export type Data = {
 };
 
 export const register = () => {
+	const { sourceMapsEnabled } = process;
 	process.setSourceMapsEnabled(true);
 
 	const { port1, port2 } = new MessageChannel();
 	module.register(
-		'./esm/index.mjs',
+		// Load new copy of loader so they can be registered multiple times
+		`./esm/index.mjs?${Date.now()}`,
 		{
 			parentURL: import.meta.url,
 			data: {
@@ -20,14 +22,18 @@ export const register = () => {
 		},
 	);
 
-	return () => {
+	return async () => {
 		port1.postMessage('deactivate');
-		return new Promise<void>((resolve) => {
+		await new Promise<void>((resolve) => {
 			port1.once('message', (message) => {
 				if (message === 'deactivated') {
 					resolve();
 				}
 			});
 		});
+
+		if (sourceMapsEnabled === false) {
+			process.setSourceMapsEnabled(false);
+		}
 	};
 };
