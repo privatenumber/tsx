@@ -1,4 +1,4 @@
-import Module from 'module';
+import Module from 'node:module';
 import { extensions } from './module-extensions.js';
 import { resolveFilename } from './module-resolve-filename.js';
 

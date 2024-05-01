@@ -1,4 +1,4 @@
-import { constants as osConstants } from 'os';
+import { constants as osConstants } from 'node:os';
 import { isMainThread } from 'node:worker_threads';
 import { connectingToServer } from './utils/ipc/client.js';
 import './suppress-warnings.cjs';

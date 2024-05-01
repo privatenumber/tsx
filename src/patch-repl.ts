@@ -1,4 +1,4 @@
-import repl, { type REPLServer, type REPLEval } from 'repl';
+import repl, { type REPLServer, type REPLEval } from 'node:repl';
 import { transform } from 'esbuild';
 
 const patchEval = (nodeRepl: REPLServer) => {

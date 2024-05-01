@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 
 const tsExtensions: Record<string, string[]> = Object.create(null);
 tsExtensions['.js'] = ['.ts', '.tsx', '.js', '.jsx'];

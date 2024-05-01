@@ -1,6 +1,6 @@
-import { constants as osConstants } from 'os';
-import type { ChildProcess, Serializable } from 'child_process';
-import type { Server } from 'net';
+import { constants as osConstants } from 'node:os';
+import type { ChildProcess, Serializable } from 'node:child_process';
+import type { Server } from 'node:net';
 import { cli } from 'cleye';
 import {
 	transformSync as esbuildTransformSync,

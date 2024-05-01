@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import { execaNode } from 'execa';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
@@ -114,11 +114,11 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			});
 		});
 
-		describe('Module', ({ test }) => {
+		describe('node:module', ({ test }) => {
 			if (node.supports.moduleRegister) {
 				test('module.register', async ({ onTestFinish }) => {
 					const fixture = await createFixture({
-						'package.json': JSON.stringify({ type: 'module' }),
+						'package.json': JSON.stringify({ type: 'node:module' }),
 						'module-register.mjs': `
 						import { register } from 'node:module';
 

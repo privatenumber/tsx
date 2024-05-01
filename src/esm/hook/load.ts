@@ -1,5 +1,5 @@
-import { fileURLToPath } from 'url';
-import type { LoadHook } from 'module';
+import { fileURLToPath } from 'node:url';
+import type { LoadHook } from 'node:module';
 import type { TransformOptions } from 'esbuild';
 import { transform } from '../../utils/transform/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';

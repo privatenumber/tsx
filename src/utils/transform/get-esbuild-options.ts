@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import type { TransformOptions, TransformResult } from 'esbuild';
 import type { SourceMap } from '@ampproject/remapping';
 

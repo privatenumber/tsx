@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import { tmpdir } from '../temporary-directory.js';
 import { isWindows } from '../is-windows.js';
 

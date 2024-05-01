@@ -1,6 +1,6 @@
 // Deprecated: Delete entry-point in next major in favor of patch-repl.ts
 
-import repl, { type REPLEval } from 'repl';
+import repl, { type REPLEval } from 'node:repl';
 import { version } from '../package.json';
 import { transform } from './utils/transform/index.js';
 

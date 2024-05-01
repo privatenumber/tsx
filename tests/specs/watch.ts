@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import { setTimeout } from 'timers/promises';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';

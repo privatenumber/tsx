@@ -1,5 +1,5 @@
-import fs from 'fs';
-import Module from 'module';
+import fs from 'node:fs';
+import Module from 'node:module';
 import { createFilesMatcher } from 'get-tsconfig';
 import type { TransformOptions } from 'esbuild';
 import { transformSync } from '../../utils/transform/index.js';

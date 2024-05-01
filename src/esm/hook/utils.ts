@@ -1,5 +1,5 @@
-import path from 'path';
-import type { ModuleFormat } from 'module';
+import path from 'node:path';
+import type { ModuleFormat } from 'node:module';
 import {
 	getTsconfig,
 	parseTsconfig,

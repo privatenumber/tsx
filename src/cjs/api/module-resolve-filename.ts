@@ -1,5 +1,5 @@
-import path from 'path';
-import Module from 'module';
+import path from 'node:path';
+import Module from 'node:module';
 import { createPathsMatcher } from 'get-tsconfig';
 import { resolveTsPath } from '../../utils/resolve-ts-path.js';
 import type { NodeError } from '../../types.js';

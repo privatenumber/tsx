@@ -1,8 +1,8 @@
-import path from 'path';
-import { pathToFileURL } from 'url';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import type {
 	ResolveFnOutput, ResolveHookContext,
-} from 'module';
+} from 'node:module';
 import { resolveTsPath } from '../../utils/resolve-ts-path.js';
 import type { NodeError } from '../../types.js';
 import { isRelativePathPattern } from '../../utils/is-relative-path-pattern.js';

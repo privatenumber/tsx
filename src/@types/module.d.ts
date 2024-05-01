@@ -1,4 +1,4 @@
-import 'module';
+import 'node:module';
 
 declare global {
 	namespace NodeJS {
@@ -8,7 +8,7 @@ declare global {
 	}
 }
 
-declare module 'module' {
+declare module 'node:module' {
 	// https://nodejs.org/api/module.html#loadurl-context-nextload
 	interface LoadHookContext {
 		importAttributes: ImportAssertions;

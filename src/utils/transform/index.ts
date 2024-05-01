@@ -1,4 +1,4 @@
-import { pathToFileURL } from 'url';
+import { pathToFileURL } from 'node:url';
 import {
 	transform as esbuildTransform,
 	transformSync as esbuildTransformSync,

@@ -1,5 +1,5 @@
 import { setTimeout } from 'timers/promises';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 import { execaNode, type NodeOptions } from 'execa';
 import stripAnsi from 'strip-ansi';
 import split from 'split2';

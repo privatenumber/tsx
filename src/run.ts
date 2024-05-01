@@ -1,5 +1,5 @@
-import type { StdioOptions } from 'child_process';
-import { pathToFileURL } from 'url';
+import type { StdioOptions } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import spawn from 'cross-spawn';
 import { isFeatureSupported, moduleRegister } from './utils/node-features';
 

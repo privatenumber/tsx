@@ -1,4 +1,4 @@
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 import { execaNode, type NodeOptions } from 'execa';
 import getNode from 'get-node';
 import {

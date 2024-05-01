@@ -1,5 +1,5 @@
-import net from 'net';
-import fs from 'fs';
+import net from 'node:net';
+import fs from 'node:fs';
 import { tmpdir } from '../temporary-directory.js';
 import { isWindows } from '../is-windows.js';
 import { getPipePath } from './get-pipe-path.js';

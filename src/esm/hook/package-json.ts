@@ -1,5 +1,5 @@
-import fs from 'fs';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import type { PackageJson } from 'type-fest';
 
 const packageJsonCache = new Map<string, PackageJson | undefined>();

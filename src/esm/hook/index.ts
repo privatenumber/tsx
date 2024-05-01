@@ -1,4 +1,4 @@
-import type { GlobalPreloadHook, InitializeHook } from 'module';
+import type { GlobalPreloadHook, InitializeHook } from 'node:module';
 
 export const initialize: InitializeHook = async (data) => {
 	if (!data) {

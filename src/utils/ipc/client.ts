@@ -1,4 +1,4 @@
-import net from 'net';
+import net from 'node:net';
 import { getPipePath } from './get-pipe-path.js';
 
 export type SendToParent = (data: Record<string, unknown>) => void;

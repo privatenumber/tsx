@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { register } from './global-require-patch.js';
 import { resolveFilename } from './module-resolve-filename.js';
