@@ -11,6 +11,7 @@ import {
 	tsExtensionsPattern,
 	isJsonPattern,
 } from './utils.js';
+import { active } from './initialize.js';
 
 const contextAttributesProperty = (
 	isFeatureSupported(importAttributes)
@@ -23,6 +24,10 @@ export const load: LoadHook = async (
 	context,
 	defaultLoad,
 ) => {
+	if (!active) {
+		return defaultLoad(url, context);
+	}
+
 	/*
 	Filter out node:*
 	Maybe only handle files that start with file://

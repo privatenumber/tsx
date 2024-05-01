@@ -14,6 +14,7 @@ import {
 	allowJs,
 	type MaybePromise,
 } from './utils.js';
+import { active } from './initialize.js';
 
 const isDirectoryPattern = /\/(?:$|\?)/;
 
@@ -114,6 +115,10 @@ export const resolve: resolve = async (
 	defaultResolve,
 	recursiveCall,
 ) => {
+	if (!active) {
+		return defaultResolve(specifier, context);
+	}
+
 	// If directory, can be index.js, index.ts, etc.
 	if (isDirectoryPattern.test(specifier)) {
 		return await tryDirectory(specifier, context, defaultResolve);

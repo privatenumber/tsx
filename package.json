@@ -31,6 +31,10 @@
 			"default": "./dist/cjs/api/index.cjs"
 		},
 		"./esm": "./dist/esm/index.mjs",
+		"./esm/api": {
+			"types": "./dist/esm/api/index.d.mts",
+			"default": "./dist/esm/api/index.mjs"
+		},
 		"./cli": "./dist/cli.mjs",
 		"./suppress-warnings": "./dist/suppress-warnings.cjs",
 		"./preflight": "./dist/preflight.cjs",
