@@ -65,6 +65,18 @@ const unregister = register()
 unregister()
 ```
 
+#### Tracking loaded files
+Detect files that get loaded with the `onImport` hook:
+
+```ts
+register({
+    onImport: (file: string) => {
+        console.log(file)
+        // file:///foo.ts
+    }
+})
+```
+
 ## Only CommonJS enhancement
 
 > For situations where you need TypeScript and ESM support only in a CommonJS context (using `.cjs` files or `package.json` with `"type": "commonjs"`).
@@ -127,6 +139,19 @@ const { tsImport } = require('tsx/esm/api')
 const loaded = await tsImport('./file.ts', __filename)
 ```
 
+#### Tracking loaded files
+Detect files that get loaded with the `onImport` hook:
+
+```ts
+tsImport('./file.ts', {
+    parentURL: import.meta.url,
+    onImport: (file: string) => {
+        console.log(file)
+        // file:///foo.ts
+    }
+})
+```
+
 ### `tsx.require()`
 
 The `require()` function enhanced to support TypeScript and ESM.
@@ -155,7 +180,7 @@ const loaded = require('./file.ts', import.meta.url)
 const filepath = require.resolve('./file.ts', import.meta.url)
 ```
 
-#### Module graph inspection
+#### Tracking loaded files
 
 Because the CommonJS API tracks loaded modules in `require.cache`, you can use it to identify loaded files for dependency tracking. This can be useful when implementing a watcher.
 
