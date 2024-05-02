@@ -16,7 +16,7 @@ import {
 	getNamespace,
 	type MaybePromise,
 } from './utils.js';
-import { active, namespace } from './initialize.js';
+import { state } from './initialize.js';
 
 const isDirectoryPattern = /\/(?:$|\?)/;
 
@@ -117,7 +117,7 @@ export const resolve: resolve = async (
 	nextResolve,
 	recursiveCall,
 ) => {
-	if (!active) {
+	if (!state.active) {
 		return nextResolve(specifier, context);
 	}
 
@@ -130,7 +130,7 @@ export const resolve: resolve = async (
 		}
 	}
 
-	if (namespace && namespace !== requestNamespace) {
+	if (state.namespace && state.namespace !== requestNamespace) {
 		return nextResolve(specifier, context);
 	}
 

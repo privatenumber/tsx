@@ -12,7 +12,7 @@ import {
 	isJsonPattern,
 	getNamespace,
 } from './utils.js';
-import { active, namespace } from './initialize.js';
+import { state } from './initialize.js';
 
 const contextAttributesProperty = (
 	isFeatureSupported(importAttributes)
@@ -25,11 +25,11 @@ export const load: LoadHook = async (
 	context,
 	nextLoad,
 ) => {
-	if (!active) {
+	if (!state.active) {
 		return nextLoad(url, context);
 	}
 
-	if (namespace && namespace !== getNamespace(url)) {
+	if (state.namespace && state.namespace !== getNamespace(url)) {
 		return nextLoad(url, context);
 	}
 

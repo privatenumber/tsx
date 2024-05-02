@@ -1,13 +1,14 @@
 import module from 'node:module';
 import { MessageChannel, type MessagePort } from 'node:worker_threads';
 
-export type Data = {
-	namespace?: string;
-	port?: MessagePort;
-};
-
 type Options = {
 	namespace?: string;
+	onImport?: (url: string) => void;
+};
+
+export type InitializationOptions = {
+	namespace?: string;
+	port?: MessagePort;
 };
 
 export const register = (
@@ -25,24 +26,28 @@ export const register = (
 			data: {
 				namespace: options?.namespace,
 				port: port2,
-			} satisfies Data,
+			} satisfies InitializationOptions,
 			transferList: [port2],
 		},
 	);
 
+	// unregister
 	return () => {
-		port1.postMessage('deactivate');
 		if (sourceMapsEnabled === false) {
 			process.setSourceMapsEnabled(false);
 		}
 
+		port1.postMessage('deactivate');
+
 		// Not necessary to wait, but provide the option
 		return new Promise<void>((resolve) => {
-			port1.once('message', (message) => {
+			const onDeactivated = (message: string) => {
 				if (message === 'deactivated') {
 					resolve();
+					port1.off('message', onDeactivated);
 				}
-			});
+			};
+			port1.on('message', onDeactivated);
 		});
 	};
 };
