@@ -103,10 +103,10 @@ tsx exports enhanced `import()` or `require()` functions, allowing you to load T
 
 ### `tsImport()`
 
-The `import()` function enhanced to support TypeScript. Great for supporting top-level await. 
+The `import()` function enhanced to support TypeScript. Because it's the native `import()`, it supports [top-level await](https://v8.dev/features/top-level-await).
 
-::: warning Caveats
-`require()` calls in the imported files are not enhanced
+::: warning Caveat
+`require()` calls in the loaded files are not enhanced.
 :::
 
 #### ESM usage
@@ -129,19 +129,11 @@ const loaded = await tsImport('./file.ts', __filename)
 
 ### `tsx.require()`
 
-The `require()` function patched to support TypeScript and ESM. Since this only patches `require()`, it's inherently just the CommonJS enhancement, so it cannot load Module TypeScript files (`.mts` or `.ts` files in Module context).
+The `require()` function enhanced to support TypeScript and ESM.
 
-
-::: warning Caveats
-Asynchronous `require()` & `import()` calls will not be enhanced
+::: warning Caveat
+`import()` & asynchronous `require()` calls in the loaded files are not enhanced.
 :::
-
-Doesn't add require enhancement beyond the initial call. For example, this will not work:
-```js
-setTimeout(() => {
-    require('./file.ts')
-})
-```
 
 #### CommonJS usage
 
