@@ -186,39 +186,66 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					expect(stdout).toBe('Fails as expected\nfoo bar');
 				});
 
-				test('register / unregister', async ({ onTestFinish }) => {
-					const fixture = await createFixture({
-						'package.json': JSON.stringify({ type: 'module' }),
-						'register.mjs': `
-						import { register } from ${JSON.stringify(tsxEsmApiPath)};
-						try {
-							await import('./file.ts?1');
-						} catch {
-							console.log('Fails as expected 1');
-						}
+				describe('register / unregister', ({ test }) => {
+					test('register / unregister', async ({ onTestFinish }) => {
+						const fixture = await createFixture({
+							'package.json': JSON.stringify({ type: 'module' }),
+							'register.mjs': `
+							import { register } from ${JSON.stringify(tsxEsmApiPath)};
+							try {
+								await import('./file.ts?1');
+							} catch {
+								console.log('Fails as expected 1');
+							}
+	
+							const unregister = register();
+	
+							const { message } = await import('./file?2');
+							console.log(message);
+	
+							await unregister();
+	
+							try {
+								await import('./file.ts?3');
+							} catch {
+								console.log('Fails as expected 2');
+							}
+							`,
+							...tsFiles,
+						});
+						onTestFinish(async () => await fixture.rm());
 
-						const unregister = register();
-
-						const { message } = await import('./file?2');
-						console.log(message);
-
-						await unregister();
-
-						try {
-							await import('./file.ts?3');
-						} catch {
-							console.log('Fails as expected 2');
-						}
-						`,
-						...tsFiles,
+						const { stdout } = await execaNode(path.join(fixture.path, 'register.mjs'), [], {
+							nodePath: node.path,
+							nodeOptions: [],
+						});
+						expect(stdout).toBe('Fails as expected 1\nfoo bar\nFails as expected 2');
 					});
-					onTestFinish(async () => await fixture.rm());
 
-					const { stdout } = await execaNode(path.join(fixture.path, 'register.mjs'), [], {
-						nodePath: node.path,
-						nodeOptions: [],
+					test('onImport', async ({ onTestFinish }) => {
+						const fixture = await createFixture({
+							'package.json': JSON.stringify({ type: 'module' }),
+							'register.mjs': `
+							import { register } from ${JSON.stringify(tsxEsmApiPath)};
+
+							const unregister = register({
+								onImport(file) {
+									console.log(file.split('/').pop());
+								},
+							});
+	
+							await import('./file');
+							`,
+							...tsFiles,
+						});
+						onTestFinish(async () => await fixture.rm());
+
+						const { stdout } = await execaNode(path.join(fixture.path, 'register.mjs'), [], {
+							nodePath: node.path,
+							nodeOptions: [],
+						});
+						expect(stdout).toBe('file.ts\nfoo.ts\nbar.ts');
 					});
-					expect(stdout).toBe('Fails as expected 1\nfoo bar\nFails as expected 2');
 				});
 
 				// add CJS test
@@ -307,6 +334,30 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodeOptions: [],
 						});
 						expect(stdout).toBe('Fails as expected\nfoo');
+					});
+
+					test('onImport', async ({ onTestFinish }) => {
+						const fixture = await createFixture({
+							'package.json': JSON.stringify({ type: 'module' }),
+							'import.mjs': `
+							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+							tsImport('./file.ts', {
+								parentURL: import.meta.url,
+								onImport(file) {
+									console.log(file.split('/').pop());
+								},
+							});
+							`,
+							'file.ts': 'import(\'./foo.ts\')',
+							'foo.ts': 'console.log(\'foo\' as string)',
+						});
+						onTestFinish(async () => await fixture.rm());
+
+						const { stdout } = await execaNode(path.join(fixture.path, 'import.mjs'), [], {
+							nodePath: node.path,
+							nodeOptions: [],
+						});
+						expect(stdout).toBe('file.ts\nfoo.ts\nfoo');
 					});
 				});
 			}

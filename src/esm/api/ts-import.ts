@@ -28,12 +28,18 @@ const resolveSpecifier = (
 	return resolvedUrl.toString();
 };
 
+type Options = {
+	parentURL: string;
+	onImport?: (url: string) => void;
+};
 const tsImport = (
 	specifier: string,
-	fromFile: string,
+	options: string | Options,
 ) => {
+	const isOptionsString = typeof options === 'string';
+	const parentURL = isOptionsString ? options : options.parentURL;
 	const namespace = Date.now().toString();
-	const resolvedUrl = resolveSpecifier(specifier, fromFile, namespace);
+	const resolvedUrl = resolveSpecifier(specifier, parentURL, namespace);
 
 	/**
 	 * We don't want to unregister this after load since there can be child import() calls
@@ -41,7 +47,10 @@ const tsImport = (
 	 *
 	 * This is not accessible to others because of the namespace
 	 */
-	register({ namespace });
+	register({
+		namespace,
+		onImport: isOptionsString ? undefined : options.onImport,
+	});
 	return import(resolvedUrl);
 };
 

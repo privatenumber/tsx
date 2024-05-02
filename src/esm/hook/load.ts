@@ -6,6 +6,7 @@ import { transformDynamicImport } from '../../utils/transform/transform-dynamic-
 import { inlineSourceMap } from '../../source-map.js';
 import { isFeatureSupported, importAttributes } from '../../utils/node-features.js';
 import { parent } from '../../utils/ipc/client.js';
+import type { Message } from '../types.js';
 import {
 	fileMatcher,
 	tsExtensionsPattern,
@@ -31,6 +32,15 @@ export const load: LoadHook = async (
 
 	if (state.namespace && state.namespace !== getNamespace(url)) {
 		return nextLoad(url, context);
+	}
+
+	if (state.port) {
+		const parsedUrl = new URL(url);
+		parsedUrl.searchParams.delete('tsx-namespace');
+		state.port.postMessage({
+			type: 'load',
+			url: parsedUrl.toString(),
+		} satisfies Message);
 	}
 
 	/*

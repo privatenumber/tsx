@@ -1,5 +1,6 @@
 import type { GlobalPreloadHook, InitializeHook } from 'node:module';
 import type { InitializationOptions } from '../api/register.js';
+import type { Message } from '../types.js';
 
 type State = InitializationOptions & {
 	active: boolean;
@@ -25,7 +26,7 @@ export const initialize: InitializeHook = async (
 		options.port.on('message', (message: string) => {
 			if (message === 'deactivate') {
 				state.active = false;
-				options.port!.postMessage('deactivated');
+				options.port!.postMessage({ type: 'deactivated' } satisfies Message);
 			}
 		});
 	}
