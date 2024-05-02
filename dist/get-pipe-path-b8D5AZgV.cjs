@@ -1,0 +1,1 @@
+"use strict";var t=require("node:path"),p=require("./temporary-directory-B83uKxJF.cjs");const i=process.platform==="win32",s=r=>{const e=t.join(p.tmpdir,`${r}.pipe`);return i?`\\\\?\\pipe\\${e}`:e};exports.getPipePath=s,exports.isWindows=i;

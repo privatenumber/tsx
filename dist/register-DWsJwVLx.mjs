@@ -1,0 +1,1 @@
+import o from"node:module";import{MessageChannel as a}from"node:worker_threads";const n=()=>{process.setSourceMapsEnabled(!0);const{port1:e,port2:r}=new a;return o.register("./esm/index.mjs",{parentURL:import.meta.url,data:{port:r},transferList:[r]}),()=>(e.postMessage("deactivate"),new Promise(t=>{e.once("message",s=>{s==="deactivated"&&t()})}))};export{n as r};

@@ -1,0 +1,1 @@
+import t from"node:module";import{MessageChannel as o}from"node:worker_threads";const n=r=>{process,process.setSourceMapsEnabled(!0);const{port1:a,port2:e}=new o;return t.register(`./esm/index.mjs?${Date.now()}`,{parentURL:import.meta.url,data:{namespace:r?.namespace,port:e},transferList:[e]}),()=>(console.log("unregister!"),new Promise(s=>{s()}))};export{n as r};
