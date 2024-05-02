@@ -11,14 +11,14 @@ import { nodeVersions } from './utils/node-versions';
 			const node = await createNode(nodeVersion);
 			await describe(`Node ${node.version}`, async ({ runTestSuite }) => {
 				await runTestSuite(import('./specs/api'), node);
-				// await runTestSuite(import('./specs/cli'), node);
-				// await runTestSuite(import('./specs/api'), node);
-				// await runTestSuite(import('./specs/watch'), node);
-				// await runTestSuite(import('./specs/loaders'), node);
-				// await runTestSuite(
-				// 	import('./specs/smoke'),
-				// 	node,
-				// );
+				await runTestSuite(import('./specs/cli'), node);
+				await runTestSuite(import('./specs/api'), node);
+				await runTestSuite(import('./specs/watch'), node);
+				await runTestSuite(import('./specs/loaders'), node);
+				await runTestSuite(
+					import('./specs/smoke'),
+					node,
+				);
 			});
 		}
 	});

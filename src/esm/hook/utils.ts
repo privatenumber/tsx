@@ -78,6 +78,6 @@ export const getNamespace = (
 	return (
 		endIndex === -1
 			? url.slice(startIndex)
-			: url.slice(startIndex, endIndex) // test
+			: url.slice(startIndex, endIndex)
 	);
 };

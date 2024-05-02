@@ -121,14 +121,16 @@ export const resolve: resolve = async (
 		return nextResolve(specifier, context);
 	}
 
+	let requestNamespace = getNamespace(specifier);
 	if (context.parentURL) {
 		const parentNamespace = getNamespace(context.parentURL);
-		if (parentNamespace) {
+		if (parentNamespace && !requestNamespace) {
+			requestNamespace = parentNamespace;
 			specifier += `${specifier.includes('?') ? '&' : '?'}${namespaceQuery}${parentNamespace}`;
 		}
 	}
 
-	if (namespace && namespace !== getNamespace(specifier)) {
+	if (namespace && namespace !== requestNamespace) {
 		return nextResolve(specifier, context);
 	}
 
