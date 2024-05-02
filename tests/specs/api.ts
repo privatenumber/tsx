@@ -288,6 +288,26 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						});
 						expect(stdout).toBe('Fails as expected 1\nfoo bar\nfoo bar\nFails as expected 2');
 					});
+
+					test('namespace allows async nested calls', async ({ onTestFinish }) => {
+						const fixture = await createFixture({
+							'package.json': JSON.stringify({ type: 'module' }),
+							'import.mjs': `
+							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+							tsImport('./file.ts', import.meta.url);
+							import('./file.ts').catch(() => console.log('Fails as expected'))
+							`,
+							'file.ts': 'import(\'./foo.ts\')',
+							'foo.ts': 'console.log(\'foo\' as string)',
+						});
+						onTestFinish(async () => await fixture.rm());
+
+						const { stdout } = await execaNode(path.join(fixture.path, 'import.mjs'), [], {
+							nodePath: node.path,
+							nodeOptions: [],
+						});
+						expect(stdout).toBe('Fails as expected\nfoo');
+					});
 				});
 			}
 		});

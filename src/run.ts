@@ -1,7 +1,7 @@
 import type { StdioOptions } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import spawn from 'cross-spawn';
-import { isFeatureSupported, moduleRegister } from './utils/node-features';
+import { isFeatureSupported, moduleRegister } from './utils/node-features.js';
 
 export const run = (
 	argv: string[],

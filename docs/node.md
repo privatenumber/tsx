@@ -121,6 +121,11 @@ The `import()` function patched to support TypeScript. Since this only patches `
 
 Note, the current file path must be passed in as the second argument so it knows how to resolve relative paths.
 
+::: warning Caveats
+- Only top-level imports are patched. `import()` calls from the loaded files that are triggered after load will not be patched.
+- `require()` calls will not be patched when importing a CommonJS file
+:::
+
 #### ESM usage
 
 ```js
@@ -142,6 +147,17 @@ const loaded = await tsImport('./file.ts', __filename)
 The `require()` function patched to support TypeScript and ESM. Since this only patches `require()`, it's inherently just the CommonJS enhancement, so it cannot load Module TypeScript files (`.mts` or `.ts` files in Module context).
 
 Note, the current file path must be passed in as the second argument so it knows how to resolve relative paths.
+
+::: warning Caveats
+a
+:::
+
+Doesn't add require enhancement beyond the initial call. For example, this will not work:
+```js
+setTimeout(() => {
+    require('./file.ts')
+})
+```
 
 #### CommonJS usage
 

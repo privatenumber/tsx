@@ -2,10 +2,17 @@ import module from 'node:module';
 import { MessageChannel, type MessagePort } from 'node:worker_threads';
 
 export type Data = {
+	namespace?: string;
 	port?: MessagePort;
 };
 
-export const register = () => {
+type Options = {
+	namespace?: string;
+};
+
+export const register = (
+	options?: Options,
+) => {
 	const { sourceMapsEnabled } = process;
 	process.setSourceMapsEnabled(true);
 
@@ -16,6 +23,7 @@ export const register = () => {
 		{
 			parentURL: import.meta.url,
 			data: {
+				namespace: options?.namespace,
 				port: port2,
 			} satisfies Data,
 			transferList: [port2],

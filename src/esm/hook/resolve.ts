@@ -12,9 +12,11 @@ import {
 	getFormatFromFileUrl,
 	fileProtocol,
 	allowJs,
+	namespaceQuery,
+	getNamespace,
 	type MaybePromise,
 } from './utils.js';
-import { active } from './initialize.js';
+import { active, namespace } from './initialize.js';
 
 const isDirectoryPattern = /\/(?:$|\?)/;
 
@@ -116,6 +118,17 @@ export const resolve: resolve = async (
 	recursiveCall,
 ) => {
 	if (!active) {
+		return nextResolve(specifier, context);
+	}
+
+	if (context.parentURL) {
+		const parentNamespace = getNamespace(context.parentURL);
+		if (parentNamespace) {
+			specifier += `${specifier.includes('?') ? '&' : '?'}${namespaceQuery}${parentNamespace}`;
+		}
+	}
+
+	if (namespace && namespace !== getNamespace(specifier)) {
 		return nextResolve(specifier, context);
 	}
 

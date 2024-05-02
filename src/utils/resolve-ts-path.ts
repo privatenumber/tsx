@@ -9,17 +9,17 @@ tsExtensions['.mjs'] = ['.mts'];
 export const resolveTsPath = (
 	filePath: string,
 ) => {
-	const extension = path.extname(filePath);
-	const [extensionNoQuery, query] = path.extname(filePath).split('?');
-	const possibleExtensions = tsExtensions[extensionNoQuery];
+	const [pathname, search] = filePath.split('?');
+	const extension = path.extname(pathname);
+	const possibleExtensions = tsExtensions[extension];
 
 	if (possibleExtensions) {
-		const extensionlessPath = filePath.slice(0, -extension.length);
+		const extensionlessPath = pathname.slice(0, -extension.length);
 		return possibleExtensions.map(
 			tsExtension => (
 				extensionlessPath
 				+ tsExtension
-				+ (query ? `?${query}` : '')
+				+ (search ? `?${search}` : '')
 			),
 		);
 	}

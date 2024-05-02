@@ -10,8 +10,9 @@ import {
 	fileMatcher,
 	tsExtensionsPattern,
 	isJsonPattern,
+	getNamespace,
 } from './utils.js';
-import { active } from './initialize.js';
+import { active, namespace } from './initialize.js';
 
 const contextAttributesProperty = (
 	isFeatureSupported(importAttributes)
@@ -25,6 +26,10 @@ export const load: LoadHook = async (
 	nextLoad,
 ) => {
 	if (!active) {
+		return nextLoad(url, context);
+	}
+
+	if (namespace && namespace !== getNamespace(url)) {
 		return nextLoad(url, context);
 	}
 

@@ -4,9 +4,18 @@ import type { Data } from '../api/register.js';
 // eslint-disable-next-line import-x/no-mutable-exports
 export let active = true;
 
-export const initialize: InitializeHook = async (data: Data | void) => {
+// eslint-disable-next-line import-x/no-mutable-exports
+export let namespace: string | void;
+
+export const initialize: InitializeHook = async (
+	data: Data | void,
+) => {
 	if (!data) {
 		throw new Error('tsx must be loaded with --import instead of --loader\nThe --loader flag was deprecated in Node v20.6.0 and v18.19.0');
+	}
+
+	if (data.namespace) {
+		namespace = data.namespace;
 	}
 
 	if (data.port) {
