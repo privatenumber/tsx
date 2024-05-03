@@ -12,8 +12,11 @@ import {
 	getFormatFromFileUrl,
 	fileProtocol,
 	allowJs,
+	namespaceQuery,
+	getNamespace,
 	type MaybePromise,
 } from './utils.js';
+import { data } from './initialize.js';
 
 const isDirectoryPattern = /\/(?:$|\?)/;
 
@@ -30,11 +33,11 @@ type resolve = (
 ) => MaybePromise<ResolveFnOutput>;
 
 const resolveExplicitPath = async (
-	defaultResolve: NextResolve,
+	nextResolve: NextResolve,
 	specifier: string,
 	context: ResolveHookContext,
 ) => {
-	const resolved = await defaultResolve(specifier, context);
+	const resolved = await nextResolve(specifier, context);
 
 	if (
 		!resolved.format
@@ -51,14 +54,14 @@ const extensions = ['.js', '.json', '.ts', '.tsx', '.jsx'] as const;
 const tryExtensions = async (
 	specifier: string,
 	context: ResolveHookContext,
-	defaultResolve: NextResolve,
+	nextResolve: NextResolve,
 ) => {
 	const [specifierWithoutQuery, query] = specifier.split('?');
 	let throwError: Error | undefined;
 	for (const extension of extensions) {
 		try {
 			return await resolveExplicitPath(
-				defaultResolve,
+				nextResolve,
 				specifierWithoutQuery + extension + (query ? `?${query}` : ''),
 				context,
 			);
@@ -81,7 +84,7 @@ const tryExtensions = async (
 const tryDirectory = async (
 	specifier: string,
 	context: ResolveHookContext,
-	defaultResolve: NextResolve,
+	nextResolve: NextResolve,
 ) => {
 	const isExplicitDirectory = isDirectoryPattern.test(specifier);
 	const appendIndex = isExplicitDirectory ? 'index' : '/index';
@@ -91,12 +94,12 @@ const tryDirectory = async (
 		return await tryExtensions(
 			specifierWithoutQuery + appendIndex + (query ? `?${query}` : ''),
 			context,
-			defaultResolve,
+			nextResolve,
 		);
 	} catch (_error) {
 		if (!isExplicitDirectory) {
 			try {
-				return await tryExtensions(specifier, context, defaultResolve);
+				return await tryExtensions(specifier, context, nextResolve);
 			} catch {}
 		}
 
@@ -111,12 +114,29 @@ const tryDirectory = async (
 export const resolve: resolve = async (
 	specifier,
 	context,
-	defaultResolve,
+	nextResolve,
 	recursiveCall,
 ) => {
+	if (!data.active) {
+		return nextResolve(specifier, context);
+	}
+
+	let requestNamespace = getNamespace(specifier);
+	if (context.parentURL) {
+		const parentNamespace = getNamespace(context.parentURL);
+		if (parentNamespace && !requestNamespace) {
+			requestNamespace = parentNamespace;
+			specifier += `${specifier.includes('?') ? '&' : '?'}${namespaceQuery}${parentNamespace}`;
+		}
+	}
+
+	if (data.namespace && data.namespace !== requestNamespace) {
+		return nextResolve(specifier, context);
+	}
+
 	// If directory, can be index.js, index.ts, etc.
 	if (isDirectoryPattern.test(specifier)) {
-		return await tryDirectory(specifier, context, defaultResolve);
+		return await tryDirectory(specifier, context, nextResolve);
 	}
 
 	const isPath = (
@@ -135,7 +155,7 @@ export const resolve: resolve = async (
 				return await resolve(
 					pathToFileURL(possiblePath).toString(),
 					context,
-					defaultResolve,
+					nextResolve,
 				);
 			} catch {}
 		}
@@ -150,8 +170,8 @@ export const resolve: resolve = async (
 		if (tsPaths) {
 			for (const tsPath of tsPaths) {
 				try {
-					return await resolveExplicitPath(defaultResolve, tsPath, context);
-					// return await resolve(tsPath, context, defaultResolve, true);
+					return await resolveExplicitPath(nextResolve, tsPath, context);
+					// return await resolve(tsPath, context, nextResolve, true);
 				} catch (error) {
 					const { code } = error as NodeError;
 					if (
@@ -166,7 +186,7 @@ export const resolve: resolve = async (
 	}
 
 	try {
-		return await resolveExplicitPath(defaultResolve, specifier, context);
+		return await resolveExplicitPath(nextResolve, specifier, context);
 	} catch (error) {
 		if (
 			error instanceof Error
@@ -175,7 +195,7 @@ export const resolve: resolve = async (
 			const { code } = error as NodeError;
 			if (code === 'ERR_UNSUPPORTED_DIR_IMPORT') {
 				try {
-					return await tryDirectory(specifier, context, defaultResolve);
+					return await tryDirectory(specifier, context, nextResolve);
 				} catch (error_) {
 					if ((error_ as NodeError).code !== 'ERR_PACKAGE_IMPORT_NOT_DEFINED') {
 						throw error_;
@@ -185,7 +205,7 @@ export const resolve: resolve = async (
 
 			if (code === 'ERR_MODULE_NOT_FOUND') {
 				try {
-					return await tryExtensions(specifier, context, defaultResolve);
+					return await tryExtensions(specifier, context, nextResolve);
 				} catch {}
 			}
 		}

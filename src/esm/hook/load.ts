@@ -6,11 +6,14 @@ import { transformDynamicImport } from '../../utils/transform/transform-dynamic-
 import { inlineSourceMap } from '../../source-map.js';
 import { isFeatureSupported, importAttributes } from '../../utils/node-features.js';
 import { parent } from '../../utils/ipc/client.js';
+import type { Message } from '../types.js';
 import {
 	fileMatcher,
 	tsExtensionsPattern,
 	isJsonPattern,
+	getNamespace,
 } from './utils.js';
+import { data } from './initialize.js';
 
 const contextAttributesProperty = (
 	isFeatureSupported(importAttributes)
@@ -21,8 +24,25 @@ const contextAttributesProperty = (
 export const load: LoadHook = async (
 	url,
 	context,
-	defaultLoad,
+	nextLoad,
 ) => {
+	if (!data.active) {
+		return nextLoad(url, context);
+	}
+
+	if (data.namespace && data.namespace !== getNamespace(url)) {
+		return nextLoad(url, context);
+	}
+
+	if (data.port) {
+		const parsedUrl = new URL(url);
+		parsedUrl.searchParams.delete('tsx-namespace');
+		data.port.postMessage({
+			type: 'load',
+			url: parsedUrl.toString(),
+		} satisfies Message);
+	}
+
 	/*
 	Filter out node:*
 	Maybe only handle files that start with file://
@@ -42,7 +62,7 @@ export const load: LoadHook = async (
 		context[contextAttributesProperty]!.type = 'json';
 	}
 
-	const loaded = await defaultLoad(url, context);
+	const loaded = await nextLoad(url, context);
 
 	// CommonJS and Internal modules (e.g. node:*)
 	if (!loaded.source) {

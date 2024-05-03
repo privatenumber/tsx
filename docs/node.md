@@ -54,20 +54,27 @@ node --import tsx/esm ./file.ts
 node --loader tsx/esm ./file.ts
 ```
 
-### Hooks API
-> Previously known as _Loaders_ ([renamed in Node.js v21](https://github.com/nodejs/loaders/issues/95))
-
-You can use the [Hooks API](https://nodejs.org/api/module.html#customization-hooks) to load TypeScript files with `tsx/esm`:
-
+### Registration & Unregistration
 ```js
-import { register } from 'node:module'
+import { register } from 'tsx/esm/api'
 
-register('tsx/esm', {
-    parentURL: import.meta.url,
-    data: true
+// register tsx enhancement
+const unregister = register()
+
+// Unregister when needed
+unregister()
+```
+
+#### Tracking loaded files
+Detect files that get loaded with the `onImport` hook:
+
+```ts
+register({
+    onImport: (file: string) => {
+        console.log(file)
+        // file:///foo.ts
+    }
 })
-
-const loaded = await import('./hello.ts')
 ```
 
 ## Only CommonJS enhancement
@@ -82,21 +89,15 @@ Pass _tsx_ into the `--require` flag:
 node --require tsx/cjs ./file.ts
 ```
 
-### Node.js API
-
-#### Globally patching `require`
-
-##### Enabling TSX Enhancement
-
-Add the following line at the top of your entry file:
+This is the equivalent of adding the following at the top of your entry file, which you can also do:
 
 ```js
 require('tsx/cjs')
 ```
 
-##### Manual Registration & Unregistration
+### Registration & Unregistration
 
-To manually register and unregister the TypeScript enhancement:
+To manually register and unregister the tsx enhancement:
 
 ```js
 const tsx = require('tsx/cjs/api')
@@ -108,13 +109,60 @@ const unregister = tsx.register()
 unregister()
 ```
 
-## `tsx.require()`
+## Enhanced `import()` & `require()`
 
-For loading a TypeScript file without affecting the environment, `tsx` exports a custom `require(id, loadFromPath)` function.
+tsx exports enhanced `import()` or `require()` functions, allowing you to load TypeScript/ESM files without affecting the runtime environment.
 
-Note, the current file path must be passed in as the second argument so it knows how to resolve relative paths.
+### `tsImport()`
 
-### CommonJS usage
+The `import()` function enhanced to support TypeScript. Because it's the native `import()`, it supports [top-level await](https://v8.dev/features/top-level-await).
+
+::: warning Caveat
+`require()` calls in the loaded files are not enhanced.
+:::
+
+#### ESM usage
+
+Note, the current file path must be passed in as the second argument to resolve the import context.
+
+```js
+import { tsImport } from 'tsx/esm/api'
+
+const loaded = await tsImport('./file.ts', import.meta.url)
+```
+
+#### CommonJS usage
+
+```js
+const { tsImport } = require('tsx/esm/api')
+
+const loaded = await tsImport('./file.ts', __filename)
+```
+
+#### Tracking loaded files
+Detect files that get loaded with the `onImport` hook:
+
+```ts
+tsImport('./file.ts', {
+    parentURL: import.meta.url,
+    onImport: (file: string) => {
+        console.log(file)
+        // file:///foo.ts
+    }
+})
+```
+
+### `tsx.require()`
+
+The `require()` function enhanced to support TypeScript and ESM.
+
+::: warning Caveat
+`import()` & asynchronous `require()` calls in the loaded files are not enhanced.
+:::
+
+#### CommonJS usage
+
+Note, the current file path must be passed in as the second argument to resolve the import context.
 
 ```js
 const tsx = require('tsx/cjs/api')
@@ -123,7 +171,7 @@ const loaded = tsx.require('./file.ts', __filename)
 const filepath = tsx.require.resolve('./file.ts', __filename)
 ```
 
-### ESM usage
+#### ESM usage
 
 ```js
 import { require } from 'tsx/cjs/api'
@@ -132,7 +180,7 @@ const loaded = require('./file.ts', import.meta.url)
 const filepath = require.resolve('./file.ts', import.meta.url)
 ```
 
-### Module graph inspection
+#### Tracking loaded files
 
 Because the CommonJS API tracks loaded modules in `require.cache`, you can use it to identify loaded files for dependency tracking. This can be useful when implementing a watcher.
 
