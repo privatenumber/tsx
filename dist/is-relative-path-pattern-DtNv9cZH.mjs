@@ -1,2 +1,0 @@
-import r from"node:path";const p=`
-//# sourceMappingURL=data:application/json;base64,`,l=()=>process.sourceMapsEnabled??!0,u=({code:t,map:e})=>t+p+Buffer.from(JSON.stringify(e),"utf8").toString("base64"),s=Object.create(null);s[".js"]=[".ts",".tsx",".js",".jsx"],s[".jsx"]=[".tsx",".ts",".jsx",".js"],s[".cjs"]=[".cts"],s[".mjs"]=[".mts"];const x=t=>{const[e,a]=t.split("?"),n=r.extname(e),o=s[n];if(console.log({filePath:t,extension:n,possibleExtensions:o}),o){const c=e.slice(0,-n.length);return o.map(i=>c+i+(a?`?${a}`:""))}},j=/^\.{1,2}\//;export{j as a,u as i,x as r,l as s};
