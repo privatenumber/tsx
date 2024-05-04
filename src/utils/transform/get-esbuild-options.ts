@@ -1,6 +1,6 @@
-import path from 'path';
+import path from 'node:path';
 import type { TransformOptions, TransformResult } from 'esbuild';
-import type { SourceMap } from './apply-transformers.js';
+import type { SourceMap } from '@ampproject/remapping';
 
 export const baseConfig = Object.freeze({
 	target: `node${process.versions.node}`,

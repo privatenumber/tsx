@@ -1,7 +1,7 @@
-import type { ChildProcess } from 'child_process';
-import { fileURLToPath } from 'url';
-import { constants as osConstants } from 'os';
-import path from 'path';
+import type { ChildProcess } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { constants as osConstants } from 'node:os';
+import path from 'node:path';
 import { command } from 'cleye';
 import { watch } from 'chokidar';
 import { lightMagenta, lightGreen, yellow } from 'kolorist';

@@ -9,12 +9,12 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				'package.json': JSON.stringify({ type: 'module' }),
 
 				'ts.ts': `
-				import fs from 'fs';
+				import fs from 'node:fs';
 
 				console.log(Boolean(fs) as unknown as string);
 				`,
 				'mts.mts': `
-				import fs from 'fs';
+				import fs from 'node:fs';
 
 				console.log(JSON.stringify([Boolean(fs) as unknown as string, import.meta.url]));
 				`,
@@ -53,17 +53,17 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				'package.json': JSON.stringify({ type: 'commonjs' }),
 
 				'ts.ts': `
-				import fs from 'fs';
+				import fs from 'node:fs';
 
 				console.log(Boolean(fs) as unknown as string);
 				`,
 				'cts.cts': `
-				import fs from 'fs';
+				import fs from 'node:fs';
 
 				console.log(Boolean(fs) as unknown as string);
 				`,
 				'mts.mts': `
-				import fs from 'fs';
+				import fs from 'node:fs';
 
 				console.log(Boolean(fs) as unknown as string, import.meta.url);
 				`,

@@ -1,5 +1,5 @@
-import path from 'path';
-import type { ModuleFormat } from 'module';
+import path from 'node:path';
+import type { ModuleFormat } from 'node:module';
 import {
 	getTsconfig,
 	parseTsconfig,
@@ -58,6 +58,26 @@ export const getFormatFromFileUrl = (fileUrl: string) => {
 
 export type MaybePromise<T> = T | Promise<T>;
 
-export type NodeError = Error & {
-	code: string;
+export const namespaceQuery = 'tsx-namespace=';
+export const getNamespace = (
+	url: string,
+) => {
+	const index = url.indexOf(namespaceQuery);
+	if (index === -1) {
+		return;
+	}
+
+	const charBefore = url[index - 1];
+	if (charBefore !== '?' && charBefore !== '&') {
+		return;
+	}
+
+	const startIndex = index + namespaceQuery.length;
+	const endIndex = url.indexOf('&', startIndex);
+
+	return (
+		endIndex === -1
+			? url.slice(startIndex)
+			: url.slice(startIndex, endIndex)
+	);
 };

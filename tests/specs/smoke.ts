@@ -1,5 +1,5 @@
-import path from 'path';
-import { pathToFileURL } from 'url';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import outdent from 'outdent';
@@ -82,7 +82,7 @@ const sourcemap = {
 	// Adding the dynamic import helps test the import transformation's source map
 	test: (
 		extension: string,
-	) => `import('fs');\nconst { stack } = new Error(); const searchString = 'index.${extension}:SOURCEMAP_LINE'; assert(stack.includes(searchString), \`Expected \${searchString} in stack: \${stack}\`)`,
+	) => `import('node:fs');\nconst { stack } = new Error(); const searchString = 'index.${extension}:SOURCEMAP_LINE'; assert(stack.includes(searchString), \`Expected \${searchString} in stack: \${stack}\`)`,
 	tag: (
 		strings: TemplateStringsArray,
 		...values: string[]
@@ -202,7 +202,7 @@ const files = {
 				if (!thrown) {
 					return new Error('No error thrown');
 				} else if (!thrown.message.includes(expectedError)) {
-					return new Error(\`Message \${JSON.stringify(expectedError)} not found in \${JSON.stringify(thrown.message)}\`);
+					return new Error(\`Message \${JSON.stringify(expectedError)} not found in \${JSON.stringify(thrown.message)}\n\${thrown.stack}\`);
 				}
 			}),
 		);
@@ -225,6 +225,8 @@ const files = {
 	'import-typescript-child.ts': sourcemap.tag`
 	console.log('imported');
 	`,
+
+	'broken-syntax.ts': 'if',
 
 	node_modules: {
 		'pkg-commonjs': {
@@ -425,6 +427,12 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 									`
 									: ''
 							}
+							${
+								isCommonJs
+									? '[() => require(\'./broken-syntax\'), \'Transform failed\'],'
+									: ''
+							}
+							[() => import('./broken-syntax'), 'Transform failed'],
 						);
 
 						console.log(JSON.stringify({
@@ -608,6 +616,12 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 									`
 									: ''
 							}
+							${
+								isCommonJs
+									? '[() => require(\'./broken-syntax\'), \'Transform failed\'],'
+									: ''
+							}
+							[() => import('./broken-syntax'), 'Transform failed'],
 						);
 
 						console.log(JSON.stringify({
