@@ -121,6 +121,35 @@ export const resolve: resolve = async (
 		return nextResolve(specifier, context);
 	}
 
+	const isPath = (
+		specifier.startsWith(fileProtocol)
+		|| isRelativePathPattern.test(specifier)
+	);
+
+	// bare specifier
+	if (!isPath) {
+		// TS path alias
+		if (
+			tsconfigPathsMatcher
+			&& !context.parentURL?.includes('/node_modules/')
+		) {
+			const possiblePaths = tsconfigPathsMatcher(specifier);
+			for (const possiblePath of possiblePaths) {
+				try {
+					return await resolve(
+						pathToFileURL(possiblePath).toString(),
+						context,
+						nextResolve,
+					);
+				} catch {}
+			}
+		}
+
+		// npm package -- use default resolution
+		return nextResolve(specifier, context);
+	}
+
+	// Inherit namespace from parent
 	let requestNamespace = getNamespace(specifier);
 	if (context.parentURL) {
 		const parentNamespace = getNamespace(context.parentURL);
@@ -137,28 +166,6 @@ export const resolve: resolve = async (
 	// If directory, can be index.js, index.ts, etc.
 	if (isDirectoryPattern.test(specifier)) {
 		return await tryDirectory(specifier, context, nextResolve);
-	}
-
-	const isPath = (
-		specifier.startsWith(fileProtocol)
-		|| isRelativePathPattern.test(specifier)
-	);
-
-	if (
-		tsconfigPathsMatcher
-		&& !isPath // bare specifier
-		&& !context.parentURL?.includes('/node_modules/')
-	) {
-		const possiblePaths = tsconfigPathsMatcher(specifier);
-		for (const possiblePath of possiblePaths) {
-			try {
-				return await resolve(
-					pathToFileURL(possiblePath).toString(),
-					context,
-					nextResolve,
-				);
-			} catch {}
-		}
 	}
 
 	// Typescript gives .ts, .cts, or .mts priority over actual .js, .cjs, or .mjs extensions

@@ -20,7 +20,15 @@ const tsFiles = {
 	import { bar } from './bar.js'
 	export const foo = \`foo \${bar}\` as string
 	`,
-	'bar.ts': 'export const bar = "bar" as string',
+	'bar.ts': 'export type A = 1; export { bar } from "pkg"',
+	'node_modules/pkg': {
+		'package.json': JSON.stringify({
+			name: 'pkg',
+			type: 'module',
+			exports: './index.js',
+		}),
+		'index.js': 'export const bar = "bar"',
+	},
 };
 
 export default testSuite(({ describe }, node: NodeApis) => {
@@ -244,7 +252,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodePath: node.path,
 							nodeOptions: [],
 						});
-						expect(stdout).toBe('file.ts\nfoo.ts\nbar.ts');
+						expect(stdout).toBe('file.ts\nfoo.ts\nbar.ts\nindex.js');
 					});
 				});
 
