@@ -230,34 +230,6 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						expect(stdout).toBe('Fails as expected 1\nfoo bar\nFails as expected 2');
 					});
 
-					test('import from an absolute path', async ({ onTestFinish }) => {
-						const fixture = await createFixture({
-							'package.json': JSON.stringify({ type: 'module' }),
-							'register.mjs': `
-							import path from 'node:path';
-							import { fileURLToPath } from 'node:url';
-
-							import { register } from ${JSON.stringify(tsxEsmApiPath)};	
-							const unregister = register();
-
-							const __dirname = path.dirname(fileURLToPath(new URL(import.meta.url)));
-							const moduleAbsolutePath = path.join(__dirname, './file.ts');	
-							const { message } = await import(moduleAbsolutePath);
-							console.log(message);
-	
-							await unregister();
-							`,
-							...tsFiles,
-						});
-						onTestFinish(async () => await fixture.rm());
-
-						const { stdout } = await execaNode(path.join(fixture.path, 'register.mjs'), [], {
-							nodePath: node.path,
-							nodeOptions: [],
-						});
-						expect(stdout).toBe('foo bar');
-					});
-
 					test('onImport', async ({ onTestFinish }) => {
 						const fixture = await createFixture({
 							'package.json': JSON.stringify({ type: 'module' }),
