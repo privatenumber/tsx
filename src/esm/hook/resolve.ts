@@ -124,6 +124,7 @@ export const resolve: resolve = async (
 	const isPath = (
 		specifier.startsWith(fileProtocol)
 		|| isRelativePathPattern.test(specifier)
+		|| path.isAbsolute(specifier)
 	);
 
 	// bare specifier
