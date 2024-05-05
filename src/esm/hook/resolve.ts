@@ -125,7 +125,6 @@ export const resolve: resolve = async (
 		specifier.startsWith(fileProtocol)
 		|| path.isAbsolute(specifier)
 		|| isRelativePathPattern.test(specifier)
-		|| path.isAbsolute(specifier)
 	);
 
 	// bare specifier
