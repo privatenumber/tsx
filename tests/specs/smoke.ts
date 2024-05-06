@@ -502,6 +502,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						import './js/index.js?query=123';
 						import './js/index';
 						import './js/';
+						import { FIXTURE_PATH };
 
 						// No double .default.default in Dynamic Import
 						import('./js/index.js').then(m => {
@@ -638,6 +639,17 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// Comment at EOF: could be a sourcemap declaration. Edge case for inserting functions here
 						`.trim(),
 					});
+
+					const importFromTs = await fixture.readFile('import-from-ts.ts', 'utf8');
+					const importFromTsWithAbsolutePath = importFromTs.toString().replace(
+						'{ FIXTURE_PATH }',
+						JSON.stringify(
+							packageType === 'module'
+								? new URL('js/index.js', pathToFileURL(`${fixture.path}/`)).toString()
+								: path.resolve(fixture.path, 'js/index.js'),
+						),
+					);
+					await fixture.writeFile('import-from-ts.ts', importFromTsWithAbsolutePath);
 					onFinish(async () => await fixture.rm());
 
 					test('import all', async ({ onTestFail }) => {
