@@ -646,7 +646,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						JSON.stringify(
 							packageType === 'module'
 								? new URL('js/index.js', pathToFileURL(`${fixture.path}/`)).toString()
-								: path.resolve(fixture.path, 'js/index.js')
+								: path.resolve(fixture.path, 'js/index.js'),
 						),
 					);
 					await fixture.writeFile('import-from-ts.ts', importFromTsWithAbsolutePath);
