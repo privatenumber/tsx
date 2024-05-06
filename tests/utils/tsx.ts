@@ -67,25 +67,33 @@ export const createNode = async (
 		tsx: (
 			args: string[],
 			cwdOrOptions?: string | NodeOptions,
-		) => execaNode(
-			tsxPath,
-			args,
-			{
-				env: {
-					TSX_DISABLE_CACHE: '1',
-					DEBUG: '1',
+		) => {
+			const isCwd = typeof cwdOrOptions === 'string';
+			return execaNode(
+				tsxPath,
+				args,
+				{
+					nodePath: node.path,
+					nodeOptions: [],
+					reject: false,
+					all: true,
+					...(
+						isCwd
+							? { cwd: cwdOrOptions }
+							: cwdOrOptions
+					),
+					env: {
+						TSX_DISABLE_CACHE: '1',
+						DEBUG: '1',
+						...(
+							(cwdOrOptions && !isCwd)
+								? cwdOrOptions.env
+								: {}
+						),
+					},
 				},
-				nodePath: node.path,
-				nodeOptions: [],
-				reject: false,
-				all: true,
-				...(
-					typeof cwdOrOptions === 'string'
-						? { cwd: cwdOrOptions }
-						: cwdOrOptions
-				),
-			},
-		),
+			);
+		},
 
 		cjsPatched: (
 			args: string[],

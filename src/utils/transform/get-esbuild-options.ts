@@ -16,12 +16,12 @@ export const cacheConfig = {
 	sourcemap: true,
 
 	/**
-	 * Improve performance by generating smaller source maps
-	 * that doesn't include the original source code
+	 * Improve performance by only generating sourcesContent
+	 * when V8 coverage is enabled
 	 *
 	 * https://esbuild.github.io/api/#sources-content
 	 */
-	sourcesContent: false,
+	sourcesContent: Boolean(process.env.NODE_V8_COVERAGE),
 
 	/**
 	 * Smaller output for cache and marginal performance improvement:

@@ -4,6 +4,7 @@ import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import outdent from 'outdent';
 import type { NodeApis } from '../utils/tsx.js';
+import { hasCoverageSourcesContent } from '../utils/coverage-sources-content.js';
 
 const cjsContextCheck = 'typeof module !== \'undefined\'';
 const tsCheck = '1 as number';
@@ -352,7 +353,6 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 			describe(packageType, ({ test, describe }) => {
 				test('from .js', async ({ onTestFinish, onTestFail }) => {
 					const fixture = await createFixture({
-						...files,
 						'package.json': JSON.stringify({ type: packageType }),
 						'import-from-js.js': outdent`
 						import assert from 'assert';
@@ -459,7 +459,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// Could .js import TS files?
 
 						// Comment at EOF: could be a sourcemap declaration. Edge case for inserting functions here
-						`.trim(),
+						`,
+						...files,
 					});
 					onTestFinish(async () => await fixture.rm());
 
@@ -488,7 +489,6 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 
 				describe('from .ts', async ({ test, onFinish }) => {
 					const fixture = await createFixture({
-						...files,
 						'package.json': JSON.stringify({ type: packageType }),
 
 						'import-from-ts.ts': ({ fixturePath }) => outdent`
@@ -652,12 +652,18 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						}));
 
 						// Comment at EOF: could be a sourcemap declaration. Edge case for inserting functions here
-						`.trim(),
+						`,
+						...files,
 					});
 					onFinish(async () => await fixture.rm());
 
 					test('import all', async ({ onTestFail }) => {
-						const p = await tsx(['import-from-ts.ts'], fixture.path);
+						const p = await tsx(['import-from-ts.ts'], {
+							cwd: fixture.path,
+							env: {
+								NODE_V8_COVERAGE: 'coverage',
+							},
+						});
 						onTestFail((error) => {
 							console.error(error);
 							console.log(p);
@@ -678,6 +684,10 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
 						expect(p.stdout).toMatch(`"mjs":{"mjsHasCjsContext":${isCommonJs}}`);
 						expect(p.stderr).toBe('');
+
+						const coverageDirectory = fixture.getPath('coverage');
+						const coverageSourceMapCache = await hasCoverageSourcesContent(coverageDirectory);
+						expect(coverageSourceMapCache).toBe(true);
 					});
 
 					test('tsconfig', async ({ onTestFail }) => {
