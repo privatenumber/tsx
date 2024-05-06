@@ -6,6 +6,8 @@ import outdent from 'outdent';
 import type { NodeApis } from '../utils/tsx.js';
 import { hasCoverageSourcesContent } from '../utils/coverage-sources-content.js';
 
+const isWindows = process.platform === 'win32';
+
 const cjsContextCheck = 'typeof module !== \'undefined\'';
 const tsCheck = '1 as number';
 
@@ -513,10 +515,17 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						import './js/index.js?query=123';
 						import './js/index';
 						import './js/';
+
+						// absolute path
+						${
+							isWindows
+								? ''
+								: `import ${JSON.stringify(path.join(fixturePath, 'js/index.js'))};`
+						}
+
+						// absolute file url
 						import ${JSON.stringify(
-							packageType === 'module'
-								? new URL('js/index.js', pathToFileURL(fixturePath)).toString()
-								: path.resolve(fixturePath, 'js/index.js'),
+							new URL('js/index.js', pathToFileURL(fixturePath)).toString(),
 						)};
 
 						// No double .default.default in Dynamic Import

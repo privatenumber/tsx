@@ -6,11 +6,11 @@ import type {
 import { resolveTsPath } from '../../utils/resolve-ts-path.js';
 import type { NodeError } from '../../types.js';
 import { requestAcceptsQuery } from '../../utils/path-utils.js';
+import { fileUrlPrefix } from '../../utils/file-url.js';
 import {
 	tsconfigPathsMatcher,
 	tsExtensionsPattern,
 	getFormatFromFileUrl,
-	fileProtocol,
 	allowJs,
 	namespaceQuery,
 	getNamespace,
@@ -41,7 +41,7 @@ const resolveExplicitPath = async (
 
 	if (
 		!resolved.format
-		&& resolved.url.startsWith(fileProtocol)
+		&& resolved.url.startsWith(fileUrlPrefix)
 	) {
 		resolved.format = await getFormatFromFileUrl(resolved.url);
 	}

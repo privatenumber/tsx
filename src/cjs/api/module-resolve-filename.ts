@@ -1,9 +1,11 @@
 import path from 'node:path';
 import Module from 'node:module';
+import { fileURLToPath } from 'node:url';
 import { createPathsMatcher } from 'get-tsconfig';
 import { resolveTsPath } from '../../utils/resolve-ts-path.js';
 import type { NodeError } from '../../types.js';
 import { isRelativePath } from '../../utils/path-utils.js';
+import { fileUrlPrefix } from '../../utils/file-url.js';
 import {
 	isTsFilePatten,
 	tsconfig,
@@ -67,6 +69,11 @@ export const resolveFilename: ResolveFilename = (
 	const queryIndex = request.indexOf('?');
 	if (queryIndex !== -1) {
 		request = request.slice(0, queryIndex);
+	}
+
+	// Support file protocol
+	if (request.startsWith(fileUrlPrefix)) {
+		request = fileURLToPath(request);
 	}
 
 	if (

@@ -21,8 +21,6 @@ export const fileMatcher = tsconfig && createFilesMatcher(tsconfig);
 export const tsconfigPathsMatcher = tsconfig && createPathsMatcher(tsconfig);
 export const allowJs = tsconfig?.config.compilerOptions?.allowJs ?? false;
 
-export const fileProtocol = 'file://';
-
 export const tsExtensionsPattern = /\.([cm]?ts|[tj]sx)($|\?)/;
 
 export const isJsonPattern = /\.json(?:$|\?)/;
