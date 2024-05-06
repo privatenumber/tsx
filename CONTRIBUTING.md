@@ -17,6 +17,9 @@ Welcome! We're excited you're interested in contributing. To ensure a smooth and
 
 ### Opening a new Issue
 
+> [!IMPORTANT]
+> The Issues tab is a bug & feature tracker. Not a place for debugging support. To keep threads concise and easy to follow for collaborators, please participate constructively and follow the guidelines.
+
 #### Minimal reproduction required
 
 Provide a clear, minimal example of the issue. This helps contributors identify genuine bugs efficiently.
@@ -25,7 +28,7 @@ Provide a clear, minimal example of the issue. This helps contributors identify 
 
 Review the project documentation for known behaviors or caveats to avoid unnecessary issues.
 
-### Commenting on an existing Issue/Discussion
+### Commenting on an existing Issue
 
 #### ⭐️ Issue objectives
 
@@ -37,17 +40,20 @@ Issues serve as a platform for **contributors** to:
 
 #### ✅ Be constructive
 
-Aim to contribute to the solution with research & PRs (tests + solutions). The goal is to land an improvement in tsx for everyone to benefit.
+Aim to contribute to the solution with research & PRs (tests + solutions). The goal is to land an improvement in _tsx_ for everyone to benefit.
 
 Be concise to save people's time.
 
 #### ❌ Avoid detractive comments
 
-Keep comments focused on fixing the issue.
+Keep comments constructive towards fixing the issue.
 
-Off-topic comments, comments that don't add value (e.g. "updates?", "also happening in ..."), and discussing workarounds will be hidden or deleted.
+These types of comments will be hidden or deleted:
+- Comments that pollute the thread (e.g. "updates?", "me too", "also happening in ...")
+- Discussing workarounds that can't land in _tsx_
+- Off-topic comments
 
-After an issue is confirmed, the thread may sometimes be locked to direct further conversation & action to PRs.
+After an issue is confirmed by the provided reproduction, the thread may sometimes be locked to direct further conversation & action to PRs.
 
 > [!TIP]
 > **⚡️ Get issues addressed faster!**
