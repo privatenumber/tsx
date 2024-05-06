@@ -127,53 +127,50 @@ export const resolve: resolve = async (
 		|| isRelativePathPattern.test(specifier)
 	);
 
-	// bare specifier
-	if (!isPath) {
-		// TS path alias
-		if (
-			tsconfigPathsMatcher
-			&& !context.parentURL?.includes('/node_modules/')
-		) {
-			const possiblePaths = tsconfigPathsMatcher(specifier);
-			for (const possiblePath of possiblePaths) {
-				try {
-					return await resolve(
-						pathToFileURL(possiblePath).toString(),
-						context,
-						nextResolve,
-					);
-				} catch {}
+	if (isPath) {
+		// Inherit namespace from parent
+		let requestNamespace = getNamespace(specifier);
+		if (context.parentURL) {
+			const parentNamespace = getNamespace(context.parentURL);
+			if (parentNamespace && !requestNamespace) {
+				requestNamespace = parentNamespace;
+				specifier += `${specifier.includes('?') ? '&' : '?'}${namespaceQuery}${parentNamespace}`;
 			}
 		}
 
-		// npm package -- use default resolution
-		return nextResolve(specifier, context);
-	}
-
-	// Inherit namespace from parent
-	let requestNamespace = getNamespace(specifier);
-	if (context.parentURL) {
-		const parentNamespace = getNamespace(context.parentURL);
-		if (parentNamespace && !requestNamespace) {
-			requestNamespace = parentNamespace;
-			specifier += `${specifier.includes('?') ? '&' : '?'}${namespaceQuery}${parentNamespace}`;
+		if (data.namespace && data.namespace !== requestNamespace) {
+			return nextResolve(specifier, context);
 		}
-	}
 
-	if (data.namespace && data.namespace !== requestNamespace) {
-		return nextResolve(specifier, context);
-	}
-
-	// If directory, can be index.js, index.ts, etc.
-	if (isDirectoryPattern.test(specifier)) {
-		return await tryDirectory(specifier, context, nextResolve);
+		// If directory, can be index.js, index.ts, etc.
+		if (isDirectoryPattern.test(specifier)) {
+			return await tryDirectory(specifier, context, nextResolve);
+		}
+	} else if ( // Bare specifier
+		// TS path alias
+		tsconfigPathsMatcher
+		&& !context.parentURL?.includes('/node_modules/')
+	) {
+		const possiblePaths = tsconfigPathsMatcher(specifier);
+		for (const possiblePath of possiblePaths) {
+			try {
+				return await resolve(
+					pathToFileURL(possiblePath).toString(),
+					context,
+					nextResolve,
+				);
+			} catch {}
+		}
 	}
 
 	// Typescript gives .ts, .cts, or .mts priority over actual .js, .cjs, or .mjs extensions
 	//
 	// If `allowJs` is set in `tsconfig.json`, then we'll apply the same resolution logic
 	// to files without a TypeScript extension.
-	if (tsExtensionsPattern.test(context.parentURL!) || allowJs) {
+	if (
+		tsExtensionsPattern.test(context.parentURL!)
+		|| allowJs
+	) {
 		const tsPaths = resolveTsPath(specifier);
 		if (tsPaths) {
 			for (const tsPath of tsPaths) {

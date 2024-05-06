@@ -238,10 +238,10 @@ const files = {
 		'pkg-module': {
 			'package.json': JSON.stringify({
 				type: 'module',
-				exports: './index.js',
+				main: './index.js',
 			}),
-			'index.js': `${syntaxLowering}\nexport * from "./empty-export.js"`,
-			'empty-export.js': 'export {}',
+			'index.js': `${syntaxLowering}\nexport * from "./empty-export"`,
+			'empty-export/index.js': 'export {}',
 		},
 	},
 
@@ -357,6 +357,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 
 						import * as pkgCommonjs from 'pkg-commonjs';
 						import * as pkgModule from 'pkg-module';
+						import 'pkg-module/empty-export'; // implicit directory & extension
 
 						// .js
 						import * as js from './js/index.js';
