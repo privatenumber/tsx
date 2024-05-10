@@ -48,7 +48,7 @@ export const patchOptions = (
 	const originalSourcefile = options.sourcefile;
 
 	if (originalSourcefile) {
-		const extension = path.extname(originalSourcefile);
+		const extension = path.extname(originalSourcefile.split('?')[0]);
 
 		if (extension) {
 			// https://github.com/evanw/esbuild/issues/1932

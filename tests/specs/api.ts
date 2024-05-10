@@ -324,6 +324,26 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						expect(stdout).toBe('Fails as expected 1\nfoo bar\nfoo bar\nFails as expected 2');
 					});
 
+					test('mts from commonjs', async () => {
+						await using fixture = await createFixture({
+							'import.cjs': `
+							const { tsImport } = require(${JSON.stringify(tsxEsmApiCjsPath)});
+
+							(async () => {
+								const { message } = await tsImport('./file.mts', __filename);
+								console.log(message);
+							})();
+							`,
+							'file.mts': 'export const message = "foo bar"',
+						});
+
+						const { stdout } = await execaNode(fixture.getPath('import.cjs'), [], {
+							nodePath: node.path,
+							nodeOptions: [],
+						});
+						expect(stdout).toBe('foo bar');
+					});
+
 					test('namespace allows async nested calls', async () => {
 						await using fixture = await createFixture({
 							'package.json': JSON.stringify({ type: 'module' }),
