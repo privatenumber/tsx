@@ -86,7 +86,7 @@
 		"cross-spawn": "^7.0.3",
 		"es-module-lexer": "^1.5.2",
 		"execa": "^8.0.1",
-		"fs-fixture": "^1.2.0",
+		"fs-fixture": "^2.4.0",
 		"fs-require": "^1.6.0",
 		"get-node": "^15.0.0",
 		"kolorist": "^1.8.0",

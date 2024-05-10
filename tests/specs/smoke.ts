@@ -459,7 +459,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						console.log(p);
 					});
 					expect(p.failed).toBe(false);
-					expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(path.join(fixture.path, 'import-from-js.js'))}"`);
+					expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(fixture.getPath('import-from-js.js'))}"`);
 					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
 					expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
 					expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
@@ -481,7 +481,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						...files,
 						'package.json': JSON.stringify({ type: packageType }),
 
-						'import-from-ts.ts': outdent`
+						'import-from-ts.ts': ({ fixturePath }) => outdent`
 						import assert from 'assert';
 						import { expectErrors } from './expect-errors';
 
@@ -503,7 +503,11 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						import './js/index.js?query=123';
 						import './js/index';
 						import './js/';
-						import { FIXTURE_PATH };
+						import ${JSON.stringify(
+							packageType === 'module'
+								? new URL('js/index.js', pathToFileURL(fixturePath)).toString()
+								: path.resolve(fixturePath, 'js/index.js'),
+						)};
 
 						// No double .default.default in Dynamic Import
 						import('./js/index.js').then(m => {
@@ -640,17 +644,6 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// Comment at EOF: could be a sourcemap declaration. Edge case for inserting functions here
 						`.trim(),
 					});
-
-					const importFromTs = await fixture.readFile('import-from-ts.ts', 'utf8');
-					const importFromTsWithAbsolutePath = importFromTs.toString().replace(
-						'{ FIXTURE_PATH }',
-						JSON.stringify(
-							packageType === 'module'
-								? new URL('js/index.js', pathToFileURL(`${fixture.path}/`)).toString()
-								: path.resolve(fixture.path, 'js/index.js'),
-						),
-					);
-					await fixture.writeFile('import-from-ts.ts', importFromTsWithAbsolutePath);
 					onFinish(async () => await fixture.rm());
 
 					test('import all', async ({ onTestFail }) => {
@@ -660,7 +653,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 							console.log(p);
 						});
 						expect(p.failed).toBe(false);
-						expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(path.join(fixture.path, 'import-from-ts.ts'))}"`);
+						expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(fixture.getPath('import-from-ts.ts'))}"`);
 						expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
 						expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
 						expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
@@ -678,7 +671,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					});
 
 					test('tsconfig', async ({ onTestFail }) => {
-						const pTsconfig = await tsx(['index.tsx'], path.join(fixture.path, 'tsconfig'));
+						const pTsconfig = await tsx(['index.tsx'], fixture.getPath('tsconfig'));
 						onTestFail((error) => {
 							console.error(error);
 							console.log(pTsconfig);
@@ -689,7 +682,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					});
 
 					test('custom tsconfig', async ({ onTestFail }) => {
-						const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'jsx.jsx'], path.join(fixture.path, 'tsconfig'));
+						const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'jsx.jsx'], fixture.getPath('tsconfig'));
 						onTestFail((error) => {
 							console.error(error);
 							console.log(pTsconfigAllowJs);

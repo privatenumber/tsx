@@ -53,8 +53,8 @@ importers:
         specifier: ^8.0.1
         version: 8.0.1
       fs-fixture:
-        specifier: ^1.2.0
-        version: 1.2.0
+        specifier: ^2.4.0
+        version: 2.4.0
       fs-require:
         specifier: ^1.6.0
         version: 1.6.0
@@ -1710,9 +1710,9 @@ packages:
   fraction.js@4.3.7:
     resolution: {integrity: sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==}
 
-  fs-fixture@1.2.0:
-    resolution: {integrity: sha512-bPBNW12US81zxCXzP/BQ6ntSvMXNgX76nHVUxzQJVTmHkzXnbfp+M4mNWeJ9LuCG8M1wyeFov7oiwO9wnCEBjQ==}
-    engines: {node: '>=16.7.0'}
+  fs-fixture@2.4.0:
+    resolution: {integrity: sha512-aFoTWGj288IEOdXBeesdcbdMvRtExbqpOp1SCjE3nRdlT7vBBCD6bf76C9FCq8/6pIPSo56P7+HeT9zT/n8rMA==}
+    engines: {node: '>=18.0.0'}
 
   fs-require@1.6.0:
     resolution: {integrity: sha512-zk5lFDV09Ef+CwOuPI/Q46lNdyzypPH/dB4Ywnyt40l2yqe5Z8ZJBGFaaYHwOwXAtKJEW4lSsn6V26erlEXVGA==}
@@ -5079,7 +5079,7 @@ snapshots:
 
   fraction.js@4.3.7: {}
 
-  fs-fixture@1.2.0: {}
+  fs-fixture@2.4.0: {}
 
   fs-require@1.6.0: {}
 

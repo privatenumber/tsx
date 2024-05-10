@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { setTimeout } from 'timers/promises';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
@@ -30,7 +29,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 				test('doesn\'t show version with file', async () => {
 					const tsxProcess = await tsx([
-						path.join(fixture.path, 'log-argv.ts'),
+						fixture.getPath('log-argv.ts'),
 						'--version',
 					]);
 
@@ -53,7 +52,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 				test('doesn\'t show help with file', async () => {
 					const tsxProcess = await tsx([
-						path.join(fixture.path, 'log-argv.ts'),
+						fixture.getPath('log-argv.ts'),
 						'--help',
 					]);
 
@@ -108,8 +107,8 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			// https://github.com/nodejs/node/issues/48467
 			&& node.version !== '20.0.0'
 		) {
-			test('Node.js test runner', async ({ onTestFinish }) => {
-				const fixture = await createFixture({
+			test('Node.js test runner', async () => {
+				await using fixture = await createFixture({
 					'test.ts': `
 					import { test } from 'node:test';
 					import assert from 'assert';
@@ -119,7 +118,6 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					});
 					`,
 				});
-				onTestFinish(async () => await fixture.rm());
 
 				const tsxProcess = await tsx(
 					[
@@ -188,7 +186,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			test('Propagates signal', async () => {
 				const exitCode = Math.floor(Math.random() * 100);
 				const tsxProcess = await tsx([
-					path.join(fixture.path, 'propagates-signal.js'),
+					fixture.getPath('propagates-signal.js'),
 					exitCode.toString(),
 				]);
 				expect(tsxProcess.exitCode).toBe(exitCode);
@@ -198,7 +196,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				for (const signal of signals) {
 					test(signal, async ({ onTestFail }) => {
 						const tsxProcess = tsx([
-							path.join(fixture.path, 'catch-signals.js'),
+							fixture.getPath('catch-signals.js'),
 						]);
 
 						tsxProcess.stdout!.once('data', () => {
@@ -240,7 +238,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 			test('Kills child when unresponsive (infinite loop)', async () => {
 				const tsxProcess = tsx([
-					path.join(fixture.path, 'infinite-loop.js'),
+					fixture.getPath('infinite-loop.js'),
 				]);
 
 				const childPid = await new Promise<number>((resolve) => {
@@ -272,7 +270,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 			test('Doesn\'t kill child when responsive (ignores signal)', async () => {
 				const tsxProcess = tsx([
-					path.join(fixture.path, 'ignores-signals.js'),
+					fixture.getPath('ignores-signals.js'),
 				]);
 
 				const childPid = await new Promise<number>((resolve) => {
@@ -312,7 +310,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					const output = await ptyShell(
 						[
 							// Windows doesn't support shebangs
-							`${node.path} ${tsxPath} ${path.join(fixture.path, 'keep-alive.js')}\r`,
+							`${node.path} ${tsxPath} ${fixture.getPath('keep-alive.js')}\r`,
 							stdout => stdout.includes('READY') && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
@@ -324,7 +322,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					const output = await ptyShell(
 						[
 							// Windows doesn't support shebangs
-							`${node.path} ${tsxPath} ${path.join(fixture.path, 'catch-signals.js')}\r`,
+							`${node.path} ${tsxPath} ${fixture.getPath('catch-signals.js')}\r`,
 							stdout => stdout.includes('READY') && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
@@ -347,7 +345,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					const output = await ptyShell(
 						[
 							// Windows doesn't support shebangs
-							`${node.path} ${tsxPath} ${path.join(fixture.path, 'infinite-loop.js')}\r`,
+							`${node.path} ${tsxPath} ${fixture.getPath('infinite-loop.js')}\r`,
 							stdout => /^\r?\d+$/.test(stdout) && CtrlC,
 							`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}\r`,
 						],
@@ -359,8 +357,8 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			});
 		});
 
-		test('relays ipc message to child and back', async ({ onTestFinish }) => {
-			const fixture = await createFixture({
+		test('relays ipc message to child and back', async () => {
+			await using fixture = await createFixture({
 				'file.js': `
 				process.on('message', (received) => {
 					process.send('goodbye');
@@ -368,8 +366,6 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				});
 				`,
 			});
-
-			onTestFinish(async () => await fixture.rm());
 
 			const tsxProcess = tsx(['file.js'], {
 				cwd: fixture.path,
