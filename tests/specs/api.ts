@@ -201,7 +201,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 	
 							{
 								const unregister = register();
-	
+
 								const { message } = await import('./file?2');
 								console.log(message);
 
@@ -246,6 +246,33 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							});
 	
 							await import('./file');
+							`,
+							...tsFiles,
+						});
+
+						const { stdout } = await execaNode(fixture.getPath('register.mjs'), [], {
+							nodePath: node.path,
+							nodeOptions: [],
+						});
+						expect(stdout).toBe('file.ts\nfoo.ts\nbar.ts\nindex.js');
+					});
+
+					test('namespace & onImport', async () => {
+						await using fixture = await createFixture({
+							'package.json': JSON.stringify({ type: 'module' }),
+							'register.mjs': `
+							import { register } from ${JSON.stringify(tsxEsmApiPath)};
+
+							const api = register({
+								namespace: 'private',
+								onImport(file) {
+									console.log(file.split('/').pop());
+								},
+							});
+
+							await api.import('./file', import.meta.url);
+
+							api.unregister();
 							`,
 							...tsFiles,
 						});

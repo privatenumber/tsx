@@ -127,15 +127,13 @@ export const resolve: resolve = async (
 		|| isRelativePathPattern.test(specifier)
 	);
 
+	const parentNamespace = context.parentURL && getNamespace(context.parentURL);
 	if (isPath) {
 		// Inherit namespace from parent
 		let requestNamespace = getNamespace(specifier);
-		if (context.parentURL) {
-			const parentNamespace = getNamespace(context.parentURL);
-			if (parentNamespace && !requestNamespace) {
-				requestNamespace = parentNamespace;
-				specifier += `${specifier.includes('?') ? '&' : '?'}${namespaceQuery}${parentNamespace}`;
-			}
+		if (parentNamespace && !requestNamespace) {
+			requestNamespace = parentNamespace;
+			specifier += `${specifier.includes('?') ? '&' : '?'}${namespaceQuery}${parentNamespace}`;
 		}
 
 		if (data.namespace && data.namespace !== requestNamespace) {
@@ -191,7 +189,12 @@ export const resolve: resolve = async (
 	}
 
 	try {
-		return await resolveExplicitPath(nextResolve, specifier, context);
+		const resolved = await resolveExplicitPath(nextResolve, specifier, context);
+		const resolvedNamespace = getNamespace(resolved.url);
+		if (parentNamespace && !resolvedNamespace) {
+			resolved.url += `${resolved.url.includes('?') ? '&' : '?'}${namespaceQuery}${parentNamespace}`;
+		}
+		return resolved;
 	} catch (error) {
 		if (
 			error instanceof Error

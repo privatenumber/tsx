@@ -1,19 +1,32 @@
 import module from 'node:module';
 import { MessageChannel, type MessagePort } from 'node:worker_threads';
 import type { Message } from '../types.js';
-
-type Options = {
-	namespace?: string;
-	onImport?: (url: string) => void;
-};
+import { createScopedImport, type ScopedImport } from './scoped-import.js';
 
 export type InitializationOptions = {
 	namespace?: string;
 	port?: MessagePort;
 };
 
-export const register = (
-	options?: Options,
+type Options = {
+	namespace?: string;
+	onImport?: (url: string) => void;
+};
+
+type Unregister = () => Promise<void>;
+type Register = {
+	(options: {
+		namespace: string;
+		onImport?: (url: string) => void;
+	}): Unregister & {
+		import: ScopedImport;
+		unregister: Unregister;
+	};
+	(options?: Options): Unregister;
+};
+
+export const register: Register = (
+	options,
 ) => {
 	if (!module.register) {
 		throw new Error(`This version of Node.js (${process.version}) does not support module.register(). Please upgrade to Node v18.9 or v20.6 and above.`);
@@ -49,7 +62,7 @@ export const register = (
 	}
 
 	// unregister
-	return () => {
+	const unregister = () => {
 		if (sourceMapsEnabled === false) {
 			process.setSourceMapsEnabled(false);
 		}
@@ -71,4 +84,11 @@ export const register = (
 			port1.on('message', onDeactivated);
 		});
 	};
+
+	if (options?.namespace) {
+		unregister.import = createScopedImport(options.namespace);
+		unregister.unregister = unregister;
+	}
+
+	return unregister;
 };

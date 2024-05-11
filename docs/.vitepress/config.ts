@@ -55,10 +55,42 @@ export default defineConfig({
 				]
 			},
 			{
+				text: 'Node.js API',
+				base: '/node',
+				items: [
+					{
+						text: 'Global enhancement',
+						link: '/',
+						items: [
+							{
+								text: 'CommonJS only',
+								link: '/cjs'
+							},
+							{
+								text: 'Module only',
+								link: '/esm'
+							},
+						],
+					},
+					{
+						text: 'Isolated methods',
+						items: [
+							{
+								text: 'tsImport()',
+								link: '/ts-import'
+							},
+							{
+								text: 'tsx.require()',
+								link: '/tsx-require'
+							},
+						],
+					},
+				],
+			},
+			{
 				text: 'Integration',
 				items: [
 					{ text: 'VSCode', link: '/vscode' },
-					{ text: 'Node.js', link: '/node' },
 				]
 			},
 			{

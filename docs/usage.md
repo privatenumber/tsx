@@ -2,9 +2,9 @@
 outline: deep
 ---
 
-# Basic usage
+# Usage
 
-## Replacing `node` with `tsx`
+## Replace `node` with `tsx`
 
 `tsx` is a drop-in replacement for `node`, meaning you can use it the exact same way (supports all [command-line flags](https://nodejs.org/docs/latest-v20.x/api/cli.html)).
 
