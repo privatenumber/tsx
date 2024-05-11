@@ -1,12 +1,12 @@
 import { fileURLToPath } from 'node:url';
 import { execaNode, type NodeOptions } from 'execa';
-import getNode from 'get-node';
 import {
 	isFeatureSupported,
 	moduleRegister,
 	testRunnerGlob,
 	type Version,
 } from '../../src/utils/node-features.js';
+import { getNode } from './get-node.js';
 
 type Options = {
 	args: string[];
@@ -45,13 +45,7 @@ export const tsx = (
 export const createNode = async (
 	nodeVersion: string,
 ) => {
-	console.log('Getting node', nodeVersion);
-	const startTime = Date.now();
-	const node = await getNode(nodeVersion, {
-		progress: true,
-	});
-	console.log(`Got node in ${Date.now() - startTime}ms`, node);
-
+	const node = await getNode(nodeVersion);
 	const versionParsed = node.version.split('.').map(Number) as Version;
 	const supports = {
 		moduleRegister: isFeatureSupported(moduleRegister, versionParsed),
