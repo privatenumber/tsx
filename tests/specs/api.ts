@@ -386,6 +386,32 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						expect(stdout).toBe('file.ts\nfoo.ts\nfoo');
 					});
 				});
+			} else {
+				test('no module.register error', async () => {
+					await using fixture = await createFixture({
+						'package.json': JSON.stringify({ type: 'module' }),
+						'register.mjs': `
+						import { register } from ${JSON.stringify(tsxEsmApiPath)};
+
+						{
+							const unregister = register();
+
+							const { message } = await import('./file?2');
+							console.log(message);
+
+							await unregister();
+						}
+						`,
+						...tsFiles,
+					});
+
+					const { stderr } = await execaNode(fixture.getPath('register.mjs'), [], {
+						nodePath: node.path,
+						nodeOptions: [],
+						reject: false,
+					});
+					expect(stderr).toMatch(`This version of Node.js (v${node.version}) does not support module.register(). Please upgrade to Node v18.9 or v20.6 and above.`);
+				});
 			}
 		});
 	});
