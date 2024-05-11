@@ -363,27 +363,43 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						expect(stdout).toBe('Fails as expected\nfoo');
 					});
 
-					test('onImport', async () => {
+					test('onImport & doesnt cache files', async () => {
 						await using fixture = await createFixture({
 							'package.json': JSON.stringify({ type: 'module' }),
 							'import.mjs': `
+							import assert from 'assert';
 							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
-							tsImport('./file.ts', {
+							const dependenciesA = [];
+							await tsImport('./file.ts', {
 								parentURL: import.meta.url,
 								onImport(file) {
-									console.log(file.split('/').pop());
+									dependenciesA.push(file);
 								},
 							});
+
+							const dependenciesB = [];
+							await tsImport('./file.ts', {
+								parentURL: import.meta.url,
+								onImport(file) {
+									dependenciesB.push(file);
+								},
+							});
+
+							// wait for async import() to finish
+							await new Promise((resolve) => setTimeout(resolve, 10));
+
+							assert(JSON.stringify(dependenciesA) === JSON.stringify(dependenciesB))
 							`,
-							'file.ts': 'import(\'./foo.ts\')',
+							'file.ts': 'import "./foo.ts"; import(\'./bar.ts\')',
 							'foo.ts': 'console.log(\'foo\' as string)',
+							'bar.ts': 'import(\'./foo.ts\')',
 						});
 
 						const { stdout } = await execaNode(fixture.getPath('import.mjs'), [], {
 							nodePath: node.path,
 							nodeOptions: [],
 						});
-						expect(stdout).toBe('file.ts\nfoo.ts\nfoo');
+						expect(stdout).toBe('foo\nfoo');
 					});
 				});
 			} else {
