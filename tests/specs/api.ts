@@ -394,7 +394,6 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						await using fixture = await createFixture({
 							'package.json': JSON.stringify({ type: 'module' }),
 							'import.mjs': `
-							import assert from 'assert';
 							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
 							const dependenciesA = [];
 							await tsImport('./file.ts', {
@@ -415,7 +414,13 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							// wait for async import() to finish
 							await new Promise((resolve) => setTimeout(resolve, 10));
 
-							assert(JSON.stringify(dependenciesA) === JSON.stringify(dependenciesB))
+							if (JSON.stringify(dependenciesA) !== JSON.stringify(dependenciesB)) {
+								console.log({
+									dependenciesA,
+									dependenciesB,
+								});
+								process.exitCode = 1
+							}
 							`,
 							'file.ts': 'import "./foo.ts"; import(\'./bar.ts\')',
 							'foo.ts': 'console.log(\'foo\' as string)',
