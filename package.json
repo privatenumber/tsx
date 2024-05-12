@@ -1,6 +1,7 @@
 {
 	"name": "tsx",
 	"version": "0.0.0-semantic-release",
+	"packageManager": "pnpm@9.1.0",
 	"description": "TypeScript Execute (tsx): Node.js enhanced with esbuild to run TypeScript & ESM files",
 	"keywords": [
 		"cli",
