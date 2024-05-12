@@ -5,7 +5,7 @@ import type {
 } from 'node:module';
 import { resolveTsPath } from '../../utils/resolve-ts-path.js';
 import type { NodeError } from '../../types.js';
-import { isRelativePathPattern } from '../../utils/is-relative-path-pattern.js';
+import { requestAcceptsQuery } from '../../utils/path-utils.js';
 import {
 	tsconfigPathsMatcher,
 	tsExtensionsPattern,
@@ -121,14 +121,8 @@ export const resolve: resolve = async (
 		return nextResolve(specifier, context);
 	}
 
-	const isPath = (
-		specifier.startsWith(fileProtocol)
-		|| path.isAbsolute(specifier)
-		|| isRelativePathPattern.test(specifier)
-	);
-
 	const parentNamespace = context.parentURL && getNamespace(context.parentURL);
-	if (isPath) {
+	if (requestAcceptsQuery(specifier)) {
 		// Inherit namespace from parent
 		let requestNamespace = getNamespace(specifier);
 		if (parentNamespace && !requestNamespace) {
@@ -190,9 +184,15 @@ export const resolve: resolve = async (
 
 	try {
 		const resolved = await resolveExplicitPath(nextResolve, specifier, context);
-		const resolvedNamespace = getNamespace(resolved.url);
-		if (parentNamespace && !resolvedNamespace) {
-			resolved.url += `${resolved.url.includes('?') ? '&' : '?'}${namespaceQuery}${parentNamespace}`;
+		// Could be a core Node module (e.g. `fs`)
+		if (requestAcceptsQuery(resolved.url)) {
+			const resolvedNamespace = getNamespace(resolved.url);
+			if (
+				parentNamespace
+				&& !resolvedNamespace
+			) {
+				resolved.url += `${resolved.url.includes('?') ? '&' : '?'}${namespaceQuery}${parentNamespace}`;
+			}
 		}
 		return resolved;
 	} catch (error) {

@@ -26,7 +26,7 @@ const tsFiles = {
 			type: 'module',
 			exports: './index.js',
 		}),
-		'index.js': 'export const bar = "bar"',
+		'index.js': 'import "node:process"; export const bar = "bar";',
 	},
 };
 
@@ -254,13 +254,14 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodePath: node.path,
 							nodeOptions: [],
 						});
-						expect(stdout).toBe('file.ts\nfoo.ts\nbar.ts\nindex.js');
+						expect(stdout).toBe('file.ts\nfoo.ts\nbar.ts\nindex.js\nnode:process');
 					});
 
 					test('namespace & onImport', async () => {
 						await using fixture = await createFixture({
 							'package.json': JSON.stringify({ type: 'module' }),
 							'register.mjs': `
+							import { setTimeout } from 'node:timers/promises';
 							import { register } from ${JSON.stringify(tsxEsmApiPath)};
 
 							const api = register({
@@ -272,7 +273,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 							await api.import('./file', import.meta.url);
 
-							api.unregister();
+							await setTimeout(100)
 							`,
 							...tsFiles,
 						});
@@ -394,6 +395,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						await using fixture = await createFixture({
 							'package.json': JSON.stringify({ type: 'module' }),
 							'import.mjs': `
+							import { setTimeout } from 'node:timers/promises';
 							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
 							const dependenciesA = [];
 							await tsImport('./file.ts', {
@@ -412,7 +414,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							});
 
 							// wait for async import() to finish
-							await new Promise((resolve) => setTimeout(resolve, 10));
+							await setTimeout(100)
 
 							if (JSON.stringify(dependenciesA) !== JSON.stringify(dependenciesB)) {
 								console.log({

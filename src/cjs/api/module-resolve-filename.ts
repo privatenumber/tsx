@@ -3,7 +3,7 @@ import Module from 'node:module';
 import { createPathsMatcher } from 'get-tsconfig';
 import { resolveTsPath } from '../../utils/resolve-ts-path.js';
 import type { NodeError } from '../../types.js';
-import { isRelativePathPattern } from '../../utils/is-relative-path-pattern.js';
+import { isRelativePath } from '../../utils/path-utils.js';
 import {
 	isTsFilePatten,
 	tsconfig,
@@ -73,7 +73,7 @@ export const resolveFilename: ResolveFilename = (
 		tsconfigPathsMatcher
 
 		// bare specifier
-		&& !isRelativePathPattern.test(request)
+		&& !isRelativePath(request)
 
 		// Dependency paths should not be resolved using tsconfig.json
 		&& !parent?.filename?.includes(nodeModulesPath)
