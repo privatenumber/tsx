@@ -15,15 +15,15 @@ export type RegisterOptions = {
 	onImport?: (url: string) => void;
 };
 
-export type NamespacedRegister = {
-	import: ScopedImport;
-	unregister: Unregister;
-}
-
 export type Unregister = () => Promise<void>;
 
+export type NamespacedUnregister = Unregister & {
+	import: ScopedImport;
+	unregister: Unregister;
+};
+
 export type Register = {
-	(options: RegisterOptions & Pick<Required<RegisterOptions>, 'namespace'>): Unregister & NamespacedRegister
+	(options: RegisterOptions & Pick<Required<RegisterOptions>, 'namespace'>): NamespacedUnregister;
 	(options?: RegisterOptions): Unregister;
 };
 
