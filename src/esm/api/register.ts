@@ -3,26 +3,28 @@ import { MessageChannel, type MessagePort } from 'node:worker_threads';
 import type { Message } from '../types.js';
 import { createScopedImport, type ScopedImport } from './scoped-import.js';
 
+export type { ScopedImport } from './scoped-import.js';
+
 export type InitializationOptions = {
 	namespace?: string;
 	port?: MessagePort;
 };
 
-type Options = {
+export type RegisterOptions = {
 	namespace?: string;
 	onImport?: (url: string) => void;
 };
 
-type Unregister = () => Promise<void>;
-type Register = {
-	(options: {
-		namespace: string;
-		onImport?: (url: string) => void;
-	}): Unregister & {
-		import: ScopedImport;
-		unregister: Unregister;
-	};
-	(options?: Options): Unregister;
+export type NamespacedRegister = {
+	import: ScopedImport;
+	unregister: Unregister;
+}
+
+export type Unregister = () => Promise<void>;
+
+export type Register = {
+	(options: RegisterOptions & Pick<Required<RegisterOptions>, 'namespace'>): Unregister & NamespacedRegister
+	(options?: RegisterOptions): Unregister;
 };
 
 export const register: Register = (
