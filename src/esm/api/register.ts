@@ -8,21 +8,23 @@ export type InitializationOptions = {
 	port?: MessagePort;
 };
 
-type Options = {
+export type RegisterOptions = {
 	namespace?: string;
 	onImport?: (url: string) => void;
 };
 
-type Unregister = () => Promise<void>;
-type Register = {
-	(options: {
-		namespace: string;
-		onImport?: (url: string) => void;
-	}): Unregister & {
-		import: ScopedImport;
-		unregister: Unregister;
-	};
-	(options?: Options): Unregister;
+export type Unregister = () => Promise<void>;
+
+export type NamespacedUnregister = Unregister & {
+	import: ScopedImport;
+	unregister: Unregister;
+};
+
+type RequiredProperty<Type, Keys extends keyof Type> = Type & { [P in Keys]-?: Type[P] };
+
+export type Register = {
+	(options: RequiredProperty<RegisterOptions, 'namespace'>): NamespacedUnregister;
+	(options?: RegisterOptions): Unregister;
 };
 
 export const register: Register = (
