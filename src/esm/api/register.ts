@@ -3,8 +3,6 @@ import { MessageChannel, type MessagePort } from 'node:worker_threads';
 import type { Message } from '../types.js';
 import { createScopedImport, type ScopedImport } from './scoped-import.js';
 
-export type { ScopedImport } from './scoped-import.js';
-
 export type InitializationOptions = {
 	namespace?: string;
 	port?: MessagePort;
@@ -22,8 +20,10 @@ export type NamespacedUnregister = Unregister & {
 	unregister: Unregister;
 };
 
+type RequiredProperty<Type, Keys extends keyof Type> = Type & { [P in Keys]-?: Type[P] };
+
 export type Register = {
-	(options: RegisterOptions & Pick<Required<RegisterOptions>, 'namespace'>): NamespacedUnregister;
+	(options: RequiredProperty<RegisterOptions, 'namespace'>): NamespacedUnregister;
 	(options?: RegisterOptions): Unregister;
 };
 
