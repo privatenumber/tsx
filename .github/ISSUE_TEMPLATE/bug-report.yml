@@ -14,13 +14,13 @@ body:
         - label: I read the documentation and searched existing issues to avoid duplicates
           required: true
 
-        - label: I understand this is a place to report a confirmed bug (not seek debugging help)
+        - label: I am reporting a confirmed bug (not seek debugging help)
           required: true
 
-        - label: I understand this is a collaborative open source project, and relies on community contributions
+        - label: I understand this is a collaborative project and relies on my contributions
           required: true
 
-        - label: I have read and understood the [Contribution guide](https://github.com/privatenumber/tsx/blob/develop/CONTRIBUTING.md)
+        - label: I read and understood the [Contribution guide](https://github.com/privatenumber/tsx/blob/develop/CONTRIBUTING.md)
           required: true
 
   - type: markdown
@@ -28,38 +28,22 @@ body:
       value: |
         ## 📋 Minimal reproduction
 
-        > [!WARNING]
-        > Without a minimal reproduction, your issue will be closed & locked without response.
+        > [!CAUTION]
+        > Without a **minimal** reproduction, your issue will be closed & locked without response.
 
-        The minimal reproduction is the core of your issue. Most times, this is all we read.
+        The minimal reproduction is the core of your issue. This is usually all we read.
 
-        Start by removing everything unncessary. Including converting TypeScript to JavaScript where possible, and removing _all_ unnecessary files & code (especially inside `node_modules`).
-
-        Minimizing the scope of the problem will reveal the root cause.
-
-        <details>
-            <summary><strong>Guidelines for creating a Minimal Reproduction</strong></summary>
-
-        1. **Eliminate extra files**: Limit to under 10 files. Discard non-essential files (like `LICENSE`, `.npmrc`, `.github`) and trim extraneous properties from `package.json`.
-
-        2. **Concentrate on the Issue**: Focus solely on the bug. Exclude unrelated frontend/backend components. If it's a TypeScript issue, convert to JavaScript for clarity. Aim for minimal lines of code in a single file.
-
-        3. **Configure 'start' script**: In `package.json`, ensure the `start` script clearly demonstrates the bug.
-
-        4. **Thorough verification**: Test the reproduction yourself. Confirm immediate reproducibility, proper dependency declarations, and absence of redundant code or files. This mirrors the maintainers' process of scrutinizing every aspect.
-
-        5. **Upload**: Share your minimal reproduction on [StackBlitz](https://stackblitz.com) or a new GitHub repository, ensuring it's accessible via a browser.
-
-        </details>
+        The first thing we'll do is scrutinize every code, file, and dependency to see how they impact the bug. If you can delete it and still produce the bug, it's not needed.
 
         **Starter Template**: [Fork this StackBlitz template](https://stackblitz.com/edit/node-huzszn?file=index.ts)
+        If it's not reproducible on StackBlitz, upload it to a GitHub repository and use GitHub Actions to show the error.
 
-        The more refined and concise your reproduction, the faster and more effectively maintainers can address your issue.
+        Please do your best to _show_ the bug rather than talking about it. This will lead to a speedy resolution.
 
   - type: input
     attributes:
       label: Minimal reproduction URL
-      placeholder: https://stackblitz.com/edit/...
+      placeholder: https://github.com/...
     validations:
       required: true
 
@@ -71,59 +55,22 @@ body:
 
   - type: markdown
     attributes:
-      value: "## 🌍 Environment"
-
-  - type: input
-    attributes:
-      label: Version
-      placeholder: v0.0.0
-    validations:
-      required: true
-
-  - type: input
-    attributes:
-      label: Node.js version
-      placeholder: v0.0.0
-    validations:
-      required: true
-
-  - type: dropdown
-    id: package-manager
-    attributes:
-      label: Package manager
-      options:
-        - npm
-        - yarn
-        - pnpm
-        - bun
-        - N/A
-    validations:
-      required: true
-
-  - type: dropdown
-    attributes:
-      label: Operating system
-      options:
-        - macOS
-        - Windows
-        - Linux
-    validations:
-      required: true
-
-  - type: markdown
-    attributes:
       value: |
         ## 🗒️ Extra information
 
         > [!IMPORTANT]
-        > Only fill out this section for more complex issues that require context. I only read this section after validating the reproduction.
-
-        Let the code do the talking. Focus more on minimizing the reproduction to get to the core of the issue.
+        > This section is optional, and complements the reproduction. We read it after verifying the reproduction.
 
   - type: textarea
     attributes:
       label: Problem & expected behavior (under 200 words)
       value: |
+        Skip this section and let your reproduction do the talking...
+
+
+
+
+        But if you really need to explain, keep it under 200 words:
         - What happened
         - What I expected
         - Error stack trace
@@ -134,15 +81,17 @@ body:
     attributes:
       value: |
         ## 🛠️ Contribute
-        **Bugs are expected to be fixed by those that are affected by it.**
-
-        Offering financial support for the engineering work will likely speed up the resolution process.
 
   - type: checkboxes
     attributes:
-      label: Contributions
+      label: Bugs are expected to be fixed by those affected by it
       options:
         - label: I'm interested in working on this issue
+
+  - type: checkboxes
+    attributes:
+      label: Supporting engineering work financially will speed up resolution
+      options:
         - label: I'm willing to offer financial support
 
   - type: markdown
