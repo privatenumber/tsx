@@ -29,7 +29,7 @@ NODE_OPTIONS='--require tsx/cjs' npx some-binary
 Load `tsx/cjs` at the top of your entry-file:
 
 ```js
-require("tsx/cjs");
+require('tsx/cjs')
 ```
 
 ### Registration & Unregistration
@@ -37,11 +37,11 @@ require("tsx/cjs");
 To manually register and unregister the tsx enhancement:
 
 ```js
-const tsx = require("tsx/cjs/api");
+const tsx = require('tsx/cjs/api')
 
 // Register tsx enhancement
-const unregister = tsx.register();
+const unregister = tsx.register()
 
 // Unregister when needed
-unregister();
+unregister()
 ```

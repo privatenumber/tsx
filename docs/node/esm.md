@@ -35,13 +35,13 @@ NODE_OPTIONS='--loader tsx/esm' npx some-binary
 ### Registration & Unregistration
 
 ```js
-import { register } from "tsx/esm/api";
+import { register } from 'tsx/esm/api'
 
 // register tsx enhancement
-const unregister = register();
+const unregister = register()
 
 // Unregister when needed
-unregister();
+unregister()
 ```
 
 #### Tracking loaded files
@@ -50,11 +50,11 @@ Detect files that get loaded with the `onImport` hook:
 
 ```ts
 register({
-	onImport: (file: string) => {
-		console.log(file);
-		// file:///foo.ts
-	},
-});
+    onImport: (file: string) => {
+        console.log(file)
+        // file:///foo.ts
+    }
+})
 ```
 
 #### Tracking loaded files
@@ -63,11 +63,11 @@ Detect files that get loaded with the `onImport` hook:
 
 ```ts
 register({
-	onImport: (file: string) => {
-		console.log(file);
-		// file:///foo.ts
-	},
-});
+    onImport: (file: string) => {
+        console.log(file)
+        // file:///foo.ts
+    }
+})
 ```
 
 ### Scoped registration
@@ -75,20 +75,20 @@ register({
 If you want to register tsx without affecting the environment, you can add a namespace.
 
 ```js
-import { register } from "tsx/esm/api";
+import { register } from 'tsx/esm/api'
 
 // register tsx enhancement
 const api = register({
-	namespace: Date.now().toString(),
-});
+    namespace: Date.now().toString()
+})
 
 // You get a private `import()` function to load TypeScript files
 // Since this is namespaced, it will not cache hit from prior imports
-const loaded = await api.import("./file.ts", import.meta.url);
+const loaded = await api.import('./file.ts', import.meta.url)
 
 // This is using the same namespace as above, so it will yield a cache hit
-const loaded2 = await api.import("./file.ts", import.meta.url);
+const loaded2 = await api.import('./file.ts', import.meta.url)
 
 // Unregister when needed
-api.unregister();
+api.unregister()
 ```
