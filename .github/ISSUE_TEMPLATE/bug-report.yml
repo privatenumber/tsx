@@ -26,10 +26,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## 📋 Minimal reproduction
+        ## 📋 Show us the bug
 
         > [!CAUTION]
-        > Without a **minimal** reproduction, your issue will be closed & locked without response.
+        > Without proving the bug is in tsx via *minimal* reproduction, your issue will be closed without response.
 
         The minimal reproduction is the core of your issue. This is usually all we read.
 
@@ -56,10 +56,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## 🗒️ Extra information
+        ## 🗒️ Notes
 
         > [!IMPORTANT]
-        > This section is optional, and complements the reproduction. We read it after verifying the reproduction.
+        > Please skip this section and focus on minimizing the reproduction. We only read it _after_ verifying the reproduction above.
 
   - type: textarea
     attributes:
@@ -90,7 +90,7 @@ body:
 
   - type: checkboxes
     attributes:
-      label: Supporting engineering work financially will speed up resolution
+      label: Compensating engineering work financially will speed up resolution
       options:
         - label: I'm willing to offer financial support
 
