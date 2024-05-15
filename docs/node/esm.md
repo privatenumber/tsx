@@ -7,7 +7,7 @@ This section is only for adding tsx in Module mode (doesn't affect `.cjs` or `.c
 ::: warning Not for 3rd-party packages
 This enhances the entire runtime so it may not be suitable for loading TypeScript files from a 3rd-party package as it may lead to unexpected behavior in user code.
 
-For importing TypeScript files in Module mode without affecting the environment, see the *Scoped registration* section below or [`tsImport()`](http://localhost:5173/node/ts-import).
+For importing TypeScript files in Module mode without affecting the environment, see the _Scoped registration_ section below or [`tsImport()`](/node/ts-import).
 :::
 
 ## Command-line API
@@ -33,58 +33,62 @@ NODE_OPTIONS='--loader tsx/esm' npx some-binary
 ## Programmatic API
 
 ### Registration & Unregistration
+
 ```js
-import { register } from 'tsx/esm/api'
+import { register } from "tsx/esm/api";
 
 // register tsx enhancement
-const unregister = register()
+const unregister = register();
 
 // Unregister when needed
-unregister()
+unregister();
 ```
 
 #### Tracking loaded files
+
 Detect files that get loaded with the `onImport` hook:
 
 ```ts
 register({
-    onImport: (file: string) => {
-        console.log(file)
-        // file:///foo.ts
-    }
-})
+	onImport: (file: string) => {
+		console.log(file);
+		// file:///foo.ts
+	},
+});
 ```
 
 #### Tracking loaded files
+
 Detect files that get loaded with the `onImport` hook:
 
 ```ts
 register({
-    onImport: (file: string) => {
-        console.log(file)
-        // file:///foo.ts
-    }
-})
+	onImport: (file: string) => {
+		console.log(file);
+		// file:///foo.ts
+	},
+});
 ```
 
 ### Scoped registration
+
 If you want to register tsx without affecting the environment, you can add a namespace.
 
 ```js
-import { register } from 'tsx/esm/api'
+import { register } from "tsx/esm/api";
 
 // register tsx enhancement
 const api = register({
-    namespace: Date.now().toString()
-})
+	namespace: Date.now().toString(),
+});
 
 // You get a private `import()` function to load TypeScript files
 // Since this is namespaced, it will not cache hit from prior imports
-const loaded = await api.import('./file.ts', import.meta.url)
+const loaded = await api.import("./file.ts", import.meta.url);
 
 // This is using the same namespace as above, so it will yield a cache hit
-const loaded2 = await api.import('./file.ts', import.meta.url)
+const loaded2 = await api.import("./file.ts", import.meta.url);
 
 // Unregister when needed
-api.unregister()
+api.unregister();
 ```

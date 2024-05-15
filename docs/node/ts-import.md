@@ -14,36 +14,36 @@ CommonJS files are currently not enhanced due to this [Node.js bug](https://gith
 
 ## ESM usage
 
-
 ```js
-import { tsImport } from 'tsx/esm/api'
+import { tsImport } from "tsx/esm/api";
 
-const loaded = await tsImport('./file.ts', import.meta.url)
+const loaded = await tsImport("./file.ts", import.meta.url);
 
 // If tsImport is used to load file.ts again,
 // it does not yield a cache-hit and re-loads it
-const loadedAgain = await tsImport('./file.ts', import.meta.url)
+const loadedAgain = await tsImport("./file.ts", import.meta.url);
 ```
 
-If you'd like to leverage module caching, see the [ESM scoped registration](http://localhost:5173/node/esm#scoped-registration) section.
+If you'd like to leverage module caching, see the [ESM scoped registration](/node/esm#scoped-registration) section.
 
 ## CommonJS usage
 
 ```js
-const { tsImport } = require('tsx/esm/api')
+const { tsImport } = require("tsx/esm/api");
 
-const loaded = await tsImport('./file.ts', __filename)
+const loaded = await tsImport("./file.ts", __filename);
 ```
 
 ## Tracking loaded files
+
 Detect files that get loaded with the `onImport` hook:
 
 ```ts
-tsImport('./file.ts', {
-    parentURL: import.meta.url,
-    onImport: (file: string) => {
-        console.log(file)
-        // file:///foo.ts
-    }
-})
+tsImport("./file.ts", {
+	parentURL: import.meta.url,
+	onImport: (file: string) => {
+		console.log(file);
+		// file:///foo.ts
+	},
+});
 ```
