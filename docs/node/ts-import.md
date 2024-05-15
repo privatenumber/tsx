@@ -14,7 +14,6 @@ CommonJS files are currently not enhanced due to this [Node.js bug](https://gith
 
 ## ESM usage
 
-
 ```js
 import { tsImport } from 'tsx/esm/api'
 
@@ -25,7 +24,7 @@ const loaded = await tsImport('./file.ts', import.meta.url)
 const loadedAgain = await tsImport('./file.ts', import.meta.url)
 ```
 
-If you'd like to leverage module caching, see the [ESM scoped registration](http://localhost:5173/node/esm#scoped-registration) section.
+If you'd like to leverage module caching, see the [ESM scoped registration](/node/esm#scoped-registration) section.
 
 ## CommonJS usage
 
@@ -36,6 +35,7 @@ const loaded = await tsImport('./file.ts', __filename)
 ```
 
 ## Tracking loaded files
+
 Detect files that get loaded with the `onImport` hook:
 
 ```ts

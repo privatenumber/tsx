@@ -7,7 +7,7 @@ This section is only for adding tsx in Module mode (doesn't affect `.cjs` or `.c
 ::: warning Not for 3rd-party packages
 This enhances the entire runtime so it may not be suitable for loading TypeScript files from a 3rd-party package as it may lead to unexpected behavior in user code.
 
-For importing TypeScript files in Module mode without affecting the environment, see the *Scoped registration* section below or [`tsImport()`](http://localhost:5173/node/ts-import).
+For importing TypeScript files in Module mode without affecting the environment, see the _Scoped registration_ section below or [`tsImport()`](/node/ts-import).
 :::
 
 ## Command-line API
@@ -33,6 +33,7 @@ NODE_OPTIONS='--loader tsx/esm' npx some-binary
 ## Programmatic API
 
 ### Registration & Unregistration
+
 ```js
 import { register } from 'tsx/esm/api'
 
@@ -44,6 +45,7 @@ unregister()
 ```
 
 #### Tracking loaded files
+
 Detect files that get loaded with the `onImport` hook:
 
 ```ts
@@ -56,6 +58,7 @@ register({
 ```
 
 #### Tracking loaded files
+
 Detect files that get loaded with the `onImport` hook:
 
 ```ts
@@ -68,6 +71,7 @@ register({
 ```
 
 ### Scoped registration
+
 If you want to register tsx without affecting the environment, you can add a namespace.
 
 ```js
