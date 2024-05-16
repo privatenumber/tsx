@@ -10,7 +10,7 @@ init.then(() => {
 
 export const parseEsm = (
 	code: string,
-	filename: string,
+	filename?: string,
 ) => (
 	wasmParserInitialized
 		? parseWasm(code, filename)
