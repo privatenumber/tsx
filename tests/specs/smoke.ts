@@ -82,7 +82,7 @@ const sourcemap = {
 	// Adding the dynamic import helps test the import transformation's source map
 	test: (
 		extension: string,
-	) => `import('node:fs');\nconst { stack } = new Error(); const searchString = 'index.${extension}:SOURCEMAP_LINE'; assert(stack.includes(searchString), \`Expected \${searchString} in stack: \${stack}\`)`,
+	) => `import ('node:fs');\nconst { stack } = new Error(); const searchString = 'index.${extension}:SOURCEMAP_LINE'; assert(stack.includes(searchString), \`Expected \${searchString} in stack: \${stack}\`)`,
 	tag: (
 		strings: TemplateStringsArray,
 		...values: string[]
@@ -108,11 +108,21 @@ const files = {
 	assert(${cjsContextCheck}, 'Should have CJS context');
 	${preserveName}
 	${sourcemap.test('cjs')}
+
+	// Assert __esModule is unwrapped
+	import ('../ts/index.ts').then((m) => assert(
+		!(typeof m.default === 'object' && ('default' in m.default)),
+	));
 	exports.named = 'named';
 	`,
 
 	'mjs/index.mjs': `
+	import assert from 'assert';
 	export const mjsHasCjsContext = ${cjsContextCheck};
+
+	import ('pkg-commonjs').then((m) => assert(
+		!(typeof m.default === 'object' && ('default' in m.default)),
+	));
 	`,
 
 	'ts/index.ts': sourcemap.tag`
@@ -255,9 +265,9 @@ const files = {
 			[() => ${jsxCheck}, 'React is not defined'],
 
 			// These should throw unless allowJs is set
-			// [() => import('prefix/file'), "Cannot find package 'prefix'"],
-			// [() => import('paths-exact-match'), "Cannot find package 'paths-exact-match'"],
-			// [() => import('file'), "Cannot find package 'file'"],
+			// [() => import ('prefix/file'), "Cannot find package 'prefix'"],
+			// [() => import ('paths-exact-match'), "Cannot find package 'paths-exact-match'"],
+			// [() => import ('file'), "Cannot find package 'file'"],
 		);
 		`,
 
@@ -271,9 +281,9 @@ const files = {
 			'index.mjs': `
 			import { expectErrors } from '../../../expect-errors';
 			expectErrors(
-				[() => import('prefix/file'), "Cannot find package 'prefix'"],
-				[() => import('paths-exact-match'), "Cannot find package 'paths-exact-match'"],
-				[() => import('file'), "Cannot find package 'file'"],
+				[() => import ('prefix/file'), "Cannot find package 'prefix'"],
+				[() => import ('paths-exact-match'), "Cannot find package 'paths-exact-match'"],
+				[() => import ('file'), "Cannot find package 'file'"],
 			);
 			`,
 			'index.cjs': `
@@ -366,7 +376,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						import './js/';
 
 						// No double .default.default in Dynamic Import
-						import('./js/index.js').then(m => {
+						import/* comment */('./js/index.js').then(m => {
 							if (typeof m.default === 'object') {
 								assert(
 									!('default' in m.default),
@@ -375,7 +385,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 							}
 						});
 
-						const importWorksInEval = async () => await import('./js/index.js');
+						const importWorksInEval = async () => await import ('./js/index.js');
 						(0, eval)(importWorksInEval.toString())();
 
 						// .json
@@ -386,8 +396,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// .cjs
 						import * as cjs from './cjs/index.cjs';
 						expectErrors(
-							[() => import('./cjs/index'), 'Cannot find module'],
-							[() => import('./cjs/'), 'Cannot find module'],
+							[() => import ('./cjs/index'), 'Cannot find module'],
+							[() => import ('./cjs/'), 'Cannot find module'],
 							${
 								isCommonJs
 									? `
@@ -401,8 +411,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// .mjs
 						import * as mjs from './mjs/index.mjs';
 						expectErrors(
-							[() => import('./mjs/index'), 'Cannot find module'],
-							[() => import('./mjs/'), 'Cannot find module'],
+							[() => import ('./mjs/index'), 'Cannot find module'],
+							[() => import ('./mjs/'), 'Cannot find module'],
 							${
 								isCommonJs
 									? `
@@ -418,8 +428,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 
 						// Unsupported files
 						expectErrors(
-							[() => import('./file.txt'), 'Unknown file extension'],
-							[() => import(${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
+							[() => import ('./file.txt'), 'Unknown file extension'],
+							[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
 							${
 								isCommonJs
 									? `
@@ -433,7 +443,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 									? '[() => require(\'./broken-syntax\'), \'Transform failed\'],'
 									: ''
 							}
-							[() => import('./broken-syntax'), 'Transform failed'],
+							[() => import ('./broken-syntax'), 'Transform failed'],
 						);
 
 						console.log(JSON.stringify({
@@ -510,7 +520,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						)};
 
 						// No double .default.default in Dynamic Import
-						import('./js/index.js').then(m => {
+						import/* comment */('./js/index.js').then(m => {
 							if (typeof m.default === 'object') {
 								assert(
 									!('default' in m.default),
@@ -527,8 +537,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// .cjs
 						import * as cjs from './cjs/index.cjs';
 						expectErrors(
-							[() => import('./cjs/index'), 'Cannot find module'],
-							[() => import('./cjs/'), 'Cannot find module'],
+							[() => import ('./cjs/index'), 'Cannot find module'],
+							[() => import ('./cjs/'), 'Cannot find module'],
 							${
 								isCommonJs
 									? `
@@ -542,8 +552,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// .mjs
 						import * as mjs from './mjs/index.mjs';
 						expectErrors(
-							[() => import('./mjs/index'), 'Cannot find module'],
-							[() => import('./mjs/'), 'Cannot find module'],
+							[() => import ('./mjs/index'), 'Cannot find module'],
+							[() => import ('./mjs/'), 'Cannot find module'],
 							${
 								isCommonJs
 									? `
@@ -578,9 +588,9 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						import './cts/index.cjs';
 						expectErrors(
 							// TODO:
-							// [() => import('./cts/index.cts'), 'Cannot find module'],
-							[() => import('./cts/index'), 'Cannot find module'],
-							[() => import('./cts/'), 'Cannot find module'],
+							// [() => import ('./cts/index.cts'), 'Cannot find module'],
+							[() => import ('./cts/index'), 'Cannot find module'],
+							[() => import ('./cts/'), 'Cannot find module'],
 							${
 								isCommonJs
 									? `
@@ -596,9 +606,9 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						import './mts/index.mjs';
 						expectErrors(
 							// TODO:
-							// [() => import('./mts/index.mts'), 'Cannot find module'],
-							[() => import('./mts/index'), 'Cannot find module'],
-							[() => import('./mts/'), 'Cannot find module'],
+							// [() => import ('./mts/index.mts'), 'Cannot find module'],
+							[() => import ('./mts/index'), 'Cannot find module'],
+							[() => import ('./mts/'), 'Cannot find module'],
 							${
 								isCommonJs
 									? `
@@ -612,8 +622,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 
 						// Unsupported files
 						expectErrors(
-							[() => import('./file.txt'), 'Unknown file extension'],
-							[() => import(${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
+							[() => import ('./file.txt'), 'Unknown file extension'],
+							[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
 							${
 								isCommonJs
 									? `
@@ -627,7 +637,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 									? '[() => require(\'./broken-syntax\'), \'Transform failed\'],'
 									: ''
 							}
-							[() => import('./broken-syntax'), 'Transform failed'],
+							[() => import ('./broken-syntax'), 'Transform failed'],
 						);
 
 						console.log(JSON.stringify({

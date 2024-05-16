@@ -25,14 +25,22 @@ const handleDynamicImport = `.then(${toEsmFunctionString})`;
 export const transformDynamicImport = (
 	filePath: string,
 	code: string,
+	isMinified?: boolean,
 ) => {
 	// Naive check (regex is too slow)
-	if (!code.includes('import')) {
+	if (isMinified) {
+		// If minified, we can safely check for "import(" to avoid parsing
+		if (!code.includes('import(')) {
+			return;
+		}
+	} else if (!code.includes('import')) {
+		// This is a bit more expensive as we end up parsing even if import statements are detected
 		return;
 	}
 
-	const dynamicImports = parseEsm(code)[0].filter(maybeDynamic => maybeDynamic.d > -1);
-
+	// Passing in the filePath improves Parsing Error message
+	const parsed = parseEsm(code, filePath);
+	const dynamicImports = parsed[0].filter(maybeDynamic => maybeDynamic.d > -1);
 	if (dynamicImports.length === 0) {
 		return;
 	}

@@ -68,18 +68,17 @@ export const transformSync = (
 			filePath,
 			code,
 			[
-				// eslint-disable-next-line @typescript-eslint/no-shadow
-				(_filePath, code) => {
+				(_filePath, _code) => {
 					const patchResult = patchOptions(esbuildOptions);
 					let result;
 					try {
-						result = esbuildTransformSync(code, esbuildOptions);
+						result = esbuildTransformSync(_code, esbuildOptions);
 					} catch (error) {
 						throw formatEsbuildError(error as TransformFailure);
 					}
 					return patchResult(result);
 				},
-				transformDynamicImport,
+				(_filePath, _code) => transformDynamicImport(_filePath, _code, true),
 			],
 		);
 
@@ -115,18 +114,17 @@ export const transform = async (
 			filePath,
 			code,
 			[
-				// eslint-disable-next-line @typescript-eslint/no-shadow
-				async (_filePath, code) => {
+				async (_filePath, _code) => {
 					const patchResult = patchOptions(esbuildOptions);
 					let result;
 					try {
-						result = await esbuildTransform(code, esbuildOptions);
+						result = await esbuildTransform(_code, esbuildOptions);
 					} catch (error) {
 						throw formatEsbuildError(error as TransformFailure);
 					}
 					return patchResult(result);
 				},
-				transformDynamicImport,
+				(_filePath, _code) => transformDynamicImport(_filePath, _code, true),
 			],
 		);
 

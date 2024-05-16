@@ -8,8 +8,11 @@ init.then(() => {
 	wasmParserInitialized = true;
 });
 
-export const parseEsm = (code: string) => (
+export const parseEsm = (
+	code: string,
+	filename: string,
+) => (
 	wasmParserInitialized
-		? parseWasm(code)
-		: parseJs(code)
+		? parseWasm(code, filename)
+		: parseJs(code, filename)
 );
