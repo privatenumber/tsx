@@ -1,14 +1,18 @@
 {
 	"compilerOptions": {
-		"target": "esnext",
-		"module": "Preserve",
+		"target": "es2022",
+		"moduleDetection": "force",
+
+
+		"module": "preserve",
+		"resolveJsonModule": true,
+		"allowJs": true,
 		"strict": true,
+		// "noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
 		"noEmit": true,
 		"esModuleInterop": true,
-		"isolatedModules": true,
-		"skipLibCheck": true
-	},
-	"include": [
-		"src"
-	]
+		"verbatimModuleSyntax": true,
+		"skipLibCheck": true,
+	}
 }

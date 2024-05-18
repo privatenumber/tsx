@@ -1,4 +1,4 @@
-import remapping, { type SourceMap, SourceMapInput } from '@ampproject/remapping';
+import remapping, { type SourceMap, type SourceMapInput } from '@ampproject/remapping';
 
 type MaybePromise<T> = T | Promise<T>;
 

@@ -51,7 +51,7 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 		});
 	}
 
-	get(key: string) {
+	override get(key: string) {
 		const memoryCacheHit = super.get(key);
 
 		if (memoryCacheHit) {
@@ -85,7 +85,7 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 		return cachedResult;
 	}
 
-	set(key: string, value: ReturnType) {
+	override set(key: string, value: ReturnType) {
 		super.set(key, value);
 
 		if (value) {

@@ -52,7 +52,7 @@
 		"prepare": "pnpm simple-git-hooks",
 		"build": "pkgroll --minify",
 		"lint": "lintroll --node --cache .",
-		"type-check": "tsc --noEmit",
+		"type-check": "tsc",
 		"test": "pnpm build && node ./dist/cli.mjs tests/index.ts",
 		"prepack": "pnpm build && clean-pkg-json",
 		"docs:dev": "pnpm --filter=docs dev",
