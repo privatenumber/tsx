@@ -9,7 +9,7 @@ The Node.js API is for advanced usage and should not be necessary for the majory
 
 The Node.js API allows you to enhance Node with _tsx_ without directly running `tsx`. This is useful for adding TypeScript support to binaries (e.g. `eslint`), or to your 3rd-party package without affecting the environment (e.g. loading config files), or simply using `node` directly to reduce overhead.
 
-Note, when using the Node.js integrations, CLI features such as [_Watch mode_](/watch-mode) will not be available.
+Note, when using the Node.js integrations, CLI features such as [_Watch mode_](/watch-mode.md) will not be available.
 
 ## Global enhancement
 

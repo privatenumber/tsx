@@ -45,7 +45,7 @@ tsx file.js
 
 - Iterate on your code faster and boost productivity!
 
-	As a DX bonus, _tsx_ comes with a [watcher](/watch-mode) to re-run your files whenever you save them.
+	As a DX bonus, _tsx_ comes with a [watcher](/watch-mode.md) to re-run your files whenever you save them.
 
 ## Limitations
 

@@ -62,7 +62,7 @@ Here are some notable ones I've found via [GitHub Search](https://github.com/sea
 
 - **Watcher**
 
-	As a DX bonus, _tsx_ also comes with [Watch mode](/watch-mode) to help you iterate faster!
+	As a DX bonus, _tsx_ also comes with [Watch mode](/watch-mode.md) to help you iterate faster!
 
 For a detailed technical comparison, you can refer to this [exhaustive comparison](https://github.com/privatenumber/ts-runtime-comparison) between `tsx`, `ts-node`, and other runtimes.
 

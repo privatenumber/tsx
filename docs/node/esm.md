@@ -7,7 +7,7 @@ This section is only for adding tsx in Module mode (doesn't affect `.cjs` or `.c
 ::: warning Not for 3rd-party packages
 This enhances the entire runtime so it may not be suitable for loading TypeScript files from a 3rd-party package as it may lead to unexpected behavior in user code.
 
-For importing TypeScript files in Module mode without affecting the environment, see the _Scoped registration_ section below or [`tsImport()`](/node/ts-import).
+For importing TypeScript files in Module mode without affecting the environment, see the _Scoped registration_ section below or [`tsImport()`](/node/ts-import.md).
 :::
 
 ## Command-line API

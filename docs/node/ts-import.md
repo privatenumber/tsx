@@ -24,7 +24,7 @@ const loaded = await tsImport('./file.ts', import.meta.url)
 const loadedAgain = await tsImport('./file.ts', import.meta.url)
 ```
 
-If you'd like to leverage module caching, see the [ESM scoped registration](/node/esm#scoped-registration) section.
+If you'd like to leverage module caching, see the [ESM scoped registration](/node/esm.md#scoped-registration) section.
 
 ## CommonJS usage
 
