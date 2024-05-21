@@ -7,23 +7,19 @@ import type { NodeApis } from '../utils/tsx.js';
 import { hasCoverageSourcesContent } from '../utils/coverage-sources-content.js';
 import { isWindows } from '../utils/is-windows.js';
 import { files } from '../fixtures.js';
+import { packageTypes } from '../utils/package-types.js';
 
 const wasmPath = path.resolve('tests/fixtures/test.wasm');
 const wasmPathUrl = pathToFileURL(wasmPath).toString();
-
-const packageTypes = [
-	'module',
-	'commonjs',
-] as const;
 
 export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 	describe('Smoke', ({ describe }) => {
 		for (const packageType of packageTypes) {
 			const isCommonJs = packageType === 'commonjs';
 
-			describe(packageType, ({ test, describe }) => {
-				test('from .js', async ({ onTestFinish, onTestFail }) => {
-					const fixture = await createFixture({
+			describe(packageType, ({ test }) => {
+				test('from .js', async ({ onTestFail }) => {
+					await using fixture = await createFixture({
 						'package.json': JSON.stringify({ type: packageType }),
 						'import-from-js.js': outdent`
 						import assert from 'assert';
@@ -133,7 +129,6 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						`,
 						...files,
 					});
-					onTestFinish(async () => await fixture.rm());
 
 					const p = await tsx(['import-from-js.js'], fixture.path);
 					onTestFail((error) => {
@@ -158,8 +153,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					expect(p.stderr).toBe('');
 				});
 
-				describe('from .ts', async ({ test, onFinish }) => {
-					const fixture = await createFixture({
+				test('from .ts', async ({ onTestFail }) => {
+					await using fixture = await createFixture({
 						'package.json': JSON.stringify({ type: packageType }),
 
 						'import-from-ts.ts': ({ fixturePath }) => outdent`
@@ -333,73 +328,37 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						`,
 						...files,
 					});
-					onFinish(async () => await fixture.rm());
 
-					test('import all', async ({ onTestFail }) => {
-						const p = await tsx(['import-from-ts.ts'], {
-							cwd: fixture.path,
-							env: {
-								NODE_V8_COVERAGE: 'coverage',
-							},
-						});
-						onTestFail((error) => {
-							console.error(error);
-							console.log(p);
-						});
-						expect(p.failed).toBe(false);
-						expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(fixture.getPath('import-from-ts.ts'))}"`);
-						expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
-						expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
-						expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
-						expect(p.stdout).toMatch(`"jsx":{"cjsContext":${isCommonJs},"jsx":[null,null,["div",null,"JSX"]]}`);
-						expect(p.stdout).toMatch('"pkgModule":{"default":1,"named":2}');
-						if (isCommonJs) {
-							expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
-						} else {
-							expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"default":1,"named":2}}');
-						}
-
-						// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
-						expect(p.stdout).toMatch(`"mjs":{"mjsHasCjsContext":${isCommonJs}}`);
-						expect(p.stderr).toBe('');
-
-						const coverageDirectory = fixture.getPath('coverage');
-						const coverageSourceMapCache = await hasCoverageSourcesContent(coverageDirectory);
-						expect(coverageSourceMapCache).toBe(true);
+					const p = await tsx(['import-from-ts.ts'], {
+						cwd: fixture.path,
+						env: {
+							NODE_V8_COVERAGE: 'coverage',
+						},
 					});
-
-					test('tsconfig', async ({ onTestFail }) => {
-						const pTsconfig = await tsx(['index.tsx'], fixture.getPath('tsconfig'));
-						onTestFail((error) => {
-							console.error(error);
-							console.log(pTsconfig);
-						});
-						expect(pTsconfig.failed).toBe(false);
-						expect(pTsconfig.stderr).toBe('');
-						expect(pTsconfig.stdout).toBe('');
+					onTestFail((error) => {
+						console.error(error);
+						console.log(p);
 					});
+					expect(p.failed).toBe(false);
+					expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(fixture.getPath('import-from-ts.ts'))}"`);
+					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
+					expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
+					expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
+					expect(p.stdout).toMatch(`"jsx":{"cjsContext":${isCommonJs},"jsx":[null,null,["div",null,"JSX"]]}`);
+					expect(p.stdout).toMatch('"pkgModule":{"default":1,"named":2}');
+					if (isCommonJs) {
+						expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
+					} else {
+						expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"default":1,"named":2}}');
+					}
 
-					test('custom tsconfig', async ({ onTestFail }) => {
-						const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'jsx.jsx'], fixture.getPath('tsconfig'));
-						onTestFail((error) => {
-							console.error(error);
-							console.log(pTsconfigAllowJs);
-						});
-						expect(pTsconfigAllowJs.failed).toBe(true);
-						expect(pTsconfigAllowJs.stderr).toMatch('Error: No error thrown');
-						expect(pTsconfigAllowJs.stdout).toBe('');
-					});
+					// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
+					expect(p.stdout).toMatch(`"mjs":{"mjsHasCjsContext":${isCommonJs}}`);
+					expect(p.stderr).toBe('');
 
-					test('allowJs in tsconfig.json', async ({ onTestFail }) => {
-						const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig/tsconfig-allowJs.json', 'import-typescript-parent.js'], fixture.path);
-						onTestFail((error) => {
-							console.error(error);
-							console.log(pTsconfigAllowJs);
-						});
-						expect(pTsconfigAllowJs.failed).toBe(false);
-						expect(pTsconfigAllowJs.stderr).toBe('');
-						expect(pTsconfigAllowJs.stdout).toBe('imported');
-					});
+					const coverageDirectory = fixture.getPath('coverage');
+					const coverageSourceMapCache = await hasCoverageSourcesContent(coverageDirectory);
+					expect(coverageSourceMapCache).toBe(true);
 				});
 			});
 		}

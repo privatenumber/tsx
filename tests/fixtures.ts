@@ -6,7 +6,8 @@ const React = {
 	createElement: (...args) => Array.from(args),
 };
 `;
-const jsxCheck = '<><div>JSX</div></>';
+
+export const jsxCheck = '<><div>JSX</div></>';
 
 const preserveName = `
 assert(
@@ -83,7 +84,39 @@ const sourcemap = {
 	},
 };
 
+export const expectErrors = {
+	'expect-errors.js': `
+	export const expectErrors = async (...assertions) => {
+		let errors = await Promise.all(
+			assertions.map(async ([fn, expectedError]) => {
+				let thrown;
+				try {
+					await fn();
+				} catch (error) {
+					thrown = error;
+				}
+
+				if (!thrown) {
+					return new Error('No error thrown');
+				} else if (!thrown.message.includes(expectedError)) {
+					return new Error(\`Message \${JSON.stringify(expectedError)} not found in \${JSON.stringify(thrown.message)}\n\${thrown.stack}\`);
+				}
+			}),
+		);
+
+		errors = errors.filter(Boolean);
+
+		if (errors.length > 0) {
+			console.error(errors);
+			process.exitCode = 1;
+		}
+	};
+	`,
+};
+
 export const files = {
+	...expectErrors,
+
 	'js/index.js': `
 	import assert from 'assert';
 	${syntaxLowering}
@@ -188,43 +221,7 @@ export const files = {
 	${sourcemap.test('cts')}
 	`,
 
-	'expect-errors.js': `
-	export const expectErrors = async (...assertions) => {
-		let errors = await Promise.all(
-			assertions.map(async ([fn, expectedError]) => {
-				let thrown;
-				try {
-					await fn();
-				} catch (error) {
-					thrown = error;
-				}
-
-				if (!thrown) {
-					return new Error('No error thrown');
-				} else if (!thrown.message.includes(expectedError)) {
-					return new Error(\`Message \${JSON.stringify(expectedError)} not found in \${JSON.stringify(thrown.message)}\n\${thrown.stack}\`);
-				}
-			}),
-		);
-
-		errors = errors.filter(Boolean);
-
-		if (errors.length > 0) {
-			console.error(errors);
-			process.exitCode = 1;
-		}
-	};
-	`,
-
 	'file.txt': 'hello',
-
-	'import-typescript-parent.js': sourcemap.tag`
-	import './import-typescript-child.js';
-	`,
-
-	'import-typescript-child.ts': sourcemap.tag`
-	console.log('imported');
-	`,
 
 	'broken-syntax.ts': 'if',
 
@@ -243,88 +240,5 @@ export const files = {
 			'index.js': `${syntaxLowering}\nexport * from "./empty-export"`,
 			'empty-export/index.js': 'export {}',
 		},
-	},
-
-	tsconfig: {
-		'file.ts': '',
-
-		'jsx.jsx': `
-		// tsconfig not applied to jsx because allowJs is not set
-		import { expectErrors } from '../expect-errors';
-		expectErrors(
-			[() => ${jsxCheck}, 'React is not defined'],
-
-			// These should throw unless allowJs is set
-			// [() => import ('prefix/file'), "Cannot find package 'prefix'"],
-			// [() => import ('paths-exact-match'), "Cannot find package 'paths-exact-match'"],
-			// [() => import ('file'), "Cannot find package 'file'"],
-		);
-		`,
-
-		'node_modules/tsconfig-should-not-apply': {
-			'package.json': JSON.stringify({
-				exports: {
-					import: './index.mjs',
-					default: './index.cjs',
-				},
-			}),
-			'index.mjs': `
-			import { expectErrors } from '../../../expect-errors';
-			expectErrors(
-				[() => import ('prefix/file'), "Cannot find package 'prefix'"],
-				[() => import ('paths-exact-match'), "Cannot find package 'paths-exact-match'"],
-				[() => import ('file'), "Cannot find package 'file'"],
-			);
-			`,
-			'index.cjs': `
-			const { expectErrors } = require('../../../expect-errors');
-			expectErrors(
-				[() => require('prefix/file'), "Cannot find module"],
-				[() => require('paths-exact-match'), "Cannot find module"],
-				[() => require('file'), "Cannot find module"],
-			);
-			`,
-		},
-
-		'index.tsx': `
-		${jsxCheck};
-
-		import './jsx';
-
-		// Resolves relative to baseUrl
-		import 'file';
-
-		// Resolves paths - exact match
-		import 'paths-exact-match';
-
-		// Resolves paths - prefix match
-		import 'prefix/file';
-
-		// Resolves paths - suffix match
-		import 'file/suffix';
-
-		// tsconfig should not apply to dependency
-		import "tsconfig-should-not-apply";
-		`,
-
-		'tsconfig.json': JSON.stringify({
-			compilerOptions: {
-				jsxFactory: 'Array',
-				jsxFragmentFactory: 'null',
-				baseUrl: '.',
-				paths: {
-					'paths-exact-match': ['file'],
-					'prefix/*': ['*'],
-					'*/suffix': ['*'],
-				},
-			},
-		}),
-
-		'tsconfig-allowJs.json': JSON.stringify({
-			extends: './tsconfig.json',
-			compilerOptions: {
-				allowJs: true,
-			},
-		}),
 	},
 };
