@@ -21,17 +21,17 @@ const esmPattern = /\b(?:import|export)\b/;
 */
 
 export const isESM = (code: string) => {
-	if (code.includes('import') || code.includes('export')) {
-		try {
-			const hasModuleSyntax = parseEsm(code)[3];
-			return hasModuleSyntax;
-		} catch {
-			/**
-			 * If it fails to parse, there's a syntax error
-			 * Let esbuild handle it for better error messages
-			 */
-			return true;
-		}
+	if (!code.includes('import') && !code.includes('export')) {
+		return false;
 	}
-	return false;
+	try {
+		const hasModuleSyntax = parseEsm(code)[3];
+		return hasModuleSyntax;
+	} catch {
+		/**
+		 * If it fails to parse, there's a syntax error
+		 * Let esbuild handle it for better error messages
+		 */
+		return true;
+	}
 };

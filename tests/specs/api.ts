@@ -9,6 +9,7 @@ import {
 	tsxEsmApiCjsPath,
 	type NodeApis,
 } from '../utils/tsx.js';
+import { createPackageJson } from '../fixtures.js';
 
 const tsFiles = {
 	'file.ts': `
@@ -21,7 +22,7 @@ const tsFiles = {
 	`,
 	'bar.ts': 'export type A = 1; export { bar } from "pkg"',
 	'node_modules/pkg': {
-		'package.json': JSON.stringify({
+		'package.json': createPackageJson({
 			name: 'pkg',
 			type: 'module',
 			exports: './index.js',
@@ -144,7 +145,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 		describe('module', ({ describe, test }) => {
 			test('cli', async () => {
 				await using fixture = await createFixture({
-					'package.json': JSON.stringify({ type: 'module' }),
+					'package.json': createPackageJson({ type: 'module' }),
 					'index.ts': 'import { message } from \'./file\';\n\nconsole.log(message, new Error().stack);',
 					...tsFiles,
 				});
@@ -160,7 +161,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			if (node.supports.moduleRegister) {
 				test('module.register', async () => {
 					await using fixture = await createFixture({
-						'package.json': JSON.stringify({ type: 'module' }),
+						'package.json': createPackageJson({ type: 'module' }),
 						'module-register.mjs': `
 						import { register } from 'node:module';
 
@@ -190,7 +191,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				describe('register / unregister', ({ test }) => {
 					test('register / unregister', async () => {
 						await using fixture = await createFixture({
-							'package.json': JSON.stringify({ type: 'module' }),
+							'package.json': createPackageJson({ type: 'module' }),
 							'register.mjs': `
 							import { register } from ${JSON.stringify(tsxEsmApiPath)};
 							try {
@@ -235,7 +236,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 					test('onImport', async () => {
 						await using fixture = await createFixture({
-							'package.json': JSON.stringify({ type: 'module' }),
+							'package.json': createPackageJson({ type: 'module' }),
 							'register.mjs': `
 							import { register } from ${JSON.stringify(tsxEsmApiPath)};
 
@@ -259,7 +260,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 					test('namespace & onImport', async () => {
 						await using fixture = await createFixture({
-							'package.json': JSON.stringify({ type: 'module' }),
+							'package.json': createPackageJson({ type: 'module' }),
 							'register.mjs': `
 							import { setTimeout } from 'node:timers/promises';
 							import { register } from ${JSON.stringify(tsxEsmApiPath)};
@@ -290,7 +291,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				describe('tsImport()', ({ test }) => {
 					test('module', async () => {
 						await using fixture = await createFixture({
-							'package.json': JSON.stringify({ type: 'module' }),
+							'package.json': createPackageJson({ type: 'module' }),
 							'import.mjs': `
 							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
 	
@@ -321,7 +322,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 					test('commonjs', async () => {
 						await using fixture = await createFixture({
-							'package.json': JSON.stringify({ type: 'module' }),
+							'package.json': createPackageJson({ type: 'module' }),
 							'import.cjs': `
 							const { tsImport } = require(${JSON.stringify(tsxEsmApiCjsPath)});
 	
@@ -374,7 +375,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 					test('namespace allows async nested calls', async () => {
 						await using fixture = await createFixture({
-							'package.json': JSON.stringify({ type: 'module' }),
+							'package.json': createPackageJson({ type: 'module' }),
 							'import.mjs': `
 							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
 							tsImport('./file.ts', import.meta.url);
@@ -393,7 +394,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 					test('onImport & doesnt cache files', async () => {
 						await using fixture = await createFixture({
-							'package.json': JSON.stringify({ type: 'module' }),
+							'package.json': createPackageJson({ type: 'module' }),
 							'import.mjs': `
 							import { setTimeout } from 'node:timers/promises';
 							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
@@ -439,7 +440,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			} else {
 				test('no module.register error', async () => {
 					await using fixture = await createFixture({
-						'package.json': JSON.stringify({ type: 'module' }),
+						'package.json': createPackageJson({ type: 'module' }),
 						'register.mjs': `
 						import { register } from ${JSON.stringify(tsxEsmApiPath)};
 

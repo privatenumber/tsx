@@ -1,19 +1,12 @@
 import path from 'node:path';
 import Module from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { createPathsMatcher } from 'get-tsconfig';
 import { resolveTsPath } from '../../utils/resolve-ts-path.js';
 import type { NodeError } from '../../types.js';
-import { isRelativePath } from '../../utils/path-utils.js';
-import { fileUrlPrefix } from '../../utils/file-url.js';
-import {
-	isTsFilePatten,
-	tsconfig,
-} from './utils.js';
+import { isRelativePath, fileUrlPrefix, tsExtensionsPattern } from '../../utils/path-utils.js';
+import { tsconfigPathsMatcher, allowJs } from '../../utils/tsconfig.js';
 
 const nodeModulesPath = `${path.sep}node_modules${path.sep}`;
-
-const tsconfigPathsMatcher = tsconfig && createPathsMatcher(tsconfig);
 
 type ResolveFilename = typeof Module._resolveFilename;
 
@@ -33,8 +26,8 @@ const resolveTsFilename = (
 	if (
 		parent?.filename
 		&& (
-			isTsFilePatten.test(parent.filename)
-			|| tsconfig?.config.compilerOptions?.allowJs
+			tsExtensionsPattern.test(parent.filename)
+			|| allowJs
 		)
 		&& tsPath
 	) {

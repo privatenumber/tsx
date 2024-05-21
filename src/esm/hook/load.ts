@@ -7,12 +7,9 @@ import { inlineSourceMap } from '../../source-map.js';
 import { isFeatureSupported, importAttributes } from '../../utils/node-features.js';
 import { parent } from '../../utils/ipc/client.js';
 import type { Message } from '../types.js';
-import {
-	fileMatcher,
-	tsExtensionsPattern,
-	isJsonPattern,
-	getNamespace,
-} from './utils.js';
+import { fileMatcher } from '../../utils/tsconfig.js';
+import { isJsonPattern, tsExtensionsPattern } from '../../utils/path-utils.js';
+import { getNamespace } from './utils.js';
 import { data } from './initialize.js';
 
 const contextAttributesProperty = (

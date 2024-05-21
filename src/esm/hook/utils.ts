@@ -1,33 +1,15 @@
 import path from 'node:path';
 import type { ModuleFormat } from 'node:module';
-import {
-	getTsconfig,
-	parseTsconfig,
-	createPathsMatcher,
-	createFilesMatcher,
-} from 'get-tsconfig';
+import { tsExtensionsPattern } from '../../utils/path-utils.js';
 import { getPackageType } from './package-json.js';
 
-const tsconfig = (
-	process.env.TSX_TSCONFIG_PATH
-		? {
-			path: path.resolve(process.env.TSX_TSCONFIG_PATH),
-			config: parseTsconfig(process.env.TSX_TSCONFIG_PATH),
-		}
-		: getTsconfig()
-);
-
-export const fileMatcher = tsconfig && createFilesMatcher(tsconfig);
-export const tsconfigPathsMatcher = tsconfig && createPathsMatcher(tsconfig);
-export const allowJs = tsconfig?.config.compilerOptions?.allowJs ?? false;
-
-export const tsExtensionsPattern = /\.([cm]?ts|[tj]sx)($|\?)/;
-
-export const isJsonPattern = /\.json(?:$|\?)/;
-
 const getFormatFromExtension = (fileUrl: string): ModuleFormat | undefined => {
-	const extension = path.extname(fileUrl.split('?')[0]);
-
+	const queryIndex = fileUrl.indexOf('?');
+	const extension = path.extname(
+		queryIndex === -1
+			? fileUrl
+			: fileUrl.slice(0, queryIndex),
+	);
 	if (extension === '.json') {
 		return 'json';
 	}

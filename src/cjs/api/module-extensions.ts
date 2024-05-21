@@ -1,13 +1,12 @@
 import fs from 'node:fs';
 import Module from 'node:module';
-import { createFilesMatcher } from 'get-tsconfig';
 import type { TransformOptions } from 'esbuild';
 import { transformSync } from '../../utils/transform/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';
 import { isESM } from '../../utils/esm-pattern.js';
 import { shouldApplySourceMap, inlineSourceMap } from '../../source-map.js';
 import { parent } from '../../utils/ipc/client.js';
-import { tsconfig } from './utils.js';
+import { fileMatcher } from '../../utils/tsconfig.js';
 
 const typescriptExtensions = [
 	'.cts',
@@ -22,8 +21,6 @@ const transformExtensions = [
 	'.cjs',
 	'.mjs',
 ];
-
-const fileMatcher = tsconfig && createFilesMatcher(tsconfig);
 
 // Clone Module._extensions with null prototype
 export const extensions = Object.assign(Object.create(null), Module._extensions);

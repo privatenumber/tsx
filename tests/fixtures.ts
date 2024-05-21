@@ -1,3 +1,9 @@
+import type { PackageJson, TsConfigJson } from 'type-fest';
+
+export const createPackageJson = (packageJson: PackageJson) => JSON.stringify(packageJson);
+
+export const createTsconfig = (tsconfig: TsConfigJson) => JSON.stringify(tsconfig);
+
 const cjsContextCheck = 'typeof module !== \'undefined\'';
 const tsCheck = '1 as number';
 
@@ -85,8 +91,8 @@ const sourcemap = {
 };
 
 export const expectErrors = {
-	'expect-errors.js': `
-	export const expectErrors = async (...assertions) => {
+	'node_modules/expect-errors/index.js': `
+	exports.expectErrors = async (...assertions) => {
 		let errors = await Promise.all(
 			assertions.map(async ([fn, expectedError]) => {
 				let thrown;
@@ -227,13 +233,13 @@ export const files = {
 
 	node_modules: {
 		'pkg-commonjs': {
-			'package.json': JSON.stringify({
+			'package.json': createPackageJson({
 				type: 'commonjs',
 			}),
 			'index.js': syntaxLowering,
 		},
 		'pkg-module': {
-			'package.json': JSON.stringify({
+			'package.json': createPackageJson({
 				type: 'module',
 				main: './index.js',
 			}),

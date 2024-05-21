@@ -43,3 +43,11 @@ export const requestAcceptsQuery = (request: string) => {
 		&& scheme !== 'node'
 	);
 };
+
+export const fileUrlPrefix = 'file://';
+
+export const tsExtensionsPattern = /\.([cm]?ts|[tj]sx)($|\?)/;
+
+export const isJsonPattern = /\.json($|\?)/;
+
+export const isDirectoryPattern = /\/(?:$|\?)/;

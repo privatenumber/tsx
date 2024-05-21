@@ -5,6 +5,7 @@ import { createFixture } from 'fs-fixture';
 import stripAnsi from 'strip-ansi';
 import type { NodeApis } from '../utils/tsx.js';
 import { processInteract } from '../utils/process-interact.js';
+import { createPackageJson } from '../fixtures.js';
 
 export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 	describe('watch', async ({ test, describe, onFinish }) => {
@@ -23,7 +24,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 		for (const packageType of ['module', 'commonjs'] as const) {
 			test(`watch files for changes in ${packageType} package`, async ({ onTestFinish, onTestFail }) => {
 				const fixtureWatch = await createFixture({
-					'package.json': JSON.stringify({
+					'package.json': createPackageJson({
 						type: packageType,
 					}),
 					'index.js': `

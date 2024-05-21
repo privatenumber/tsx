@@ -6,7 +6,7 @@ import outdent from 'outdent';
 import type { NodeApis } from '../utils/tsx.js';
 import { hasCoverageSourcesContent } from '../utils/coverage-sources-content.js';
 import { isWindows } from '../utils/is-windows.js';
-import { files } from '../fixtures.js';
+import { files, createPackageJson } from '../fixtures.js';
 import { packageTypes } from '../utils/package-types.js';
 
 const wasmPath = path.resolve('tests/fixtures/test.wasm');
@@ -20,10 +20,10 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 			describe(packageType, ({ test }) => {
 				test('from .js', async ({ onTestFail }) => {
 					await using fixture = await createFixture({
-						'package.json': JSON.stringify({ type: packageType }),
+						'package.json': createPackageJson({ type: packageType }),
 						'import-from-js.js': outdent`
 						import assert from 'assert';
-						import { expectErrors } from './expect-errors';
+						import { expectErrors } from 'expect-errors';
 
 						const shouldntAffectFile = \`
 						//# sourceMappingURL=\`;
@@ -155,11 +155,11 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 
 				test('from .ts', async ({ onTestFail }) => {
 					await using fixture = await createFixture({
-						'package.json': JSON.stringify({ type: packageType }),
+						'package.json': createPackageJson({ type: packageType }),
 
 						'import-from-ts.ts': ({ fixturePath }) => outdent`
 						import assert from 'assert';
-						import { expectErrors } from './expect-errors';
+						import { expectErrors } from 'expect-errors';
 
 						const shouldntAffectFile = \`
 						//# sourceMappingURL=\`;

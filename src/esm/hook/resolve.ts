@@ -5,20 +5,20 @@ import type {
 } from 'node:module';
 import { resolveTsPath } from '../../utils/resolve-ts-path.js';
 import type { NodeError } from '../../types.js';
-import { requestAcceptsQuery } from '../../utils/path-utils.js';
-import { fileUrlPrefix } from '../../utils/file-url.js';
+import { tsconfigPathsMatcher, allowJs } from '../../utils/tsconfig.js';
 import {
-	tsconfigPathsMatcher,
+	requestAcceptsQuery,
+	fileUrlPrefix,
 	tsExtensionsPattern,
+	isDirectoryPattern,
+} from '../../utils/path-utils.js';
+import {
 	getFormatFromFileUrl,
-	allowJs,
 	namespaceQuery,
 	getNamespace,
 	type MaybePromise,
 } from './utils.js';
 import { data } from './initialize.js';
-
-const isDirectoryPattern = /\/(?:$|\?)/;
 
 type NextResolve = (
 	specifier: string,
