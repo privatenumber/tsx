@@ -287,7 +287,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					});
 
 					describe('tsconfig', ({ test }) => {
-						test('should error on unresolvable tsconfig', async () => {
+						test('should ignore detected unresolvable tsconfig', async () => {
 							await using fixture = await createFixture({
 								'tsconfig.json': createTsconfig({
 									extends: 'doesnt-exist',
@@ -298,14 +298,11 @@ export default testSuite(({ describe }, node: NodeApis) => {
 								`,
 							});
 
-							const { exitCode, stderr } = await execaNode('register.mjs', [], {
-								reject: false,
+							await execaNode('register.mjs', [], {
 								cwd: fixture.path,
 								nodePath: node.path,
 								nodeOptions: [],
 							});
-							expect(exitCode).toBe(1);
-							expect(stderr).toMatch('File \'doesnt-exist\' not found.');
 						});
 
 						test('disable lookup', async () => {

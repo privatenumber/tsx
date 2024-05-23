@@ -28,7 +28,22 @@ export const loadTsconfig = (
 			config: parseTsconfig(resolvedConfigPath),
 		};
 	} else {
-		tsconfig = getTsconfig();
+		try {
+			tsconfig = getTsconfig();
+		} catch {
+			// Not warning here for now because it gets warned twice
+			// Once by ESM loader and then by CJS loader
+			// const disableWarning = (
+			// 	getFlag('--no-warnings', Boolean)
+			// 	|| Boolean(process.env.NODE_NO_WARNINGS)
+			// );
+			// if (!disableWarning) {
+			// 	if (error instanceof Error) {
+			// 		console.warn(`(tsx:${process.pid}) [-----] TsconfigWarning:`, error.message);
+			// 	}
+			// }
+		}
+
 		if (!tsconfig) {
 			return;
 		}

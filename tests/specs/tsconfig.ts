@@ -113,6 +113,19 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 				onFinish(async () => await fixture.rm());
 
 				describe('detected tsconfig', ({ test }) => {
+					test('invalid tsconfig should be ignored', async () => {
+						await using fixture = await createFixture({
+							'package.json': createPackageJson({ type: packageType }),
+							'tsconfig.json': createTsconfig({
+								extends: 'doesnt-exist',
+							}),
+							'index.ts': '',
+						});
+
+						const pTsconfig = await tsx(['index.ts'], fixture.path);
+						expect(pTsconfig.failed).toBe(false);
+					});
+
 					test('tsconfig', async ({ onTestFail }) => {
 						const pTsconfig = await tsx(['index.tsx'], fixture.path);
 						onTestFail((error) => {
@@ -126,6 +139,19 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 				});
 
 				describe('custom tsconfig', ({ test }) => {
+					test('invalid tsconfig should error', async () => {
+						await using fixture = await createFixture({
+							'package.json': createPackageJson({ type: packageType }),
+							'tsconfig.json': createTsconfig({
+								extends: 'doesnt-exist',
+							}),
+							'index.ts': '',
+						});
+
+						const pTsconfig = await tsx(['--tsconfig', 'tsconfig.json', 'index.ts'], fixture.path);
+						expect(pTsconfig.failed).toBe(true);
+					});
+
 					test('custom tsconfig', async ({ onTestFail }) => {
 						const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'jsx.jsx'], fixture.path);
 						onTestFail((error) => {
