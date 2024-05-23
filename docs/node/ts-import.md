@@ -34,6 +34,24 @@ const { tsImport } = require('tsx/esm/api')
 const loaded = await tsImport('./file.ts', __filename)
 ```
 
+## `tsconfig.json`
+
+### Custom `tsconfig.json` path
+```ts
+tsImport('./file.ts', {
+    parentURL: import.meta.url,
+    tsconfig: './custom-tsconfig.json'
+})
+```
+
+### Disable `tsconfig.json` lookup
+```ts
+tsImport('./file.ts', {
+    parentURL: import.meta.url,
+    tsconfig: false
+})
+```
+
 ## Tracking loaded files
 
 Detect files that get loaded with the `onImport` hook:

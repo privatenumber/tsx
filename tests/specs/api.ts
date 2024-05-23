@@ -9,7 +9,7 @@ import {
 	tsxEsmApiCjsPath,
 	type NodeApis,
 } from '../utils/tsx.js';
-import { createPackageJson } from '../fixtures.js';
+import { createPackageJson, createTsconfig } from '../fixtures.js';
 
 const tsFiles = {
 	'file.ts': `
@@ -188,7 +188,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					expect(stdout).toBe('Fails as expected\nfoo bar');
 				});
 
-				describe('register / unregister', ({ test }) => {
+				describe('register / unregister', ({ test, describe }) => {
 					test('register / unregister', async () => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson({ type: 'module' }),
@@ -285,9 +285,141 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						});
 						expect(stdout).toBe('file.ts\nfoo.ts\nbar.ts\nindex.js');
 					});
+
+					describe('tsconfig', ({ test }) => {
+						test('should error on unresolvable tsconfig', async () => {
+							await using fixture = await createFixture({
+								'tsconfig.json': createTsconfig({
+									extends: 'doesnt-exist',
+								}),
+								'register.mjs': `
+								import { register } from ${JSON.stringify(tsxEsmApiPath)};
+								register();
+								`,
+							});
+
+							const { exitCode, stderr } = await execaNode('register.mjs', [], {
+								reject: false,
+								cwd: fixture.path,
+								nodePath: node.path,
+								nodeOptions: [],
+							});
+							expect(exitCode).toBe(1);
+							expect(stderr).toMatch('File \'doesnt-exist\' not found.');
+						});
+
+						test('disable lookup', async () => {
+							await using fixture = await createFixture({
+								'tsconfig.json': createTsconfig({
+									extends: 'doesnt-exist',
+								}),
+								'register.mjs': `
+								import { register } from ${JSON.stringify(tsxEsmApiPath)};
+								register({
+									tsconfig: false,
+								});
+								`,
+							});
+
+							await execaNode('register.mjs', [], {
+								cwd: fixture.path,
+								nodePath: node.path,
+								nodeOptions: [],
+							});
+						});
+
+						test('custom path', async () => {
+							await using fixture = await createFixture({
+								'package.json': createPackageJson({ type: 'module' }),
+								'tsconfig.json': createTsconfig({
+									extends: 'doesnt-exist',
+								}),
+								'tsconfig-custom.json': createTsconfig({
+									compilerOptions: {
+										jsxFactory: 'Array',
+										jsxFragmentFactory: 'null',
+									},
+								}),
+								'register.mjs': `
+								import { register } from ${JSON.stringify(tsxEsmApiPath)};
+								register({
+									tsconfig: './tsconfig-custom.json',
+								});
+								await import('./tsx.tsx');
+								`,
+								'tsx.tsx': `
+								console.log(<>hi</>);
+								`,
+							});
+
+							const { stdout } = await execaNode('register.mjs', [], {
+								cwd: fixture.path,
+								nodePath: node.path,
+								nodeOptions: [],
+							});
+							expect(stdout).toBe('[ null, null, \'hi\' ]');
+						});
+
+						test('custom path - invalid', async () => {
+							await using fixture = await createFixture({
+								'package.json': createPackageJson({ type: 'module' }),
+								'register.mjs': `
+								import { register } from ${JSON.stringify(tsxEsmApiPath)};
+								register({
+									tsconfig: './doesnt-exist',
+								});
+								await import('./tsx.tsx');
+								`,
+								'tsx.tsx': `
+								console.log(<>hi</>);
+								`,
+							});
+
+							const { exitCode, stderr } = await execaNode('register.mjs', [], {
+								reject: false,
+								cwd: fixture.path,
+								nodePath: node.path,
+								nodeOptions: [],
+							});
+							expect(exitCode).toBe(1);
+							expect(stderr).toMatch('Cannot resolve tsconfig at path');
+						});
+
+						test('fallsback to env var', async () => {
+							await using fixture = await createFixture({
+								'package.json': createPackageJson({ type: 'module' }),
+								'tsconfig.json': createTsconfig({
+									extends: 'doesnt-exist',
+								}),
+								'tsconfig-custom.json': createTsconfig({
+									compilerOptions: {
+										jsxFactory: 'Array',
+										jsxFragmentFactory: 'null',
+									},
+								}),
+								'register.mjs': `
+								import { register } from ${JSON.stringify(tsxEsmApiPath)};
+								register();
+								await import('./tsx.tsx');
+								`,
+								'tsx.tsx': `
+								console.log(<>hi</>);
+								`,
+							});
+
+							const { stdout } = await execaNode('register.mjs', [], {
+								cwd: fixture.path,
+								nodePath: node.path,
+								nodeOptions: [],
+								env: {
+									TSX_TSCONFIG_PATH: 'tsconfig-custom.json',
+								},
+							});
+							expect(stdout).toBe('[ null, null, \'hi\' ]');
+						});
+					});
 				});
 
-				// add CJS test
 				describe('tsImport()', ({ test }) => {
 					test('module', async () => {
 						await using fixture = await createFixture({
@@ -435,6 +567,28 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodeOptions: [],
 						});
 						expect(stdout).toBe('foo\nfoo');
+					});
+
+					test('tsconfig disable', async () => {
+						await using fixture = await createFixture({
+							'package.json': createPackageJson({ type: 'module' }),
+							'tsconfig.json': createTsconfig({ extends: 'doesnt-exist' }),
+							'import.mjs': `
+							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+
+							await tsImport('./file.ts', {
+								parentURL: import.meta.url,
+								tsconfig: false,
+							});
+							`,
+							...tsFiles,
+						});
+
+						await execaNode('import.mjs', [], {
+							cwd: fixture.path,
+							nodePath: node.path,
+							nodeOptions: [],
+						});
 					});
 				});
 			} else {

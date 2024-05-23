@@ -3,14 +3,18 @@ import { MessageChannel, type MessagePort } from 'node:worker_threads';
 import type { Message } from '../types.js';
 import { createScopedImport, type ScopedImport } from './scoped-import.js';
 
+export type TsconfigOptions = false | string;
+
 export type InitializationOptions = {
 	namespace?: string;
 	port?: MessagePort;
+	tsconfig?: TsconfigOptions;
 };
 
 export type RegisterOptions = {
 	namespace?: string;
 	onImport?: (url: string) => void;
+	tsconfig?: TsconfigOptions;
 };
 
 export type Unregister = () => Promise<void>;
@@ -44,8 +48,9 @@ export const register: Register = (
 		{
 			parentURL: import.meta.url,
 			data: {
-				namespace: options?.namespace,
 				port: port2,
+				namespace: options?.namespace,
+				tsconfig: options?.tsconfig,
 			} satisfies InitializationOptions,
 			transferList: [port2],
 		},

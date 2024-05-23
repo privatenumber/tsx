@@ -4,19 +4,37 @@ import {
 	parseTsconfig,
 	createFilesMatcher,
 	createPathsMatcher,
+	type TsConfigResult,
+	type FileMatcher,
 } from 'get-tsconfig';
 
-const tsconfig = (
-	process.env.TSX_TSCONFIG_PATH
-		? {
-			path: path.resolve(process.env.TSX_TSCONFIG_PATH),
-			config: parseTsconfig(process.env.TSX_TSCONFIG_PATH),
+// eslint-disable-next-line import-x/no-mutable-exports
+export let fileMatcher: undefined | FileMatcher;
+
+// eslint-disable-next-line import-x/no-mutable-exports
+export let tsconfigPathsMatcher: undefined | ReturnType<typeof createPathsMatcher>;
+
+// eslint-disable-next-line import-x/no-mutable-exports
+export let allowJs = false;
+
+export const loadTsconfig = (
+	configPath?: string,
+) => {
+	let tsconfig: TsConfigResult | null = null;
+	if (configPath) {
+		const resolvedConfigPath = path.resolve(configPath);
+		tsconfig = {
+			path: resolvedConfigPath,
+			config: parseTsconfig(resolvedConfigPath),
+		};
+	} else {
+		tsconfig = getTsconfig();
+		if (!tsconfig) {
+			return;
 		}
-		: getTsconfig()
-);
+	}
 
-export const fileMatcher = tsconfig && createFilesMatcher(tsconfig);
-
-export const tsconfigPathsMatcher = tsconfig && createPathsMatcher(tsconfig);
-
-export const allowJs = tsconfig?.config.compilerOptions?.allowJs ?? false;
+	fileMatcher = createFilesMatcher(tsconfig);
+	tsconfigPathsMatcher = createPathsMatcher(tsconfig);
+	allowJs = tsconfig?.config.compilerOptions?.allowJs ?? false;
+};

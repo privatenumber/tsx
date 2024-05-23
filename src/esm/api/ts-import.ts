@@ -1,8 +1,9 @@
-import { register } from './register.js';
+import { register, type TsconfigOptions } from './register.js';
 
 type Options = {
 	parentURL: string;
 	onImport?: (url: string) => void;
+	tsconfig?: TsconfigOptions;
 };
 const tsImport = (
 	specifier: string,
@@ -27,10 +28,10 @@ const tsImport = (
 	 */
 	const api = register({
 		namespace,
-		onImport: (
+		...(
 			isOptionsString
-				? undefined
-				: options.onImport
+				? {}
+				: options
 		),
 	});
 

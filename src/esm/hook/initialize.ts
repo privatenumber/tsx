@@ -1,6 +1,7 @@
 import type { GlobalPreloadHook, InitializeHook } from 'node:module';
 import type { InitializationOptions } from '../api/register.js';
 import type { Message } from '../types.js';
+import { loadTsconfig } from '../../utils/tsconfig.js';
 
 type Data = InitializationOptions & {
 	active: boolean;
@@ -19,6 +20,10 @@ export const initialize: InitializeHook = async (
 
 	data.namespace = options.namespace;
 
+	if (options.tsconfig !== false) {
+		loadTsconfig(options.tsconfig ?? process.env.TSX_TSCONFIG_PATH);
+	}
+
 	if (options.port) {
 		data.port = options.port;
 
@@ -32,4 +37,7 @@ export const initialize: InitializeHook = async (
 	}
 };
 
-export const globalPreload: GlobalPreloadHook = () => 'process.setSourceMapsEnabled(true);';
+export const globalPreload: GlobalPreloadHook = () => {
+	loadTsconfig(process.env.TSX_TSCONFIG_PATH);
+	return 'process.setSourceMapsEnabled(true);';
+};
