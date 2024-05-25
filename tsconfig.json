@@ -1,17 +1,18 @@
 {
 	"compilerOptions": {
-		"strict": true,
-		"isolatedModules": true,
-		"esModuleInterop": true,
-		"moduleResolution": "node",
-		"resolveJsonModule": true,
-		"skipLibCheck": true,
-		"jsx": "preserve",
+		"target": "es2022",
+		"moduleDetection": "force",
 
-		"module": "esnext",
-		"target": "esnext"
-	},
-	"include": [
-		"src"
-	]
+
+		"module": "preserve",
+		"resolveJsonModule": true,
+		"allowJs": true,
+		"strict": true,
+		// "noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+		"noEmit": true,
+		"esModuleInterop": true,
+		"verbatimModuleSyntax": true,
+		"skipLibCheck": true,
+	}
 }

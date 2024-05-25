@@ -1,11 +1,11 @@
-import './patch-repl';
+import './patch-repl.js';
 
 // Hook require() to transform to CJS
-require('@esbuild-kit/cjs-loader');
+// eslint-disable-next-line import-x/no-unresolved
+require('./cjs/index.cjs');
 
 /*
 Hook import/import() to transform to ESM
 Can be used in Node v12 to support dynamic `import()`
 */
-// @ts-expect-error no types necessary
-export * from '@esbuild-kit/esm-loader';
+export * from './esm/index.js';

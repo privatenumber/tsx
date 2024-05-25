@@ -10,7 +10,7 @@ yarn-error.log*
 lerna-debug.log*
 
 # Dependency directories
-/node_modules/
+node_modules
 
 # Output of 'npm pack'
 *.tgz
@@ -27,3 +27,6 @@ dist
 
 # Link config
 link.config.json
+
+# Vitepress
+docs/.vitepress/cache

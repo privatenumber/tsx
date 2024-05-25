@@ -1,0 +1,105 @@
+name: 🐛 Bug report
+description: Found a bug? File a report and let's get it fixed!
+labels: [bug, pending triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        💁‍♂️ This is a collaborative effort. Please do your best to debug, communicate, and demonstrate the problem.
+
+  - type: checkboxes
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I read the documentation and searched existing issues to avoid duplicates
+          required: true
+
+        - label: I am reporting a confirmed bug (not seek debugging help)
+          required: true
+
+        - label: I understand this is a collaborative project and relies on my contributions
+          required: true
+
+        - label: I read and understood the [Contribution guide](https://github.com/privatenumber/tsx/blob/develop/CONTRIBUTING.md)
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## 📋 Show us the bug
+
+        > [!CAUTION]
+        > Without proving the bug is in tsx via *minimal* reproduction, your issue will be closed without response.
+
+        The minimal reproduction is the core of your issue. This is usually all we read.
+
+        The first thing we'll do is scrutinize every code, file, and dependency to see how they impact the bug. If you can delete it and still produce the bug, it's not needed.
+
+        **Starter Template**: [Fork this StackBlitz template](https://stackblitz.com/edit/node-huzszn?file=index.ts)
+        If it's not reproducible on StackBlitz, upload it to a GitHub repository and use GitHub Actions to show the error.
+
+        Please do your best to _show_ the bug rather than talking about it. This will lead to a speedy resolution.
+
+  - type: input
+    attributes:
+      label: Minimal reproduction URL
+      placeholder: https://github.com/...
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        > [!TIP]
+        > **🙋 Need help?** Use [_Priority Support_](https://github.com/sponsors/privatenumber) for debugging help and implementation!
+
+  - type: markdown
+    attributes:
+      value: |
+        ## 🗒️ Notes
+
+        > [!IMPORTANT]
+        > Please skip this section and focus on minimizing the reproduction. We only read it _after_ verifying the reproduction above.
+
+  - type: textarea
+    attributes:
+      label: Problem & expected behavior (under 200 words)
+      value: |
+        Skip this section and let your reproduction do the talking...
+
+
+
+
+        But if you really need to explain, keep it under 200 words:
+        - What happened
+        - What I expected
+        - Error stack trace
+        - Documentation links
+        - Screenshots
+
+  - type: markdown
+    attributes:
+      value: |
+        ## 🛠️ Contribute
+
+  - type: checkboxes
+    attributes:
+      label: Bugs are expected to be fixed by those affected by it
+      options:
+        - label: I'm interested in working on this issue
+
+  - type: checkboxes
+    attributes:
+      label: Compensating engineering work financially will speed up resolution
+      options:
+        - label: I'm willing to offer financial support
+
+  - type: markdown
+    attributes:
+      value: |
+        ## 🚀 Need immediate help?
+        Escalate this issue by supporting the project as a [_Priority Patron_](https://github.com/sponsors/privatenumber)!
+
+        Your concern will receive prompt attention, ensuring faster and more efficient resolution.
+
+        [→ Become a _Priority Patron_!](https://github.com/sponsors/privatenumber)

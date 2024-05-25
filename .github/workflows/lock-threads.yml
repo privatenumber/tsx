@@ -1,0 +1,27 @@
+name: Lock threads
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0" # Every Sunday
+
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+      pull-requests: write
+      discussions: write
+
+    steps:
+      - uses: dessant/lock-threads@v5
+        with:
+          github-token: ${{ github.token }}
+          issue-inactive-days: "91"
+          add-issue-labels: outdated
+          pr-inactive-days: "91"
+          add-pr-labels: outdated
+          discussion-inactive-days: "91"
+          add-discussion-labels: outdated
+          log-output: "true"

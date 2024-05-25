@@ -1,20 +1,21 @@
-import type { ChildProcess } from 'child_process';
-import { fileURLToPath } from 'url';
-import { constants as osConstants } from 'os';
-import path from 'path';
+import type { ChildProcess } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { constants as osConstants } from 'node:os';
+import path from 'node:path';
 import { command } from 'cleye';
 import { watch } from 'chokidar';
-import { run } from '../run';
+import { lightMagenta, lightGreen, yellow } from 'kolorist';
+import { run } from '../run.js';
 import {
 	removeArgvFlags,
 	ignoreAfterArgument,
-} from '../remove-argv-flags';
+} from '../remove-argv-flags.js';
+import { createIpcServer } from '../utils/ipc/server.js';
 import {
 	clearScreen,
 	debounce,
-	isDependencyPath,
 	log,
-} from './utils';
+} from './utils.js';
 
 const flags = {
 	noCache: {
@@ -60,7 +61,7 @@ export const watchCommand = command({
 	 * Remove once cleye supports error callbacks on missing arguments
 	 */
 	ignoreArgv: ignoreAfterArgument(false),
-}, (argv) => {
+}, async (argv) => {
 	const rawArgvs = removeArgvFlags(flags, process.argv.slice(3));
 	const options = {
 		noCache: argv.flags.noCache,
@@ -70,78 +71,127 @@ export const watchCommand = command({
 		ipc: true,
 	};
 	let runProcess: ChildProcess | undefined;
+	let exiting = false;
 
-	const reRun = debounce(() => {
+	const server = await createIpcServer();
+
+	server.on('data', (data) => {
+		// Collect run-time dependencies to watch
 		if (
-			runProcess
-			&& (!runProcess.killed && runProcess.exitCode === null)
+			data
+			&& typeof data === 'object'
+			&& 'type' in data
+			&& data.type === 'dependency'
+			&& 'path' in data
+			&& typeof data.path === 'string'
 		) {
-			runProcess.kill();
-		}
+			const dependencyPath = (
+				data.path.startsWith('file:')
+					? fileURLToPath(data.path)
+					: data.path
+			);
 
-		// Not first run
-		if (runProcess) {
-			log('rerunning');
-		}
-
-		if (options.clearScreen) {
-			process.stdout.write(clearScreen);
-		}
-
-		runProcess = run(rawArgvs, options);
-
-		runProcess.on('message', (data) => {
-			// Collect run-time dependencies to watch
-			if (isDependencyPath(data)) {
-				const dependencyPath = (
-					data.path.startsWith('file:')
-						? fileURLToPath(data.path)
-						: data.path
-				);
-
-				if (path.isAbsolute(dependencyPath)) {
-					// console.log('adding', dependencyPath);
-					watcher.add(dependencyPath);
-				}
+			if (path.isAbsolute(dependencyPath)) {
+				watcher.add(dependencyPath);
 			}
+		}
+	});
+
+	const spawnProcess = () => {
+		if (exiting) {
+			return;
+		}
+
+		return run(rawArgvs, options);
+	};
+
+	let waitingChildExit = false;
+
+	const killProcess = async (
+		childProcess: ChildProcess,
+		signal: NodeJS.Signals = 'SIGTERM',
+		forceKillOnTimeout = 5000,
+	) => {
+		let exited = false;
+		const waitForExit = new Promise<number | null>((resolve) => {
+			childProcess.on('exit', (exitCode) => {
+				exited = true;
+				waitingChildExit = false;
+				resolve(exitCode);
+			});
 		});
+
+		waitingChildExit = true;
+		childProcess.kill(signal);
+
+		setTimeout(() => {
+			if (!exited) {
+				log(yellow(`Process didn't exit in ${Math.floor(forceKillOnTimeout / 1000)}s. Force killing...`));
+				childProcess.kill('SIGKILL');
+			}
+		}, forceKillOnTimeout);
+
+		return await waitForExit;
+	};
+
+	const reRun = debounce(async (event?: string, filePath?: string) => {
+		const reason = event ? `${event ? lightMagenta(event) : ''}${filePath ? ` in ${lightGreen(`./${filePath}`)}` : ''}` : '';
+
+		if (waitingChildExit) {
+			log(reason, yellow('Process hasn\'t exited. Killing process...'));
+			runProcess!.kill('SIGKILL');
+			return;
+		}
+
+		// If not first run
+		if (runProcess) {
+			// If process still running
+			if (runProcess.exitCode === null) {
+				log(reason, yellow('Restarting...'));
+				await killProcess(runProcess);
+			} else {
+				log(reason, yellow('Rerunning...'));
+			}
+
+			if (options.clearScreen) {
+				process.stdout.write(clearScreen);
+			}
+		}
+
+		runProcess = spawnProcess();
 	}, 100);
 
 	reRun();
 
-	function exit(signal: NodeJS.Signals) {
-		/**
-		 * In CLI mode where there is only one run, we can inherit the child's exit code.
-		 * But in watch mode, the exit code should reflect the kill signal.
-		 */
-		// eslint-disable-next-line unicorn/no-process-exit
-		process.exit(
-			/**
-			 * https://nodejs.org/api/process.html#exit-codes
-			 * >128 Signal Exits: If Node.js receives a fatal signal such as SIGKILL or SIGHUP,
-			 * then its exit code will be 128 plus the value of the signal code. This is a
-			 * standard POSIX practice, since exit codes are defined to be 7-bit integers, and
-			 * signal exits set the high-order bit, and then contain the value of the signal
-			 * code. For example, signal SIGABRT has value 6, so the expected exit code will be
-			 * 128 + 6, or 134.
-			 */
-			128 + osConstants.signals[signal],
-		);
-	}
+	const relaySignal = (signal: NodeJS.Signals) => {
+		// Disable further spawns
+		exiting = true;
 
-	function relaySignal(signal: NodeJS.Signals) {
-		// Child is still running
-		if (runProcess && runProcess.exitCode === null) {
-			// Wait for child to exit
-			runProcess.on('close', () => exit(signal));
-			runProcess.kill(signal);
+		// Child is still running, kill it
+		if (runProcess?.exitCode === null) {
+			if (waitingChildExit) {
+				log(yellow('Previous process hasn\'t exited yet. Force killing...'));
+			}
+
+			killProcess(
+				runProcess,
+				// Second Ctrl+C force kills
+				waitingChildExit ? 'SIGKILL' : signal,
+			).then(
+				(exitCode) => {
+					// eslint-disable-next-line n/no-process-exit
+					process.exit(exitCode ?? 0);
+				},
+				() => {},
+			);
 		} else {
-			exit(signal);
+			// eslint-disable-next-line n/no-process-exit
+			process.exit(osConstants.signals[signal]);
 		}
-	}
+	};
 
-	process.once('SIGINT', relaySignal);
-	process.once('SIGTERM', relaySignal);
+	process.on('SIGINT', relaySignal);
+	process.on('SIGTERM', relaySignal);
 
 	/**
 	 * Ideally, we can get a list of files loaded from the run above
@@ -175,5 +225,5 @@ export const watchCommand = command({
 	).on('all', reRun);
 
 	// On "Return" key
-	process.stdin.on('data', reRun);
+	process.stdin.on('data', () => reRun('Return key'));
 });

@@ -1,30 +1,35 @@
-import type { StdioOptions } from 'child_process';
-import { pathToFileURL } from 'url';
+import type { StdioOptions } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import spawn from 'cross-spawn';
+import { isFeatureSupported, moduleRegister } from './utils/node-features.js';
 
-export function run(
+export const run = (
 	argv: string[],
 	options?: {
 		noCache?: boolean;
 		tsconfigPath?: string;
 		ipc?: boolean;
 	},
-) {
+) => {
 	const environment = { ...process.env };
 	const stdio: StdioOptions = [
 		'inherit', // stdin
 		'inherit', // stdout
 		'inherit', // stderr
-		'ipc', // parent-child communication
 	];
+
+	// If parent process spawns tsx with ipc, spawn child with ipc
+	if (process.send) {
+		stdio.push('ipc');
+	}
 
 	if (options) {
 		if (options.noCache) {
-			environment.ESBK_DISABLE_CACHE = '1';
+			environment.TSX_DISABLE_CACHE = '1';
 		}
 
 		if (options.tsconfigPath) {
-			environment.ESBK_TSCONFIG_PATH = options.tsconfigPath;
+			environment.TSX_TSCONFIG_PATH = options.tsconfigPath;
 		}
 	}
 
@@ -34,8 +39,8 @@ export function run(
 			'--require',
 			require.resolve('./preflight.cjs'),
 
-			'--loader',
-			pathToFileURL(require.resolve('./loader.js')).toString(),
+			isFeatureSupported(moduleRegister) ? '--import' : '--loader',
+			pathToFileURL(require.resolve('./loader.mjs')).toString(),
 
 			...argv,
 		],
@@ -44,4 +49,4 @@ export function run(
 			env: environment,
 		},
 	);
-}
+};
