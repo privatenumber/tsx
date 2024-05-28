@@ -93,8 +93,11 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// Is TS loadable here?
 						// Import jsx?
 
-						// Unsupported files
 						expectErrors(
+							// External source maps
+							[() => import ('./file-with-sourcemap.js'), 'asdf.js:30:7'],
+
+							// Unsupported files
 							[() => import ('./file.txt'), 'Unknown file extension'],
 							[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
 							${
@@ -293,8 +296,11 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						);
 						// Loading via Node arg should not work via .mjs but with .mts
 
-						// Unsupported files
 						expectErrors(
+							// External source maps
+							[() => import ('./file-with-sourcemap.js'), 'asdf.js:30:7'],
+
+							// Unsupported files
 							[() => import ('./file.txt'), 'Unknown file extension'],
 							[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
 							${

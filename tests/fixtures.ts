@@ -1,3 +1,4 @@
+import outdent from 'outdent';
 import type { PackageJson, TsConfigJson } from 'type-fest';
 
 export const createPackageJson = (packageJson: PackageJson) => JSON.stringify(packageJson);
@@ -104,7 +105,10 @@ export const expectErrors = {
 
 				if (!thrown) {
 					return new Error('No error thrown');
-				} else if (!thrown.message.includes(expectedError)) {
+				} else if (
+					!thrown.message.includes(expectedError)
+					&& !thrown.stack.includes(expectedError)
+				) {
 					return new Error(\`Message \${JSON.stringify(expectedError)} not found in \${JSON.stringify(thrown.message)}\n\${thrown.stack}\`);
 				}
 			}),
@@ -123,7 +127,7 @@ export const expectErrors = {
 export const files = {
 	...expectErrors,
 
-	'js/index.js': `
+	'js/index.js': outdent`
 	import assert from 'assert';
 	${syntaxLowering}
 	${preserveName}
@@ -145,7 +149,7 @@ export const files = {
 	exports.named = 'named';
 	`,
 
-	'mjs/index.mjs': `
+	'mjs/index.mjs': outdent`
 	import assert from 'assert';
 	export const mjsHasCjsContext = ${cjsContextCheck};
 
@@ -230,6 +234,11 @@ export const files = {
 	'file.txt': 'hello',
 
 	'broken-syntax.ts': 'if',
+
+	'file-with-sourcemap.js': outdent`
+	throw new Error;
+	//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsiYXNkZi5qcyJdLAogICJzb3VyY2VzQ29udGVudCI6IFsiXG5cblxuXG5cblxuXG5cblxuXG5cblxuXG5cblxuXG5cblxuXG5cblxuXG5cblxuXG5cblxuXG5cbnRocm93IG5ldyBFcnJvcigpIl0sCiAgIm1hcHBpbmdzIjogIkFBNkJBLE1BQU0sSUFBSSIsCiAgIm5hbWVzIjogW10KfQo=
+	`,
 
 	node_modules: {
 		'pkg-commonjs': {
