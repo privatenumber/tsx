@@ -1,7 +1,8 @@
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type {
-	ResolveFnOutput, ResolveHookContext,
+	ResolveFnOutput,
+	ResolveHookContext,
 } from 'node:module';
 import { resolveTsPath } from '../../utils/resolve-ts-path.js';
 import type { NodeError } from '../../types.js';
@@ -32,15 +33,12 @@ type resolve = (
 	recursiveCall?: boolean,
 ) => MaybePromise<ResolveFnOutput>;
 
-const resolveExplicitPath = async (
-	nextResolve: NextResolve,
-	specifier: string,
-	context: ResolveHookContext,
+const resolveMissingFormat = async (
+	resolved: ResolveFnOutput,
 ) => {
-	const resolved = await nextResolve(specifier, context);
-
 	if (
 		!resolved.format
+		// Filter out node: and data: (sourcemaps)
 		&& resolved.url.startsWith(fileUrlPrefix)
 	) {
 		resolved.format = await getFormatFromFileUrl(resolved.url);
@@ -60,10 +58,11 @@ const tryExtensions = async (
 	let throwError: Error | undefined;
 	for (const extension of extensions) {
 		try {
-			return await resolveExplicitPath(
-				nextResolve,
-				specifierWithoutQuery + extension + (query ? `?${query}` : ''),
-				context,
+			return await resolveMissingFormat(
+				await nextResolve(
+					specifierWithoutQuery + extension + (query ? `?${query}` : ''),
+					context,
+				),
 			);
 		} catch (_error) {
 			if (
@@ -167,8 +166,9 @@ export const resolve: resolve = async (
 		if (tsPaths) {
 			for (const tsPath of tsPaths) {
 				try {
-					return await resolveExplicitPath(nextResolve, tsPath, context);
-					// return await resolve(tsPath, context, nextResolve, true);
+					return await resolveMissingFormat(
+						await nextResolve(tsPath, context),
+					);
 				} catch (error) {
 					const { code } = error as NodeError;
 					if (
@@ -183,7 +183,9 @@ export const resolve: resolve = async (
 	}
 
 	try {
-		const resolved = await resolveExplicitPath(nextResolve, specifier, context);
+		const resolved = await resolveMissingFormat(
+			await nextResolve(specifier, context),
+		);
 		// Could be a core Node module (e.g. `fs`)
 		if (requestAcceptsQuery(resolved.url)) {
 			const resolvedNamespace = getNamespace(resolved.url);

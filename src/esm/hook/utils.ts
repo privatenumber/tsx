@@ -5,11 +5,12 @@ import { getPackageType } from './package-json.js';
 
 const getFormatFromExtension = (fileUrl: string): ModuleFormat | undefined => {
 	const queryIndex = fileUrl.indexOf('?');
-	const extension = path.extname(
+	fileUrl = (
 		queryIndex === -1
 			? fileUrl
-			: fileUrl.slice(0, queryIndex),
+			: fileUrl.slice(0, queryIndex)
 	);
+	const extension = path.extname(fileUrl);
 	if (extension === '.json') {
 		return 'json';
 	}
