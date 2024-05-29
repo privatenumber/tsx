@@ -14,16 +14,19 @@ const typescriptExtensions = [
 	'.ts',
 	'.tsx',
 	'.jsx',
-];
+] as const;
 
 const transformExtensions = [
 	'.js',
 	'.cjs',
 	'.mjs',
-];
+] as const;
 
 // Clone Module._extensions with null prototype
-export const extensions = Object.assign(Object.create(null), Module._extensions);
+export const extensions: NodeJS.RequireExtensions = Object.assign(
+	Object.create(null),
+	Module._extensions,
+);
 
 const defaultLoader = extensions['.js'];
 
