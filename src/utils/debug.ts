@@ -1,3 +1,11 @@
+import { writeSync } from 'node:fs';
+
+export const log = (
+	...args: any[]
+) => {
+	writeSync(1, `${JSON.stringify(args, null, 2)}\n\n`);
+};
+
 export const time = <T extends (...args: any[]) => unknown>(
 	name: string,
 	_function: T,
