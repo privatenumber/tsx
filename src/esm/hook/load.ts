@@ -61,13 +61,13 @@ export const load: LoadHook = async (
 	}
 
 	const loaded = await nextLoad(url, context);
+	const filePath = url.startsWith('file://') ? fileURLToPath(url) : url;
 
 	if (loaded.format === 'commonjs' && isFeatureSupported(esmLoadReadFile)) {
-		const code = await readFile(new URL(loaded.responseURL), 'utf8');
-		const filePath = fileURLToPath(loaded.responseURL);
+		const code = await readFile(new URL(url), 'utf8');
 		const transformed = await transform(
 			code,
-			loaded.responseURL,
+			filePath,
 			{
 				format: 'cjs',
 				platform: 'node',
@@ -83,7 +83,6 @@ export const load: LoadHook = async (
 		return loaded;
 	}
 
-	const filePath = url.startsWith('file://') ? fileURLToPath(url) : url;
 	const code = loaded.source.toString();
 
 	if (

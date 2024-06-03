@@ -8,7 +8,7 @@ declare global {
 	}
 }
 
-declare module 'node:module' {
+declare module 'module' {
 	// https://nodejs.org/api/module.html#loadurl-context-nextload
 	interface LoadHookContext {
 		importAttributes: ImportAssertions;
@@ -16,6 +16,8 @@ declare module 'node:module' {
 
 	// CommonJS
 	export const _extensions: NodeJS.RequireExtensions;
+
+	export const _cache: NodeJS.Require['cache'];
 
 	export type Parent = {
 
@@ -32,4 +34,9 @@ declare module 'node:module' {
 		isMain: boolean,
 		options?: Record<PropertyKey, unknown>,
 	): string;
+
+	interface LoadFunctionOutput {
+		// Added in https://github.com/nodejs/node/pull/43164
+		responseURL?: string;
+	}
 }
