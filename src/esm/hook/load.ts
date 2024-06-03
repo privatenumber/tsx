@@ -1,5 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import type { LoadHook } from 'node:module';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import type { TransformOptions } from 'esbuild';
 import { transform } from '../../utils/transform/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';
@@ -60,6 +62,22 @@ export const load: LoadHook = async (
 	}
 
 	const loaded = await nextLoad(url, context);
+
+	if (loaded.format === 'commonjs') {
+		const code = await readFile(new URL(loaded.responseURL), 'utf8');
+		const filePath = fileURLToPath(loaded.responseURL);
+		const transformed = await transform(
+			code,
+			loaded.responseURL,
+			{
+				format: 'cjs',
+				platform: 'node',
+				tsconfigRaw: fileMatcher?.(filePath) as TransformOptions['tsconfigRaw'],
+			},
+		);
+		loaded.responseURL = `data:text/javascript,${encodeURIComponent(transformed.code)}?tsx-file=${encodeURIComponent(filePath)}`;
+		return loaded;
+	}
 
 	// CommonJS and Internal modules (e.g. node:*)
 	if (!loaded.source) {

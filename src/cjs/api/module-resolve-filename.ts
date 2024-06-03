@@ -1,6 +1,7 @@
 import path from 'node:path';
 import Module from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { parse } from 'node:querystring';
 import { resolveTsPath } from '../../utils/resolve-ts-path.js';
 import type { NodeError } from '../../types.js';
 import { isRelativePath, fileUrlPrefix, tsExtensionsPattern } from '../../utils/path-utils.js';
@@ -58,6 +59,21 @@ export const resolveFilename: ResolveFilename = (
 	isMain,
 	options,
 ) => {
+	if (request.startsWith('data:')) {
+		const queryIndex = request.indexOf('?');
+		if (queryIndex === -1) {
+			return request;
+		}
+		const query = request.slice(queryIndex + 1);
+		const parsed = parse(query);
+		if (parsed['tsx-file']) {
+			const newPath = parsed['tsx-file'] as string;
+			Module._cache[newPath] = Module._cache[request];
+			delete Module._cache[request];
+			request = newPath;
+		}
+	}
+
 	// Strip query string
 	const queryIndex = request.indexOf('?');
 	if (queryIndex !== -1) {
