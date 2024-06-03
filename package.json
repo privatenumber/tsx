@@ -98,7 +98,7 @@
 		"get-node": "^15.0.1",
 		"kolorist": "^1.8.0",
 		"lint-staged": "^15.2.2",
-		"lintroll": "^1.5.2",
+		"lintroll": "^1.6.0",
 		"magic-string": "^0.30.10",
 		"manten": "^1.3.0",
 		"memfs": "^4.9.2",

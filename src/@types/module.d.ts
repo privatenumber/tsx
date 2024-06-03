@@ -35,7 +35,7 @@ declare module 'module' {
 		options?: Record<PropertyKey, unknown>,
 	): string;
 
-	interface LoadFunctionOutput {
+	interface LoadFnOutput {
 		// Added in https://github.com/nodejs/node/pull/43164
 		responseURL?: string;
 	}
