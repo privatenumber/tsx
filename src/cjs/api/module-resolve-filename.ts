@@ -71,6 +71,8 @@ export const resolveFilename: ResolveFilename = (
 			Module._cache[newPath] = Module._cache[request];
 			delete Module._cache[request];
 			request = newPath;
+		} else {
+			return request;
 		}
 	}
 
