@@ -147,7 +147,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					if (isCommonJs) {
 						expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
 					} else {
-						expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"default":1,"named":2}}');
+						expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}');
 					}
 
 					// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
@@ -355,7 +355,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					if (isCommonJs) {
 						expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
 					} else {
-						expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"default":1,"named":2}}');
+						expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}');
 					}
 
 					// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
