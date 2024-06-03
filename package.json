@@ -29,8 +29,14 @@
 		".": "./dist/loader.mjs",
 		"./cjs": "./dist/cjs/index.cjs",
 		"./cjs/api": {
-			"types": "./dist/cjs/api/index.d.cts",
-			"default": "./dist/cjs/api/index.cjs"
+			"import": {
+				"types": "./dist/cjs/api/index.d.mts",
+				"default": "./dist/cjs/api/index.mjs"
+			},
+			"require": {
+				"types": "./dist/cjs/api/index.d.cts",
+				"default": "./dist/cjs/api/index.cjs"
+			}
 		},
 		"./esm": "./dist/esm/index.mjs",
 		"./esm/api": {
