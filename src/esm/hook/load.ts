@@ -6,7 +6,7 @@ import type { TransformOptions } from 'esbuild';
 import { transform } from '../../utils/transform/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';
 import { inlineSourceMap } from '../../source-map.js';
-import { isFeatureSupported, importAttributes } from '../../utils/node-features.js';
+import { isFeatureSupported, importAttributes, esmLoadReadFile } from '../../utils/node-features.js';
 import { parent } from '../../utils/ipc/client.js';
 import type { Message } from '../types.js';
 import { fileMatcher } from '../../utils/tsconfig.js';
@@ -64,7 +64,7 @@ export const load: LoadHook = async (
 
 	const loaded = await nextLoad(url, context);
 
-	if (loaded.format === 'commonjs') {
+	if (loaded.format === 'commonjs' && isFeatureSupported(esmLoadReadFile)) {
 		const code = await readFile(new URL(loaded.responseURL), 'utf8');
 		const filePath = fileURLToPath(loaded.responseURL);
 		const transformed = await transform(
