@@ -1,7 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import type { LoadHook } from 'node:module';
 import { readFile } from 'node:fs/promises';
-import path from 'node:path';
 import type { TransformOptions } from 'esbuild';
 import { transform } from '../../utils/transform/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';
@@ -13,7 +12,6 @@ import { fileMatcher } from '../../utils/tsconfig.js';
 import { isJsonPattern, tsExtensionsPattern } from '../../utils/path-utils.js';
 import { getNamespace } from './utils.js';
 import { data } from './initialize.js';
-import { log } from '../../utils/debug.js';
 
 const contextAttributesProperty = (
 	isFeatureSupported(importAttributes)

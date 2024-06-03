@@ -150,7 +150,7 @@ export default testSuite(async ({ describe }, { tsx, supports }: NodeApis) => {
 						expect(p.stdout).toMatch(
 							supports.cjsInterop
 								? '"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}'
-								: '"pkgCommonjs":{"default":{"default":1,"named":2}}'
+								: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
 						);
 					}
 
@@ -362,7 +362,7 @@ export default testSuite(async ({ describe }, { tsx, supports }: NodeApis) => {
 						expect(p.stdout).toMatch(
 							supports.cjsInterop
 								? '"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}'
-								: '"pkgCommonjs":{"default":{"default":1,"named":2}}'
+								: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
 						);
 					}
 
