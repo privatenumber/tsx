@@ -149,14 +149,20 @@ export const files = {
 	exports.named = 'named';
 	`,
 
-	'mjs/index.mjs': outdent`
-	import assert from 'assert';
-	export const mjsHasCjsContext = ${cjsContextCheck};
+	mjs: {
+		'index.mjs': outdent`
+		import assert from 'assert';
+		import value from './value.mjs';
+		export const mjsHasCjsContext = ${cjsContextCheck};
 
-	import ('pkg-commonjs').then((m) => assert(
-		!(typeof m.default === 'object' && ('default' in m.default)),
-	));
-	`,
+		assert(value === 1, 'wrong default export');
+
+		import ('pkg-commonjs').then((m) => assert(
+			!(typeof m.default === 'object' && ('default' in m.default)),
+		));
+		`,
+		'value.mjs': 'export default 1',
+	},
 
 	'ts/index.ts': sourcemap.tag`
 	import assert from 'assert';

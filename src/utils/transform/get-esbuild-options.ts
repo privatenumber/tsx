@@ -54,6 +54,8 @@ export const patchOptions = (
 			// https://github.com/evanw/esbuild/issues/1932
 			if (extension === '.cts' || extension === '.mts') {
 				options.sourcefile = `${originalSourcefile.slice(0, -3)}ts`;
+			} else if (extension === '.mjs') { // only used by CJS loader
+				options.sourcefile = `${originalSourcefile.slice(0, -3)}js`;
 			}
 		} else {
 			// esbuild errors to detect loader when a file doesn't have an extension
