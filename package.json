@@ -1,121 +1,66 @@
 {
-	"name": "tsx",
-	"version": "0.0.0-semantic-release",
-	"packageManager": "pnpm@9.1.1",
-	"description": "TypeScript Execute (tsx): Node.js enhanced with esbuild to run TypeScript & ESM files",
-	"keywords": [
-		"cli",
-		"runtime",
-		"node",
-		"cjs",
-		"commonjs",
-		"esm",
-		"typescript",
-		"typescript runner"
-	],
-	"license": "MIT",
-	"repository": "privatenumber/tsx",
-	"author": {
-		"name": "Hiroki Osame",
-		"email": "hiroki.osame@gmail.com"
-	},
-	"files": [
-		"dist"
-	],
-	"type": "module",
-	"bin": "./dist/cli.mjs",
-	"exports": {
-		"./package.json": "./package.json",
-		".": "./dist/loader.mjs",
-		"./cjs": "./dist/cjs/index.cjs",
-		"./cjs/api": {
-			"import": {
-				"types": "./dist/cjs/api/index.d.mts",
-				"default": "./dist/cjs/api/index.mjs"
-			},
-			"require": {
-				"types": "./dist/cjs/api/index.d.cts",
-				"default": "./dist/cjs/api/index.cjs"
-			}
-		},
-		"./esm": "./dist/esm/index.mjs",
-		"./esm/api": {
-			"import": {
-				"types": "./dist/esm/api/index.d.mts",
-				"default": "./dist/esm/api/index.mjs"
-			},
-			"require": {
-				"types": "./dist/esm/api/index.d.cts",
-				"default": "./dist/esm/api/index.cjs"
-			}
-		},
-		"./cli": "./dist/cli.mjs",
-		"./suppress-warnings": "./dist/suppress-warnings.cjs",
-		"./preflight": "./dist/preflight.cjs",
-		"./repl": "./dist/repl.mjs"
-	},
-	"scripts": {
-		"prepare": "pnpm simple-git-hooks",
-		"build": "pkgroll --minify",
-		"lint": "lintroll --node --cache .",
-		"type-check": "tsc",
-		"test": "pnpm build && node ./dist/cli.mjs tests/index.ts",
-		"prepack": "pnpm build && clean-pkg-json",
-		"docs:dev": "pnpm --filter=docs dev",
-		"docs:build": "pnpm --filter=docs build",
-		"docs:preview": "pnpm --filter=docs preview"
-	},
-	"simple-git-hooks": {
-		"pre-commit": "pnpm lint-staged"
-	},
-	"lint-staged": {
-		"*.{js,ts,mjs,mts,cjs,cts,json}": "pnpm lint"
-	},
-	"engines": {
-		"node": ">=18.0.0"
-	},
-	"dependencies": {
-		"esbuild": "~0.20.2",
-		"get-tsconfig": "^4.7.5"
-	},
-	"optionalDependencies": {
-		"fsevents": "~2.3.3"
-	},
-	"devDependencies": {
-		"@ampproject/remapping": "^2.3.0",
-		"@types/cross-spawn": "^6.0.6",
-		"@types/node": "^20.12.11",
-		"@types/split2": "^4.2.3",
-		"cachedir": "^2.4.0",
-		"chokidar": "^3.6.0",
-		"clean-pkg-json": "^1.2.0",
-		"cleye": "^1.3.2",
-		"cross-spawn": "^7.0.3",
-		"es-module-lexer": "^1.5.3",
-		"execa": "^8.0.1",
-		"fs-fixture": "^2.4.0",
-		"fs-require": "^1.6.0",
-		"get-node": "^15.0.1",
-		"kolorist": "^1.8.0",
-		"lint-staged": "^15.2.2",
-		"lintroll": "^1.6.0",
-		"magic-string": "^0.30.10",
-		"manten": "^1.3.0",
-		"memfs": "^4.9.2",
-		"node-pty": "^1.0.0",
-		"outdent": "^0.8.0",
-		"pkgroll": "^2.0.2",
-		"simple-git-hooks": "^2.11.1",
-		"split2": "^4.2.0",
-		"strip-ansi": "^7.1.0",
-		"type-fest": "^4.18.2",
-		"type-flag": "^3.0.0",
-		"typescript": "^5.4.5"
-	},
-	"eslintConfig": {
-		"extends": "@pvtnbr",
-		"ignorePatterns": [
-			"tests/fixtures"
-		]
-	}
+  "name": "tsx",
+  "version": "0.0.0-semantic-release",
+  "description": "TypeScript Execute (tsx): Node.js enhanced with esbuild to run TypeScript & ESM files",
+  "keywords": [
+    "cli",
+    "runtime",
+    "node",
+    "cjs",
+    "commonjs",
+    "esm",
+    "typescript",
+    "typescript runner"
+  ],
+  "license": "MIT",
+  "repository": "privatenumber/tsx",
+  "author": {
+    "name": "Hiroki Osame",
+    "email": "hiroki.osame@gmail.com"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "bin": "./dist/cli.mjs",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": "./dist/loader.mjs",
+    "./cjs": "./dist/cjs/index.cjs",
+    "./cjs/api": {
+      "import": {
+        "types": "./dist/cjs/api/index.d.mts",
+        "default": "./dist/cjs/api/index.mjs"
+      },
+      "require": {
+        "types": "./dist/cjs/api/index.d.cts",
+        "default": "./dist/cjs/api/index.cjs"
+      }
+    },
+    "./esm": "./dist/esm/index.mjs",
+    "./esm/api": {
+      "import": {
+        "types": "./dist/esm/api/index.d.mts",
+        "default": "./dist/esm/api/index.mjs"
+      },
+      "require": {
+        "types": "./dist/esm/api/index.d.cts",
+        "default": "./dist/esm/api/index.cjs"
+      }
+    },
+    "./cli": "./dist/cli.mjs",
+    "./suppress-warnings": "./dist/suppress-warnings.cjs",
+    "./preflight": "./dist/preflight.cjs",
+    "./repl": "./dist/repl.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "esbuild": "~0.20.2",
+    "get-tsconfig": "^4.7.5"
+  },
+  "optionalDependencies": {
+    "fsevents": "~2.3.3"
+  }
 }

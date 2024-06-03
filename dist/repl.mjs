@@ -1,0 +1,3 @@
+import a from"node:repl";import{v as m}from"./package-Cfmj0-ar.mjs";import{b as p}from"./index-BA2sSWyo.mjs";import"node:url";import"esbuild";import"node:crypto";import"node:fs";import"node:path";import"node:os";import"./temporary-directory-CwHp0_NW.mjs";console.log(`Welcome to tsx v${m} (Node.js ${process.version}).
+Type ".help" for more information.`);const r=a.start(),{eval:l}=r,c=async function(e,t,o,s){const i=await p(e,o,{loader:"ts",tsconfigRaw:{compilerOptions:{preserveValueImports:!0}},define:{require:"global.require"}}).catch(n=>(console.log(n.message),{code:`
+`}));return l.call(this,i.code,t,o,s)};r.eval=c;

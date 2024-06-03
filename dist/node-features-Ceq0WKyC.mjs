@@ -1,0 +1,1 @@
+const o=(t,e)=>{const r=t[0]-e[0];if(r===0){const s=t[1]-e[1];return s===0?t[2]>=e[2]:s>0}return r>0},n=process.versions.node.split(".").map(Number),i=(t,e=n)=>{for(let r=0;r<t.length;r+=1){const s=t[r];if(r===t.length-1||e[0]===s[0])return o(e,s)}return!1},u=[[22,0,0]],a=[[18,19,0],[20,6,0]],c=[[18,19,0],[20,10,0],[21,0,0]],f=[[21,0,0]];export{c as a,i,a as m,u as r,f as t};
