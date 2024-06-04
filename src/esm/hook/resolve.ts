@@ -121,7 +121,8 @@ export const resolve: resolve = async (
 	}
 
 	const parentNamespace = context.parentURL && getNamespace(context.parentURL);
-	if (requestAcceptsQuery(specifier)) {
+	const acceptsQuery = requestAcceptsQuery(specifier);
+	if (acceptsQuery) {
 		// Inherit namespace from parent
 		let requestNamespace = getNamespace(specifier);
 		if (parentNamespace && !requestNamespace) {
@@ -159,8 +160,11 @@ export const resolve: resolve = async (
 	// If `allowJs` is set in `tsconfig.json`, then we'll apply the same resolution logic
 	// to files without a TypeScript extension.
 	if (
-		tsExtensionsPattern.test(context.parentURL!)
-		|| allowJs
+		acceptsQuery // file path
+		&& (
+			tsExtensionsPattern.test(context.parentURL!)
+			|| allowJs
+		)
 	) {
 		const tsPaths = resolveTsPath(specifier);
 		if (tsPaths) {
