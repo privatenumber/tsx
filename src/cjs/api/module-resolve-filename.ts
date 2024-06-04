@@ -21,32 +21,33 @@ const resolveTsFilename = (
 	isMain: boolean,
 	options?: Record<PropertyKey, unknown>,
 ) => {
-	const tsPath = resolveTsPath(request);
-
 	if (
-		parent?.filename
-		&& (
-			tsExtensionsPattern.test(parent.filename)
-			|| allowJs
-		)
-		&& tsPath
+		!(parent?.filename && tsExtensionsPattern.test(parent.filename))
+		&& !allowJs
 	) {
-		for (const tryTsPath of tsPath) {
-			try {
-				return defaultResolver(
-					tryTsPath,
-					parent,
-					isMain,
-					options,
-				);
-			} catch (error) {
-				const { code } = error as NodeError;
-				if (
-					code !== 'MODULE_NOT_FOUND'
-					&& code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED'
-				) {
-					throw error;
-				}
+		return;
+	}
+
+	const tsPath = resolveTsPath(request);
+	if (!tsPath) {
+		return;
+	}
+
+	for (const tryTsPath of tsPath) {
+		try {
+			return defaultResolver(
+				tryTsPath,
+				parent,
+				isMain,
+				options,
+			);
+		} catch (error) {
+			const { code } = error as NodeError;
+			if (
+				code !== 'MODULE_NOT_FOUND'
+				&& code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED'
+			) {
+				throw error;
 			}
 		}
 	}
@@ -69,6 +70,7 @@ export const resolveFilename: ResolveFilename = (
 		request = fileURLToPath(request);
 	}
 
+	// Resolve TS path alias
 	if (
 		tsconfigPathsMatcher
 
