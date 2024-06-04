@@ -1,9 +1,10 @@
+import { inspect } from 'node:util';
 import { writeSync } from 'node:fs';
 
 export const log = (
 	...args: any[]
 ) => {
-	writeSync(1, `${JSON.stringify(args, null, 2)}\n\n`);
+	writeSync(1, `${inspect(args, { colors: true })}\n\n`);
 };
 
 export const time = <T extends (...args: any[]) => unknown>(
