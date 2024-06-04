@@ -56,7 +56,7 @@
 	},
 	"scripts": {
 		"prepare": "pnpm simple-git-hooks",
-		"build": "pkgroll --minify",
+		"build": "pkgroll",
 		"lint": "lintroll --node --cache .",
 		"type-check": "tsc",
 		"test": "pnpm build && node ./dist/cli.mjs tests/index.ts",
