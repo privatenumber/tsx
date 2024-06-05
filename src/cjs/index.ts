@@ -1,3 +1,3 @@
-import { register } from './api/global-require-patch.js';
+import { register } from './api/register.js';
 
 register();

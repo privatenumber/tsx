@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { register } from './global-require-patch.js';
+import { register } from './register.js';
 import { resolveFilename } from './module-resolve-filename.js';
 
 const getRequestContext = (
