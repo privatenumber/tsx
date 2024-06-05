@@ -10,12 +10,11 @@ const nodeModulesPath = `${path.sep}node_modules${path.sep}`;
 
 type ResolveFilename = typeof Module._resolveFilename;
 
-const defaultResolver = Module._resolveFilename.bind(Module);
-
 /**
  * Typescript gives .ts, .cts, or .mts priority over actual .js, .cjs, or .mjs extensions
  */
 const resolveTsFilename = (
+	nextResolve: ResolveFilename,
 	request: string,
 	parent: Module.Parent,
 	isMain: boolean,
@@ -35,7 +34,7 @@ const resolveTsFilename = (
 
 	for (const tryTsPath of tsPath) {
 		try {
-			return defaultResolver(
+			return nextResolve(
 				tryTsPath,
 				parent,
 				isMain,
@@ -53,7 +52,9 @@ const resolveTsFilename = (
 	}
 };
 
-export const resolveFilename: ResolveFilename = (
+export const createResolveFilename = (
+	nextResolve: ResolveFilename,
+): ResolveFilename => (
 	request,
 	parent,
 	isMain,
@@ -74,22 +75,22 @@ export const resolveFilename: ResolveFilename = (
 	if (
 		tsconfigPathsMatcher
 
-		// bare specifier
-		&& !isRelativePath(request)
+			// bare specifier
+			&& !isRelativePath(request)
 
-		// Dependency paths should not be resolved using tsconfig.json
-		&& !parent?.filename?.includes(nodeModulesPath)
+			// Dependency paths should not be resolved using tsconfig.json
+			&& !parent?.filename?.includes(nodeModulesPath)
 	) {
 		const possiblePaths = tsconfigPathsMatcher(request);
 
 		for (const possiblePath of possiblePaths) {
-			const tsFilename = resolveTsFilename(possiblePath, parent, isMain, options);
+			const tsFilename = resolveTsFilename(nextResolve, possiblePath, parent, isMain, options);
 			if (tsFilename) {
 				return tsFilename;
 			}
 
 			try {
-				return defaultResolver(
+				return nextResolve(
 					possiblePath,
 					parent,
 					isMain,
@@ -99,10 +100,10 @@ export const resolveFilename: ResolveFilename = (
 		}
 	}
 
-	const tsFilename = resolveTsFilename(request, parent, isMain, options);
+	const tsFilename = resolveTsFilename(nextResolve, request, parent, isMain, options);
 	if (tsFilename) {
 		return tsFilename;
 	}
 
-	return defaultResolver(request, parent, isMain, options);
+	return nextResolve(request, parent, isMain, options);
 };

@@ -1,7 +1,8 @@
+import Module from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { register } from './register.js';
-import { resolveFilename } from './module-resolve-filename.js';
+import { createResolveFilename } from './module-resolve-filename.js';
 
 const getRequestContext = (
 	id: string,
@@ -34,6 +35,8 @@ const tsxRequire = (
 		unregister();
 	}
 };
+
+const resolveFilename = createResolveFilename(Module._resolveFilename);
 
 const resolve = (
 	id: string,
