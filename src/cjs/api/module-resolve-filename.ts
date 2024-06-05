@@ -62,6 +62,7 @@ export const createResolveFilename = (
 ) => {
 	// Strip query string
 	const queryIndex = request.indexOf('?');
+	const query = queryIndex === -1 ? '' : request.slice(queryIndex);
 	if (queryIndex !== -1) {
 		request = request.slice(0, queryIndex);
 	}
@@ -86,7 +87,7 @@ export const createResolveFilename = (
 		for (const possiblePath of possiblePaths) {
 			const tsFilename = resolveTsFilename(nextResolve, possiblePath, parent, isMain, options);
 			if (tsFilename) {
-				return tsFilename;
+				return tsFilename + query;
 			}
 
 			try {
@@ -95,15 +96,15 @@ export const createResolveFilename = (
 					parent,
 					isMain,
 					options,
-				);
+				) + query;
 			} catch {}
 		}
 	}
 
 	const tsFilename = resolveTsFilename(nextResolve, request, parent, isMain, options);
 	if (tsFilename) {
-		return tsFilename;
+		return tsFilename + query;
 	}
 
-	return nextResolve(request, parent, isMain, options);
+	return nextResolve(request, parent, isMain, options) + query;
 };

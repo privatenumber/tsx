@@ -129,6 +129,10 @@ export const files = {
 
 	'js/index.js': outdent`
 	import assert from 'assert';
+	console.log(JSON.stringify({
+		importMetaUrl: import.meta.url,
+		__filename: typeof __filename !== 'undefined' ? __filename : undefined,
+	}));
 	${syntaxLowering}
 	${preserveName}
 	export const cjsContext = ${cjsContextCheck};

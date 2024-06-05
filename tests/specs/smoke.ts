@@ -138,6 +138,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						console.error(error);
 						console.log(p);
 					});
+
 					expect(p.failed).toBe(false);
 					expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(fixture.getPath('import-from-js.js'))}"`);
 					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
@@ -146,8 +147,14 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					expect(p.stdout).toMatch('"pkgModule":{"default":1,"named":2}');
 					if (isCommonJs) {
 						expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
+
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","__filename":".+?index\.js"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","__filename":".+?index\.js"\}/);
 					} else {
 						expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"default":1,"named":2}}');
+
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123"\}/);
 					}
 
 					// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
@@ -354,8 +361,14 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					expect(p.stdout).toMatch('"pkgModule":{"default":1,"named":2}');
 					if (isCommonJs) {
 						expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
+
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","__filename":".+?index\.js"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","__filename":".+?index\.js"\}/);
 					} else {
 						expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"default":1,"named":2}}');
+
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123"\}/);
 					}
 
 					// By "require()"ing an ESM file, it forces it to be compiled in a CJS context

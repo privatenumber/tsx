@@ -34,23 +34,26 @@ const transformer = (
 	module: Module,
 	filePath: string,
 ) => {
+	// Make sure __filename doesnt contain query
+	const cleanFilePath = filePath.split('?')[0];
+
 	// For tracking dependencies in watch mode
 	if (parent?.send) {
 		parent.send({
 			type: 'dependency',
-			path: filePath,
+			path: cleanFilePath,
 		});
 	}
 
-	const transformTs = typescriptExtensions.some(extension => filePath.endsWith(extension));
-	const transformJs = transformExtensions.some(extension => filePath.endsWith(extension));
+	const transformTs = typescriptExtensions.some(extension => cleanFilePath.endsWith(extension));
+	const transformJs = transformExtensions.some(extension => cleanFilePath.endsWith(extension));
 	if (!transformTs && !transformJs) {
-		return defaultLoader(module, filePath);
+		return defaultLoader(module, cleanFilePath);
 	}
 
-	let code = fs.readFileSync(filePath, 'utf8');
+	let code = fs.readFileSync(cleanFilePath, 'utf8');
 
-	if (filePath.endsWith('.cjs')) {
+	if (cleanFilePath.endsWith('.cjs')) {
 		// Contains native ESM check
 		const transformed = transformDynamicImport(filePath, code);
 		if (transformed) {
@@ -70,7 +73,7 @@ const transformer = (
 			code,
 			filePath,
 			{
-				tsconfigRaw: fileMatcher?.(filePath) as TransformOptions['tsconfigRaw'],
+				tsconfigRaw: fileMatcher?.(cleanFilePath) as TransformOptions['tsconfigRaw'],
 			},
 		);
 
@@ -81,7 +84,7 @@ const transformer = (
 		);
 	}
 
-	module._compile(code, filePath);
+	module._compile(code, cleanFilePath);
 };
 
 [
