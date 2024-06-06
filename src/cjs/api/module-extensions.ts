@@ -87,42 +87,38 @@ const transformer = (
 	module._compile(code, cleanFilePath);
 };
 
-[
-	/**
-	 * Handles .cjs, .cts, .mts & any explicitly specified extension that doesn't match any loaders
-	 *
-	 * Any file requested with an explicit extension will be loaded using the .js loader:
-	 * https://github.com/nodejs/node/blob/e339e9c5d71b72fd09e6abd38b10678e0c592ae7/lib/internal/modules/cjs/loader.js#L430
-	 */
-	'.js',
+/**
+ * Handles .cjs, .cts, .mts & any explicitly specified extension that doesn't match any loaders
+ *
+ * Any file requested with an explicit extension will be loaded using the .js loader:
+ * https://github.com/nodejs/node/blob/e339e9c5d71b72fd09e6abd38b10678e0c592ae7/lib/internal/modules/cjs/loader.js#L430
+ */
+extensions['.js'] = transformer;
 
-	/**
-	 * Loaders for implicitly resolvable extensions
-	 * https://github.com/nodejs/node/blob/v12.16.0/lib/internal/modules/cjs/loader.js#L1166
-	 */
+[
 	'.ts',
 	'.tsx',
 	'.jsx',
+
+	/**
+	 * Loaders for extensions .cjs, .cts, & .mts don't need to be
+	 * registered because they're explicitly specified. And unknown
+	 * extensions (incl .cjs) fallsback to using the '.js' loader:
+	 * https://github.com/nodejs/node/blob/v18.4.0/lib/internal/modules/cjs/loader.js#L430
+	 *
+	 * That said, it's actually ".js" and ".mjs" that get special treatment
+	 * rather than ".cjs" (it might as well be ".random-ext")
+	 */
+	'.mjs',
 ].forEach((extension) => {
-	extensions[extension] = transformer;
-});
+	Object.defineProperty(extensions, extension, {
+		value: transformer,
 
-/**
- * Loaders for explicitly resolvable extensions
- * (basically just .mjs because CJS loader has a special handler for it)
- *
- * Loaders for extensions .cjs, .cts, & .mts don't need to be
- * registered because they're explicitly specified and unknown
- * extensions (incl .cjs) fallsback to using the '.js' loader:
- * https://github.com/nodejs/node/blob/v18.4.0/lib/internal/modules/cjs/loader.js#L430
- *
- * That said, it's actually ".js" and ".mjs" that get special treatment
- * rather than ".cjs" (it might as well be ".random-ext")
- */
-Object.defineProperty(extensions, '.mjs', {
-	value: transformer,
-
-	// Prevent Object.keys from detecting these extensions
-	// when CJS loader iterates over the possible extensions
-	enumerable: false,
+		/**
+		 * Prevent Object.keys from detecting these extensions
+		 * when CJS loader iterates over the possible extensions
+		 * https://github.com/nodejs/node/blob/v22.2.0/lib/internal/modules/cjs/loader.js#L609
+		 */
+		enumerable: false,
+	});
 });
