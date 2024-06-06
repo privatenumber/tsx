@@ -34,4 +34,7 @@ NODE_OPTIONS='--import tsx' npx eslint
 Load `tsx` at the top of your entry-file:
 ```js
 import 'tsx'
+
+// Now you can load TS files
+await import('./file.ts')
 ```

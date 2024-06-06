@@ -2,7 +2,7 @@
 
 `tsx` stands for _TypeScript Execute_, and it's a simple command to run TypeScript in Node.js.
 
-Because `tsx` is basically an alias to `node`, you can use it the same way:
+`tsx` is basically an alias to `node`, so you can use it the same way:
 
 <div class="tsx-before-after">
 
@@ -12,11 +12,11 @@ node file.js
 <span class="hidden sm:block">→</span>
 <span class="sm:hidden">↓</span>
 ```sh
-tsx file.js
+tsx file.ts
 ```
 </div>
 
-<sub>Since it's Node.js underneath, all command-line flags are supported. Use `tsx` as you would use `node`!</sub>
+All Node.js command-line flags are supported—use `tsx` the same way you would use `node`!
 
 ## Features
 

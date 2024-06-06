@@ -30,6 +30,9 @@ Load `tsx/cjs` at the top of your entry-file:
 
 ```js
 require('tsx/cjs')
+
+// Now you can load TS files
+require('./file.ts')
 ```
 
 ### Registration & Unregistration

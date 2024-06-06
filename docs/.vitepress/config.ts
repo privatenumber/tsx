@@ -30,7 +30,7 @@ export default defineConfig({
 		siteTitle: 'tsx',
 
 		editLink: {
-			pattern: 'https://github.com/privatenumber/tsx/edit/develop/docs/:path',
+			pattern: 'https://github.com/privatenumber/tsx/edit/master/docs/:path',
 			text: 'Edit this page on GitHub',
 		},
 

@@ -32,6 +32,15 @@ NODE_OPTIONS='--loader tsx/esm' npx some-binary
 
 ## Programmatic API
 
+Load `tsx/esm` at the top of your entry-file:
+
+```js
+import 'tsx/esm'
+
+// Now you can load TS files
+await import('./file.ts')
+```
+
 ### Registration & Unregistration
 
 ```js
@@ -39,6 +48,8 @@ import { register } from 'tsx/esm/api'
 
 // register tsx enhancement
 const unregister = register()
+
+await import('./file.ts')
 
 // Unregister when needed
 unregister()
