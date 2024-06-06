@@ -1,6 +1,7 @@
 import module from 'node:module';
 import { MessageChannel, type MessagePort } from 'node:worker_threads';
 import type { Message } from '../types.js';
+import { interopCjsExports } from '../../cjs/api/module-resolve-filename.js';
 import { createScopedImport, type ScopedImport } from './scoped-import.js';
 
 export type TsconfigOptions = false | string;
@@ -31,11 +32,21 @@ export type Register = {
 	(options?: RegisterOptions): Unregister;
 };
 
+let cjsInteropApplied = false;
+
 export const register: Register = (
 	options,
 ) => {
 	if (!module.register) {
 		throw new Error(`This version of Node.js (${process.version}) does not support module.register(). Please upgrade to Node v18.9 or v20.6 and above.`);
+	}
+
+	if (!cjsInteropApplied) {
+		const { _resolveFilename } = module;
+		module._resolveFilename = (
+			request, _parent, _isMain, _options,
+		) => _resolveFilename(interopCjsExports(request), _parent, _isMain, _options);
+		cjsInteropApplied = true;
 	}
 
 	const { sourceMapsEnabled } = process;

@@ -12,7 +12,7 @@ import { packageTypes } from '../utils/package-types.js';
 const wasmPath = path.resolve('tests/fixtures/test.wasm');
 const wasmPathUrl = pathToFileURL(wasmPath).toString();
 
-export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
+export default testSuite(async ({ describe }, { tsx, supports }: NodeApis) => {
 	describe('Smoke', ({ describe }) => {
 		for (const packageType of packageTypes) {
 			const isCommonJs = packageType === 'commonjs';
@@ -151,7 +151,11 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","__filename":".+?index\.js"\}/);
 						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","__filename":".+?index\.js"\}/);
 					} else {
-						expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"default":1,"named":2}}');
+						expect(p.stdout).toMatch(
+							supports.cjsInterop
+								? '"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}'
+								: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
+						);
 
 						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js"\}/);
 						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123"\}/);
@@ -365,7 +369,11 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","__filename":".+?index\.js"\}/);
 						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","__filename":".+?index\.js"\}/);
 					} else {
-						expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"default":1,"named":2}}');
+						expect(p.stdout).toMatch(
+							supports.cjsInterop
+								? '"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}'
+								: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
+						);
 
 						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js"\}/);
 						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123"\}/);

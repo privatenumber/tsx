@@ -1,14 +1,16 @@
 import { fileURLToPath } from 'node:url';
 import type { LoadHook } from 'node:module';
+import { readFile } from 'node:fs/promises';
 import type { TransformOptions } from 'esbuild';
 import { transform } from '../../utils/transform/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';
 import { inlineSourceMap } from '../../source-map.js';
-import { isFeatureSupported, importAttributes } from '../../utils/node-features.js';
+import { isFeatureSupported, importAttributes, esmLoadReadFile } from '../../utils/node-features.js';
 import { parent } from '../../utils/ipc/client.js';
 import type { Message } from '../types.js';
 import { fileMatcher } from '../../utils/tsconfig.js';
 import { isJsonPattern, tsExtensionsPattern } from '../../utils/path-utils.js';
+import { parseEsm } from '../../utils/es-module-lexer.js';
 import { getNamespace } from './utils.js';
 import { data } from './initialize.js';
 
@@ -60,13 +62,31 @@ export const load: LoadHook = async (
 	}
 
 	const loaded = await nextLoad(url, context);
+	const filePath = url.startsWith('file://') ? fileURLToPath(url) : url;
+
+	if (
+		loaded.format === 'commonjs'
+		&& isFeatureSupported(esmLoadReadFile)
+		&& loaded.responseURL?.startsWith('file:') // Could be data:
+	) {
+		const code = await readFile(new URL(url), 'utf8');
+		const [, exports] = parseEsm(code);
+		if (exports.length > 0) {
+			const cjsExports = `module.exports={${
+				exports.map(exported => exported.n).filter(name => name !== 'default').join(',')
+			}}`;
+			const parameters = new URLSearchParams({ filePath });
+			loaded.responseURL = `data:text/javascript,${encodeURIComponent(cjsExports)}?${parameters.toString()}`;
+		}
+
+		return loaded;
+	}
 
 	// CommonJS and Internal modules (e.g. node:*)
 	if (!loaded.source) {
 		return loaded;
 	}
 
-	const filePath = url.startsWith('file://') ? fileURLToPath(url) : url;
 	const code = loaded.source.toString();
 
 	if (

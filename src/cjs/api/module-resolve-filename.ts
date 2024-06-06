@@ -6,9 +6,34 @@ import type { NodeError } from '../../types.js';
 import { isRelativePath, fileUrlPrefix, tsExtensionsPattern } from '../../utils/path-utils.js';
 import { tsconfigPathsMatcher, allowJs } from '../../utils/tsconfig.js';
 
+type ResolveFilename = typeof Module._resolveFilename;
+
 const nodeModulesPath = `${path.sep}node_modules${path.sep}`;
 
-type ResolveFilename = typeof Module._resolveFilename;
+export const interopCjsExports = (
+	request: string,
+) => {
+	if (!request.startsWith('data:text/javascript,')) {
+		return request;
+	}
+
+	const queryIndex = request.indexOf('?');
+	if (queryIndex === -1) {
+		return request;
+	}
+
+	const searchParams = new URLSearchParams(request.slice(queryIndex + 1));
+	const realPath = searchParams.get('filePath');
+	if (realPath) {
+		// The CJS module cache needs to be updated with the actual path for export parsing to work
+		// https://github.com/nodejs/node/blob/v22.2.0/lib/internal/modules/esm/translators.js#L338
+		Module._cache[realPath] = Module._cache[request];
+		delete Module._cache[request];
+		request = realPath;
+	}
+
+	return request;
+};
 
 /**
  * Typescript gives .ts, .cts, or .mts priority over actual .js, .cjs, or .mjs extensions
@@ -60,6 +85,8 @@ export const createResolveFilename = (
 	isMain,
 	options,
 ) => {
+	request = interopCjsExports(request);
+
 	// Strip query string
 	const queryIndex = request.indexOf('?');
 	const query = queryIndex === -1 ? '' : request.slice(queryIndex);
