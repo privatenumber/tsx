@@ -68,19 +68,6 @@ register({
 })
 ```
 
-#### Tracking loaded files
-
-Detect files that get loaded with the `onImport` hook:
-
-```ts
-register({
-    onImport: (file: string) => {
-        console.log(file)
-        // file:///foo.ts
-    }
-})
-```
-
 ### Scoped registration
 
 If you want to register tsx without affecting the environment, you can add a namespace.
