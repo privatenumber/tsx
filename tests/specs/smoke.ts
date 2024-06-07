@@ -33,10 +33,14 @@ export default testSuite(async ({ describe }, { tsx, supports }: NodeApis) => {
 						import 'node:fs';
 
 						import * as pkgCommonjs from 'pkg-commonjs';
+
+						// Named exports from CommonJS
+						import { cjsJs } from 'pkg-commonjs/cjs.js';
+
 						import * as pkgModule from 'pkg-module';
 						import 'pkg-module/empty-export'; // implicit directory & extension
 
-						// .js
+						// .js in esm syntax
 						import * as js from './js/index.js';
 						import './js/index.js?query=123';
 						import './js/index';
@@ -190,7 +194,10 @@ export default testSuite(async ({ describe }, { tsx, supports }: NodeApis) => {
 						import 'pkg-commonjs/ts.js';
 						import 'pkg-module/ts.js';
 
-						// .js
+						// Named exports from CommonJS
+						import { cjsJs } from 'pkg-commonjs/cjs.js';
+
+						// .js in esm syntax
 						import * as js from './js/index.js';
 						import './js/index.js?query=123';
 						import './js/index';
@@ -354,6 +361,7 @@ export default testSuite(async ({ describe }, { tsx, supports }: NodeApis) => {
 							NODE_V8_COVERAGE: 'coverage',
 						},
 					});
+
 					onTestFail((error) => {
 						console.error(error);
 						console.log(p);

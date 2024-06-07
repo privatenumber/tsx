@@ -257,6 +257,16 @@ export const files = {
 			}),
 			'index.js': syntaxLowering,
 			'ts.ts': syntaxLowering,
+			'cjs.js': `
+			const _ = exports;
+			const cjsJs = true;
+			_.cjsJs = cjsJs;
+
+			// Annotate CommonJS exports for Node
+			0 && (module.exports = {
+				cjsJs,
+			});
+			`,
 		},
 		'pkg-module': {
 			'package.json': createPackageJson({
