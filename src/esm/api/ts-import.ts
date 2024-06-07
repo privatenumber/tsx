@@ -1,3 +1,4 @@
+import { register as cjsRegister } from '../../cjs/api/index.js';
 import { register, type TsconfigOptions } from './register.js';
 
 type Options = {
@@ -19,6 +20,11 @@ const tsImport = (
 	const isOptionsString = typeof options === 'string';
 	const parentURL = isOptionsString ? options : options.parentURL;
 	const namespace = Date.now().toString();
+
+	// Keep registered for hanging require() calls
+	cjsRegister({
+		namespace,
+	});
 
 	/**
 	 * We don't want to unregister this after load since there can be child import() calls

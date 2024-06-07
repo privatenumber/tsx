@@ -26,8 +26,13 @@ export const interopCjsExports = (
 	}
 
 	const searchParams = new URLSearchParams(request.slice(queryIndex + 1));
-	const realPath = searchParams.get('filePath');
+	let realPath = searchParams.get('filePath');
 	if (realPath) {
+		const namespace = searchParams.get('namespace');
+		if (namespace) {
+			realPath += `?namespace=${encodeURIComponent(namespace)}`;
+		}
+
 		// The CJS module cache needs to be updated with the actual path for export parsing to work
 		// https://github.com/nodejs/node/blob/v22.2.0/lib/internal/modules/esm/translators.js#L338
 		Module._cache[realPath] = Module._cache[request];

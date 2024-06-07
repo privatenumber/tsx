@@ -29,7 +29,8 @@ export const load: LoadHook = async (
 		return nextLoad(url, context);
 	}
 
-	if (data.namespace && data.namespace !== getNamespace(url)) {
+	const urlNamespace = getNamespace(url);
+	if (data.namespace && data.namespace !== urlNamespace) {
 		return nextLoad(url, context);
 	}
 
@@ -76,6 +77,9 @@ export const load: LoadHook = async (
 				exports.map(exported => exported.n).filter(name => name !== 'default').join(',')
 			}}`;
 			const parameters = new URLSearchParams({ filePath });
+			if (urlNamespace) {
+				parameters.set('namespace', urlNamespace);
+			}
 			loaded.responseURL = `data:text/javascript,${encodeURIComponent(cjsExports)}?${parameters.toString()}`;
 		}
 

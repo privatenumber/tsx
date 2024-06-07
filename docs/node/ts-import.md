@@ -8,10 +8,6 @@ The current file path must be passed in as the second argument to resolve the im
 
 Since this is designed for one-time use, it does not cache loaded modules.
 
-::: warning Caveat
-CommonJS files are currently not enhanced due to this [Node.js bug](https://github.com/nodejs/node/issues/51327).
-:::
-
 ## ESM usage
 
 ```js

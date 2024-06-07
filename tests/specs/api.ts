@@ -23,6 +23,7 @@ const tsFiles = {
 	export const foo = \`foo \${bar}\` as string
 	export const async = setTimeout(10).then(() => require('./async')).catch((error) => error);
 	`,
+	'cts.cts': 'export const cts = \'cts\' as string',
 	'bar.ts': 'export type A = 1; export { bar } from "pkg"',
 	'async.ts': 'export default "async"',
 	'node_modules/pkg': {
@@ -507,6 +508,9 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							const { message } = await tsImport('./file.ts', import.meta.url);
 							console.log(message);
 
+							const cts = await tsImport('./cts.cts', import.meta.url).then(m => m.cts, err => err.constructor.name);
+							console.log(cts);
+
 							const { message: message2 } = await tsImport('./file.ts?with-query', import.meta.url);
 							console.log(message2);
 
@@ -522,7 +526,12 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodePath: node.path,
 							nodeOptions: [],
 						});
-						expect(stdout).toMatch(/Fails as expected 1\nfoo bar file\.ts\?tsx-namespace=\d+\nfoo bar file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
+
+						if (node.supports.cjsInterop) {
+							expect(stdout).toMatch(/Fails as expected 1\nfoo bar file\.ts\?tsx-namespace=\d+\ncts\nfoo bar file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
+						} else {
+							expect(stdout).toMatch(/Fails as expected 1\nfoo bar file\.ts\?tsx-namespace=\d+\nSyntaxError\nfoo bar file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
+						}
 					});
 
 					test('commonjs', async () => {
