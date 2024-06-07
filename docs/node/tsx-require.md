@@ -7,7 +7,7 @@ Use this function for importing TypeScript files in CommonJS mode without adding
 Note, the current file path must be passed in as the second argument to resolve the import context.
 
 ::: warning Caveats
-- `import()` & asynchronous `require()` calls in the loaded files are not enhanced.
+- `import()` calls in the loaded files are not enhanced.
 - Because it compiles ESM syntax to run in CommonJS mode, top-level await is not supported
 :::
 

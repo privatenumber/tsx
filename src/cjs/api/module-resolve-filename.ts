@@ -5,6 +5,7 @@ import { resolveTsPath } from '../../utils/resolve-ts-path.js';
 import type { NodeError } from '../../types.js';
 import { isRelativePath, fileUrlPrefix, tsExtensionsPattern } from '../../utils/path-utils.js';
 import { tsconfigPathsMatcher, allowJs } from '../../utils/tsconfig.js';
+import { urlSearchParamsStringify } from '../../utils/url-search-params-stringify.js';
 
 type ResolveFilename = typeof Module._resolveFilename;
 
@@ -87,32 +88,49 @@ const tryExtensions = (
 
 export const createResolveFilename = (
 	nextResolve: ResolveFilename,
+	namespace?: string,
 ): ResolveFilename => (
 	request,
 	parent,
 	isMain,
 	options,
 ) => {
-	request = interopCjsExports(request);
-
-	// Strip query string
-	const queryIndex = request.indexOf('?');
-	const query = queryIndex === -1 ? '' : request.slice(queryIndex);
-	if (queryIndex !== -1) {
-		request = request.slice(0, queryIndex);
-	}
-
-	// Support file protocol
-	if (request.startsWith(fileUrlPrefix)) {
-		request = fileURLToPath(request);
-	}
-
 	const resolve: SimpleResolve = request_ => nextResolve(
 		request_,
 		parent,
 		isMain,
 		options,
 	);
+
+	request = interopCjsExports(request);
+
+	// Strip query string
+	const [cleanRequest, queryString] = request.split('?');
+	const searchParams = new URLSearchParams(queryString);
+
+	// Inherit parent namespace if it exists
+	if (parent?.filename) {
+		const parentQuery = new URLSearchParams(parent.filename.split('?')[1]);
+		const parentNamespace = parentQuery.get('namespace');
+		if (parentNamespace) {
+			searchParams.append('namespace', parentNamespace);
+		}
+	}
+
+	// If request namespace  doesnt match the namespace, ignore
+	if ((searchParams.get('namespace') ?? undefined) !== namespace) {
+		return resolve(request);
+	}
+
+	const query = urlSearchParamsStringify(searchParams);
+
+	// Temporarily remove query since default resolver can't handle it. Added back later.
+	request = cleanRequest;
+
+	// Support file protocol
+	if (request.startsWith(fileUrlPrefix)) {
+		request = fileURLToPath(request);
+	}
 
 	// Resolve TS path alias
 	if (
@@ -157,7 +175,10 @@ export const createResolveFilename = (
 	}
 
 	try {
-		return resolve(request) + query;
+		const resolved = resolve(request);
+
+		// Can be a node core module
+		return resolved + (path.isAbsolute(resolved) ? query : '');
 	} catch (error) {
 		const resolved = (
 			tryExtensions(resolve, request)

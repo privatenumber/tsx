@@ -9,18 +9,22 @@ import {
 	tsxEsmApiCjsPath,
 	type NodeApis,
 } from '../utils/tsx.js';
-import { createPackageJson, createTsconfig } from '../fixtures.js';
+import { createPackageJson, createTsconfig, expectErrors } from '../fixtures.js';
 
 const tsFiles = {
 	'file.ts': `
 	import { foo } from './foo'
-	export const message = foo as string
+	export const message = \`\${foo} \${(typeof __filename === 'undefined' ? import.meta.url : __filename).split(/[\\\\/]/).pop()}\` as string
+	export { async } from './foo'
 	`,
 	'foo.ts': `
+	import { setTimeout } from 'node:timers/promises'
 	import { bar } from './bar.js'
 	export const foo = \`foo \${bar}\` as string
+	export const async = setTimeout(10).then(() => require('./async')).catch((error) => error);
 	`,
 	'bar.ts': 'export type A = 1; export { bar } from "pkg"',
+	'async.ts': 'export default "async"',
 	'node_modules/pkg': {
 		'package.json': createPackageJson({
 			name: 'pkg',
@@ -29,6 +33,7 @@ const tsFiles = {
 		}),
 		'index.js': 'import "node:process"; export const bar = "bar";',
 	},
+	...expectErrors,
 };
 
 export default testSuite(({ describe }, node: NodeApis) => {
@@ -83,7 +88,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					nodeOptions: [],
 				});
 
-				expect(stdout).toBe('Fails as expected\nfoo bar\nUnregistered');
+				expect(stdout).toBe('Fails as expected\nfoo bar file.ts\nUnregistered');
 			});
 
 			describe('tsx.require()', ({ test }) => {
@@ -120,16 +125,16 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						nodeOptions: [],
 					});
 
-					expect(stdout).toBe('Fails as expected\nfoo bar\nfile.ts\nUnpolluted global require');
+					expect(stdout).toMatch(/Fails as expected\nfoo bar file.ts\nfile.ts\?namespace=\d+\nUnpolluted global require/);
 				});
 
 				test('catchable', async () => {
 					await using fixture = await createFixture({
 						'require.cjs': `
 						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
-						try { tsx.require('./file', __filename); } catch {}
+						try { tsx.require('./syntax-error', __filename); } catch {}
 						`,
-						'file.ts': 'if',
+						'syntax-error.ts': 'if',
 					});
 
 					const { all } = await execaNode(fixture.getPath('require.cjs'), [], {
@@ -138,6 +143,77 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						all: true,
 					});
 					expect(all).toBe('');
+				});
+
+				test('chainable', async () => {
+					await using fixture = await createFixture({
+						'require.cjs': `
+						const path = require('node:path');
+						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
+
+						const unregister = tsx.register();
+						console.log(require('./file').message);
+						delete require.cache[require.resolve('./file')];
+
+						const loaded = tsx.require('./file', __filename);
+						console.log(loaded.message);
+
+						// Remove from cache
+						const loadedPath = tsx.require.resolve('./file', __filename);
+						delete require.cache[loadedPath];
+
+						console.log(require('./file').message);
+						delete require.cache[require.resolve('./file')];
+
+						unregister();
+
+						try {
+							require('./file');
+						} catch {
+							console.log('Unregistered');
+						}
+						`,
+						...tsFiles,
+					});
+
+					const { stdout } = await execaNode(fixture.getPath('require.cjs'), [], {
+						nodePath: node.path,
+						nodeOptions: [],
+					});
+
+					expect(stdout).toBe('foo bar file.ts\nfoo bar file.ts\nfoo bar file.ts\nUnregistered');
+				});
+
+				test('namespace', async () => {
+					await using fixture = await createFixture({
+						'require.cjs': `
+						const { expectErrors } = require('expect-errors');
+						const path = require('node:path');
+						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
+
+						const api = tsx.register({ namespace: 'abcd' });
+
+						expectErrors(
+							// Loading explicit/resolved file path should be ignored by loader (extensions)
+							[() => require('./file.ts'), 'SyntaxError'],
+
+							// resolver should preserve full file path when ignoring
+							[() => require('./file.ts?asdf'), "Cannot find module './file.ts?asdf'"]
+						);
+
+						const { message, async } = api.require('./file', __filename);
+						console.log(message);
+						async.then(m => console.log(m.default));
+						`,
+						...tsFiles,
+					});
+
+					const { stdout } = await execaNode(fixture.getPath('require.cjs'), [], {
+						nodePath: node.path,
+						nodeOptions: [],
+					});
+
+					expect(stdout).toBe('foo bar file.ts\nasync');
 				});
 			});
 		});
@@ -185,7 +261,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						nodeOptions: [],
 					});
 
-					expect(stdout).toBe('Fails as expected\nfoo bar');
+					expect(stdout).toBe('Fails as expected\nfoo bar file.ts?nocache');
 				});
 
 				describe('register / unregister', ({ test, describe }) => {
@@ -199,7 +275,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							} catch {
 								console.log('Fails as expected 1');
 							}
-	
+
 							{
 								const unregister = register();
 
@@ -231,7 +307,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodePath: node.path,
 							nodeOptions: [],
 						});
-						expect(stdout).toBe('Fails as expected 1\nfoo bar\nFails as expected 2\nfoo bar');
+						expect(stdout).toBe('Fails as expected 1\nfoo bar file.ts?2\nFails as expected 2\nfoo bar file.ts?4');
 					});
 
 					test('onImport', async () => {
@@ -245,7 +321,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 									console.log(file.split('/').pop());
 								},
 							});
-	
+
 							await import('./file');
 							`,
 							...tsFiles,
@@ -255,7 +331,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodePath: node.path,
 							nodeOptions: [],
 						});
-						expect(stdout).toBe('file.ts\nfoo.ts\nbar.ts\nindex.js\nnode:process');
+						expect(stdout).toBe('file.ts\nfoo.ts\npromises\nbar.ts\nindex.js\nnode:process');
 					});
 
 					test('namespace & onImport', async () => {
@@ -423,17 +499,17 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							'package.json': createPackageJson({ type: 'module' }),
 							'import.mjs': `
 							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
-	
+
 							await import('./file.ts').catch((error) => {
 								console.log('Fails as expected 1');
 							});
-	
+
 							const { message } = await tsImport('./file.ts', import.meta.url);
 							console.log(message);
-	
+
 							const { message: message2 } = await tsImport('./file.ts?with-query', import.meta.url);
 							console.log(message2);
-	
+
 							// Global not polluted
 							await import('./file.ts?nocache').catch((error) => {
 								console.log('Fails as expected 2');
@@ -446,7 +522,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodePath: node.path,
 							nodeOptions: [],
 						});
-						expect(stdout).toBe('Fails as expected 1\nfoo bar\nfoo bar\nFails as expected 2');
+						expect(stdout).toMatch(/Fails as expected 1\nfoo bar file\.ts\?tsx-namespace=\d+\nfoo bar file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
 					});
 
 					test('commonjs', async () => {
@@ -454,18 +530,18 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							'package.json': createPackageJson({ type: 'module' }),
 							'import.cjs': `
 							const { tsImport } = require(${JSON.stringify(tsxEsmApiCjsPath)});
-	
+
 							(async () => {
 								await import('./file.ts').catch((error) => {
 									console.log('Fails as expected 1');
 								});
-		
+
 								const { message } = await tsImport('./file.ts', __filename);
 								console.log(message);
-		
+
 								const { message: message2 } = await tsImport('./file.ts?with-query', __filename);
 								console.log(message2);
-		
+
 								// Global not polluted
 								await import('./file.ts?nocache').catch((error) => {
 									console.log('Fails as expected 2');
@@ -479,7 +555,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodePath: node.path,
 							nodeOptions: [],
 						});
-						expect(stdout).toBe('Fails as expected 1\nfoo bar\nfoo bar\nFails as expected 2');
+						expect(stdout).toMatch(/Fails as expected 1\nfoo bar file\.ts\?tsx-namespace=\d+\nfoo bar file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
 					});
 
 					test('mts from commonjs', async () => {

@@ -1,6 +1,7 @@
 import module from 'node:module';
 import { MessageChannel, type MessagePort } from 'node:worker_threads';
 import type { Message } from '../types.js';
+import type { RequiredProperty } from '../../types.js';
 import { interopCjsExports } from '../../cjs/api/module-resolve-filename.js';
 import { createScopedImport, type ScopedImport } from './scoped-import.js';
 
@@ -24,8 +25,6 @@ export type NamespacedUnregister = Unregister & {
 	import: ScopedImport;
 	unregister: Unregister;
 };
-
-type RequiredProperty<Type, Keys extends keyof Type> = Type & { [P in Keys]-?: Type[P] };
 
 export type Register = {
 	(options: RequiredProperty<RegisterOptions, 'namespace'>): NamespacedUnregister;

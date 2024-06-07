@@ -4,12 +4,8 @@ import { tsExtensionsPattern } from '../../utils/path-utils.js';
 import { getPackageType } from './package-json.js';
 
 const getFormatFromExtension = (fileUrl: string): ModuleFormat | undefined => {
-	const queryIndex = fileUrl.indexOf('?');
-	fileUrl = (
-		queryIndex === -1
-			? fileUrl
-			: fileUrl.slice(0, queryIndex)
-	);
+	[fileUrl] = fileUrl.split('?');
+
 	const extension = path.extname(fileUrl);
 	if (extension === '.json') {
 		return 'json';
