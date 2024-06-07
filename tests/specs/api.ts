@@ -23,7 +23,9 @@ const tsFiles = {
 	export const foo = \`foo \${bar}\` as string
 	export const async = setTimeout(10).then(() => require('./async')).catch((error) => error);
 	`,
-	'cts.cts': 'export const cts = \'cts\' as string',
+	'exports-no.cts': 'console.log("cts loaded" as string)',
+	'exports-yes.cts': 'module.exports.cts = require("./esm-syntax.js").default as string',
+	'esm-syntax.js': 'export default "cts export"',
 	'bar.ts': 'export type A = 1; export { bar } from "pkg"',
 	'async.ts': 'export default "async"',
 	'node_modules/pkg': {
@@ -508,7 +510,10 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							const { message } = await tsImport('./file.ts', import.meta.url);
 							console.log(message);
 
-							const cts = await tsImport('./cts.cts', import.meta.url).then(m => m.cts, err => err.constructor.name);
+							// Loads cts vis CJS namespace even if there are no exports
+							await tsImport('./exports-no.cts', import.meta.url).catch((error) => console.log(error.constructor.name))
+
+							const cts = await tsImport('./exports-yes.cts', import.meta.url).then(m => m.cts, err => err.constructor.name);
 							console.log(cts);
 
 							const { message: message2 } = await tsImport('./file.ts?with-query', import.meta.url);
@@ -528,9 +533,9 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						});
 
 						if (node.supports.cjsInterop) {
-							expect(stdout).toMatch(/Fails as expected 1\nfoo bar file\.ts\?tsx-namespace=\d+\ncts\nfoo bar file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
+							expect(stdout).toMatch(/Fails as expected 1\nfoo bar file\.ts\?tsx-namespace=\d+\ncts loaded\ncts export\nfoo bar file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
 						} else {
-							expect(stdout).toMatch(/Fails as expected 1\nfoo bar file\.ts\?tsx-namespace=\d+\nSyntaxError\nfoo bar file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
+							expect(stdout).toMatch(/Fails as expected 1\nfoo bar file\.ts\?tsx-namespace=\d+\nSyntaxError\nSyntaxError\nfoo bar file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
 						}
 					});
 

@@ -10,7 +10,6 @@ import { parent } from '../../utils/ipc/client.js';
 import type { Message } from '../types.js';
 import { fileMatcher } from '../../utils/tsconfig.js';
 import { isJsonPattern, tsExtensionsPattern } from '../../utils/path-utils.js';
-import { parseEsm } from '../../utils/es-module-lexer.js';
 import { getNamespace } from './utils.js';
 import { data } from './initialize.js';
 
@@ -69,20 +68,35 @@ export const load: LoadHook = async (
 		loaded.format === 'commonjs'
 		&& isFeatureSupported(esmLoadReadFile)
 		&& loaded.responseURL?.startsWith('file:') // Could be data:
+		&& !filePath.endsWith('.cjs') // CJS syntax doesn't need to be transformed for interop
 	) {
-		const code = await readFile(new URL(url), 'utf8');
-		const [, exports] = parseEsm(code);
-		if (exports.length > 0) {
-			const cjsExports = `module.exports={${
-				exports.map(exported => exported.n).filter(name => name !== 'default').join(',')
-			}}`;
-			const parameters = new URLSearchParams({ filePath });
-			if (urlNamespace) {
-				parameters.set('namespace', urlNamespace);
-			}
-			loaded.responseURL = `data:text/javascript,${encodeURIComponent(cjsExports)}?${parameters.toString()}`;
-		}
+		/**
+		 * es or cjs module lexer unfortunately cannot be used because it doesn't support
+		 * typescript syntax
+		 *
+		 * While the full code is transformed, only the exports are used for parsing.
+		 * In fact, the code can't even run because imports cannot be resolved relative
+		 * from the data: URL.
+		 *
+		 * TODO: extract exports only
+		 */
+		const transformed = await transform(
+			await readFile(new URL(url), 'utf8'),
+			filePath,
+			{
+				format: 'cjs',
 
+				// CJS Annotations for Node
+				platform: 'node',
+				// TODO: disable source maps
+			},
+		);
+
+		const parameters = new URLSearchParams({ filePath });
+		if (urlNamespace) {
+			parameters.set('namespace', urlNamespace);
+		}
+		loaded.responseURL = `data:text/javascript,${encodeURIComponent(transformed.code)}?${parameters.toString()}`;
 		return loaded;
 	}
 

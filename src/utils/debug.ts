@@ -4,7 +4,10 @@ import { writeSync } from 'node:fs';
 export const log = (
 	...args: any[]
 ) => {
-	writeSync(1, `${inspect(args, { colors: true })}\n\n`);
+	writeSync(
+		1,
+		`${args.map(argument => inspect(argument, { colors: true })).join(' ')}\n\n`,
+	);
 };
 
 export const time = <T extends (...args: any[]) => unknown>(
