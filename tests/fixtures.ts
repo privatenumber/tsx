@@ -256,6 +256,7 @@ export const files = {
 				type: 'commonjs',
 			}),
 			'index.js': syntaxLowering,
+			'ts.ts': syntaxLowering,
 		},
 		'pkg-module': {
 			'package.json': createPackageJson({
@@ -263,6 +264,7 @@ export const files = {
 				main: './index.js',
 			}),
 			'index.js': `${syntaxLowering}\nexport * from "./empty-export"`,
+			'ts.ts': syntaxLowering,
 			'empty-export/index.js': 'export {}',
 		},
 	},

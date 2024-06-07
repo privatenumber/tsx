@@ -12,6 +12,7 @@ import {
 	fileUrlPrefix,
 	tsExtensionsPattern,
 	isDirectoryPattern,
+	isBarePackageName,
 } from '../../utils/path-utils.js';
 import {
 	getFormatFromFileUrl,
@@ -160,12 +161,14 @@ export const resolve: resolve = async (
 	// If `allowJs` is set in `tsconfig.json`, then we'll apply the same resolution logic
 	// to files without a TypeScript extension.
 	if (
-		acceptsQuery // file path
+		// Ignore if it's a bare package name and there's no subpath
+		!isBarePackageName.test(specifier)
 		&& (
 			tsExtensionsPattern.test(context.parentURL!)
 			|| allowJs
 		)
 	) {
+		// TODO: When guessing the .ts extension in a package, should it guess if there's an export map?
 		const tsPaths = resolveTsPath(specifier);
 		if (tsPaths) {
 			for (const tsPath of tsPaths) {

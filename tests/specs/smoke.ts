@@ -186,7 +186,9 @@ export default testSuite(async ({ describe }, { tsx, supports }: NodeApis) => {
 						import * as pkgCommonjs from 'pkg-commonjs';
 						import * as pkgModule from 'pkg-module';
 
-						// TODO: Test resolving TS files in dependencies (e.g. implicit extensions & export maps)
+						// Resolving TS files in dependencies (e.g. implicit extensions & export maps)
+						import 'pkg-commonjs/ts.js';
+						import 'pkg-module/ts.js';
 
 						// .js
 						import * as js from './js/index.js';
