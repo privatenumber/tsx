@@ -161,8 +161,11 @@ export const resolve: resolve = async (
 	// If `allowJs` is set in `tsconfig.json`, then we'll apply the same resolution logic
 	// to files without a TypeScript extension.
 	if (
-		// Ignore if it's a bare package name and there's no subpath
-		!isBarePackageName.test(specifier)
+		(
+			specifier.startsWith('#')
+			// Ignore if it's a bare package name and there's no subpath
+			|| !isBarePackageName.test(specifier)
+		)
 		&& (
 			tsExtensionsPattern.test(context.parentURL!)
 			|| allowJs

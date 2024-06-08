@@ -272,10 +272,14 @@ export const files = {
 			'package.json': createPackageJson({
 				type: 'module',
 				main: './index.js',
+				imports: {
+					'#*': './*',
+				},
 			}),
 			'index.js': `${syntaxLowering}\nexport * from "./empty-export"`,
-			'ts.ts': syntaxLowering,
 			'empty-export/index.js': 'export {}',
+			'ts.ts': `${syntaxLowering}\nexport * from "#empty.js"`,
+			'empty.ts': 'export {}',
 		},
 	},
 };
