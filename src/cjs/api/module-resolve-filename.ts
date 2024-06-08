@@ -164,7 +164,7 @@ export const createResolveFilename = (
 				 */
 				const resolved = (
 					tryExtensions(resolve, possiblePath)
-					|| tryExtensions(resolve, path.resolve(possiblePath, 'index'))
+					|| tryExtensions(resolve, `${request}${path.sep}index`)
 				);
 				if (resolved) {
 					return resolved + query;
@@ -187,7 +187,8 @@ export const createResolveFilename = (
 	} catch (error) {
 		const resolved = (
 			tryExtensions(resolve, request)
-			|| tryExtensions(resolve, path.resolve(request, 'index'))
+			// Default resolve handles resovling paths relative to the parent
+			|| tryExtensions(resolve, `${request}${path.sep}index`)
 		);
 		if (resolved) {
 			return resolved + query;
