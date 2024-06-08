@@ -12,7 +12,7 @@ import { packageTypes } from '../utils/package-types.js';
 const wasmPath = path.resolve('tests/fixtures/test.wasm');
 const wasmPathUrl = pathToFileURL(wasmPath).toString();
 
-export default testSuite(async ({ describe }, { tsx, supports }: NodeApis) => {
+export default testSuite(async ({ describe }, { tsx, supports, version }: NodeApis) => {
 	describe('Smoke', ({ describe }) => {
 		for (const packageType of packageTypes) {
 			const isCommonJs = packageType === 'commonjs';
@@ -129,7 +129,7 @@ export default testSuite(async ({ describe }, { tsx, supports }: NodeApis) => {
 							pkgCommonjs,
 							pkgModule,
 						}));
-		
+
 						// Could .js import TS files?
 
 						// Comment at EOF: could be a sourcemap declaration. Edge case for inserting functions here
@@ -259,14 +259,14 @@ export default testSuite(async ({ describe }, { tsx, supports }: NodeApis) => {
 									: ''
 							}
 						);
-		
+
 						// .ts
 						import './ts/index.ts';
 						import './ts/index.js';
 						import './ts/index.jsx';
 						import './ts/index';
 						import './ts/';
-		
+
 						// .jsx
 						import * as jsx from './jsx/index.jsx';
 						import './jsx/index.js';
@@ -397,6 +397,58 @@ export default testSuite(async ({ describe }, { tsx, supports }: NodeApis) => {
 					const coverageSourceMapCache = await hasCoverageSourcesContent(coverageDirectory);
 					expect(coverageSourceMapCache).toBe(true);
 				});
+
+				test('resolve ts in exports', async () => {
+					await using fixture = await createFixture({
+						'package.json': createPackageJson({ type: packageType }),
+						'index.ts': `
+						import A from 'pkg'
+						console.log(A satisfies 2)
+						`,
+						'node_modules/pkg': {
+							'package.json': createPackageJson({
+								name: 'pkg',
+								exports: './test.js',
+							}),
+							'test.ts': 'export default 1',
+						},
+					});
+
+					const p = await tsx(['index.ts'], {
+						cwd: fixture.path,
+					});
+					expect(p.failed).toBe(false);
+				});
+
+				/**
+				 * Node v18 has a bug:
+				 * Error [ERR_INTERNAL_ASSERTION]:
+				 * 	Code: ERR_MODULE_NOT_FOUND; The provided arguments length (2) does
+				 *  not match the required ones (3)
+				 */
+				if (!version.startsWith('18.')) {
+					test('resolve ts in main', async () => {
+						await using fixture = await createFixture({
+							'package.json': createPackageJson({ type: packageType }),
+							'index.ts': `
+							import A from 'pkg'
+							console.log(A satisfies 2);
+							`,
+							'node_modules/pkg': {
+								'package.json': createPackageJson({
+									name: 'pkg',
+									main: './test.js',
+								}),
+								'test.ts': 'export default 1',
+							},
+						});
+
+						const p = await tsx(['index.ts'], {
+							cwd: fixture.path,
+						});
+						expect(p.failed).toBe(false);
+					});
+				}
 			});
 		}
 	});

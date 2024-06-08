@@ -284,5 +284,18 @@ export const files = {
 			'ts.ts': `${syntaxLowering}\nexport * from "#empty.js"`,
 			'empty.ts': 'export {}',
 		},
+		'pkg-main': {
+			'package.json': createPackageJson({
+				main: './index.js',
+			}),
+			'index.ts': syntaxLowering,
+		},
+		'pkg-exports': {
+			'package.json': createPackageJson({
+				type: 'module',
+				exports: './index.js',
+			}),
+			'index.ts': syntaxLowering,
+		},
 	},
 };

@@ -4,6 +4,8 @@ import type {
 	ResolveFnOutput,
 	ResolveHookContext,
 } from 'node:module';
+import type { PackageJson } from 'type-fest';
+import { readJsonFile } from '../../utils/read-json-file.js';
 import { resolveTsPath } from '../../utils/resolve-ts-path.js';
 import type { NodeError } from '../../types.js';
 import { tsconfigPathsMatcher, allowJs } from '../../utils/tsconfig.js';
@@ -111,6 +113,33 @@ const tryDirectory = async (
 	}
 };
 
+const tryTsPaths = async (
+	url: string,
+	context: ResolveHookContext,
+	nextResolve: NextResolve,
+) => {
+	const tsPaths = resolveTsPath(url);
+	if (!tsPaths) {
+		return;
+	}
+
+	for (const tsPath of tsPaths) {
+		try {
+			return await resolveMissingFormat(
+				await nextResolve(tsPath, context),
+			);
+		} catch (error) {
+			const { code } = error as NodeError;
+			if (
+				code !== 'ERR_MODULE_NOT_FOUND'
+				&& code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED'
+			) {
+				throw error;
+			}
+		}
+	}
+};
+
 export const resolve: resolve = async (
 	specifier,
 	context,
@@ -172,23 +201,9 @@ export const resolve: resolve = async (
 		)
 	) {
 		// TODO: When guessing the .ts extension in a package, should it guess if there's an export map?
-		const tsPaths = resolveTsPath(specifier);
-		if (tsPaths) {
-			for (const tsPath of tsPaths) {
-				try {
-					return await resolveMissingFormat(
-						await nextResolve(tsPath, context),
-					);
-				} catch (error) {
-					const { code } = error as NodeError;
-					if (
-						code !== 'ERR_MODULE_NOT_FOUND'
-						&& code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED'
-					) {
-						throw error;
-					}
-				}
-			}
+		const resolved = await tryTsPaths(specifier, context, nextResolve);
+		if (resolved) {
+			return resolved;
 		}
 	}
 
@@ -212,7 +227,8 @@ export const resolve: resolve = async (
 			error instanceof Error
 			&& !recursiveCall
 		) {
-			const { code } = error as NodeError;
+			const nodeError = error as NodeError;
+			const { code } = nodeError;
 			if (code === 'ERR_UNSUPPORTED_DIR_IMPORT') {
 				try {
 					return await tryDirectory(specifier, context, nextResolve);
@@ -224,9 +240,48 @@ export const resolve: resolve = async (
 			}
 
 			if (code === 'ERR_MODULE_NOT_FOUND') {
-				try {
-					return await tryExtensions(specifier, context, nextResolve);
-				} catch {}
+				// Resolving .js -> .ts in exports map
+				if (nodeError.url) {
+					const resolved = await tryTsPaths(nodeError.url, context, nextResolve);
+					if (resolved) {
+						return resolved;
+					}
+				} else {
+					const isExportPath = error.message.match(/^Cannot find module '([^']+)'/);
+					if (isExportPath) {
+						const [, exportPath] = isExportPath;
+						const resolved = await tryTsPaths(exportPath, context, nextResolve);
+						if (resolved) {
+							return resolved;
+						}
+					}
+
+					const isPackagePath = error.message.match(/^Cannot find package '([^']+)'/);
+					if (isPackagePath) {
+						const [, packageJsonPath] = isPackagePath;
+						const packageJsonUrl = pathToFileURL(packageJsonPath);
+
+						if (!packageJsonUrl.pathname.endsWith('/package.json')) {
+							packageJsonUrl.pathname += '/package.json';
+						}
+
+						const packageJson = await readJsonFile<PackageJson>(packageJsonUrl);
+						if (packageJson?.main) {
+							const resolvedMain = new URL(packageJson.main, packageJsonUrl);
+							const resolved = await tryTsPaths(resolvedMain.toString(), context, nextResolve);
+							if (resolved) {
+								return resolved;
+							}
+						}
+					}
+				}
+
+				// If not bare specifier
+				if (acceptsQuery) {
+					try {
+						return await tryExtensions(specifier, context, nextResolve);
+					} catch {}
+				}
 			}
 		}
 

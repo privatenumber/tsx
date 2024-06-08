@@ -174,9 +174,9 @@ export const createResolveFilename = (
 	}
 
 	// If extension exists
-	const tsFilename = resolveTsFilename(resolve, request, parent);
-	if (tsFilename) {
-		return tsFilename + query;
+	const resolvedTsFilename = resolveTsFilename(resolve, request, parent);
+	if (resolvedTsFilename) {
+		return resolvedTsFilename + query;
 	}
 
 	try {
@@ -185,6 +185,33 @@ export const createResolveFilename = (
 		// Can be a node core module
 		return resolved + (path.isAbsolute(resolved) ? query : '');
 	} catch (error) {
+		const nodeError = error as NodeError;
+
+		// Exports map resolution
+		if (
+			nodeError.code === 'MODULE_NOT_FOUND'
+			&& typeof nodeError.path === 'string'
+			&& nodeError.path.endsWith('package.json')
+		) {
+			const isExportsPath = nodeError.message.match(/^Cannot find module '([^']+)'$/);
+			if (isExportsPath) {
+				const exportsPath = isExportsPath[1];
+				const tsFilename = resolveTsFilename(resolve, exportsPath, parent);
+				if (tsFilename) {
+					return tsFilename + query;
+				}
+			}
+
+			const isMainPath = nodeError.message.match(/^Cannot find module '([^']+)'. Please verify that the package.json has a valid "main" entry$/);
+			if (isMainPath) {
+				const mainPath = isMainPath[1];
+				const tsFilename = resolveTsFilename(resolve, mainPath, parent);
+				if (tsFilename) {
+					return tsFilename + query;
+				}
+			}
+		}
+
 		const resolved = (
 			tryExtensions(resolve, request)
 			// Default resolve handles resovling paths relative to the parent
@@ -194,6 +221,6 @@ export const createResolveFilename = (
 			return resolved + query;
 		}
 
-		throw error;
+		throw nodeError;
 	}
 };
