@@ -84,7 +84,11 @@ export const load: LoadHook = async (
 			 * from the data: URL.
 			 *
 			 * This should pre-compile for the CJS loader to have a cache hit
-			 * TODO: extract exports only?
+			 *
+			 * I considered extracting the CJS exports from esbuild via (0&&(module.exports={})
+			 * to minimize the data URL size but this only works for ESM->CJS and not CTS files
+			 * which are already in CJS syntax.
+			 * In CTS, module.exports can be written in any pattern.
 			 */
 			const transformed = transformSync(
 				code,
