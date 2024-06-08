@@ -110,28 +110,40 @@ export const createExtensions = (
 		'.ts',
 		'.tsx',
 		'.jsx',
-
-		/**
-		 * Loaders for extensions .cjs, .cts, & .mts don't need to be
-		 * registered because they're explicitly specified. And unknown
-		 * extensions (incl .cjs) fallsback to using the '.js' loader:
-		 * https://github.com/nodejs/node/blob/v18.4.0/lib/internal/modules/cjs/loader.js#L430
-		 *
-		 * That said, it's actually ".js" and ".mjs" that get special treatment
-		 * rather than ".cjs" (it might as well be ".random-ext")
-		 */
-		'.mjs',
 	].forEach((extension) => {
+		const descriptor = Object.getOwnPropertyDescriptor(extensions, extension);
 		Object.defineProperty(extensions, extension, {
 			value: transformer,
 
 			/**
-			 * Prevent Object.keys from detecting these extensions
-			 * when CJS loader iterates over the possible extensions
-			 * https://github.com/nodejs/node/blob/v22.2.0/lib/internal/modules/cjs/loader.js#L609
+			 * Registeration needs to be enumerable for some 3rd party libraries
+			 * https://github.com/gulpjs/rechoir/blob/v0.8.0/index.js#L21 (used by Webpack CLI)
+			 *
+			 * If the extension already exists, inherit its enumerable property
+			 * If not, only expose if it's not namespaced
 			 */
-			enumerable: false,
+			enumerable: descriptor?.enumerable || !namespace,
 		});
+	});
+
+	/**
+	 * Loaders for extensions .cjs, .cts, & .mts don't need to be
+	 * registered because they're explicitly specified. And unknown
+	 * extensions (incl .cjs) fallsback to using the '.js' loader:
+	 * https://github.com/nodejs/node/blob/v18.4.0/lib/internal/modules/cjs/loader.js#L430
+	 *
+	 * That said, it's actually ".js" and ".mjs" that get special treatment
+	 * rather than ".cjs" (it might as well be ".random-ext")
+	 */
+	Object.defineProperty(extensions, '.mjs', {
+		value: transformer,
+
+		/**
+		 * Prevent Object.keys from detecting these extensions
+		 * when CJS loader iterates over the possible extensions
+		 * https://github.com/nodejs/node/blob/v22.2.0/lib/internal/modules/cjs/loader.js#L609
+		 */
+		enumerable: false,
 	});
 
 	return extensions;
