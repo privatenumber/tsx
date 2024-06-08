@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url';
 import type { LoadHook } from 'node:module';
 import { readFile } from 'node:fs/promises';
 import type { TransformOptions } from 'esbuild';
-import { transform } from '../../utils/transform/index.js';
+import { transform, transformSync } from '../../utils/transform/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';
 import { inlineSourceMap } from '../../source-map.js';
 import { isFeatureSupported, importAttributes, esmLoadReadFile } from '../../utils/node-features.js';
@@ -83,17 +83,14 @@ export const load: LoadHook = async (
 			 * In fact, the code can't even run because imports cannot be resolved relative
 			 * from the data: URL.
 			 *
-			 * TODO: extract exports only
+			 * This should pre-compile for the CJS loader to have a cache hit
+			 * TODO: extract exports only?
 			 */
-			const transformed = await transform(
+			const transformed = transformSync(
 				code,
 				filePath,
 				{
-					format: 'cjs',
-
-					// CJS Annotations for Node
-					platform: 'node',
-					// TODO: disable source maps
+					tsconfigRaw: fileMatcher?.(filePath) as TransformOptions['tsconfigRaw'],
 				},
 			);
 

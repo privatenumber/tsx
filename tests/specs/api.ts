@@ -23,7 +23,15 @@ const tsFiles = {
 	export const foo = \`foo \${bar}\` as string
 	export const async = setTimeout(10).then(() => require('./async')).catch((error) => error);
 	`,
-	'exports-no.cts': 'console.log("cts loaded" as string)',
+	'exports-no.cts': `
+	// Supports decorators
+	const log = (target, key, descriptor) => descriptor;
+	class Example {
+		@log
+		greet() {}
+	}
+	console.log("cts loaded" as string)
+	`,
 	'exports-yes.cts': 'module.exports.cts = require("./esm-syntax.js").default as string',
 	'esm-syntax.js': 'export default "cts export"',
 	'bar.ts': 'export type A = 1; export { bar } from "pkg"',
@@ -36,6 +44,11 @@ const tsFiles = {
 		}),
 		'index.js': 'import "node:process"; export const bar = "bar";',
 	},
+	'tsconfig.json': createTsconfig({
+		compilerOptions: {
+			experimentalDecorators: true,
+		},
+	}),
 	...expectErrors,
 };
 
@@ -527,7 +540,8 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							...tsFiles,
 						});
 
-						const { stdout } = await execaNode(fixture.getPath('import.mjs'), [], {
+						const { stdout } = await execaNode('./import.mjs', [], {
+							cwd: fixture.path,
 							nodePath: node.path,
 							nodeOptions: [],
 						});
@@ -658,6 +672,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 					test('tsconfig disable', async () => {
 						await using fixture = await createFixture({
+							...tsFiles,
 							'package.json': createPackageJson({ type: 'module' }),
 							'tsconfig.json': createTsconfig({ extends: 'doesnt-exist' }),
 							'import.mjs': `
@@ -668,7 +683,6 @@ export default testSuite(({ describe }, node: NodeApis) => {
 								tsconfig: false,
 							});
 							`,
-							...tsFiles,
 						});
 
 						await execaNode('import.mjs', [], {

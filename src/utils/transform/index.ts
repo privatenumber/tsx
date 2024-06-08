@@ -53,6 +53,10 @@ export const transformSync = (
 		define,
 		banner: '(()=>{',
 		footer: '})()',
+
+		// CJS Annotations for Node. Used by ESM loader for CJS interop
+		platform: 'node',
+
 		...extendOptions,
 	} as const;
 
