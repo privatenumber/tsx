@@ -1,13 +1,10 @@
-'use strict';
+import Module from 'node:module';
+import { MessageChannel } from 'node:worker_threads';
+import { i as interopCjsExports } from './register-BycOz8w6.mjs';
+import { pathToFileURL } from 'node:url';
 
-var Module = require('node:module');
-var node_worker_threads = require('node:worker_threads');
-var register$1 = require('./register-BYY4Zm0k.cjs');
-var node_url = require('node:url');
-
-var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
 const resolveSpecifier = (specifier, fromFile, namespace) => {
-  const base = fromFile.startsWith("file://") ? fromFile : node_url.pathToFileURL(fromFile);
+  const base = fromFile.startsWith("file://") ? fromFile : pathToFileURL(fromFile);
   const resolvedUrl = new URL(specifier, base);
   resolvedUrl.searchParams.set("tsx-namespace", namespace);
   return resolvedUrl.toString();
@@ -26,17 +23,17 @@ const register = (options) => {
   }
   if (!cjsInteropApplied) {
     const { _resolveFilename } = Module;
-    Module._resolveFilename = (request, _parent, _isMain, _options) => _resolveFilename(register$1.interopCjsExports(request), _parent, _isMain, _options);
+    Module._resolveFilename = (request, _parent, _isMain, _options) => _resolveFilename(interopCjsExports(request), _parent, _isMain, _options);
     cjsInteropApplied = true;
   }
   const { sourceMapsEnabled } = process;
   process.setSourceMapsEnabled(true);
-  const { port1, port2 } = new node_worker_threads.MessageChannel();
+  const { port1, port2 } = new MessageChannel();
   Module.register(
     // Load new copy of loader so it can be registered multiple times
     `./esm/index.mjs?${Date.now()}`,
     {
-      parentURL: (typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.src || new URL('register-BOVurJAs.cjs', document.baseURI).href)),
+      parentURL: import.meta.url,
       data: {
         port: port2,
         namespace: options?.namespace,
@@ -80,4 +77,4 @@ const register = (options) => {
   return unregister;
 };
 
-exports.register = register;
+export { register as r };

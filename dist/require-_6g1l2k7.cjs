@@ -1,7 +1,7 @@
 'use strict';
 
 var getPipePath = require('./get-pipe-path-BRzkrjmO.cjs');
-var register = require('./register-BYY4Zm0k.cjs');
+var register = require('./register-B6sXcRgr.cjs');
 
 let api;
 const tsxRequire = (id, fromFile) => {

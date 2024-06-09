@@ -1,8 +1,8 @@
 'use strict';
 
 require('../../get-pipe-path-BRzkrjmO.cjs');
-var register = require('../../register-BYY4Zm0k.cjs');
-var require$1 = require('../../require-BQHfyftI.cjs');
+var register = require('../../register-B6sXcRgr.cjs');
+var require$1 = require('../../require-_6g1l2k7.cjs');
 require('module');
 require('node:path');
 require('../../temporary-directory-dlKDKQR6.cjs');

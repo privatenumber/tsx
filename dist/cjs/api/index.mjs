@@ -1,6 +1,6 @@
 import '../../get-pipe-path-D2pYDmQS.mjs';
-export { r as register } from '../../register-DVeEFLZ1.mjs';
-export { t as require } from '../../require-YyybwuSX.mjs';
+export { r as register } from '../../register-BycOz8w6.mjs';
+export { t as require } from '../../require-CCCuoO_b.mjs';
 import 'module';
 import 'node:path';
 import '../../temporary-directory-CM_Hq0H1.mjs';

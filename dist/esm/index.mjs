@@ -1,6 +1,6 @@
 import { isMainThread } from 'node:worker_threads';
 import { i as isFeatureSupported, a as importAttributes, e as esmLoadReadFile, m as moduleRegister } from '../node-features-Bye2pwSD.mjs';
-import { r as register } from '../register-DSBdIh5P.mjs';
+import { r as register } from '../register-BqDTSxgw.mjs';
 import '../get-pipe-path-D2pYDmQS.mjs';
 import 'node:module';
 import path from 'node:path';
@@ -11,8 +11,8 @@ import 'esbuild';
 import 'node:crypto';
 import { i as isESM, a as transformSync, t as transform, b as transformDynamicImport, r as readJsonFile } from '../index-CU-y6T80.mjs';
 import { p as parent } from '../client-Cg5Bp24g.mjs';
-import { l as loadTsconfig, t as tsExtensionsPattern, a as isJsonPattern, b as inlineSourceMap, f as fileMatcher, c as requestAcceptsQuery, d as isDirectoryPattern, e as isBarePackageName, g as allowJs, h as fileUrlPrefix, m as mapTsExtensions, j as tsconfigPathsMatcher } from '../register-DVeEFLZ1.mjs';
-import '../require-YyybwuSX.mjs';
+import { l as loadTsconfig, t as tsExtensionsPattern, a as isJsonPattern, b as inlineSourceMap, f as fileMatcher, c as requestAcceptsQuery, d as isDirectoryPattern, e as isBarePackageName, g as allowJs, h as fileUrlPrefix, m as mapTsExtensions, j as tsconfigPathsMatcher } from '../register-BycOz8w6.mjs';
+import '../require-CCCuoO_b.mjs';
 import { readFile } from 'node:fs/promises';
 import 'module';
 import '../temporary-directory-CM_Hq0H1.mjs';

@@ -1,6 +1,6 @@
 'use strict';
 
-var register = require('../register-BYY4Zm0k.cjs');
+var register = require('../register-B6sXcRgr.cjs');
 require('../get-pipe-path-BRzkrjmO.cjs');
 require('module');
 require('node:path');

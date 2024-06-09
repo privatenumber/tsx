@@ -1,7 +1,7 @@
-import { r as register$1 } from '../../register-DSBdIh5P.mjs';
+import { r as register$1 } from '../../register-BqDTSxgw.mjs';
 import '../../get-pipe-path-D2pYDmQS.mjs';
-import { r as register } from '../../register-DVeEFLZ1.mjs';
-import '../../require-YyybwuSX.mjs';
+import { r as register } from '../../register-BycOz8w6.mjs';
+import '../../require-CCCuoO_b.mjs';
 import 'node:module';
 import 'node:worker_threads';
 import 'node:url';

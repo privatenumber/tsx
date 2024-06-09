@@ -1,4 +1,4 @@
-import { r as register } from '../register-DVeEFLZ1.mjs';
+import { r as register } from '../register-BycOz8w6.mjs';
 import '../get-pipe-path-D2pYDmQS.mjs';
 import 'module';
 import 'node:path';

@@ -194,6 +194,12 @@ const resolveRequest = (request, parent, resolve) => {
   }
 };
 const createResolveFilename = (nextResolve, namespace) => (request, parent, isMain, options) => {
+  console.log("resolveFilename", {
+    request,
+    parent,
+    isMain,
+    options
+  });
   let resolve = (request_) => nextResolve(
     request_,
     parent,

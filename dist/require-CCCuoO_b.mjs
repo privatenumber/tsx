@@ -1,5 +1,5 @@
 import { r as require } from './get-pipe-path-D2pYDmQS.mjs';
-import { r as register } from './register-DVeEFLZ1.mjs';
+import { r as register } from './register-BycOz8w6.mjs';
 
 let api;
 const tsxRequire = (id, fromFile) => {

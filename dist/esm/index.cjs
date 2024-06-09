@@ -2,7 +2,7 @@
 
 var node_worker_threads = require('node:worker_threads');
 var nodeFeatures = require('../node-features-B5a2EPMS.cjs');
-var register$1 = require('../register-BOVurJAs.cjs');
+var register$1 = require('../register-CvaYgxA5.cjs');
 require('../get-pipe-path-BRzkrjmO.cjs');
 require('node:module');
 var path = require('node:path');
@@ -13,8 +13,8 @@ require('esbuild');
 require('node:crypto');
 var index = require('../index-Cw5WLTtf.cjs');
 var client = require('../client-D05RSYSD.cjs');
-var register = require('../register-BYY4Zm0k.cjs');
-require('../require-BQHfyftI.cjs');
+var register = require('../register-B6sXcRgr.cjs');
+require('../require-_6g1l2k7.cjs');
 var promises = require('node:fs/promises');
 require('module');
 require('../temporary-directory-dlKDKQR6.cjs');

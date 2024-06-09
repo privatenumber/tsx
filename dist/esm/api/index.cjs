@@ -1,9 +1,9 @@
 'use strict';
 
-var register = require('../../register-BOVurJAs.cjs');
+var register = require('../../register-CvaYgxA5.cjs');
 require('../../get-pipe-path-BRzkrjmO.cjs');
-var register$1 = require('../../register-BYY4Zm0k.cjs');
-require('../../require-BQHfyftI.cjs');
+var register$1 = require('../../register-B6sXcRgr.cjs');
+require('../../require-_6g1l2k7.cjs');
 require('node:module');
 require('node:worker_threads');
 require('node:url');
