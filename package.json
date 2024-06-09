@@ -27,6 +27,7 @@
 	"exports": {
 		"./package.json": "./package.json",
 		".": "./dist/loader.mjs",
+		"./patch-repl": "./dist/patch-repl.cjs",
 		"./cjs": "./dist/cjs/index.cjs",
 		"./cjs/api": {
 			"import": {

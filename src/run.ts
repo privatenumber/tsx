@@ -33,11 +33,22 @@ export const run = (
 		}
 	}
 
+	const shouldPatchRepl = argv.filter(flag => (flag !== '-i' && flag !== '--interactive')).length === 0;
+
 	return spawn(
 		process.execPath,
 		[
 			'--require',
 			require.resolve('./preflight.cjs'),
+
+			...(
+				shouldPatchRepl
+					? [
+						'--require',
+						require.resolve('./patch-repl.cjs'),
+					]
+					: []
+			),
 
 			isFeatureSupported(moduleRegister) ? '--import' : '--loader',
 			pathToFileURL(require.resolve('./loader.mjs')).toString(),

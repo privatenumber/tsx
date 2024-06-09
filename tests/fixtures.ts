@@ -154,6 +154,9 @@ export const files = {
 		!(typeof m.default === 'object' && ('default' in m.default)),
 	));
 	exports.named = 'named';
+
+	// https://github.com/privatenumber/tsx/issues/248
+	process.setUncaughtExceptionCaptureCallback(console.error);
 	`,
 
 	mjs: {
