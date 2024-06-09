@@ -7,6 +7,7 @@ import { isESM } from '../../utils/es-module-lexer.js';
 import { shouldApplySourceMap, inlineSourceMap } from '../../source-map.js';
 import { parent } from '../../utils/ipc/client.js';
 import { fileMatcher } from '../../utils/tsconfig.js';
+import { implicitlyResolvableExtensions } from './resolve-implicit-extensions.js';
 
 const typescriptExtensions = [
 	'.cts',
@@ -106,11 +107,7 @@ export const createExtensions = (
 	 */
 	extensions['.js'] = transformer;
 
-	[
-		'.ts',
-		'.tsx',
-		'.jsx',
-	].forEach((extension) => {
+	for (const extension of implicitlyResolvableExtensions) {
 		const descriptor = Object.getOwnPropertyDescriptor(extensions, extension);
 		Object.defineProperty(extensions, extension, {
 			value: transformer,
@@ -124,7 +121,7 @@ export const createExtensions = (
 			 */
 			enumerable: descriptor?.enumerable || !namespace,
 		});
-	});
+	}
 
 	/**
 	 * Loaders for extensions .cjs, .cts, & .mts don't need to be

@@ -6,7 +6,7 @@ import type {
 } from 'node:module';
 import type { PackageJson } from 'type-fest';
 import { readJsonFile } from '../../utils/read-json-file.js';
-import { resolveTsPath } from '../../utils/resolve-ts-path.js';
+import { mapTsExtensions } from '../../utils/map-ts-extensions.js';
 import type { NodeError } from '../../types.js';
 import { tsconfigPathsMatcher, allowJs } from '../../utils/tsconfig.js';
 import {
@@ -118,7 +118,7 @@ const tryTsPaths = async (
 	context: ResolveHookContext,
 	nextResolve: NextResolve,
 ) => {
-	const tsPaths = resolveTsPath(url);
+	const tsPaths = mapTsExtensions(url);
 	if (!tsPaths) {
 		return;
 	}
