@@ -150,6 +150,11 @@ export const resolve: resolve = async (
 		return nextResolve(specifier, context);
 	}
 
+	console.log('resolve', {
+		specifier,
+		context,
+	});
+
 	const parentNamespace = context.parentURL && getNamespace(context.parentURL);
 	const acceptsQuery = requestAcceptsQuery(specifier);
 	if (acceptsQuery) {
