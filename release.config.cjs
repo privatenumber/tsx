@@ -5,6 +5,6 @@ module.exports = {
 	successComment: outdent`
 	:tada: This issue has been resolved in v\${nextRelease.version}
 	
-	If you appreciate this project, please consider [supporting this project by sponsoring](https://github.com/sponsors/privatenumber) :heart: :pray:
+	If you rely on this project, please consider [making a donation](https://github.com/sponsors/privatenumber) :heart: :pray:
 	`,
 };
