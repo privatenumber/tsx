@@ -35,9 +35,10 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 						import * as pkgCommonjs from 'pkg-commonjs';
 
 						// Named exports from CommonJS
-						import { cjsJs } from 'pkg-commonjs/cjs.js';
+						import { cjsJs } from 'pkg-commonjs/cjs';
 
 						import * as pkgModule from 'pkg-module';
+						import 'pkg-module/index';
 						import 'pkg-module/empty-export'; // implicit directory & extension
 
 						// .js in esm syntax
@@ -189,13 +190,14 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 						// Dependencies
 						import * as pkgCommonjs from 'pkg-commonjs';
 						import * as pkgModule from 'pkg-module';
+						import 'pkg-module/index';
 
 						// Resolving TS files in dependencies (e.g. implicit extensions & export maps)
 						import 'pkg-commonjs/ts.js';
 						import 'pkg-module/ts.js';
 
 						// Named exports from CommonJS
-						import { cjsJs } from 'pkg-commonjs/cjs.js';
+						import { cjsJs } from 'pkg-commonjs/cjs';
 
 						// .js in esm syntax
 						import * as js from './js/index.js';

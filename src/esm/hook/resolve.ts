@@ -277,7 +277,7 @@ export const resolve: resolve = async (
 				}
 
 				// If not bare specifier
-				if (acceptsQuery) {
+				if (!isBarePackageName.test(specifier)) {
 					try {
 						return await tryExtensions(specifier, context, nextResolve);
 					} catch {}
