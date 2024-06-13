@@ -263,6 +263,20 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				expect(stdout).toContain('index.ts:3:27');
 			});
 
+			test('cli - cjsInterop', async () => {
+				await using fixture = await createFixture({
+					'index.mts': 'import "./file"',
+					...tsFiles,
+				});
+
+				const { stderr } = await execaNode(fixture.getPath('index.mts'), {
+					nodePath: node.path,
+					nodeOptions: [node.supports.moduleRegister ? '--import' : '--loader', tsxEsmPath],
+					reject: false,
+				});
+				expect(stderr).not.toContain('data:text/javascript');
+			});
+
 			if (node.supports.moduleRegister) {
 				test('module.register', async () => {
 					await using fixture = await createFixture({
