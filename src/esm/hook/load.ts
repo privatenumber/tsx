@@ -100,7 +100,6 @@ export const load: LoadHook = async (
 
 			const filePathWithNamespace = urlNamespace ? `${filePath}?namespace=${encodeURIComponent(urlNamespace)}` : filePath;
 
-			// TODO: re-exports from relative paths cant get detected because of the data URL
 			loaded.responseURL = `data:text/javascript,${encodeURIComponent(transformed.code)}?filePath=${encodeURIComponent(filePathWithNamespace)}`;
 			return loaded;
 		}

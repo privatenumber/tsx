@@ -30,7 +30,7 @@ declare module 'module' {
 
 	export function _resolveFilename(
 		request: string,
-		parent: Parent,
+		parent: Parent | undefined,
 		isMain: boolean,
 		options?: Record<PropertyKey, unknown>,
 	): string;

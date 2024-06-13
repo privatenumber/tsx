@@ -24,17 +24,25 @@ const tsFiles = {
 	export const foo = \`foo \${bar}\` as string
 	export const async = setTimeout(10).then(() => require('./async')).catch((error) => error);
 	`,
-	'exports-no.cts': `
-	// Supports decorators
-	const log = (target, key, descriptor) => descriptor;
-	class Example {
-		@log
-		greet() {}
-	}
-	console.log("cts loaded" as string)
-	`,
-	'exports-yes.cts': 'module.exports.cts = require("./esm-syntax.js").default as string',
-	'esm-syntax.js': 'export default "cts export"',
+
+	cjs: {
+		'exports-no.cts': `
+		// Supports decorators
+		const log = (target, key, descriptor) => descriptor;
+		class Example {
+			@log
+			greet() {}
+		}
+		console.log("cts loaded" as string)
+		`,
+		'exports-yes.cts': 'module.exports = require("./reexport.cjs") as string',
+		'esm-syntax.js': 'export const esmSyntax = "esm syntax"',
+		'reexport.cjs': `
+		exports.cjsReexport = "cjsReexport";
+		exports.esmSyntax = require("./esm-syntax.js").esmSyntax;
+		`,
+	},
+
 	'bar.ts': 'export type A = 1; export { bar } from "pkg"',
 	'async.ts': 'export default "async"',
 	'json.json': JSON.stringify({ json: 'json' }),
@@ -240,7 +248,10 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			test('cli', async () => {
 				await using fixture = await createFixture({
 					'package.json': createPackageJson({ type: 'module' }),
-					'index.ts': 'import { message } from \'./file\';\n\nconsole.log(message, new Error().stack);',
+					'index.ts': `
+					import { message } from "./file";
+					console.log(message, new Error().stack);
+					`,
 					...tsFiles,
 				});
 
@@ -249,7 +260,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					nodeOptions: [node.supports.moduleRegister ? '--import' : '--loader', tsxEsmPath],
 				});
 				expect(stdout).toContain('foo bar');
-				expect(stdout).toContain('index.ts:3:22');
+				expect(stdout).toContain('index.ts:3:27');
 			});
 
 			if (node.supports.moduleRegister) {
@@ -526,10 +537,10 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							console.log(message);
 
 							// Loads cts vis CJS namespace even if there are no exports
-							await tsImport('./exports-no.cts', import.meta.url).catch((error) => console.log(error.constructor.name))
+							await tsImport('./cjs/exports-no.cts', import.meta.url).catch((error) => console.log(error.constructor.name))
 
-							const cts = await tsImport('./exports-yes.cts', import.meta.url).then(m => m.cts, err => err.constructor.name);
-							console.log(cts);
+							const cjsExport = await tsImport('./cjs/exports-yes.cts', import.meta.url).then(({ cjsReexport, esmSyntax }) => \`\${cjsReexport} \${esmSyntax}\`, err => err.constructor.name);
+							console.log(cjsExport);
 
 							const { message: message2 } = await tsImport('./file.ts?with-query', import.meta.url);
 							console.log(message2);
@@ -549,7 +560,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						});
 
 						if (node.supports.cjsInterop) {
-							expect(stdout).toMatch(/Fails as expected 1\nfoo bar json file\.ts\?tsx-namespace=\d+\ncts loaded\ncts export\nfoo bar json file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
+							expect(stdout).toMatch(/Fails as expected 1\nfoo bar json file\.ts\?tsx-namespace=\d+\ncts loaded\ncjsReexport esm syntax\nfoo bar json file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
 						} else {
 							expect(stdout).toMatch(/Fails as expected 1\nfoo bar json file\.ts\?tsx-namespace=\d+\nSyntaxError\nSyntaxError\nfoo bar json file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
 						}

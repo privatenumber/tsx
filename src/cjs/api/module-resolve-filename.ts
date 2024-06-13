@@ -11,20 +11,29 @@ import { createImplicitResolver } from './resolve-implicit-extensions.js';
 
 const nodeModulesPath = `${path.sep}node_modules${path.sep}`;
 
-export const interopCjsExports = (
+const getOriginalFilePath = (
 	request: string,
 ) => {
 	if (!request.startsWith('data:text/javascript,')) {
-		return request;
+		return;
 	}
 
 	const queryIndex = request.indexOf('?');
 	if (queryIndex === -1) {
-		return request;
+		return;
 	}
 
 	const searchParams = new URLSearchParams(request.slice(queryIndex + 1));
 	const filePath = searchParams.get('filePath');
+	if (filePath) {
+		return filePath;
+	}
+};
+
+export const interopCjsExports = (
+	request: string,
+) => {
+	const filePath = getOriginalFilePath(request);
 	if (filePath) {
 		// The CJS module cache needs to be updated with the actual path for export parsing to work
 		// https://github.com/nodejs/node/blob/v22.2.0/lib/internal/modules/esm/translators.js#L338
@@ -32,7 +41,6 @@ export const interopCjsExports = (
 		delete Module._cache[request];
 		request = filePath;
 	}
-
 	return request;
 };
 
@@ -42,7 +50,7 @@ export const interopCjsExports = (
 const resolveTsFilename = (
 	resolve: SimpleResolve,
 	request: string,
-	parent: Module.Parent,
+	parent: Module.Parent | undefined,
 ) => {
 	if (
 		!(parent?.filename && tsExtensionsPattern.test(parent.filename))
@@ -73,7 +81,7 @@ const resolveTsFilename = (
 
 const resolveRequest = (
 	request: string,
-	parent: Module.Parent,
+	parent: Module.Parent | undefined,
 	resolve: SimpleResolve,
 ) => {
 	// Support file protocol
@@ -174,6 +182,13 @@ export const createResolveFilename = (
 		);
 
 		request = interopCjsExports(request);
+
+		if (parent?.filename) {
+			const filePath = getOriginalFilePath(parent.filename);
+			if (filePath) {
+				parent.filename = filePath.split('?')[0];
+			}
+		}
 
 		// Strip query string
 		const requestAndQuery = request.split('?');
