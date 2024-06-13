@@ -148,19 +148,7 @@ const resolveRequest = (
 export const createResolveFilename = (
 	nextResolve: ResolveFilename,
 	namespace?: string,
-): ResolveFilename => (
-	request,
-	parent,
-	isMain,
-	options,
-) => {
-	let resolve: SimpleResolve = request_ => nextResolve(
-		request_,
-		parent,
-		isMain,
-		options,
-	);
-
+): ResolveFilename => {
 	if (namespace) {
 		/**
 		 * When namespaced, the loaders are registered to the extensions in a hidden way
@@ -169,41 +157,55 @@ export const createResolveFilename = (
 		 * To support implicit extensions, we need to wrap the resolver with our own
 		 * re-implementation of the implicit extension resolution
 		 */
-		resolve = createImplicitResolver(resolve);
+		nextResolve = createImplicitResolver(nextResolve);
 	}
 
-	request = interopCjsExports(request);
+	return (
+		request,
+		parent,
+		isMain,
+		options,
+	) => {
+		const resolve: SimpleResolve = request_ => nextResolve(
+			request_,
+			parent,
+			isMain,
+			options,
+		);
 
-	// Strip query string
-	const requestAndQuery = request.split('?');
-	const searchParams = new URLSearchParams(requestAndQuery[1]);
+		request = interopCjsExports(request);
 
-	// Inherit parent namespace if it exists
-	if (parent?.filename) {
-		const parentQuery = new URLSearchParams(parent.filename.split('?')[1]);
-		const parentNamespace = parentQuery.get('namespace');
-		if (parentNamespace) {
-			searchParams.append('namespace', parentNamespace);
+		// Strip query string
+		const requestAndQuery = request.split('?');
+		const searchParams = new URLSearchParams(requestAndQuery[1]);
+
+		// Inherit parent namespace if it exists
+		if (parent?.filename) {
+			const parentQuery = new URLSearchParams(parent.filename.split('?')[1]);
+			const parentNamespace = parentQuery.get('namespace');
+			if (parentNamespace) {
+				searchParams.append('namespace', parentNamespace);
+			}
 		}
-	}
 
-	// If request namespace doesnt match the namespace, ignore
-	if ((searchParams.get('namespace') ?? undefined) !== namespace) {
-		return resolve(request);
-	}
+		// If request namespace doesnt match the namespace, ignore
+		if ((searchParams.get('namespace') ?? undefined) !== namespace) {
+			return resolve(request);
+		}
 
-	let resolved = resolveRequest(requestAndQuery[0], parent, resolve);
+		let resolved = resolveRequest(requestAndQuery[0], parent, resolve);
 
-	// Only add query back if it's a file path (not a core Node module)
-	if (
-		path.isAbsolute(resolved)
+		// Only add query back if it's a file path (not a core Node module)
+		if (
+			path.isAbsolute(resolved)
 
-		// These two have native loaders which don't support queries
-		&& !resolved.endsWith('.json')
-		&& !resolved.endsWith('.node')
-	) {
-		resolved += urlSearchParamsStringify(searchParams);
-	}
+			// These two have native loaders which don't support queries
+			&& !resolved.endsWith('.json')
+			&& !resolved.endsWith('.node')
+		) {
+			resolved += urlSearchParamsStringify(searchParams);
+		}
 
-	return resolved;
+		return resolved;
+	};
 };

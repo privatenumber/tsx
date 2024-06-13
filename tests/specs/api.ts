@@ -111,7 +111,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 			describe('tsx.require()', ({ test }) => {
 				test('loads', async () => {
-					const fixture = await createFixture({
+					await using fixture = await createFixture({
 						'require.cjs': `
 						const path = require('node:path');
 						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
@@ -137,7 +137,6 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						`,
 						...tsFiles,
 					});
-					console.log(fixture.path);
 
 					const { stdout } = await execaNode(fixture.getPath('require.cjs'), [], {
 						nodePath: node.path,
