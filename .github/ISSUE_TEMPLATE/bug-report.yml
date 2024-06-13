@@ -90,9 +90,9 @@ body:
 
   - type: checkboxes
     attributes:
-      label: Compensating engineering work financially will speed up resolution
+      label: Compensating engineering work will speed up resolution and support the project
       options:
-        - label: I'm willing to offer financial support
+        - label: I'm willing to offer $10 for financial support
 
   - type: markdown
     attributes:
