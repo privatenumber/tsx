@@ -195,7 +195,13 @@ export const createResolveFilename = (
 	let resolved = resolveRequest(requestAndQuery[0], parent, resolve);
 
 	// Only add query back if it's a file path (not a core Node module)
-	if (path.isAbsolute(resolved)) {
+	if (
+		path.isAbsolute(resolved)
+
+		// These two have native loaders which don't support queries
+		&& !resolved.endsWith('.json')
+		&& !resolved.endsWith('.node')
+	) {
 		resolved += urlSearchParamsStringify(searchParams);
 	}
 
