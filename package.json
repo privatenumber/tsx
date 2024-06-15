@@ -15,6 +15,7 @@
 	],
 	"license": "MIT",
 	"repository": "privatenumber/tsx",
+	"homepage": "https://tsx.is",
 	"author": {
 		"name": "Hiroki Osame",
 		"email": "hiroki.osame@gmail.com"
