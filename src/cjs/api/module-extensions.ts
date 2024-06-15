@@ -120,6 +120,7 @@ export const createExtensions = (
 			 * If not, only expose if it's not namespaced
 			 */
 			enumerable: descriptor?.enumerable || !namespace,
+			writable: true,
 		});
 	}
 

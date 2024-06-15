@@ -79,6 +79,21 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				expect(stdout).toContain('index.ts:3:22');
 			});
 
+			test('loader overwritable from Module', async () => {
+				await using fixture = await createFixture({
+					'index.mjs': `
+					import Module from 'node:module';
+					const _require = Module.createRequire(import.meta.url);
+					_require.extensions['.ts'] = () => {};
+					`,
+				});
+
+				await execaNode(fixture.getPath('index.mjs'), {
+					nodePath: node.path,
+					nodeOptions: ['--require', tsxCjsPath],
+				});
+			});
+
 			test('register / unregister', async () => {
 				await using fixture = await createFixture({
 					'register.cjs': `
