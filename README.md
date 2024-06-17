@@ -1,6 +1,10 @@
 <h1 align="center">
-tsx
 <br>
+<picture>
+	<source media="(prefers-color-scheme: dark)" srcset=".github/logo-dark.svg">
+	<img width="160" alt="tsx" src=".github/logo-light.svg">
+</picture>
+<br><br>
 <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/v/tsx"></a> <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/dm/tsx"></a>
 </h1>
 
