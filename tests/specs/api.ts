@@ -758,7 +758,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						nodeOptions: [],
 						reject: false,
 					});
-					expect(stderr).toMatch(`This version of Node.js (v${node.version}) does not support module.register(). Please upgrade to Node v18.9 or v20.6 and above.`);
+					expect(stderr).toMatch(`This version of Node.js (v${node.version}) does not support module.register(). Please upgrade to Node v18.19 or v20.6 and above.`);
 				});
 			}
 		});
