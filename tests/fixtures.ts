@@ -260,7 +260,9 @@ export const files = {
 		'pkg-commonjs': {
 			'package.json': createPackageJson({
 				type: 'commonjs',
+				main: './index.js',
 			}),
+			'index.ts': 'throw new Error("should prefer .js over .ts in node_modules")',
 			'index.js': syntaxLowering,
 			'ts.ts': syntaxLowering,
 			'cjs.js': `
@@ -282,6 +284,7 @@ export const files = {
 					'#*': './*',
 				},
 			}),
+			'index.ts': 'throw new Error("should prefer .js over .ts in node_modules")',
 			'index.js': `${syntaxLowering}\nexport * from "./empty-export"`,
 			'empty-export/index.js': 'export {}',
 			'ts.ts': `${syntaxLowering}\nexport * from "#empty.js"`,
