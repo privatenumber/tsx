@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { execaNode } from 'execa';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
@@ -92,6 +93,46 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					nodePath: node.path,
 					nodeOptions: ['--require', tsxCjsPath],
 				});
+			});
+
+			test('works with append-transform (nyc)', async () => {
+				await using fixture = await createFixture({
+					'index.js': `
+					import path from 'node:path';
+					import './ts.ts'
+					`,
+					'ts.ts': 'export const ts = "ts" as string',
+					'hook.js': `
+					const path = require('path');
+					const appendTransform = require('append-transform')
+					appendTransform((code, filename) => {
+						if (filename.endsWith(path.sep + 'index.js')) {
+							console.log('js working');
+						}
+						return code;
+					});
+					appendTransform((code, filename) => {
+						if (filename.endsWith(path.sep + 'ts.ts')) {
+							console.log('ts working');
+						}
+						return code;
+					}, '.ts');
+					`,
+					node_modules: ({ symlink }) => symlink(path.resolve('node_modules'), 'junction'),
+				});
+
+				const { stdout } = await execaNode('./index.js', {
+					cwd: fixture.path,
+					nodePath: node.path,
+					nodeOptions: [
+						'--require',
+						'./hook.js',
+						'--require',
+						tsxCjsPath,
+					],
+				});
+
+				expect(stdout).toBe('js working\nts working');
 			});
 
 			test('register / unregister', async () => {

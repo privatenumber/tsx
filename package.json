@@ -88,6 +88,7 @@
 		"@types/cross-spawn": "^6.0.6",
 		"@types/node": "^20.14.1",
 		"@types/split2": "^4.2.3",
+		"append-transform": "^2.0.0",
 		"cachedir": "^2.4.0",
 		"chokidar": "^3.6.0",
 		"clean-pkg-json": "^1.2.0",

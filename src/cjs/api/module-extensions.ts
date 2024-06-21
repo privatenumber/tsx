@@ -23,15 +23,70 @@ const transformExtensions = [
 	'.mjs',
 ] as const;
 
+const cloneExtensions = <ObjectType extends object>(
+	extensions: ObjectType,
+) => {
+	const cloneTo: ObjectType = Object.create(Object.getPrototypeOf(extensions));
+
+	// Preserves setters if they exist (e.g. nyc via append-transform)
+	const descriptors = Object.getOwnPropertyDescriptors(extensions);
+	for (const property in descriptors) {
+		if (Object.hasOwn(descriptors, property)) {
+			Object.defineProperty(cloneTo, property, descriptors[property]);
+		}
+	}
+
+	return cloneTo;
+};
+
+const safeSet = <T extends Record<string, unknown>>(
+	object: T,
+	property: keyof T,
+	value: T[keyof T],
+	descriptor?: {
+		enumerable?: boolean;
+		configurable?: boolean;
+		writable?: boolean;
+	},
+) => {
+	const existingDescriptor = Object.getOwnPropertyDescriptor(object, property);
+
+	// If setter is provided, use it
+	if (existingDescriptor?.set) {
+		object[property] = value;
+	} else if (
+		!existingDescriptor
+		|| existingDescriptor.configurable
+	) {
+		Object.defineProperty(object, property, {
+			value,
+			enumerable: existingDescriptor?.enumerable || descriptor?.enumerable,
+			writable: (
+				descriptor?.writable
+				?? (
+					existingDescriptor
+						? existingDescriptor.writable
+						: true
+				)
+			),
+			configurable: (
+				descriptor?.configurable
+				?? (
+					existingDescriptor
+						? existingDescriptor.configurable
+						: true
+				)
+			),
+		});
+	}
+};
+
 export const createExtensions = (
 	extendExtensions: NodeJS.RequireExtensions,
 	namespace?: string,
 ) => {
 	// Clone Module._extensions with null prototype
-	const extensions: NodeJS.RequireExtensions = Object.assign(
-		Object.create(null),
-		extendExtensions,
-	);
+	const extensions = cloneExtensions(extendExtensions);
 
 	const defaultLoader = extensions['.js'];
 
@@ -105,13 +160,10 @@ export const createExtensions = (
 	 * Any file requested with an explicit extension will be loaded using the .js loader:
 	 * https://github.com/nodejs/node/blob/e339e9c5d71b72fd09e6abd38b10678e0c592ae7/lib/internal/modules/cjs/loader.js#L430
 	 */
-	extensions['.js'] = transformer;
+	safeSet(extensions, '.js', transformer);
 
 	for (const extension of implicitlyResolvableExtensions) {
-		const descriptor = Object.getOwnPropertyDescriptor(extensions, extension);
-		Object.defineProperty(extensions, extension, {
-			value: transformer,
-
+		safeSet(extensions, extension, transformer, {
 			/**
 			 * Registeration needs to be enumerable for some 3rd party libraries
 			 * https://github.com/gulpjs/rechoir/blob/v0.8.0/index.js#L21 (used by Webpack CLI)
@@ -119,8 +171,9 @@ export const createExtensions = (
 			 * If the extension already exists, inherit its enumerable property
 			 * If not, only expose if it's not namespaced
 			 */
-			enumerable: descriptor?.enumerable || !namespace,
+			enumerable: !namespace,
 			writable: true,
+			configurable: true,
 		});
 	}
 
@@ -133,15 +186,16 @@ export const createExtensions = (
 	 * That said, it's actually ".js" and ".mjs" that get special treatment
 	 * rather than ".cjs" (it might as well be ".random-ext")
 	 */
-	Object.defineProperty(extensions, '.mjs', {
-		value: transformer,
-
+	safeSet(extensions, '.mjs', transformer, {
 		/**
-		 * Prevent Object.keys from detecting these extensions
+		 * enumerable defaults to whatever is already set, but if not set, it's false
+		 *
+		 * This prevent Object.keys from detecting these extensions
 		 * when CJS loader iterates over the possible extensions
 		 * https://github.com/nodejs/node/blob/v22.2.0/lib/internal/modules/cjs/loader.js#L609
 		 */
-		enumerable: false,
+		writable: true,
+		configurable: true,
 	});
 
 	return extensions;
