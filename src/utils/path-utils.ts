@@ -53,4 +53,4 @@ export const isJsonPattern = /\.json($|\?)/;
 export const isDirectoryPattern = /\/(?:$|\?)/;
 
 // Only matches packages names without subpaths (e.g. `foo` but not `foo/bar`)
-export const isBarePackageName = /^(?:@[^/]+\/)?[^/]+$/;
+export const isBarePackageNamePattern = /^(?:@[^/]+\/)?[^/]+$/;

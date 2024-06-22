@@ -51,9 +51,9 @@ const tsFiles = {
 		'package.json': createPackageJson({
 			name: 'pkg',
 			type: 'module',
-			exports: './index.js',
+			exports: './pkg.js',
 		}),
-		'index.js': 'import "node:process"; export const bar = "bar";',
+		'pkg.js': 'import "node:process"; export const bar = "bar";',
 	},
 	'tsconfig.json': createTsconfig({
 		compilerOptions: {
@@ -430,7 +430,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodePath: node.path,
 							nodeOptions: [],
 						});
-						expect(stdout).toBe('file.ts\nfoo.ts\njson.json\npromises\nbar.ts\nindex.js\nnode:process');
+						expect(stdout).toBe('file.ts\nfoo.ts\njson.json\npromises\nbar.ts\npkg.js\nnode:process');
 					});
 
 					test('namespace & onImport', async () => {
@@ -458,7 +458,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodePath: node.path,
 							nodeOptions: [],
 						});
-						expect(stdout).toBe('file.ts\nfoo.ts\njson.json\nbar.ts\nindex.js');
+						expect(stdout).toBe('file.ts\nfoo.ts\njson.json\nbar.ts\npkg.js');
 					});
 
 					describe('tsconfig', ({ test }) => {

@@ -7,15 +7,12 @@ const getFormatFromExtension = (fileUrl: string): ModuleFormat | undefined => {
 	[fileUrl] = fileUrl.split('?');
 
 	const extension = path.extname(fileUrl);
-	if (extension === '.json') {
-		return 'json';
-	}
 
-	if (extension === '.mjs' || extension === '.mts') {
+	if (extension === '.mts') {
 		return 'module';
 	}
 
-	if (extension === '.cjs' || extension === '.cts') {
+	if (extension === '.cts') {
 		return 'commonjs';
 	}
 };
@@ -32,8 +29,6 @@ export const getFormatFromFileUrl = (fileUrl: string) => {
 		return getPackageType(fileUrl);
 	}
 };
-
-export type MaybePromise<T> = T | Promise<T>;
 
 export const namespaceQuery = 'tsx-namespace=';
 export const getNamespace = (
