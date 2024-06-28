@@ -1,5 +1,6 @@
 import path from 'node:path';
 import type { NodeError } from '../../types.js';
+import { isBarePackageNamePattern } from '../../utils/path-utils.js';
 import type { ResolveFilename } from './types.js';
 
 export const implicitlyResolvableExtensions = [
@@ -34,6 +35,7 @@ export const createImplicitResolver = (
 		const nodeError = _error as NodeError;
 		if (
 			nodeError.code === 'MODULE_NOT_FOUND'
+			&& !isBarePackageNamePattern.test(request)
 		) {
 			const resolved = (
 				tryExtensions(resolve, request, ...args)

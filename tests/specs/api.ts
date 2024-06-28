@@ -135,42 +135,84 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				expect(stdout).toBe('js working\nts working');
 			});
 
-			test('register / unregister', async () => {
-				await using fixture = await createFixture({
-					'register.cjs': `
-					const { register } = require(${JSON.stringify(tsxCjsApiPath)});
-					try {
-						require('./file');
-					} catch {
-						console.log('Fails as expected');
-					}
+			describe('register', ({ test }) => {
+				test('register / unregister', async () => {
+					await using fixture = await createFixture({
+						'register.cjs': `
+						const { register } = require(${JSON.stringify(tsxCjsApiPath)});
+						try {
+							require('./file');
+						} catch {
+							console.log('Fails as expected');
+						}
+	
+						const unregister = register();
+	
+						const loaded = require('./file');
+						console.log(loaded.message);
+	
+						// Remove from cache
+						const loadedPath = require.resolve('./file');
+						delete require.cache[loadedPath];
+	
+						unregister();
+	
+						try {
+							require('./file');
+						} catch {
+							console.log('Unregistered');
+						}
+						`,
+						...tsFiles,
+					});
 
-					const unregister = register();
+					const { stdout } = await execaNode(fixture.getPath('register.cjs'), [], {
+						nodePath: node.path,
+						nodeOptions: [],
+					});
 
-					const loaded = require('./file');
-					console.log(loaded.message);
-
-					// Remove from cache
-					const loadedPath = require.resolve('./file');
-					delete require.cache[loadedPath];
-
-					unregister();
-
-					try {
-						require('./file');
-					} catch {
-						console.log('Unregistered');
-					}
-					`,
-					...tsFiles,
+					expect(stdout).toBe('Fails as expected\nfoo bar json file.ts\nUnregistered');
 				});
 
-				const { stdout } = await execaNode(fixture.getPath('register.cjs'), [], {
-					nodePath: node.path,
-					nodeOptions: [],
-				});
+				test('namespace', async () => {
+					await using fixture = await createFixture({
+						'require.cjs': `
+						const { expectErrors } = require('expect-errors');
+						const path = require('node:path');
+						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
 
-				expect(stdout).toBe('Fails as expected\nfoo bar json file.ts\nUnregistered');
+						const api = tsx.register({ namespace: 'abcd' });
+
+						expectErrors(
+							// Loading explicit/resolved file path should be ignored by loader (extensions)
+							[() => require('./file.ts'), 'SyntaxError'],
+
+							// resolver should preserve full file path when ignoring
+							[() => require('./file.ts?asdf'), "Cannot find module './file.ts?asdf'"]
+						);
+
+						const { message, async } = api.require('./file', __filename);
+						console.log(message);
+						async.then(m => console.log(m.default));
+
+						api.require('./tsx?query=1', __filename);
+						api.require('./jsx', __filename);
+						api.require('./dir?query=3', __filename);
+						`,
+						...tsFiles,
+
+						'tsx.tsx': 'console.log(\'tsx\');',
+						'jsx.jsx': 'console.log(\'jsx\');',
+						'dir/index.jsx': 'console.log(\'dir\');',
+					});
+
+					const { stdout } = await execaNode(fixture.getPath('require.cjs'), [], {
+						nodePath: node.path,
+						nodeOptions: [],
+					});
+
+					expect(stdout).toBe('foo bar json file.ts\ntsx\njsx\ndir\nasync');
+				});
 			});
 
 			describe('tsx.require()', ({ test }) => {
@@ -264,46 +306,6 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					});
 
 					expect(stdout).toBe('foo bar json file.ts\nfoo bar json file.ts\nfoo bar json file.ts\nUnregistered');
-				});
-
-				test('namespace', async () => {
-					await using fixture = await createFixture({
-						'require.cjs': `
-						const { expectErrors } = require('expect-errors');
-						const path = require('node:path');
-						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
-
-						const api = tsx.register({ namespace: 'abcd' });
-
-						expectErrors(
-							// Loading explicit/resolved file path should be ignored by loader (extensions)
-							[() => require('./file.ts'), 'SyntaxError'],
-
-							// resolver should preserve full file path when ignoring
-							[() => require('./file.ts?asdf'), "Cannot find module './file.ts?asdf'"]
-						);
-
-						const { message, async } = api.require('./file', __filename);
-						console.log(message);
-						async.then(m => console.log(m.default));
-
-						api.require('./tsx?query=1', __filename);
-						api.require('./jsx', __filename);
-						api.require('./dir?query=3', __filename);
-						`,
-						...tsFiles,
-
-						'tsx.tsx': 'console.log(\'tsx\');',
-						'jsx.jsx': 'console.log(\'jsx\');',
-						'dir/index.jsx': 'console.log(\'dir\');',
-					});
-
-					const { stdout } = await execaNode(fixture.getPath('require.cjs'), [], {
-						nodePath: node.path,
-						nodeOptions: [],
-					});
-
-					expect(stdout).toBe('foo bar json file.ts\ntsx\njsx\ndir\nasync');
 				});
 			});
 		});
