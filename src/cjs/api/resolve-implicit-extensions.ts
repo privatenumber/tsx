@@ -13,9 +13,11 @@ const tryExtensions = (
 	...args: Parameters<ResolveFilename>
 ) => {
 	for (const extension of implicitlyResolvableExtensions) {
+		const newArgs = args.slice() as Parameters<ResolveFilename>;
+		newArgs[0] += extension;
+
 		try {
-			args[0] += extension;
-			return resolve(...args);
+			return resolve(...newArgs);
 		} catch {}
 	}
 };

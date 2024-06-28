@@ -286,8 +286,16 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						const { message, async } = api.require('./file', __filename);
 						console.log(message);
 						async.then(m => console.log(m.default));
+
+						api.require('./tsx?query=1', __filename);
+						api.require('./jsx', __filename);
+						api.require('./dir?query=3', __filename);
 						`,
 						...tsFiles,
+
+						'tsx.tsx': 'console.log(\'tsx\');',
+						'jsx.jsx': 'console.log(\'jsx\');',
+						'dir/index.jsx': 'console.log(\'dir\');',
 					});
 
 					const { stdout } = await execaNode(fixture.getPath('require.cjs'), [], {
@@ -295,7 +303,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						nodeOptions: [],
 					});
 
-					expect(stdout).toBe('foo bar json file.ts\nasync');
+					expect(stdout).toBe('foo bar json file.ts\ntsx\njsx\ndir\nasync');
 				});
 			});
 		});
