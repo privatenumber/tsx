@@ -15,6 +15,11 @@ const resolveContext = (
 		throw new Error('The current file path (__filename or import.meta.url) must be provided in the second argument of tsx.require()');
 	}
 
+	// If id is not a relative path, it doesn't need to be resolved
+	if (!id.startsWith('.')) {
+		return id;
+	}
+
 	if (
 		(typeof fromFile === 'string' && fromFile.startsWith('file://'))
 		|| fromFile instanceof URL
@@ -86,7 +91,7 @@ export const register: Register = (
 			const [request, query] = resolvedId.split('?');
 
 			const parameters = new URLSearchParams(query);
-			if (options.namespace) {
+			if (options.namespace && !request.startsWith('node:')) {
 				parameters.set('namespace', options.namespace);
 			}
 
@@ -100,7 +105,7 @@ export const register: Register = (
 			const [request, query] = resolvedId.split('?');
 
 			const parameters = new URLSearchParams(query);
-			if (options.namespace) {
+			if (options.namespace && !request.startsWith('node:')) {
 				parameters.set('namespace', options.namespace);
 			}
 

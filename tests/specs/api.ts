@@ -230,6 +230,10 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						const loaded = tsx.require('./file', __filename);
 						console.log(loaded.message);
 
+						// Can require core modules
+						tsx.require('node:path', __filename);
+						tsx.require('fs', __filename);
+
 						// Remove from cache
 						const loadedPath = tsx.require.resolve('./file', __filename);
 						console.log(loadedPath.split(path.sep).pop());
