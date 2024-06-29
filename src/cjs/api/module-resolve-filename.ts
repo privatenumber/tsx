@@ -6,7 +6,7 @@ import type { NodeError } from '../../types.js';
 import { isRelativePath, fileUrlPrefix, tsExtensionsPattern } from '../../utils/path-utils.js';
 import { tsconfigPathsMatcher, allowJs } from '../../utils/tsconfig.js';
 import { urlSearchParamsStringify } from '../../utils/url-search-params-stringify.js';
-import type { ResolveFilename, SimpleResolve } from './types.js';
+import type { ResolveFilename, SimpleResolve, LoaderState } from './types.js';
 import { createImplicitResolver } from './resolve-implicit-extensions.js';
 
 const nodeModulesPath = `${path.sep}node_modules${path.sep}`;
@@ -154,6 +154,7 @@ const resolveRequest = (
 };
 
 export const createResolveFilename = (
+	state: LoaderState,
 	nextResolve: ResolveFilename,
 	namespace?: string,
 ): ResolveFilename => (
@@ -162,6 +163,10 @@ export const createResolveFilename = (
 	isMain,
 	options,
 ) => {
+	if (state.enabled === false) {
+		return nextResolve(request, parent, isMain, options);
+	}
+
 	const resolve: SimpleResolve = request_ => nextResolve(
 		request_,
 		parent,

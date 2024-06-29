@@ -118,7 +118,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						return code;
 					}, '.ts');
 					`,
-					node_modules: ({ symlink }) => symlink(path.resolve('node_modules'), 'junction'),
+					'node_modules/append-transform': ({ symlink }) => symlink(path.resolve('node_modules/append-transform'), 'junction'),
 				});
 
 				const { stdout } = await execaNode('./index.js', {
@@ -310,6 +310,38 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					});
 
 					expect(stdout).toBe('foo bar json file.ts\nfoo bar json file.ts\nfoo bar json file.ts\nUnregistered');
+				});
+
+				test('works with proxyquire (eslint tests)', async () => {
+					await using fixture = await createFixture({
+						'index.js': `
+						const proxyquire = require('proxyquire');
+						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
+						
+						tsx.register();
+						
+						proxyquire('./test.js', {
+							path: {
+								sep: 'hello world',
+							},
+						});
+						`,
+
+						'test.js': `
+						const path = require('path');
+						console.log(path.sep);
+						`,
+
+						'node_modules/proxyquire': ({ symlink }) => symlink(path.resolve('node_modules/proxyquire'), 'junction'),
+					});
+
+					const { stdout } = await execaNode('./index.js', {
+						cwd: fixture.path,
+						nodePath: node.path,
+						nodeOptions: [],
+					});
+
+					expect(stdout).toBe('hello world');
 				});
 			});
 		});

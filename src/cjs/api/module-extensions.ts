@@ -8,6 +8,7 @@ import { shouldApplySourceMap, inlineSourceMap } from '../../source-map.js';
 import { parent } from '../../utils/ipc/client.js';
 import { fileMatcher } from '../../utils/tsconfig.js';
 import { implicitlyResolvableExtensions } from './resolve-implicit-extensions.js';
+import type { LoaderState } from './types.js';
 
 const typescriptExtensions = [
 	'.cts',
@@ -22,22 +23,6 @@ const transformExtensions = [
 	'.cjs',
 	'.mjs',
 ] as const;
-
-const cloneExtensions = <ObjectType extends object>(
-	extensions: ObjectType,
-) => {
-	const cloneTo: ObjectType = Object.create(Object.getPrototypeOf(extensions));
-
-	// Preserves setters if they exist (e.g. nyc via append-transform)
-	const descriptors = Object.getOwnPropertyDescriptors(extensions);
-	for (const property in descriptors) {
-		if (Object.hasOwn(descriptors, property)) {
-			Object.defineProperty(cloneTo, property, descriptors[property]);
-		}
-	}
-
-	return cloneTo;
-};
 
 const safeSet = <T extends Record<string, unknown>>(
 	object: T,
@@ -82,18 +67,20 @@ const safeSet = <T extends Record<string, unknown>>(
 };
 
 export const createExtensions = (
-	extendExtensions: NodeJS.RequireExtensions,
+	state: LoaderState,
+	extensions: NodeJS.RequireExtensions,
 	namespace?: string,
 ) => {
-	// Clone Module._extensions with null prototype
-	const extensions = cloneExtensions(extendExtensions);
-
 	const defaultLoader = extensions['.js'];
 
 	const transformer = (
 		module: Module,
 		filePath: string,
 	) => {
+		if (state.enabled === false) {
+			return defaultLoader(module, filePath);
+		}
+
 		// Make sure __filename doesnt contain query
 		const [cleanFilePath, query] = filePath.split('?');
 
@@ -198,5 +185,22 @@ export const createExtensions = (
 		configurable: true,
 	});
 
-	return extensions;
+	// Unregister
+	return () => {
+		/**
+		 * The extensions are only reverted if they're still tsx's transformers
+		 *
+		 * Otherwise, it means they have been wrapped by another loader and should
+		 * be left untouched not to remove the other loader
+		 */
+		if (extensions['.js'] === transformer) {
+			extensions['.js'] = defaultLoader;
+		}
+
+		for (const extension of [...implicitlyResolvableExtensions, '.mjs']) {
+			if (extensions[extension] === transformer) {
+				delete extensions[extension];
+			}
+		}
+	};
 };

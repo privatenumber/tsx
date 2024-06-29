@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { loadTsconfig } from '../../utils/tsconfig.js';
 import type { RequiredProperty } from '../../types.js';
 import { urlSearchParamsStringify } from '../../utils/url-search-params-stringify.js';
+import type { LoaderState } from './types.js';
 import { createExtensions } from './module-extensions.js';
 import { createResolveFilename } from './module-resolve-filename.js';
 
@@ -62,27 +63,35 @@ export const register: Register = (
 	options,
 ) => {
 	const { sourceMapsEnabled } = process;
-	const { _extensions, _resolveFilename } = Module;
+	const state: LoaderState = {
+		enabled: true,
+	};
 
 	loadTsconfig(process.env.TSX_TSCONFIG_PATH);
 
 	// register
 	process.setSourceMapsEnabled(true);
-	const resolveFilename = createResolveFilename(_resolveFilename, options?.namespace);
+
+	const originalResolveFilename = Module._resolveFilename;
+	const resolveFilename = createResolveFilename(state, originalResolveFilename, options?.namespace);
 	Module._resolveFilename = resolveFilename;
 
-	const extensions = createExtensions(Module._extensions, options?.namespace);
-	// @ts-expect-error overwriting read-only property
-	Module._extensions = extensions;
+	const unregisterExtensions = createExtensions(state, Module._extensions, options?.namespace);
 
 	const unregister = () => {
 		if (sourceMapsEnabled === false) {
 			process.setSourceMapsEnabled(false);
 		}
+		state.enabled = false;
 
-		// @ts-expect-error overwriting read-only property
-		Module._extensions = _extensions;
-		Module._resolveFilename = _resolveFilename;
+		/**
+		 * Only revert the _resolveFilename & extensions if they're unwrapped
+		 * by another loader extension
+		 */
+		if (Module._resolveFilename === resolveFilename) {
+			Module._resolveFilename = originalResolveFilename;
+		}
+		unregisterExtensions();
 	};
 
 	if (options?.namespace) {
