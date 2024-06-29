@@ -12,29 +12,26 @@ export const mapTsExtensions = (
 	filePath: string,
 	handleMissingExtension?: boolean,
 ) => {
-	const [pathname, search] = filePath.split('?');
+	const splitPath = filePath.split('?');
+	let [pathname] = splitPath;
 	const extension = path.extname(pathname);
-	const tryExtensions = (
-		extension
-			? tsExtensions[extension]
-			: (handleMissingExtension ? noExtension : undefined)
-	);
 
-	if (!tryExtensions) {
-		return;
+	let tryExtensions = tsExtensions[extension];
+	if (tryExtensions) {
+		pathname = pathname.slice(0, -extension.length);
+	} else {
+		if (!handleMissingExtension) {
+			return;
+		}
+
+		tryExtensions = noExtension;
 	}
-
-	const extensionlessPath = (
-		extension
-			? pathname.slice(0, -extension.length)
-			: pathname
-	);
 
 	return tryExtensions.map(
 		tsExtension => (
-			extensionlessPath
+			pathname
 			+ tsExtension
-			+ (search ? `?${search}` : '')
+			+ (splitPath[1] ? `?${splitPath[1]}` : '')
 		),
 	);
 };

@@ -174,41 +174,45 @@ export const files = {
 		'value.mjs': 'export default 1',
 	},
 
-	'ts/index.ts': sourcemap.tag`
-	import assert from 'assert';
-	import type {Type} from 'resolved-by-tsc'
+	ts: {
+		'index.ts': sourcemap.tag`
+		import assert from 'assert';
+		import type {Type} from 'resolved-by-tsc'
 
-	interface Foo {}
+		interface Foo {}
 
-	type Foo = number
+		type Foo = number
 
-	declare module 'foo' {}
+		declare module 'foo' {}
 
-	enum BasicEnum {
-		Left,
-		Right,
-	}
+		enum BasicEnum {
+			Left,
+			Right,
+		}
 
-	enum NamedEnum {
-		SomeEnum = 'some-value',
-	}
+		enum NamedEnum {
+			SomeEnum = 'some-value',
+		}
 
-	export const a = BasicEnum.Left;
+		export const a = BasicEnum.Left;
 
-	export const b = NamedEnum.SomeEnum;
+		export const b = NamedEnum.SomeEnum;
 
-	export default function foo(): string {
-		return 'foo'
-	}
+		export default function foo(): string {
+			return 'foo'
+		}
 
-	// For "ts as tsx" test
-	const bar = <T>(value: T) => fn<T>();
+		// For "ts as tsx" test
+		const bar = <T>(value: T) => fn<T>();
 
-	${preserveName}
-	${sourcemap.test('ts')}
-	export const cjsContext = ${cjsContextCheck};
-	${tsCheck};
-	`,
+		${preserveName}
+		${sourcemap.test('ts')}
+		export const cjsContext = ${cjsContextCheck};
+		${tsCheck};
+		`,
+
+		'period.in.name.ts': 'export const periodInName = true as const',
+	},
 
 	// TODO: test resolution priority for files 'index.tsx` & 'index.tsx.ts` via 'index.tsx'
 

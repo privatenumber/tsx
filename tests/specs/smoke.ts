@@ -268,6 +268,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 						import './ts/index.jsx';
 						import './ts/index';
 						import './ts/';
+						import './ts/period.in.name';
 
 						// .jsx
 						import * as jsx from './jsx/index.jsx';
