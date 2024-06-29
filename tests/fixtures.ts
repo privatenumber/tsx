@@ -211,7 +211,7 @@ export const files = {
 		${tsCheck};
 		`,
 
-		'period.in.name.ts': 'export const periodInName = true as const',
+		'period.in.name.ts': 'export { a } from "."',
 	},
 
 	// TODO: test resolution priority for files 'index.tsx` & 'index.tsx.ts` via 'index.tsx'
