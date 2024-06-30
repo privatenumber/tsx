@@ -160,11 +160,10 @@ export const createResolveFilename = (
 ): ResolveFilename => (
 	request,
 	parent,
-	isMain,
-	options,
+	...restOfArgs
 ) => {
 	if (state.enabled === false) {
-		return nextResolve(request, parent, isMain, options);
+		return nextResolve(request, parent, ...restOfArgs);
 	}
 
 	request = interopCjsExports(request);
@@ -176,7 +175,8 @@ export const createResolveFilename = (
 	if (parent?.filename) {
 		const filePath = getOriginalFilePath(parent.filename);
 		if (filePath) {
-			const newFilename = filePath.split('?')[0];
+			const pathAndQuery = filePath.split('?');
+			const newFilename = pathAndQuery[0];
 
 			/**
 			 * Can't delete the old cache entry because there's an assertion
@@ -204,7 +204,7 @@ export const createResolveFilename = (
 
 	// If request namespace doesnt match the namespace, ignore
 	if ((searchParams.get('namespace') ?? undefined) !== namespace) {
-		return nextResolve(request, parent, isMain, options);
+		return nextResolve(request, parent, ...restOfArgs);
 	}
 
 	let _nextResolve = nextResolve;
@@ -222,8 +222,7 @@ export const createResolveFilename = (
 	const resolve: SimpleResolve = request_ => _nextResolve(
 		request_,
 		parent,
-		isMain,
-		options,
+		...restOfArgs,
 	);
 
 	let resolved = resolveRequest(requestAndQuery[0], parent, resolve);
@@ -232,9 +231,9 @@ export const createResolveFilename = (
 	if (
 		path.isAbsolute(resolved)
 
-			// These two have native loaders which don't support queries
-			&& !resolved.endsWith('.json')
-			&& !resolved.endsWith('.node')
+		// These two have native loaders which don't support queries
+		&& !resolved.endsWith('.json')
+		&& !resolved.endsWith('.node')
 	) {
 		resolved += urlSearchParamsStringify(searchParams);
 	}

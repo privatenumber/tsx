@@ -43,8 +43,12 @@ export const register: Register = (
 	if (!cjsInteropApplied) {
 		const { _resolveFilename } = module;
 		module._resolveFilename = (
-			request, _parent, _isMain, _options,
-		) => _resolveFilename(interopCjsExports(request), _parent, _isMain, _options);
+			request,
+			...restOfArgs
+		) => _resolveFilename(
+			interopCjsExports(request),
+			...restOfArgs,
+		);
 		cjsInteropApplied = true;
 	}
 
