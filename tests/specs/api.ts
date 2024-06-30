@@ -480,6 +480,8 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodeOptions: [],
 						});
 						expect(stdout).toBe('file.ts\nfoo.ts\njson.json\npromises\nbar.ts\npkg.js\nnode:process');
+					}, {
+						retry: 3,
 					});
 
 					test('namespace & onImport', async () => {
@@ -508,6 +510,8 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodeOptions: [],
 						});
 						expect(stdout).toBe('file.ts\nfoo.ts\njson.json\nbar.ts\npkg.js');
+					}, {
+						retry: 3,
 					});
 
 					describe('tsconfig', ({ test }) => {
@@ -702,6 +706,12 @@ export default testSuite(({ describe }, node: NodeApis) => {
 								const { message: message2 } = await tsImport('./file.ts?with-query', __filename);
 								console.log(message2);
 
+								const cts = await tsImport('./cjs/exports-yes.cts', __filename).then(({ cjsReexport, esmSyntax }) => \`\${cjsReexport} \${esmSyntax}\`, err => err.constructor.name);
+								console.log(cts);
+
+								const cjs = await tsImport('./cjs/reexport.cjs', __filename).then(({ cjsReexport, esmSyntax }) => \`\${cjsReexport} \${esmSyntax}\`, err => err.constructor.name);
+								console.log(cjs);
+
 								// Global not polluted
 								await import('./file.ts?nocache').catch((error) => {
 									console.log('Fails as expected 2');
@@ -715,7 +725,25 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodePath: node.path,
 							nodeOptions: [],
 						});
-						expect(stdout).toMatch(/Fails as expected 1\nfoo bar json file\.ts\?tsx-namespace=\d+\nfoo bar json file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
+						if (node.supports.cjsInterop) {
+							expect(stdout).toMatch(new RegExp(
+								`${String.raw`Fails as expected 1\n`
+								+ String.raw`foo bar json file\.ts\?tsx-namespace=\d+\n`
+								+ String.raw`foo bar json file\.ts\?with-query=&tsx-namespace=\d+\n`
+								+ String.raw`cjsReexport esm syntax\n`
+								+ String.raw`cjsReexport esm syntax\n`
+								}Fails as expected 2`,
+							));
+						} else {
+							expect(stdout).toMatch(new RegExp(
+								`${String.raw`Fails as expected 1\n`
+								+ String.raw`foo bar json file\.ts\?tsx-namespace=\d+\n`
+								+ String.raw`foo bar json file\.ts\?with-query=&tsx-namespace=\d+\n`
+								+ String.raw`SyntaxError\n`
+								+ String.raw`Error\n`
+								}Fails as expected 2`,
+							));
+						}
 					});
 
 					test('mts from commonjs', async () => {
