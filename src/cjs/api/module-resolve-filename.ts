@@ -153,6 +153,17 @@ const resolveRequest = (
 	}
 };
 
+const cjsPreparseCall = 'at cjsPreparseModuleExports (node:internal';
+const fromCjsLexer = (
+	error: Error,
+) => {
+	const stack = error.stack!.split('\n').slice(1);
+	return (
+		stack[1].includes(cjsPreparseCall)
+		|| stack[2].includes(cjsPreparseCall)
+	);
+};
+
 export const createResolveFilename = (
 	state: LoaderState,
 	nextResolve: ResolveFilename,
@@ -238,27 +249,20 @@ export const createResolveFilename = (
 		// These two have native loaders which don't support queries
 		&& !resolved.endsWith('.json')
 		&& !resolved.endsWith('.node')
+
+		/**
+		 * Detect if this is called by the CJS lexer, the resolved path is directly passed into
+		 * readFile to parse the exports
+		 */
+		&& !(
+			// Only the CJS lexer doesn't pass in the rest of the arguments
+			// https://github.com/nodejs/node/blob/v20.15.0/lib/internal/modules/esm/translators.js#L415
+			restOfArgs.length === 0
+			// eslint-disable-next-line unicorn/error-message
+			&& fromCjsLexer(new Error())
+		)
 	) {
 		resolved += urlSearchParamsStringify(searchParams);
-	}
-
-	// Only the CJS lexer doesn't pass in the rest of the arguments
-	if (restOfArgs.length === 0) {
-		/**
-		 * If this is called by the CJS lexer, the resolved path is directly passed into
-		 * readFile to parse the exports
-		 *
-		 * Detect it via stack and return a valid path
-		 *
-		 * https://github.com/nodejs/node/blob/v20.15.0/lib/internal/modules/esm/translators.js#L415
-		 */
-		// eslint-disable-next-line unicorn/error-message
-		const stack = new Error().stack!.split('\n').slice(1);
-		const cjsPrepareCall = 'at cjsPreparseModuleExports (node:internal';
-		const isFromCjsLexer = stack[1].includes(cjsPrepareCall) || stack[2].includes(cjsPrepareCall);
-		if (isFromCjsLexer) {
-			resolved = resolved.split('?')[0];
-		}
 	}
 
 	return resolved;
