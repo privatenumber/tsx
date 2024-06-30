@@ -26,14 +26,18 @@ declare module 'module' {
 		 * which doesn't have a file path.
 		 */
 		filename: string | null;
+		path: string;
+		paths: string[];
 	};
 
 	export function _resolveFilename(
 		request: string,
 		parent: Parent | undefined,
-		isMain: boolean,
+		isMain?: boolean,
 		options?: Record<PropertyKey, unknown>,
 	): string;
+
+	export function _nodeModulePaths(path: string): string[];
 
 	interface LoadFnOutput {
 		// Added in https://github.com/nodejs/node/pull/43164
