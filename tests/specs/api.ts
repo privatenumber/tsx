@@ -27,6 +27,9 @@ const tsFiles = {
 	`,
 
 	cjs: {
+		node_modules: {
+			'pkg/index.js': 'module.exports = 1',
+		},
 		'exports-no.cts': `
 		// Supports decorators
 		const log = (target, key, descriptor) => descriptor;
@@ -36,7 +39,7 @@ const tsFiles = {
 		}
 		console.log("cts loaded" as string)
 		`,
-		'exports-yes.cts': 'module.exports = require("./reexport.cjs") as string',
+		'exports-yes.cts': 'module.exports = require("./reexport.cjs") as string; require("pkg");',
 		'esm-syntax.js': 'export const esmSyntax = "esm syntax"',
 		'reexport.cjs': `
 		exports.cjsReexport = "cjsReexport";

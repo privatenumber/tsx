@@ -169,19 +169,32 @@ export const createResolveFilename = (
 
 	request = interopCjsExports(request);
 
-	if (parent?.filename) {
-		const filePath = getOriginalFilePath(parent.filename);
-		if (filePath) {
-			parent.filename = filePath.split('?')[0];
-		}
-	}
-
 	// Strip query string
 	const requestAndQuery = request.split('?');
 	const searchParams = new URLSearchParams(requestAndQuery[1]);
 
-	// Inherit parent namespace if it exists
 	if (parent?.filename) {
+		const filePath = getOriginalFilePath(parent.filename);
+		if (filePath) {
+			const newFilename = filePath.split('?')[0];
+
+			/**
+			 * Can't delete the old cache entry because there's an assertion
+			 * https://github.com/nodejs/node/blob/v20.15.0/lib/internal/modules/esm/translators.js#L347
+			 */
+			// delete Module._cache[parent.filename];
+
+			parent.filename = newFilename;
+			// @ts-expect-error - private property
+			parent.path = path.dirname(newFilename);
+			// https://github.com/nodejs/node/blob/v20.15.0/lib/internal/modules/esm/translators.js#L383
+			// @ts-expect-error - private property
+			parent.paths = Module._nodeModulePaths(parent.path);
+
+			Module._cache[newFilename] = parent as NodeModule;
+		}
+
+		// Inherit parent namespace if it exists
 		const parentQuery = new URLSearchParams(parent.filename.split('?')[1]);
 		const parentNamespace = parentQuery.get('namespace');
 		if (parentNamespace) {
