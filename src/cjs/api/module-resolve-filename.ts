@@ -174,9 +174,11 @@ export const createResolveFilename = (
 
 	if (parent?.filename) {
 		const filePath = getOriginalFilePath(parent.filename);
+		let query: string | undefined;
 		if (filePath) {
 			const pathAndQuery = filePath.split('?');
 			const newFilename = pathAndQuery[0];
+			query = pathAndQuery[1];
 
 			/**
 			 * Can't delete the old cache entry because there's an assertion
@@ -185,17 +187,19 @@ export const createResolveFilename = (
 			// delete Module._cache[parent.filename];
 
 			parent.filename = newFilename;
-			// @ts-expect-error - private property
 			parent.path = path.dirname(newFilename);
 			// https://github.com/nodejs/node/blob/v20.15.0/lib/internal/modules/esm/translators.js#L383
-			// @ts-expect-error - private property
 			parent.paths = Module._nodeModulePaths(parent.path);
 
 			Module._cache[newFilename] = parent as NodeModule;
 		}
 
+		if (!query) {
+			query = parent.filename.split('?')[1];
+		}
+
 		// Inherit parent namespace if it exists
-		const parentQuery = new URLSearchParams(parent.filename.split('?')[1]);
+		const parentQuery = new URLSearchParams(query);
 		const parentNamespace = parentQuery.get('namespace');
 		if (parentNamespace) {
 			searchParams.append('namespace', parentNamespace);
@@ -236,6 +240,25 @@ export const createResolveFilename = (
 		&& !resolved.endsWith('.node')
 	) {
 		resolved += urlSearchParamsStringify(searchParams);
+	}
+
+	// Only the CJS lexer doesn't pass in the rest of the arguments
+	if (restOfArgs.length === 0) {
+		/**
+		 * If this is called by the CJS lexer, the resolved path is directly passed into
+		 * readFile to parse the exports
+		 *
+		 * Detect it via stack and return a valid path
+		 *
+		 * https://github.com/nodejs/node/blob/v20.15.0/lib/internal/modules/esm/translators.js#L415
+		 */
+		// eslint-disable-next-line unicorn/error-message
+		const stack = new Error().stack!.split('\n').slice(1);
+		const cjsPrepareCall = 'at cjsPreparseModuleExports (node:internal';
+		const isFromCjsLexer = stack[1].includes(cjsPrepareCall) || stack[2].includes(cjsPrepareCall);
+		if (isFromCjsLexer) {
+			resolved = resolved.split('?')[0];
+		}
 	}
 
 	return resolved;
