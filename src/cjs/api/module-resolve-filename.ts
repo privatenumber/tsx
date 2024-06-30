@@ -167,13 +167,6 @@ export const createResolveFilename = (
 		return nextResolve(request, parent, isMain, options);
 	}
 
-	const resolve: SimpleResolve = request_ => nextResolve(
-		request_,
-		parent,
-		isMain,
-		options,
-	);
-
 	request = interopCjsExports(request);
 
 	if (parent?.filename) {
@@ -198,9 +191,10 @@ export const createResolveFilename = (
 
 	// If request namespace doesnt match the namespace, ignore
 	if ((searchParams.get('namespace') ?? undefined) !== namespace) {
-		return resolve(request);
+		return nextResolve(request, parent, isMain, options);
 	}
 
+	let _nextResolve = nextResolve;
 	if (namespace) {
 		/**
 		 * When namespaced, the loaders are registered to the extensions in a hidden way
@@ -209,8 +203,15 @@ export const createResolveFilename = (
 		 * To support implicit extensions, we need to enhance the resolver with our own
 		 * re-implementation of the implicit extension resolution
 		 */
-		nextResolve = createImplicitResolver(nextResolve);
+		_nextResolve = createImplicitResolver(_nextResolve);
 	}
+
+	const resolve: SimpleResolve = request_ => _nextResolve(
+		request_,
+		parent,
+		isMain,
+		options,
+	);
 
 	let resolved = resolveRequest(requestAndQuery[0], parent, resolve);
 
