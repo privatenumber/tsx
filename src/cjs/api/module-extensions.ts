@@ -86,9 +86,9 @@ export const createExtensions = (
 
 		const searchParams = new URLSearchParams(query);
 
-		// If request namespace  doesnt match the namespace, ignore
+		// If request namespace doesnt match the namespace, ignore
 		if ((searchParams.get('namespace') ?? undefined) !== namespace) {
-			return defaultLoader(module, cleanFilePath);
+			return defaultLoader(module, filePath);
 		}
 
 		// For tracking dependencies in watch mode
