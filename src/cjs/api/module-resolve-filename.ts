@@ -153,6 +153,17 @@ const resolveRequest = (
 	}
 };
 
+const cjsPreparseCall = 'at cjsPreparseModuleExports (node:internal';
+const fromCjsLexer = (
+	error: Error,
+) => {
+	const stack = error.stack!.split('\n').slice(1);
+	return (
+		stack[1].includes(cjsPreparseCall)
+		|| stack[2].includes(cjsPreparseCall)
+	);
+};
+
 export const createResolveFilename = (
 	state: LoaderState,
 	nextResolve: ResolveFilename,
@@ -160,36 +171,46 @@ export const createResolveFilename = (
 ): ResolveFilename => (
 	request,
 	parent,
-	isMain,
-	options,
+	...restOfArgs
 ) => {
 	if (state.enabled === false) {
-		return nextResolve(request, parent, isMain, options);
+		return nextResolve(request, parent, ...restOfArgs);
 	}
-
-	const resolve: SimpleResolve = request_ => nextResolve(
-		request_,
-		parent,
-		isMain,
-		options,
-	);
 
 	request = interopCjsExports(request);
-
-	if (parent?.filename) {
-		const filePath = getOriginalFilePath(parent.filename);
-		if (filePath) {
-			parent.filename = filePath.split('?')[0];
-		}
-	}
 
 	// Strip query string
 	const requestAndQuery = request.split('?');
 	const searchParams = new URLSearchParams(requestAndQuery[1]);
 
-	// Inherit parent namespace if it exists
 	if (parent?.filename) {
-		const parentQuery = new URLSearchParams(parent.filename.split('?')[1]);
+		const filePath = getOriginalFilePath(parent.filename);
+		let query: string | undefined;
+		if (filePath) {
+			const pathAndQuery = filePath.split('?');
+			const newFilename = pathAndQuery[0];
+			query = pathAndQuery[1];
+
+			/**
+			 * Can't delete the old cache entry because there's an assertion
+			 * https://github.com/nodejs/node/blob/v20.15.0/lib/internal/modules/esm/translators.js#L347
+			 */
+			// delete Module._cache[parent.filename];
+
+			parent.filename = newFilename;
+			parent.path = path.dirname(newFilename);
+			// https://github.com/nodejs/node/blob/v20.15.0/lib/internal/modules/esm/translators.js#L383
+			parent.paths = Module._nodeModulePaths(parent.path);
+
+			Module._cache[newFilename] = parent as NodeModule;
+		}
+
+		if (!query) {
+			query = parent.filename.split('?')[1];
+		}
+
+		// Inherit parent namespace if it exists
+		const parentQuery = new URLSearchParams(query);
 		const parentNamespace = parentQuery.get('namespace');
 		if (parentNamespace) {
 			searchParams.append('namespace', parentNamespace);
@@ -198,9 +219,10 @@ export const createResolveFilename = (
 
 	// If request namespace doesnt match the namespace, ignore
 	if ((searchParams.get('namespace') ?? undefined) !== namespace) {
-		return resolve(request);
+		return nextResolve(request, parent, ...restOfArgs);
 	}
 
+	let _nextResolve = nextResolve;
 	if (namespace) {
 		/**
 		 * When namespaced, the loaders are registered to the extensions in a hidden way
@@ -209,8 +231,14 @@ export const createResolveFilename = (
 		 * To support implicit extensions, we need to enhance the resolver with our own
 		 * re-implementation of the implicit extension resolution
 		 */
-		nextResolve = createImplicitResolver(nextResolve);
+		_nextResolve = createImplicitResolver(_nextResolve);
 	}
+
+	const resolve: SimpleResolve = request_ => _nextResolve(
+		request_,
+		parent,
+		...restOfArgs,
+	);
 
 	let resolved = resolveRequest(requestAndQuery[0], parent, resolve);
 
@@ -218,9 +246,21 @@ export const createResolveFilename = (
 	if (
 		path.isAbsolute(resolved)
 
-			// These two have native loaders which don't support queries
-			&& !resolved.endsWith('.json')
-			&& !resolved.endsWith('.node')
+		// These two have native loaders which don't support queries
+		&& !resolved.endsWith('.json')
+		&& !resolved.endsWith('.node')
+
+		/**
+		 * Detect if this is called by the CJS lexer, the resolved path is directly passed into
+		 * readFile to parse the exports
+		 */
+		&& !(
+			// Only the CJS lexer doesn't pass in the rest of the arguments
+			// https://github.com/nodejs/node/blob/v20.15.0/lib/internal/modules/esm/translators.js#L415
+			restOfArgs.length === 0
+			// eslint-disable-next-line unicorn/error-message
+			&& fromCjsLexer(new Error())
+		)
 	) {
 		resolved += urlSearchParamsStringify(searchParams);
 	}

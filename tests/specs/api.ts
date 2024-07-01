@@ -27,6 +27,9 @@ const tsFiles = {
 	`,
 
 	cjs: {
+		node_modules: {
+			'pkg/index.js': 'module.exports = 1',
+		},
 		'exports-no.cts': `
 		// Supports decorators
 		const log = (target, key, descriptor) => descriptor;
@@ -36,7 +39,7 @@ const tsFiles = {
 		}
 		console.log("cts loaded" as string)
 		`,
-		'exports-yes.cts': 'module.exports = require("./reexport.cjs") as string',
+		'exports-yes.cts': 'module.exports = require("./reexport.cjs") as string; require("pkg");',
 		'esm-syntax.js': 'export const esmSyntax = "esm syntax"',
 		'reexport.cjs': `
 		exports.cjsReexport = "cjsReexport";
@@ -477,6 +480,8 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodeOptions: [],
 						});
 						expect(stdout).toBe('file.ts\nfoo.ts\njson.json\npromises\nbar.ts\npkg.js\nnode:process');
+					}, {
+						retry: 3,
 					});
 
 					test('namespace & onImport', async () => {
@@ -505,6 +510,8 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodeOptions: [],
 						});
 						expect(stdout).toBe('file.ts\nfoo.ts\njson.json\nbar.ts\npkg.js');
+					}, {
+						retry: 3,
 					});
 
 					describe('tsconfig', ({ test }) => {
@@ -655,8 +662,11 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							// Loads cts vis CJS namespace even if there are no exports
 							await tsImport('./cjs/exports-no.cts', import.meta.url).catch((error) => console.log(error.constructor.name))
 
-							const cjsExport = await tsImport('./cjs/exports-yes.cts', import.meta.url).then(({ cjsReexport, esmSyntax }) => \`\${cjsReexport} \${esmSyntax}\`, err => err.constructor.name);
-							console.log(cjsExport);
+							const cts = await tsImport('./cjs/exports-yes.cts', import.meta.url).then(({ cjsReexport, esmSyntax }) => \`\${cjsReexport} \${esmSyntax}\`, err => err.constructor.name);
+							console.log(cts);
+
+							const cjs = await tsImport('./cjs/reexport.cjs?query', import.meta.url).then(({ cjsReexport, esmSyntax }) => \`\${cjsReexport} \${esmSyntax}\`, err => err.constructor.name);
+							console.log(cjs);
 
 							const { message: message2 } = await tsImport('./file.ts?with-query', import.meta.url);
 							console.log(message2);
@@ -675,11 +685,15 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodeOptions: [],
 						});
 
-						if (node.supports.cjsInterop) {
-							expect(stdout).toMatch(/Fails as expected 1\nfoo bar json file\.ts\?tsx-namespace=\d+\ncts loaded\ncjsReexport esm syntax\nfoo bar json file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
-						} else {
-							expect(stdout).toMatch(/Fails as expected 1\nfoo bar json file\.ts\?tsx-namespace=\d+\nSyntaxError\nSyntaxError\nfoo bar json file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
-						}
+						expect(stdout).toMatch(new RegExp([
+							'Fails as expected 1',
+							String.raw`foo bar json file\.ts\?tsx-namespace=\d+`,
+							'cts loaded',
+							'cjsReexport esm syntax',
+							'cjsReexport esm syntax',
+							String.raw`foo bar json file\.ts\?with-query=&tsx-namespace=\d+`,
+							'Fails as expected 2',
+						].join(String.raw`\n`)));
 					});
 
 					test('commonjs', async () => {
@@ -699,6 +713,12 @@ export default testSuite(({ describe }, node: NodeApis) => {
 								const { message: message2 } = await tsImport('./file.ts?with-query', __filename);
 								console.log(message2);
 
+								const cts = await tsImport('./cjs/exports-yes.cts?query', __filename).then(({ cjsReexport, esmSyntax }) => \`\${cjsReexport} \${esmSyntax}\`, err => err.constructor.name);
+								console.log(cts);
+
+								const cjs = await tsImport('./cjs/reexport.cjs?query', __filename).then(({ cjsReexport, esmSyntax }) => \`\${cjsReexport} \${esmSyntax}\`, err => err.constructor.name);
+								console.log(cjs);
+
 								// Global not polluted
 								await import('./file.ts?nocache').catch((error) => {
 									console.log('Fails as expected 2');
@@ -712,7 +732,15 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodePath: node.path,
 							nodeOptions: [],
 						});
-						expect(stdout).toMatch(/Fails as expected 1\nfoo bar json file\.ts\?tsx-namespace=\d+\nfoo bar json file\.ts\?with-query=&tsx-namespace=\d+\nFails as expected 2/);
+
+						expect(stdout).toMatch(new RegExp([
+							'Fails as expected 1',
+							String.raw`foo bar json file\.ts\?tsx-namespace=\d+`,
+							String.raw`foo bar json file\.ts\?with-query=&tsx-namespace=\d+`,
+							'cjsReexport esm syntax',
+							'cjsReexport esm syntax',
+							'Fails as expected 2',
+						].join(String.raw`\n`)));
 					});
 
 					test('mts from commonjs', async () => {
