@@ -36,7 +36,7 @@ const tsImport = (
 	 * to using the CommonJS loader instead of going through the ESM loader first
 	 */
 	if (
-		isFeatureSupported(esmLoadReadFile)
+		!isFeatureSupported(esmLoadReadFile)
 		&& commonjsPattern.test(specifier)
 	) {
 		return Promise.resolve(cjs.require(specifier, parentURL));
