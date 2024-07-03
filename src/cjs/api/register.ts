@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { loadTsconfig } from '../../utils/tsconfig.js';
 import type { RequiredProperty } from '../../types.js';
 import { urlSearchParamsStringify } from '../../utils/url-search-params-stringify.js';
+import { fileUrlPrefix } from '../../utils/path-utils.js';
 import type { LoaderState } from './types.js';
 import { createExtensions } from './module-extensions.js';
 import { createResolveFilename } from './module-resolve-filename.js';
@@ -22,7 +23,7 @@ const resolveContext = (
 	}
 
 	if (
-		(typeof fromFile === 'string' && fromFile.startsWith('file://'))
+		(typeof fromFile === 'string' && fromFile.startsWith(fileUrlPrefix))
 		|| fromFile instanceof URL
 	) {
 		fromFile = fileURLToPath(fromFile);

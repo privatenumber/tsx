@@ -16,6 +16,7 @@ import {
 	isDirectoryPattern,
 	isBarePackageNamePattern,
 } from '../../utils/path-utils.js';
+import type { TsxRequest } from '../types.js';
 import {
 	getFormatFromFileUrl,
 	namespaceQuery,
@@ -205,6 +206,8 @@ const resolveTsPaths: ResolveHook = async (
 	return resolveDirectory(specifier, context, nextResolve);
 };
 
+const tsxProtocol = 'tsx://';
+
 export const resolve: ResolveHook = async (
 	specifier,
 	context,
@@ -214,13 +217,33 @@ export const resolve: ResolveHook = async (
 		return nextResolve(specifier, context);
 	}
 
-	const requestNamespace = getNamespace(specifier) ?? (
+	let requestNamespace = getNamespace(specifier) ?? (
 		// Inherit namespace from parent
 		context.parentURL && getNamespace(context.parentURL)
 	);
 
-	if (data.namespace && data.namespace !== requestNamespace) {
-		return nextResolve(specifier, context);
+	if (data.namespace) {
+		let tsImportRequest: TsxRequest | undefined;
+
+		// Initial request from tsImport()
+		if (specifier.startsWith(tsxProtocol)) {
+			try {
+				tsImportRequest = JSON.parse(specifier.slice(tsxProtocol.length));
+			} catch {}
+
+			if (tsImportRequest?.namespace) {
+				requestNamespace = tsImportRequest.namespace;
+			}
+		}
+
+		if (data.namespace !== requestNamespace) {
+			return nextResolve(specifier, context);
+		}
+
+		if (tsImportRequest) {
+			specifier = tsImportRequest.specifier;
+			context.parentURL = tsImportRequest.parentURL;
+		}
 	}
 
 	const [cleanSpecifier, query] = specifier.split('?');

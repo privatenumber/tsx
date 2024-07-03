@@ -9,7 +9,7 @@ import { isFeatureSupported, importAttributes, esmLoadReadFile } from '../../uti
 import { parent } from '../../utils/ipc/client.js';
 import type { Message } from '../types.js';
 import { fileMatcher } from '../../utils/tsconfig.js';
-import { isJsonPattern, tsExtensionsPattern } from '../../utils/path-utils.js';
+import { isJsonPattern, tsExtensionsPattern, fileUrlPrefix } from '../../utils/path-utils.js';
 import { isESM } from '../../utils/es-module-lexer.js';
 import { getNamespace } from './utils.js';
 import { data } from './initialize.js';
@@ -63,7 +63,7 @@ export const load: LoadHook = async (
 	}
 
 	const loaded = await nextLoad(url, context);
-	const filePath = url.startsWith('file://') ? fileURLToPath(url) : url;
+	const filePath = url.startsWith(fileUrlPrefix) ? fileURLToPath(url) : url;
 
 	if (
 		loaded.format === 'commonjs'

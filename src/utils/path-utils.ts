@@ -48,6 +48,8 @@ export const fileUrlPrefix = 'file://';
 
 export const tsExtensionsPattern = /\.([cm]?ts|[tj]sx)($|\?)/;
 
+export const cjsExtensionPattern = /[/\\].+\.(?:cts|cjs)(?:$|\?)/;
+
 export const isJsonPattern = /\.json($|\?)/;
 
 export const isDirectoryPattern = /\/(?:$|\?)/;
