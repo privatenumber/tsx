@@ -251,6 +251,14 @@ export const files = {
 	${sourcemap.test('cts')}
 	`,
 
+	'tsconfig.json': createTsconfig({
+		compilerOptions: {
+			paths: {
+				'@/*': ['./*'],
+			},
+		},
+	}),
+
 	'file.txt': 'hello',
 
 	'broken-syntax.ts': 'if',

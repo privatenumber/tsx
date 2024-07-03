@@ -44,8 +44,11 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 						// .js in esm syntax
 						import * as js from './js/index.js';
 						import './js/index.js?query=123';
+						import '@/js/index.js?query=123';
 						import './js/index';
+						import '@/js/index';
 						import './js/';
+						import '@/js/';
 
 						// No double .default.default in Dynamic Import
 						import/* comment */('./js/index.js').then(m => {
@@ -63,7 +66,9 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 						// .json
 						import * as json from './json/index.json';
 						import './json/index';
+						import '@/json/index';
 						import './json/';
+						import '@/json/';
 
 						// .cjs
 						import * as cjs from './cjs/index.cjs';
@@ -202,6 +207,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 						// .js in esm syntax
 						import * as js from './js/index.js';
 						import './js/index.js?query=123';
+						import '@/js/index.js?query=123';
 						import './js/index';
 						import './js/';
 
@@ -265,26 +271,37 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 						// .ts
 						import './ts/index.ts';
 						import './ts/index.js';
+						import '@/ts/index.js';
 						import './ts/index.jsx';
 						import './ts/index';
+						import '@/ts/index';
 						import './ts/';
+						import '@/ts/';
 						import './ts/period.in.name';
+						import '@/ts/period.in.name';
 
 						// .jsx
 						import * as jsx from './jsx/index.jsx';
 						import './jsx/index.js';
+						import '@/jsx/index.js';
 						import './jsx/index';
+						import '@/jsx/index';
 						import './jsx/';
+						import '@/jsx/';
 
 						// .tsx
 						import './tsx/index.tsx';
 						import './tsx/index.js';
 						import './tsx/index.jsx';
+						import '@/tsx/index.jsx';
 						import './tsx/index';
+						import '@/tsx/index';
 						import './tsx/';
+						import '@/tsx/';
 
 						// .cts
 						import './cts/index.cjs';
+						import '@/cts/index.cjs';
 						expectErrors(
 							// TODO:
 							// [() => import ('./cts/index.cts'), 'Cannot find module'],
@@ -303,6 +320,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 
 						// .mts
 						import './mts/index.mjs';
+						import '@/mts/index.mjs';
 						expectErrors(
 							// TODO:
 							// [() => import ('./mts/index.mts'), 'Cannot find module'],

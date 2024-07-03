@@ -92,28 +92,6 @@ const resolveBase: ResolveHook = async (
 	context,
 	nextResolve,
 ) => {
-	// If directory, can be index.js, index.ts, etc.
-
-	// Resolve TS alias
-	// Bare specifier
-	if (
-		!requestAcceptsQuery(specifier)
-		// TS path alias
-		&& tsconfigPathsMatcher
-		&& !context.parentURL?.includes('/node_modules/')
-	) {
-		const possiblePaths = tsconfigPathsMatcher(specifier);
-		for (const possiblePath of possiblePaths) {
-			try {
-				return await resolveBase(
-					pathToFileURL(possiblePath).toString(),
-					context,
-					nextResolve,
-				);
-			} catch {}
-		}
-	}
-
 	const isBarePackageName = isBarePackageNamePattern.test(specifier);
 
 	// Typescript gives .ts, .cts, or .mts priority over actual .js, .cjs, or .mjs extensions
@@ -160,11 +138,10 @@ const resolveDirectory: ResolveHook = async (
 	context,
 	nextResolve,
 ) => {
-	const [specifierWithoutQuery, query] = specifier.split('?');
-
 	if (isDirectoryPattern.test(specifier)) {
+		// If directory, can be index.js, index.ts, etc.
 		return (await resolveExtensions(
-			`${specifierWithoutQuery}index${query ? `?${query}` : ''}`,
+			`${specifier}index`,
 			context,
 			nextResolve,
 			true,
@@ -181,7 +158,7 @@ const resolveDirectory: ResolveHook = async (
 				if (errorPath) {
 					try {
 						return (await resolveExtensions(
-							`${errorPath}/index${query ? `?${query}` : ''}`,
+							`${errorPath}/index`,
 							context,
 							nextResolve,
 							true,
@@ -199,6 +176,33 @@ const resolveDirectory: ResolveHook = async (
 
 		throw error;
 	}
+};
+
+const resolveTsPaths: ResolveHook = async (
+	specifier,
+	context,
+	nextResolve,
+) => {
+	if (
+		// Bare specifier
+		!requestAcceptsQuery(specifier)
+		// TS path alias
+		&& tsconfigPathsMatcher
+		&& !context.parentURL?.includes('/node_modules/')
+	) {
+		const possiblePaths = tsconfigPathsMatcher(specifier);
+		for (const possiblePath of possiblePaths) {
+			try {
+				return await resolveDirectory(
+					pathToFileURL(possiblePath).toString(),
+					context,
+					nextResolve,
+				);
+			} catch {}
+		}
+	}
+
+	return resolveDirectory(specifier, context, nextResolve);
 };
 
 export const resolve: ResolveHook = async (
@@ -219,8 +223,10 @@ export const resolve: ResolveHook = async (
 		return nextResolve(specifier, context);
 	}
 
-	const resolved = await resolveDirectory(
-		specifier,
+	const [cleanSpecifier, query] = specifier.split('?');
+
+	const resolved = await resolveTsPaths(
+		cleanSpecifier,
 		context,
 		nextResolve,
 	);
@@ -237,11 +243,14 @@ export const resolve: ResolveHook = async (
 		resolved.format = await getFormatFromFileUrl(resolved.url);
 	}
 
+	if (query) {
+		resolved.url += `?${query}`;
+	}
+
 	// Inherit namespace
 	if (
 		requestNamespace
 		&& !resolved.url.includes(namespaceQuery)
-		&& requestAcceptsQuery(resolved.url)
 	) {
 		resolved.url += (resolved.url.includes('?') ? '&' : '?') + namespaceQuery + requestNamespace;
 	}
