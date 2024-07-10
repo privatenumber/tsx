@@ -35,7 +35,13 @@ export default defineConfig({
 	],
 
 	themeConfig: {
-		siteTitle: 'tsx',
+		siteTitle: false,
+
+		logo: {
+			light: '/logo-light.svg',
+			dark: '/logo-dark.svg',
+			alt: 'tsx',
+		},
 
 		editLink: {
 			pattern: 'https://github.com/privatenumber/tsx/edit/master/docs/:path',
