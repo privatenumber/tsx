@@ -59,7 +59,7 @@
 	"scripts": {
 		"prepare": "pnpm simple-git-hooks",
 		"build": "pkgroll --minify",
-		"lint": "lintroll --node --cache .",
+		"lint": "lintroll --node --cache --ignore-pattern 'docs/*.md' .",
 		"type-check": "tsc",
 		"test": "pnpm build && node ./dist/cli.mjs tests/index.ts",
 		"prepack": "pnpm build && clean-pkg-json",

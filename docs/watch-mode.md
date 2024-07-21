@@ -1,34 +1,43 @@
----
-outline: deep
----
-
 # Watch mode
 
-Watch mode runs the file and automatically re-runs it when the file is changed.
+::: warning Not to be confused with [Node's Watch mode](https://nodejs.org/docs/latest/api/cli.html#--watch)
+_tsx_ introduced _Watch mode_ before Node.js released the `--watch` flag in [v18.11.0](https://github.com/nodejs/node/releases/tag/v18.11.0). Although it is similar in functionality, it does not yet match the robustness of _tsx_'s Watch mode.
+:::
+
+## Overview
+
+Watch mode will automatically re-run your script whenever any of its dependencies are changed.
 
 ```sh
 tsx watch ./file.ts
 ```
 
-::: info Context
-
-tsx introduced _Watch mode_ at a time when Node.js lacked this feature. Node.js introduced their watch mode (`--watch` flag) in [v18.11.0](https://github.com/nodejs/node/releases/tag/v18.11.0).
-
-While it would be preferrable to remove tsx's watch mode in favor of Node's, it does not yet match the functionality and robustness of tsx's Watch mode.
-:::
-
 ## Watch behavior
 
-All imported files are watched except from the following directories:
-`node_modules`, `bower_components`, `vendor`, `dist`, and `.*` (hidden directories).
+By default, _tsx_ watches all imported files, except those in the following directories:
+- `node_modules`
+- `bower_components`
+- `vendor`
+- `dist`
+- Hidden directories (`.*`)
 
-#### Ignore files from watch
+## Ignoring files
 
-To exclude files from being watched, pass in a path or glob to the `--ignore` flag:
+To exclude specific files or directories from being watched, use the `--ignore` flag:
+
 ```sh
 tsx watch --ignore ./ignore-me.js --ignore ./ignore-me-too.js ./file.ts
 ```
 
-#### Tips
-- Press <kbd>Return</kbd> to manually rerun
-- Pass in `--clear-screen=false` to disable clearing the screen on rerun
+### Using glob patterns
+
+Glob patterns allow you to define a set of files or directories to ignore. To prevent your shell from expanding the glob patterns, wrap them in quotes:
+
+```sh
+tsx watch --ignore "./data/**/*" ./file.ts
+```
+
+## Tips
+
+- Press <kbd>Return</kbd> to manually rerun the script.
+- Use `--clear-screen=false` to prevent the screen from clearing on rerun.

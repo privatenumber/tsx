@@ -1,92 +1,275 @@
+<script setup lang="ts">
+import ImageLink from './.vitepress/theme/components/ImageLink.vue';
+</script>
+
 # Frequently Asked Questions
 
-## How can I do __ in _tsx_?
+## How can I do ______ in _tsx_?
 
-It's important to remember that `tsx` is a Node.js enhancement—it's still Node underneath.
+We understand that searching for answers about _tsx_ can be challenging due to its name. However, since _tsx_ is essentially an alias for `node` and adheres to TypeScript behavior, asking how to do something in _tsx_ might not be the best approach.
 
-That said, often times you might want to ask and lookup the following instead:
-- _"How can I do __ in Node.js?"_
-- _"How can I do __ in TypeScript?"_
+Instead, consider these questions:
+- _"How can I do ______ in Node.js?"_
+- _"How can I do ______ in TypeScript?"_
 
+If your question specifically relates to _tsx_, you can use the search feature in the documentation or [ask a question](#ask-a-question).
+
+
+## I found a bug in _tsx_. What should I do?
+
+If you've confirmed that the bug is in _tsx_, please file an issue in the _tsx_ GitHub repository. Make sure to include a minimal reproduction of the bug.
+
+<a class="button bug-report" href="https://github.com/privatenumber/tsx/issues/new?assignees=&labels=bug%2Cpending+triage&projects=&template=bug-report.yml" target="_blank">
+	File a bug report ↗
+</a>
 
 ## Who uses _tsx_?
 
-_tsx_ currently gets <a href="https://npm.im/tsx"><img class="inline-block" src="https://badgen.net/npm/dm/tsx"></a> and is used by many projects.
-
-Here are some notable ones I've found via [GitHub Search](https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22&type=code):
-
-### Projects
-- [Vite](https://github.com/vitejs/vite/blob/6cccef78a52492c24d9b28f3a1784824f34f5cc3/package.json#L83)
-- [Vue.js](https://github.com/vuejs/core/blob/70641fc0deb857464d24aa7ab7eaa18e2a855146/package.json#L110)
-- [Mermaid](https://github.com/mermaid-js/mermaid/blob/3809732e48a0822fad596d0815a6dc0e166dda94/package.json#L121)
-- [date-fns](https://github.com/date-fns/date-fns/blob/5c1adb5369805ff552737bf8017dbe07f559b0c6/package.json#L6123)
-- [Cheerio](https://github.com/cheeriojs/cheerio/blob/d0b3c2f6b57cd1f835741175d463963266be0eef/package.json#L99)
+_tsx_ is recognized by both [Node.js](https://nodejs.org/en/learn/getting-started/nodejs-with-typescript#running-typescript-code-with-tsx) and [TypeScript](https://www.typescriptlang.org/docs/handbook/modules/guides/choosing-compiler-options.html#im-using-tsx) as a popular tool for running TypeScript code. It is widely adopted, as indicated by its npm download stats: <a href="https://npm.im/tsx"><img class="inline-block" src="https://badgen.net/npm/dm/tsx"></a>.
 
 ### Companies
-- Vercel: [Turbo](https://github.com/vercel/turbo/blob/adbfe4c04e3cdd31ae1916d0a5222bbc5ae2bb58/packages/turbo-repository/package.json#L20), [Serve](https://github.com/vercel/serve/blob/1ea55b1b5004f468159b54775e4fb3090fedbb2b/package.json#L61), [AI](https://github.com/vercel/ai/blob/e94fb321645bfff7ecc78bb195ccd34af1a40c74/examples/ai-core/package.json#L20)
-- Google: [Angular](https://github.com/angular/angular/blob/a34267b72e8994d22d47c73d45f22173304939a0/package.json#L144), [\[1\]](https://github.com/google/neuroglancer/blob/d5cc03520b24ef1c66d7fb6b3a3b49eebe87bd44/package.json#L69), [\[2\]](https://github.com/google/labs-prototypes/blob/93a0fba516d95e4fc7063b9c38d1074f69322d2d/seeds/team-experiments/package.json#L25)
-- GitHub: [\[1\]](https://github.com/github/docs/blob/d183c8519bb08678150e7c4b45c50fb314a2d145/package.json#L273), [\[2\]](https://github.com/github/local-action/blob/a93157e99d69c563c0368bb8fd2a3c6f5c6795ea/package.json#L53)
-- Square (internal projects)
-- Supabase: [Supabase](https://github.com/supabase/supabase/blob/34d152ce7832a1313f06012612480b9717742f73/apps/docs/package.json#L101), [\[1\]](https://github.com/supabase/stripe-sync-engine/blob/01ab4093d31fad974d85d78c52b4130779dc0eeb/package.json#L55), [\[2\]](https://github.com/supabase/storage/blob/2adeac7ddb41522df3ee30b8d4cf9071426bbe5f/package.json#L103), [\[3\]](https://github.com/supabase/orb-sync-engine/blob/e3249cca02c3a7f3b385fdd9ea1f72d5eb55fb05/apps/node-fastify/package.json#L27)
-- Astro: [Compiler](https://github.com/withastro/compiler/blob/17f89322a5604542735b13fdedd2664253f1e8f8/package.json#L35), [Starlight](https://github.com/withastro/starlight/blob/b2c50ea1da1aaefd1f0f08dd2f501c8dc4f04726/packages/file-icons-generator/package.json#L12), [\[1\]](https://github.com/withastro/language-tools/blob/0503392b80765c8a1292ddc9c063a1187425c187/packages/astro-check/package.json#L38)
 
+<div class="logos">
+<ImageLink
+	alt="Vercel"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Avercel&type=code"
+	img-src="/logos/vercel.svg"
+/>
+<ImageLink
+	alt="Google"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Agoogle&type=code"
+	img-src="/logos/google.svg"
+/>
+<ImageLink
+	alt="GitHub"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Agithub&type=code"
+	img-src="/logos/github.svg"
+/>
+<ImageLink
+	alt="Square"
+	href="https://github.com/square"
+	img-src="/logos/square.svg"
+/>
+<ImageLink
+	alt="Supabase"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Asupabase&type=code"
+	img-src="/logos/supabase.svg"
+/>
+<ImageLink
+	alt="Astro"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Awithastro&type=code"
+	img-src="/logos/astro.svg"
+/>
+<ImageLink
+	alt="OpenAI"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Aopenai&type=code"
+	img-src="/logos/openai.svg"
+/>
+<ImageLink
+	alt="IBM"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Aibm&type=code"
+	img-src="/logos/ibm.svg"
+/>
+<ImageLink
+	alt="Codecov"
+	href="https://github.com/codecov"
+	img-src="/logos/codecov.svg"
+/>
+<ImageLink
+	alt="Amazon AWS"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Aaws+OR+org%3Aawslabs&type=code"
+	img-src="/logos/aws.svg"
+/>
+<ImageLink
+	alt="Sentry"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Agetsentry&type=code"
+	img-src="/logos/sentry.svg"
+/>
+<ImageLink
+	alt="Microsoft"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Amicrosoft&type=code"
+	img-src="/logos/microsoft.svg"
+/>
+<ImageLink
+	alt="Meta"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Afacebook&type=code"
+	img-src="/logos/meta.svg"
+/>
+<ImageLink
+	alt="Alibaba"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Aalibaba&type=code"
+	img-src="/logos/alibaba.svg"
+/>
+<ImageLink
+	alt="Mozilla"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Amozilla&type=code"
+	img-src="/logos/mozilla.svg"
+/>
+<ImageLink
+	alt="Figma"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Afigma&type=code"
+	img-src="/logos/figma.svg"
+/>
+<ImageLink
+	alt="Cloudflare"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Acloudflare&type=code"
+	img-src="/logos/cloudflare.svg"
+/>
+<ImageLink
+	alt="Salesforce"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Asalesforce&type=code"
+	img-src="/logos/salesforce.svg"
+/>
+</div>
 
+### Projects
+<div class="logos">
+<ImageLink
+	alt="Node.js"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Anodejs&type=code"
+	img-src="/logos/nodejs.svg"
+/>
+<ImageLink
+	alt="Electron"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Aelectron&type=code"
+	img-src="/logos/electron.svg"
+/>
+<ImageLink
+	alt="Vite"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Avitejs&type=code"
+	img-src="/logos/vite.svg"
+/>
+<ImageLink
+	alt="Mermaid"
+	href="https://github.com/mermaid-js/mermaid/blob/3809732e48a0822fad596d0815a6dc0e166dda94/package.json#L121"
+	img-src="/logos/mermaid.svg"
+/>
+<ImageLink
+	alt="Vue.js"
+	href="https://github.com/vuejs/core/blob/70641fc0deb857464d24aa7ab7eaa18e2a855146/package.json#L110"
+	img-src="/logos/vue.svg"
+/>
+<ImageLink
+	alt="11ty"
+	href="https://www.11ty.dev/docs/languages/typescript/"
+	img-src="/logos/11ty.svg"
+/>
+<ImageLink
+	alt="Vitest"
+	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Avitest-dev&type=code"
+	img-src="/logos/vitest.svg"
+/>
+<ImageLink
+	alt="date-fns"
+	href="https://github.com/date-fns/date-fns/blob/5c1adb5369805ff552737bf8017dbe07f559b0c6/package.json#L6123"
+	img-src="/logos/date-fns.svg"
+/>
+<ImageLink
+	alt="Cheerio"
+	href="https://github.com/cheeriojs/cheerio/blob/d0b3c2f6b57cd1f835741175d463963266be0eef/package.json#L99"
+	img-src="/logos/cheerio.svg"
+/>
+<ImageLink
+	alt="Zod"
+	href="https://github.com/colinhacks/zod/blob/7173d0bcc2105777102e22d36a2866196e2830f3/package.json#L45"
+	img-src="/logos/zod.svg"
+/>
+<ImageLink
+	alt="WebDriverIO"
+	href="https://github.com/webdriverio/webdriverio/blob/5955cda26a538a12b10d686a394beb1b109fe49d/package.json#L122"
+	img-src="/logos/webdriverio.svg"
+/>
+</div>
+
+To find more examples of where & how _tsx_ is used, [search on GitHub](https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22&type=code).
 
 ## How does _tsx_ compare to [`ts-node`](https://github.com/TypeStrong/ts-node)?
 
-`tsx` and `ts-node` are both designed for executing TypeScript in Node.js, but offer different approaches to suit user preferences.
+`tsx` and `ts-node` are both tools for running TypeScript in Node.js, each offering different approaches to suit user preferences.
 
-- **Simple installation**
+**Installation**
 
-	_tsx_ is offered as a single binary without peer dependencies, and can be used without installation (just run `npx tsx ./script.ts`). In comparison, `ts-node` requires installing TypeScript or SWC as peer dependencies.
+- **tsx**: Can be used without installation (via `npx tsx ./script.ts`) and comes as a single binary with no peer dependencies.
+- **ts-node**: Requires installation of TypeScript or SWC as peer dependencies.
 
-- **Zero configuration**
+**Configuration**
 
-	_tsx_ _just works_. It doesn't require initial setup or a `tsconfig.json` file, and doesn't get in the way of running your code. This is especially important for beginners getting into TypeScript!
+- **tsx**: Works out of the box without needing a `tsconfig.json` file, making it easy for beginners.
+- **ts-node**: May require initial setup and configuration.
 
-- **Sensible defaults**
+**Defaults**
 
-	_tsx_ employs sensible defaults based on file imports and the Node.js version, removing the need for certain `tsconfig.json` settings (that are designed for compilation rather than runtime). In comparison, _ts-node_ relies on TypeScript's defaults (e.g. [`ES3` target](https://www.typescriptlang.org/tsconfig#target)), which may be outdated.
+- **tsx**: Uses sensible defaults based on file imports and Node.js version, reducing the need for certain `tsconfig.json` settings.
+- **ts-node**: Relies on TypeScript's defaults, which might need adjusting.
 
-- **Module adaptability**
+**Module Support**
 
-	_tsx_ automatically adapts between CommonJS and ESM modules, even supporting `require()` of ESM modules, facilitating a smoother transition as the Node.js ecosystem evolves.
+- **tsx**: Automatically adapts between CommonJS and ESM modules, supporting `require()` for ESM modules.
+- **ts-node**: Provides module support but may need configuration for certain scenarios.
 
-- **Enhancements**
+**Syntax and Features**
 
-	_tsx_ gracefully handles [new JS & TS syntax](https://esbuild.github.io/content-types/) and features based on the Node.js version. It also supports [`tsconfig.json` paths](https://www.typescriptlang.org/tsconfig#paths) out of the box.
+- **tsx**: Supports new JS & TS syntax and features based on Node.js version and includes support for `tsconfig.json` paths.
+- **ts-node**: Uses the TypeScript compiler and may require additional settings for certain features.
 
-- **Speed**
+**Speed**
 
-	_tsx_ utilizes [esbuild](https://esbuild.github.io/faq/#:~:text=typescript%20benchmark) for rapid TypeScript compilation. In comparison, _ts-node_ uses the TypeScript compiler by default. Because _tsx_ doesn't type check, it's similar to `ts-node --esm --swc` (which uses the [SWC compiler](https://github.com/TypeStrong/ts-node#swc-1)).
+- **tsx**: Uses [esbuild](https://esbuild.github.io/faq/#:~:text=typescript%20benchmark) for fast compilation and does not perform type checking.
+- **ts-node**: Uses the TypeScript compiler by default, with an option to use the SWC compiler for faster performance.
 
-- **Watcher**
+**Watcher**
 
-	As a DX bonus, _tsx_ also comes with [Watch mode](/watch-mode.md) to help you iterate faster!
+As a DX bonus, _tsx_ also comes with [Watch mode](/watch-mode.md) to help you iterate faster!
 
-For a detailed technical comparison, you can refer to this [exhaustive comparison](https://github.com/privatenumber/ts-runtime-comparison) between `tsx`, `ts-node`, and other runtimes.
+For a detailed technical comparison, refer to this [exhaustive comparison](https://github.com/privatenumber/ts-runtime-comparison) between `tsx`, `ts-node`, and other runtimes.
 
+## Can/should _tsx_ be used in production?
 
-## Can/should it be used in production?
+Deciding whether to use _tsx_ in production depends on your specific needs and risk tolerance. Here are a few points to consider:
 
-At the end of the day, this is something you'll have to evaluate yourself against your production needs and risk tolerance.
+- _tsx_ is simply a Node.js enhancement, so you can generally expect a similar level of stability.
+- _tsx_ uses [esbuild](https://esbuild.github.io) for transforming TypeScript and ESM. Although esbuild is already adopted in many production ready tools, keep in mind that it technically hasn't reached a stable release yet.
 
-Some factors you might want to consider are:
+Here are some questions to help guide your decision:
 
-- _tsx_ is Node.js enhanced, so you can expect similar levels of stability.
+- What are the benefits versus the costs of using _tsx_ in production? Are there performance improvements?
+- Does _tsx_ run your code as expected? Are there any differences between development and production environments?
+- Can you rely on this open-source project and its maintainers? Consider [sponsoring](https://github.com/sponsors/privatenumber/sponsorships?tier_id=416984) the project to support its growth and stability.
 
-- _tsx_ uses [esbuild](https://esbuild.github.io) to transform TypeScript and ESM, and esbuild hasn't reached a stable release yet.
+Ultimately, it's a decision you'll need to make based on your specific production requirements and comfort level with potential risks.
 
+---
 
-Some questions you might want to ask yourself are:
+# Ask a question
 
-- What are the benefits vs costs of using `tsx` in production?
-	- Are there performance costs?
+_tsx_ offers support via [Discussions](https://github.com/pvtnbr/tsx/discussions) for [sponsors](https://github.com/sponsors/privatenumber/sponsorships?tier_id=416984). If you're a sponsor, feel free to ask more questions there!
 
-- Does `tsx` run my code expectedly? Are there different environments and tools being used between dev and production?
+<style scoped>
+.bug-report {
+	@apply
+		text-sm
+		text-white
+		hover:text-white
+		bg-blue-500
+		hover:bg-blue-600
+		;
+}
 
-- Can I rely on this open source project and the maintainers?
+.logos {
+	@apply
+		flex
+		flex-wrap
+		gap-x-4
+		gap-y-6
+		justify-around
+		my-4
+		py-6
+		px-4
+		dark:bg-zinc-800;
 
-## Can't find your question?
+	& :deep(img) {
+		@apply h-10;
+	}
+}
+</style>
 
-Try searching or asking in [GitHub Discussions](https://github.com/privatenumber/tsx/discussions)!

@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.button {
+	@apply
+		inline-block
+		py-2
+		px-6
+		rounded-full
+		!no-underline
+		!transition-colors
+		duration-200
+		;
+}

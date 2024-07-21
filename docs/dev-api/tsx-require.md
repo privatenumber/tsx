@@ -1,17 +1,20 @@
 # `tsx.require()`
 
-`tsx.require()` is an enhanced `require()` function that can load TypeScript and ESM files.
+Native `require()` function enhanced with TypeScript & ESM support.
 
 Use this function for importing TypeScript files in CommonJS mode without adding TypeScript support to the entire runtime.
 
 Note, the current file path must be passed in as the second argument to resolve the import context.
 
 ::: warning Caveats
+
 - `import()` calls in the loaded files are not enhanced.
 - Because it compiles ESM syntax to run in CommonJS mode, top-level await is not supported
 :::
 
-## CommonJS usage
+## Usage
+
+### CommonJS
 
 ```js
 const tsx = require('tsx/cjs/api')
@@ -20,7 +23,7 @@ const tsLoaded = tsx.require('./file.ts', __filename)
 const tsFilepath = tsx.require.resolve('./file.ts', __filename)
 ```
 
-## ESM usage
+### ESM
 
 ```js
 import { require } from 'tsx/cjs/api'

@@ -1,14 +1,16 @@
 # `tsImport()`
 
-`tsImport()` is an enhanced `import()` that can load TypeScript files. Because it's an enhancement over the native `import()`, it even supports [top-level await](https://v8.dev/features/top-level-await)!
+Native dynamic `import()` function to import TypeScript files (supports [top-level await](https://v8.dev/features/top-level-await)).
 
-Use this function for importing TypeScript files in Module mode without adding TypeScript support to the entire runtime.
+Use this function for importing TypeScript files without adding TypeScript support to the entire runtime.
 
 The current file path must be passed in as the second argument to resolve the import context.
 
 Since this is designed for one-time use, it does not cache loaded modules.
 
-## ESM usage
+## Usage
+
+### ESM
 
 ```js
 import { tsImport } from 'tsx/esm/api'
@@ -20,9 +22,9 @@ const loaded = await tsImport('./file.ts', import.meta.url)
 const loadedAgain = await tsImport('./file.ts', import.meta.url)
 ```
 
-If you'd like to leverage module caching, see the [ESM scoped registration](/node/esm.md#scoped-registration) section.
+If you'd like to leverage module caching, see the [ESM scoped registration](/dev-api/register-esm.md) section.
 
-## CommonJS usage
+### CommonJS
 
 ```js
 const { tsImport } = require('tsx/esm/api')
