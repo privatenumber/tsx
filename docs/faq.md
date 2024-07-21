@@ -179,6 +179,11 @@ _tsx_ is recognized by both [Node.js](https://nodejs.org/en/learn/getting-starte
 	href="https://github.com/webdriverio/webdriverio/blob/5955cda26a538a12b10d686a394beb1b109fe49d/package.json#L122"
 	img-src="/logos/webdriverio.svg"
 />
+<ImageLink
+	alt="Knip"
+	href="https://github.com/webpro-nl/knip/blob/ae5c3417ba40ed52a48961845c8a074caf9fdb1f/packages/knip/package.json#L48"
+	img-src="/logos/knip.svg"
+/>
 </div>
 
 To find more examples of where & how _tsx_ is used, [search on GitHub](https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22&type=code).
