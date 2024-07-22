@@ -158,10 +158,10 @@ If your company uses _tsx_ and would like to sponsor the project, [we'd love to 
 ## Sponsors
 
 <p align="center">
-	<a href="https://github.com/sponsors/privatenumber" target="_blank">
+	<a href="https://github.com/sponsors/privatenumber/sponsorships?tier_id=416984" target="_blank">
 		<img src="https://cdn.jsdelivr.net/gh/privatenumber/sponsors/sponsorkit/sponsors.svg">
 	</a>
-	<a class="button sponsor-button mt-10 mx-auto" href="https://github.com/sponsors/privatenumber" target="_blank">
+	<a class="button sponsor-button mt-10 mx-auto" href="https://github.com/sponsors/privatenumber/sponsorships?tier_id=416984" target="_blank">
 		Become a sponsor
 	</a>
 </p>
