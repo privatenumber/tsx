@@ -28,7 +28,6 @@ defineProps<{
 
 img {
 	@apply
-		w-full
 		h-full
 		drop-shadow;
 }
