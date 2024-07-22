@@ -13,3 +13,13 @@
 		duration-200
 		;
 }
+
+.dark .dark-zebra-pattern {
+	background-image: repeating-linear-gradient(
+		45deg,
+		transparent,
+		transparent 10px,
+		rgb(0 0 0/ 0.05) 10px,
+		rgb(0 0 0/ 0.05) 20px
+	);
+}

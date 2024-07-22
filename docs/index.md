@@ -54,7 +54,7 @@ Iterate on your code faster and boost productivity!
 
 <a href="/faq#who-uses-tsx" class="!no-underline">Who uses _tsx_?</a>
 
-<Marquee class="mt-6 dark:bg-zinc-800 py-6" :velocity="20">
+<Marquee class="mt-6 dark:bg-zinc-800 dark-zebra-pattern py-6" :velocity="20">
 <div class="flex gap-6 items-center min-w-full">
 <ImageLink
 	class="h-12"

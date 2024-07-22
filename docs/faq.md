@@ -29,7 +29,7 @@ _tsx_ is recognized by both [Node.js](https://nodejs.org/en/learn/getting-starte
 
 ### Companies
 
-<div class="logos">
+<div class="logos dark-zebra-pattern">
 <ImageLink
 	alt="Vercel"
 	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Avercel&type=code"
@@ -123,7 +123,7 @@ _tsx_ is recognized by both [Node.js](https://nodejs.org/en/learn/getting-starte
 </div>
 
 ### Projects
-<div class="logos">
+<div class="logos dark-zebra-pattern">
 <ImageLink
 	alt="Node.js"
 	href="https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22+org%3Anodejs&type=code"
