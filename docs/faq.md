@@ -186,7 +186,7 @@ _tsx_ is recognized by both [Node.js](https://nodejs.org/en/learn/getting-starte
 />
 <ImageLink
 	alt="ArkType"
-	href="https://github.com/arktypeio/arktype/blob/1820e86e93e1ccaabda7f8de28fb7f04320d6fc8/package.json#L56"
+	href="https://github.com/arktypeio/arktype/blob/1820e86e93e1ccaabda7f8de28fb7f04320d6fc8/package.json#L59"
 	img-src="/logos/arktype.svg"
 />
 </div>
