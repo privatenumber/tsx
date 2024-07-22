@@ -1,22 +1,42 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 
+const reflow = (element: HTMLElement) => {
+	element.style.display = 'none';
+	element.offsetHeight;
+	element.style.display = '';
+};
+
+const waitImageLoad = (
+	img: HTMLImageElement,
+) => new Promise<void>(
+	(resolve) => {
+		if (img.complete) {
+			return resolve();
+		}
+
+		img.addEventListener('load', () => resolve());
+		img.addEventListener('error', () => resolve());
+	}
+);
+
 const waitImages = (
 	element: HTMLElement,
 ) => {
 	const images = element.querySelectorAll('img');
 	return Promise.all(
-		Array.from(images).map((image) => (
-			new Promise<void>((resolve) => {
-				if (image.complete) {
-					resolve();
-					return;
-				}
-
-				image.addEventListener('load', () => resolve());
-				image.addEventListener('error', () => resolve());
-			})
-		))
+		Array.from(images).map(async (image) => {
+			await waitImageLoad(image);
+			/**
+			 * Bug in Safari where preloaded image causes the image to have
+			 * 0 width.
+			 * Load the FAQ page then navigating to the index page.
+			 * Solution is to trigger reflow.
+			 */
+			if (image.offsetWidth === 0) {
+				reflow(image);
+			}
+		})
 	);
 };
 
