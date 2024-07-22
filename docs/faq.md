@@ -184,6 +184,11 @@ _tsx_ is recognized by both [Node.js](https://nodejs.org/en/learn/getting-starte
 	href="https://github.com/webpro-nl/knip/blob/ae5c3417ba40ed52a48961845c8a074caf9fdb1f/packages/knip/package.json#L48"
 	img-src="/logos/knip.svg"
 />
+<ImageLink
+	alt="ArkType"
+	href="https://github.com/arktypeio/arktype/blob/1820e86e93e1ccaabda7f8de28fb7f04320d6fc8/package.json#L59"
+	img-src="/logos/arktype.svg"
+/>
 </div>
 
 To find more examples of where & how _tsx_ is used, [search on GitHub](https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22&type=code).
