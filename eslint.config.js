@@ -1,11 +1,4 @@
 // @ts-check
-import { defineConfig, pvtnbr } from 'lintroll';
+import { pvtnbr } from 'lintroll';
 
-export default defineConfig([
-	{
-		ignores: ['tests/fixtures'],
-	},
-	...pvtnbr({
-		node: true,
-	}),
-]);
+export default pvtnbr({ node: true });
