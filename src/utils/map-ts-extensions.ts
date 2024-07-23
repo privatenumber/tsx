@@ -1,6 +1,10 @@
 import path from 'node:path';
 
-const noExtension = ['.js', '.json', '.ts', '.tsx', '.jsx'];
+// When the file extension is missing in the requested path, always try the
+// file path verbatim before trying to resolve it with specific extensions.
+// This ensures that we give Node a chance to take `"exports"` in `package.json`
+// into account.
+const noExtension = ['', '.js', '.json', '.ts', '.tsx', '.jsx'];
 
 const tsExtensions: Record<string, string[]> = Object.create(null);
 tsExtensions['.js'] = ['.ts', '.tsx', '.js', '.jsx'];
