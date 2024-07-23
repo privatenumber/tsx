@@ -441,6 +441,36 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 					expect(p.failed).toBe(false);
 				});
 
+				test('prefer conditional exports over specific extensions', async () => {
+					await using fixture = await createFixture({
+						'package.json': createPackageJson({ type: packageType }),
+						'index.ts': `
+						import A from 'pkg/conditional/export'
+						console.log(A)
+						`,
+						'node_modules/pkg': {
+							'package.json': createPackageJson({
+								name: 'pkg',
+								exports: {
+									'./*': './*',
+									'./conditional/export': {
+										require: './conditional/export.js',
+										default: './conditional/export.mjs',
+									},
+								},
+							}),
+							'conditional/export.js': 'module.exports = 1',
+							'conditional/export.mjs': 'export default 2',
+						},
+					});
+
+					const p = await tsx(['index.ts'], {
+						cwd: fixture.path,
+					});
+					expect(p.failed).toBe(false);
+					expect(p.stdout).toMatch(isCommonJs ? '1' : '2');
+				});
+
 				/**
 				 * Node v18 has a bug:
 				 * Error [ERR_INTERNAL_ASSERTION]:
