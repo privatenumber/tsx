@@ -181,7 +181,7 @@ _tsx_ is recognized by both [Node.js](https://nodejs.org/en/learn/getting-starte
 />
 <ImageLink
 	alt="Knip"
-	href="https://github.com/webpro-nl/knip/blob/ae5c3417ba40ed52a48961845c8a074caf9fdb1f/packages/knip/package.json#L48"
+	href="https://github.com/webpro-nl/knip/blob/b9b8f4da3dcbff1af309bfbb7890bb9ec36124f9/packages/knip/package.json#L48"
 	img-src="/logos/knip.svg"
 />
 <ImageLink
