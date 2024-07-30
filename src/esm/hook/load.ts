@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import type { LoadHook } from 'node:module';
 import { readFile } from 'node:fs/promises';
 import type { TransformOptions } from 'esbuild';
@@ -121,7 +122,11 @@ export const load: LoadHook = async (
 			code,
 			filePath,
 			{
-				tsconfigRaw: fileMatcher?.(filePath) as TransformOptions['tsconfigRaw'],
+				tsconfigRaw: (
+					path.isAbsolute(filePath)
+						? fileMatcher?.(filePath) as TransformOptions['tsconfigRaw']
+						: undefined
+				),
 			},
 		);
 

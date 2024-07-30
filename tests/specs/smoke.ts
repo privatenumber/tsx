@@ -41,6 +41,8 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 						import 'pkg-module/index';
 						import 'pkg-module/empty-export'; // implicit directory & extension
 
+						import 'pkg-exports/file';
+
 						// .js in esm syntax
 						import * as js from './js/index.js';
 						import './js/index.js?query=123';
@@ -196,6 +198,8 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 						import * as pkgCommonjs from 'pkg-commonjs';
 						import * as pkgModule from 'pkg-module';
 						import 'pkg-module/index';
+
+						import 'pkg-exports/file';
 
 						// Resolving TS files in dependencies (e.g. implicit extensions & export maps)
 						import 'pkg-commonjs/ts.js';

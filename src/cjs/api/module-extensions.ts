@@ -7,7 +7,6 @@ import { isESM } from '../../utils/es-module-lexer.js';
 import { shouldApplySourceMap, inlineSourceMap } from '../../source-map.js';
 import { parent } from '../../utils/ipc/client.js';
 import { fileMatcher } from '../../utils/tsconfig.js';
-import { implicitlyResolvableExtensions } from './resolve-implicit-extensions.js';
 import type { LoaderState } from './types.js';
 
 const typescriptExtensions = [
@@ -22,6 +21,12 @@ const transformExtensions = [
 	'.js',
 	'.cjs',
 	'.mjs',
+] as const;
+
+const implicitlyResolvableExtensions = [
+	'.ts',
+	'.tsx',
+	'.jsx',
 ] as const;
 
 const safeSet = <T extends Record<string, unknown>>(

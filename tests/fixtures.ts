@@ -212,6 +212,8 @@ export const files = {
 		`,
 
 		'period.in.name.ts': 'export { a } from "."',
+
+		'index.js': 'throw new Error("should not be loaded")',
 	},
 
 	// TODO: test resolution priority for files 'index.tsx` & 'index.tsx.ts` via 'index.tsx'
@@ -310,10 +312,16 @@ export const files = {
 		},
 		'pkg-exports': {
 			'package.json': createPackageJson({
-				type: 'module',
-				exports: './index.js',
+				exports: {
+					'.': './index.js',
+					'./file': './file.js',
+					'./file.js': './error.js',
+					'./file.ts': './error.js',
+				},
 			}),
 			'index.ts': syntaxLowering,
+			'file.js': syntaxLowering,
+			'error.js': 'throw new Error("should not be loaded")',
 		},
 	},
 };

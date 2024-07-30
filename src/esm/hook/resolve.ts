@@ -14,7 +14,7 @@ import {
 	fileUrlPrefix,
 	tsExtensionsPattern,
 	isDirectoryPattern,
-	isBarePackageNamePattern,
+	isRelativePath,
 } from '../../utils/path-utils.js';
 import type { TsxRequest } from '../types.js';
 import {
@@ -61,7 +61,7 @@ const resolveExtensions = async (
 	nextResolve: NextResolve,
 	throwError?: boolean,
 ) => {
-	const tryPaths = mapTsExtensions(url, true);
+	const tryPaths = mapTsExtensions(url);
 	if (!tryPaths) {
 		return;
 	}
@@ -93,16 +93,18 @@ const resolveBase: ResolveHook = async (
 	context,
 	nextResolve,
 ) => {
-	const isBarePackageName = isBarePackageNamePattern.test(specifier);
-
-	// Typescript gives .ts, .cts, or .mts priority over actual .js, .cjs, or .mjs extensions
-	//
-	// If `allowJs` is set in `tsconfig.json`, then we'll apply the same resolution logic
-	// to files without a TypeScript extension.
+	/**
+	 * Only prioritize TypeScript extensions for file paths (no dependencies)
+	 * TS aliases are pre-resolved so they're file paths
+	 *
+	 * If `allowJs` is set in `tsconfig.json`, then we'll apply the same resolution logic
+	 * to files without a TypeScript extension.
+	 */
 	if (
-		// Ignore if there's no subpath to test extensions against
-		!isBarePackageName
-		&& (
+		(
+			specifier.startsWith(fileUrlPrefix)
+			|| isRelativePath(specifier)
+		) && (
 			tsExtensionsPattern.test(context.parentURL!)
 			|| allowJs
 		)
@@ -139,10 +141,18 @@ const resolveDirectory: ResolveHook = async (
 	context,
 	nextResolve,
 ) => {
+	if (specifier === '.') {
+		specifier = './';
+	}
+
 	if (isDirectoryPattern.test(specifier)) {
+		const urlParsed = new URL(specifier, context.parentURL);
+
 		// If directory, can be index.js, index.ts, etc.
+		urlParsed.pathname = path.join(urlParsed.pathname, 'index');
+
 		return (await resolveExtensions(
-			`${specifier}index`,
+			urlParsed.toString(),
 			context,
 			nextResolve,
 			true,

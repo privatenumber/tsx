@@ -1,7 +1,21 @@
 import path from 'node:path';
+import { isFilePath, fileUrlPrefix, nodeModulesPath } from './path-utils.js';
 
-const noExtension = ['.js', '.json', '.ts', '.tsx', '.jsx'];
+const implicitJsExtensions = ['.js', '.json'];
+const implicitTsExtensions = ['.ts', '.tsx', '.jsx'];
 
+// Guess extension
+const localExtensions = [...implicitTsExtensions, ...implicitJsExtensions];
+
+/**
+ * If dependency, prioritize .js extensions over .ts
+ *
+ * .js is more likely to behave correctly than the .ts file
+ * https://github.com/evanw/esbuild/releases/tag/v0.20.0
+ */
+const dependencyExtensions = [...implicitJsExtensions, ...implicitTsExtensions];
+
+// Swap extension
 const tsExtensions: Record<string, string[]> = Object.create(null);
 tsExtensions['.js'] = ['.ts', '.tsx', '.js', '.jsx'];
 tsExtensions['.jsx'] = ['.tsx', '.ts', '.jsx', '.js'];
@@ -10,28 +24,47 @@ tsExtensions['.mjs'] = ['.mts'];
 
 export const mapTsExtensions = (
 	filePath: string,
-	handleMissingExtension?: boolean,
 ) => {
 	const splitPath = filePath.split('?');
-	let [pathname] = splitPath;
+	const pathQuery = splitPath[1] ? `?${splitPath[1]}` : '';
+	const [pathname] = splitPath;
 	const extension = path.extname(pathname);
 
-	let tryExtensions = tsExtensions[extension];
-	if (tryExtensions) {
-		pathname = pathname.slice(0, -extension.length);
-	} else {
-		if (!handleMissingExtension) {
-			return;
-		}
+	const tryPaths: string[] = [];
 
-		tryExtensions = noExtension;
+	const tryExtensions = tsExtensions[extension];
+	if (tryExtensions) {
+		const extensionlessPath = pathname.slice(0, -extension.length);
+
+		tryPaths.push(
+			...tryExtensions.map(
+				extension_ => (
+					extensionlessPath
+					+ extension_
+					+ pathQuery
+				),
+			),
+		);
 	}
 
-	return tryExtensions.map(
-		tsExtension => (
-			pathname
-			+ tsExtension
-			+ (splitPath[1] ? `?${splitPath[1]}` : '')
+	const guessExtensions = (
+		(
+			!(filePath.startsWith(fileUrlPrefix) || isFilePath(pathname))
+			|| pathname.includes(nodeModulesPath)
+			|| pathname.includes('/node_modules/') // For file:// URLs on Windows
+		)
+			? dependencyExtensions
+			: localExtensions
+	);
+	tryPaths.push(
+		...guessExtensions.map(
+			extension_ => (
+				pathname
+				+ extension_
+				+ pathQuery
+			),
 		),
 	);
+
+	return tryPaths;
 };

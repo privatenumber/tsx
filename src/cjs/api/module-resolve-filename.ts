@@ -3,13 +3,18 @@ import Module from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { mapTsExtensions } from '../../utils/map-ts-extensions.js';
 import type { NodeError } from '../../types.js';
-import { isRelativePath, fileUrlPrefix, tsExtensionsPattern } from '../../utils/path-utils.js';
+import {
+	isRelativePath,
+	isFilePath,
+	fileUrlPrefix,
+	tsExtensionsPattern,
+	isDirectoryPattern,
+	nodeModulesPath,
+} from '../../utils/path-utils.js';
 import { tsconfigPathsMatcher, allowJs } from '../../utils/tsconfig.js';
 import { urlSearchParamsStringify } from '../../utils/url-search-params-stringify.js';
 import type { ResolveFilename, SimpleResolve, LoaderState } from './types.js';
 import { createImplicitResolver } from './resolve-implicit-extensions.js';
-
-const nodeModulesPath = `${path.sep}node_modules${path.sep}`;
 
 const getOriginalFilePath = (
 	request: string,
@@ -53,8 +58,11 @@ const resolveTsFilename = (
 	parent: Module.Parent | undefined,
 ) => {
 	if (
-		!(parent?.filename && tsExtensionsPattern.test(parent.filename))
-		&& !allowJs
+		isDirectoryPattern.test(request)
+		|| (
+			!(parent?.filename && tsExtensionsPattern.test(parent.filename))
+			&& !allowJs
+		)
 	) {
 		return;
 	}
@@ -82,7 +90,7 @@ const resolveTsFilename = (
 const resolveRequest = (
 	request: string,
 	parent: Module.Parent | undefined,
-	resolve: SimpleResolve,
+	nextResolve: SimpleResolve,
 ) => {
 	// Support file protocol
 	if (request.startsWith(fileUrlPrefix)) {
@@ -102,25 +110,27 @@ const resolveRequest = (
 		const possiblePaths = tsconfigPathsMatcher(request);
 
 		for (const possiblePath of possiblePaths) {
-			const tsFilename = resolveTsFilename(resolve, possiblePath, parent);
+			const tsFilename = resolveTsFilename(nextResolve, possiblePath, parent);
 			if (tsFilename) {
 				return tsFilename;
 			}
 
 			try {
-				return resolve(possiblePath);
+				return nextResolve(possiblePath);
 			} catch {}
 		}
 	}
 
-	// If extension exists
-	const resolvedTsFilename = resolveTsFilename(resolve, request, parent);
-	if (resolvedTsFilename) {
-		return resolvedTsFilename;
+	// It should only try to resolve TS extensions first if it's a local file (non dependency)
+	if (isFilePath(request)) {
+		const resolvedTsFilename = resolveTsFilename(nextResolve, request, parent);
+		if (resolvedTsFilename) {
+			return resolvedTsFilename;
+		}
 	}
 
 	try {
-		return resolve(request);
+		return nextResolve(request);
 	} catch (error) {
 		const nodeError = error as NodeError;
 
@@ -133,7 +143,7 @@ const resolveRequest = (
 			const isExportsPath = nodeError.message.match(/^Cannot find module '([^']+)'$/);
 			if (isExportsPath) {
 				const exportsPath = isExportsPath[1];
-				const tsFilename = resolveTsFilename(resolve, exportsPath, parent);
+				const tsFilename = resolveTsFilename(nextResolve, exportsPath, parent);
 				if (tsFilename) {
 					return tsFilename;
 				}
@@ -142,7 +152,7 @@ const resolveRequest = (
 			const isMainPath = nodeError.message.match(/^Cannot find module '([^']+)'. Please verify that the package.json has a valid "main" entry$/);
 			if (isMainPath) {
 				const mainPath = isMainPath[1];
-				const tsFilename = resolveTsFilename(resolve, mainPath, parent);
+				const tsFilename = resolveTsFilename(nextResolve, mainPath, parent);
 				if (tsFilename) {
 					return tsFilename;
 				}
@@ -222,17 +232,16 @@ export const createResolveFilename = (
 		return nextResolve(request, parent, ...restOfArgs);
 	}
 
-	let _nextResolve = nextResolve;
-	if (namespace) {
-		/**
-		 * When namespaced, the loaders are registered to the extensions in a hidden way
-		 * so Node's built-in resolver will not try those extensions
-		 *
-		 * To support implicit extensions, we need to enhance the resolver with our own
-		 * re-implementation of the implicit extension resolution
-		 */
-		_nextResolve = createImplicitResolver(_nextResolve);
-	}
+	/**
+	 * Custom implicit resolver to resolve .ts over .js extensions
+	 *
+	 * To support implicit extensions, we need to enhance the resolver with our own
+	 * re-implementation of the implicit extension resolution
+	 *
+	 * Also, when namespaced, the loaders are registered to the extensions in a hidden way
+	 * so Node's built-in resolver will not try those extensions
+	 */
+	const _nextResolve = createImplicitResolver(nextResolve);
 
 	const resolve: SimpleResolve = request_ => _nextResolve(
 		request_,
