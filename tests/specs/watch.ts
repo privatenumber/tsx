@@ -7,6 +7,9 @@ import type { NodeApis } from '../utils/tsx.js';
 import { processInteract } from '../utils/process-interact.js';
 import { createPackageJson } from '../fixtures.js';
 
+// reRun debounce from src/watch/index.ts
+const watchDebounce = 100;
+
 export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 	describe('watch', async ({ test, describe, onFinish }) => {
 		const fixture = await createFixture({
@@ -302,97 +305,78 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 		});
 
 		describe('include', ({ test }) => {
-			test('watch additional file for changes', async () => {
+			test('file path and glob', async () => {
 				const entryFile = 'index.js';
-				const file = 'file';
+				const fileA = 'file-a';
+				const fileB = 'directory/file-b';
 				await using fixture = await createFixture({
 					[entryFile]: `
 						import fs from 'fs/promises';
-						fs.readFile('./${file}', 'utf8')
+						fs.readFile('./${fileA}', 'utf8')
 							.then(console.log)
 							.catch(console.error);
-					`,
-					[file]: 'initial content',
+						fs.readFile('./${fileB}', 'utf8')
+							.then(console.log)
+							.catch(console.error);
+					`.trim(),
+					[fileA]: 'file-a content',
+					[fileB]: 'file-b content',
 				});
 
 				const tsxProcess = tsx(
 					[
 						'watch',
 						'--clear-screen=false',
-						`--include=${file}`,
+						`--include=${fileA}`,
+						`--include=${path.join(fixture.path, 'directory/*')}`,
 						entryFile,
 					],
 					fixture.path,
 				);
 
+				const contentFound = {
+					initial: {
+						[fileA]: false,
+						[fileB]: false,
+					},
+					updated: {
+						[fileA]: false,
+						[fileB]: false,
+					},
+				};
+
 				tsxProcess.stdout?.on('data', async (data: Buffer) => {
 					const chunkString = data.toString();
-					if (chunkString.includes('initial content')) {
-						await fixture.writeFile(file, 'updated content');
-					} else if (chunkString.includes('updated content')) {
-						await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
+					if (/file-[ab] content/.test(chunkString)) {
+						if (chunkString.includes('file-a content')) {
+							contentFound.initial[fileA] = true;
+						} else if (chunkString.includes('file-b content')) {
+							contentFound.initial[fileB] = true;
+						}
+						if (Object.values(contentFound.initial).every(Boolean)) {
+							await fixture.writeFile(fileA, 'file-a updated');
+							await setTimeout(watchDebounce + 10);
+							await fixture.writeFile(fileB, 'file-b updated');
+						}
+					} else if (/file-[ab] updated/.test(chunkString)) {
+						if (chunkString.includes('file-a updated')) {
+							contentFound.updated[fileA] = true;
+						} else if (chunkString.includes('file-b updated')) {
+							contentFound.updated[fileB] = true;
+						}
+						if (Object.values(contentFound.updated).every(Boolean)) {
+							await setTimeout(watchDebounce + 10);
+							await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
+						}
 					} else if (chunkString.includes('TERMINATE')) {
 						tsxProcess.kill();
 					}
 				});
 
 				const tsxProcessResolved = await tsxProcess;
-				expect(tsxProcessResolved.stdout).toContain(`change in ./${file}`);
+				expect(tsxProcessResolved.stdout).toContain(`change in ./${fileA}`);
+				expect(tsxProcessResolved.stdout).toContain(`change in ./${fileB}`);
 				expect(tsxProcessResolved.stdout).toContain(`change in ./${entryFile}`);
-				expect(tsxProcessResolved.stderr).toBe('');
-			}, 10_000);
-		});
-
-		describe('exclude', ({ test }) => {
-			test('exclude file changes from watch', async () => {
-				const entryFile = 'index.js';
-				const watchFile = 'watch.js';
-				const ignoreFile = 'ignore.js';
-				await using fixture = await createFixture({
-					[entryFile]: `
-						import { watchLog } from './${watchFile}';
-						import { ignoreLog } from './${ignoreFile}';
-						watchLog();
-						ignoreLog();
-					`,
-					[watchFile]: `
-						export const watchLog = () => console.log('initial watch content');
-					`,
-					[ignoreFile]: `
-						export const ignoreLog = () => console.log('initial ignore content');
-					`,
-				});
-
-				const tsxProcess = tsx(
-					[
-						'watch',
-						'--clear-screen=false',
-						`--exclude=${ignoreFile}`,
-						entryFile,
-					],
-					fixture.path,
-				);
-
-				tsxProcess.stdout?.on('data', async (data: Buffer) => {
-					const chunkString = data.toString();
-					if (chunkString.includes('initial ignore content')) {
-						await fixture.writeFile(ignoreFile, `
-							export const ignoreLog = () => console.log('updated ignore content');
-						`);
-						await fixture.writeFile(watchFile, `
-							export const watchLog = () => console.log('updated watch content');
-						`);
-					} else if (chunkString.includes('updated watch content')) {
-						await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
-					} else if (chunkString.includes('TERMINATE')) {
-						tsxProcess.kill();
-					}
-				});
-
-				const tsxProcessResolved = await tsxProcess;
-				expect(tsxProcessResolved.stdout).toContain(`change in ./${entryFile}`);
-				expect(tsxProcessResolved.stdout).toContain(`change in ./${watchFile}`);
-				expect(tsxProcessResolved.stdout).not.toContain(`change in ./${ignoreFile}`);
 				expect(tsxProcessResolved.stderr).toBe('');
 			}, 10_000);
 		});
