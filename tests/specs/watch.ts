@@ -341,7 +341,6 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						await setTimeout(watchDebounce + 10);
 						await fixture.writeFile(fileB, 'update-b');
 					} else if (chunkString.includes('update-a update-b')) {
-						await setTimeout(watchDebounce + 10);
 						await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
 					} else if (chunkString.includes('TERMINATE')) {
 						tsxProcess.kill();
