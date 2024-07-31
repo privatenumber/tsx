@@ -305,22 +305,22 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 		});
 
 		describe('include', ({ test }) => {
-			test('file path and glob', async () => {
+			test('file path & glob', async () => {
 				const entryFile = 'index.js';
 				const fileA = 'file-a';
 				const fileB = 'directory/file-b';
 				await using fixture = await createFixture({
 					[entryFile]: `
 						import fs from 'fs/promises';
-						fs.readFile('./${fileA}', 'utf8')
-							.then(console.log)
-							.catch(console.error);
-						fs.readFile('./${fileB}', 'utf8')
-							.then(console.log)
-							.catch(console.error);
+						Promise.all([
+							fs.readFile('./${fileA}', 'utf8'),
+							fs.readFile('./${fileB}', 'utf8')
+						]).then(([a, b]) => {
+							console.log(a + ' ' + b);
+						}).catch(console.error);
 					`.trim(),
-					[fileA]: 'file-a content',
-					[fileB]: 'file-b content',
+					[fileA]: 'content-a',
+					[fileB]: 'content-b',
 				});
 
 				const tsxProcess = tsx(
@@ -334,40 +334,15 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					fixture.path,
 				);
 
-				const contentFound = {
-					initial: {
-						[fileA]: false,
-						[fileB]: false,
-					},
-					updated: {
-						[fileA]: false,
-						[fileB]: false,
-					},
-				};
-
 				tsxProcess.stdout?.on('data', async (data: Buffer) => {
 					const chunkString = data.toString();
-					if (/file-[ab] content/.test(chunkString)) {
-						if (chunkString.includes('file-a content')) {
-							contentFound.initial[fileA] = true;
-						} else if (chunkString.includes('file-b content')) {
-							contentFound.initial[fileB] = true;
-						}
-						if (Object.values(contentFound.initial).every(Boolean)) {
-							await fixture.writeFile(fileA, 'file-a updated');
-							await setTimeout(watchDebounce + 10);
-							await fixture.writeFile(fileB, 'file-b updated');
-						}
-					} else if (/file-[ab] updated/.test(chunkString)) {
-						if (chunkString.includes('file-a updated')) {
-							contentFound.updated[fileA] = true;
-						} else if (chunkString.includes('file-b updated')) {
-							contentFound.updated[fileB] = true;
-						}
-						if (Object.values(contentFound.updated).every(Boolean)) {
-							await setTimeout(watchDebounce + 10);
-							await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
-						}
+					if (chunkString.includes('content-a content-b')) {
+						await fixture.writeFile(fileA, 'update-a');
+						await setTimeout(watchDebounce + 10);
+						await fixture.writeFile(fileB, 'update-b');
+					} else if (chunkString.includes('update-a update-b')) {
+						await setTimeout(watchDebounce + 10);
+						await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
 					} else if (chunkString.includes('TERMINATE')) {
 						tsxProcess.kill();
 					}
