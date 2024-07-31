@@ -302,55 +302,97 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 		});
 
 		describe('include', ({ test }) => {
-			test('watch files for changes', async () => {
+			test('watch additional file for changes', async () => {
 				const entryFile = 'index.js';
 				const file = 'file';
-				const value = 'test';
-				const append = `${value}append`;
-				const fixture = await createFixture({
+				await using fixture = await createFixture({
 					[entryFile]: `
-						import fs from 'fs';
-						fs.readFile('./${file}', (err, data) => {
-							if (!err) {
-								console.log(data.toString());
-							} else {
-								console.log(error);
-							}
-						});
-					`.trim(),
-					[file]: `${value}`,
+						import fs from 'fs/promises';
+						fs.readFile('./${file}', 'utf8')
+							.then(console.log)
+							.catch(console.error);
+					`,
+					[file]: 'initial content',
 				});
 
-				const tsxProcess = tsx({
-					cwd: fixture.path,
-					args: [
+				const tsxProcess = tsx(
+					[
 						'watch',
 						'--clear-screen=false',
 						`--include=${file}`,
 						entryFile,
 					],
-				});
+					fixture.path,
+				);
 
 				tsxProcess.stdout?.on('data', async (data: Buffer) => {
 					const chunkString = data.toString();
-					if (chunkString === `${value}\n`) {
-						await fixture.writeFile(file, `${append}`);
-					}
-
-					if (chunkString === `${append}\n`) {
-						await setTimeout(500);
+					if (chunkString.includes('initial content')) {
+						await fixture.writeFile(file, 'updated content');
+					} else if (chunkString.includes('updated content')) {
 						await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
-					}
-
-					if (chunkString === 'TERMINATE\n') {
+					} else if (chunkString.includes('TERMINATE')) {
 						tsxProcess.kill();
 					}
 				});
 
 				const tsxProcessResolved = await tsxProcess;
-				await fixture.rm();
+				expect(tsxProcessResolved.stdout).toContain(`change in ./${file}`);
+				expect(tsxProcessResolved.stdout).toContain(`change in ./${entryFile}`);
+				expect(tsxProcessResolved.stderr).toBe('');
+			}, 10_000);
+		});
 
-				expect(tsxProcessResolved.stdout).not.toMatch(`current date: ${value}`);
+		describe('exclude', ({ test }) => {
+			test('exclude file changes from watch', async () => {
+				const entryFile = 'index.js';
+				const watchFile = 'watch.js';
+				const ignoreFile = 'ignore.js';
+				await using fixture = await createFixture({
+					[entryFile]: `
+						import { watchLog } from './${watchFile}';
+						import { ignoreLog } from './${ignoreFile}';
+						watchLog();
+						ignoreLog();
+					`,
+					[watchFile]: `
+						export const watchLog = () => console.log('initial watch content');
+					`,
+					[ignoreFile]: `
+						export const ignoreLog = () => console.log('initial ignore content');
+					`,
+				});
+
+				const tsxProcess = tsx(
+					[
+						'watch',
+						'--clear-screen=false',
+						`--exclude=${ignoreFile}`,
+						entryFile,
+					],
+					fixture.path,
+				);
+
+				tsxProcess.stdout?.on('data', async (data: Buffer) => {
+					const chunkString = data.toString();
+					if (chunkString.includes('initial ignore content')) {
+						await fixture.writeFile(ignoreFile, `
+							export const ignoreLog = () => console.log('updated ignore content');
+						`);
+						await fixture.writeFile(watchFile, `
+							export const watchLog = () => console.log('updated watch content');
+						`);
+					} else if (chunkString.includes('updated watch content')) {
+						await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
+					} else if (chunkString.includes('TERMINATE')) {
+						tsxProcess.kill();
+					}
+				});
+
+				const tsxProcessResolved = await tsxProcess;
+				expect(tsxProcessResolved.stdout).toContain(`change in ./${entryFile}`);
+				expect(tsxProcessResolved.stdout).toContain(`change in ./${watchFile}`);
+				expect(tsxProcessResolved.stdout).not.toContain(`change in ./${ignoreFile}`);
 				expect(tsxProcessResolved.stderr).toBe('');
 			}, 10_000);
 		});

@@ -70,6 +70,7 @@ export const watchCommand = command({
 		ignore: argv.flags.ignore,
 		ipc: true,
 	};
+
 	let runProcess: ChildProcess | undefined;
 	let exiting = false;
 
