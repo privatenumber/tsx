@@ -138,7 +138,7 @@ export const files = {
 	export const cjsContext = ${cjsContextCheck};
 
 	// Implicit directory import works outside of immedaite CWD child
-	import '../ts/'
+	import '../json/'
 	`,
 
 	'json/index.json': JSON.stringify({ loaded: 'json' }),

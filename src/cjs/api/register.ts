@@ -7,7 +7,7 @@ import { urlSearchParamsStringify } from '../../utils/url-search-params-stringif
 import { fileUrlPrefix } from '../../utils/path-utils.js';
 import type { LoaderState } from './types.js';
 import { createExtensions } from './module-extensions.js';
-import { createResolveFilename } from './module-resolve-filename.js';
+import { createResolveFilename } from './module-resolve-filename/index.js';
 
 const resolveContext = (
 	id: string,
