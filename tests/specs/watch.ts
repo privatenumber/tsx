@@ -348,9 +348,10 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 				});
 
 				const tsxProcessResolved = await tsxProcess;
-				expect(tsxProcessResolved.stdout).toContain(`change in ./${fileA}`);
-				expect(tsxProcessResolved.stdout).toContain(`change in ./${fileB}`);
-				expect(tsxProcessResolved.stdout).toContain(`change in ./${entryFile}`);
+				const stdout = stripAnsi(tsxProcessResolved.stdout);
+				expect(stdout).toContain(`change in ./${fileA}`);
+				expect(stdout).toContain(`change in ./${fileB}`);
+				expect(stdout).toContain(`change in ./${entryFile}`);
 				expect(tsxProcessResolved.stderr).toBe('');
 			}, 10_000);
 		});
