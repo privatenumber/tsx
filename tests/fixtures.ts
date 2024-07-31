@@ -1,3 +1,4 @@
+import outdent from 'outdent';
 import type { PackageJson, TsConfigJson } from 'type-fest';
 
 export const createPackageJson = (packageJson: PackageJson) => JSON.stringify(packageJson);
@@ -104,7 +105,10 @@ export const expectErrors = {
 
 				if (!thrown) {
 					return new Error('No error thrown');
-				} else if (!thrown.message.includes(expectedError)) {
+				} else if (
+					!thrown.message.includes(expectedError)
+					&& !thrown.stack.includes(expectedError)
+				) {
 					return new Error(\`Message \${JSON.stringify(expectedError)} not found in \${JSON.stringify(thrown.message)}\n\${thrown.stack}\`);
 				}
 			}),
@@ -123,11 +127,18 @@ export const expectErrors = {
 export const files = {
 	...expectErrors,
 
-	'js/index.js': `
+	'js/index.js': outdent`
 	import assert from 'assert';
+	console.log(JSON.stringify({
+		importMetaUrl: import.meta.url,
+		__filename: typeof __filename !== 'undefined' ? __filename : undefined,
+	}));
 	${syntaxLowering}
 	${preserveName}
 	export const cjsContext = ${cjsContextCheck};
+
+	// Implicit directory import works outside of immedaite CWD child
+	import '../json/'
 	`,
 
 	'json/index.json': JSON.stringify({ loaded: 'json' }),
@@ -143,52 +154,67 @@ export const files = {
 		!(typeof m.default === 'object' && ('default' in m.default)),
 	));
 	exports.named = 'named';
+
+	// https://github.com/privatenumber/tsx/issues/248
+	process.setUncaughtExceptionCaptureCallback(console.error);
 	`,
 
-	'mjs/index.mjs': `
-	import assert from 'assert';
-	export const mjsHasCjsContext = ${cjsContextCheck};
+	mjs: {
+		'index.mjs': outdent`
+		import assert from 'assert';
+		import value from './value.mjs';
+		export const mjsHasCjsContext = ${cjsContextCheck};
 
-	import ('pkg-commonjs').then((m) => assert(
-		!(typeof m.default === 'object' && ('default' in m.default)),
-	));
-	`,
+		assert(value === 1, 'wrong default export');
 
-	'ts/index.ts': sourcemap.tag`
-	import assert from 'assert';
-	import type {Type} from 'resolved-by-tsc'
+		import ('pkg-commonjs').then((m) => assert(
+			!(typeof m.default === 'object' && ('default' in m.default)),
+		));
+		`,
+		'value.mjs': 'export default 1',
+	},
 
-	interface Foo {}
+	ts: {
+		'index.ts': sourcemap.tag`
+		import assert from 'assert';
+		import type {Type} from 'resolved-by-tsc'
 
-	type Foo = number
+		interface Foo {}
 
-	declare module 'foo' {}
+		type Foo = number
 
-	enum BasicEnum {
-		Left,
-		Right,
-	}
+		declare module 'foo' {}
 
-	enum NamedEnum {
-		SomeEnum = 'some-value',
-	}
+		enum BasicEnum {
+			Left,
+			Right,
+		}
 
-	export const a = BasicEnum.Left;
+		enum NamedEnum {
+			SomeEnum = 'some-value',
+		}
 
-	export const b = NamedEnum.SomeEnum;
+		export const a = BasicEnum.Left;
 
-	export default function foo(): string {
-		return 'foo'
-	}
+		export const b = NamedEnum.SomeEnum;
 
-	// For "ts as tsx" test
-	const bar = <T>(value: T) => fn<T>();
+		export default function foo(): string {
+			return 'foo'
+		}
 
-	${preserveName}
-	${sourcemap.test('ts')}
-	export const cjsContext = ${cjsContextCheck};
-	${tsCheck};
-	`,
+		// For "ts as tsx" test
+		const bar = <T>(value: T) => fn<T>();
+
+		${preserveName}
+		${sourcemap.test('ts')}
+		export const cjsContext = ${cjsContextCheck};
+		${tsCheck};
+		`,
+
+		'period.in.name.ts': 'export { a } from "."',
+
+		'index.js': 'throw new Error("should not be loaded")',
+	},
 
 	// TODO: test resolution priority for files 'index.tsx` & 'index.tsx.ts` via 'index.tsx'
 
@@ -227,24 +253,75 @@ export const files = {
 	${sourcemap.test('cts')}
 	`,
 
+	'tsconfig.json': createTsconfig({
+		compilerOptions: {
+			paths: {
+				'@/*': ['./*'],
+			},
+		},
+	}),
+
 	'file.txt': 'hello',
 
 	'broken-syntax.ts': 'if',
+
+	'file-with-sourcemap.js': outdent`
+	throw new Error;
+	//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsiYXNkZi5qcyJdLAogICJzb3VyY2VzQ29udGVudCI6IFsiXG5cblxuXG5cblxuXG5cblxuXG5cblxuXG5cblxuXG5cblxuXG5cblxuXG5cblxuXG5cblxuXG5cbnRocm93IG5ldyBFcnJvcigpIl0sCiAgIm1hcHBpbmdzIjogIkFBNkJBLE1BQU0sSUFBSSIsCiAgIm5hbWVzIjogW10KfQo=
+	`,
 
 	node_modules: {
 		'pkg-commonjs': {
 			'package.json': createPackageJson({
 				type: 'commonjs',
+				main: './index.js',
 			}),
+			'index.ts': 'throw new Error("should prefer .js over .ts in node_modules")',
 			'index.js': syntaxLowering,
+			'ts.ts': syntaxLowering,
+			'cjs.js': `
+			const _ = exports;
+			const cjsJs = true;
+			_.cjsJs = cjsJs;
+
+			// Annotate CommonJS exports for Node
+			0 && (module.exports = {
+				cjsJs,
+			});
+			`,
 		},
 		'pkg-module': {
 			'package.json': createPackageJson({
 				type: 'module',
 				main: './index.js',
+				imports: {
+					'#*': './*',
+				},
 			}),
+			'index.ts': 'throw new Error("should prefer .js over .ts in node_modules")',
 			'index.js': `${syntaxLowering}\nexport * from "./empty-export"`,
 			'empty-export/index.js': 'export {}',
+			'ts.ts': `${syntaxLowering}\nexport * from "#empty.js"`,
+			'empty.ts': 'export {}',
+		},
+		'pkg-main': {
+			'package.json': createPackageJson({
+				main: './index.js',
+			}),
+			'index.ts': syntaxLowering,
+		},
+		'pkg-exports': {
+			'package.json': createPackageJson({
+				exports: {
+					'.': './index.js',
+					'./file': './file.js',
+					'./file.js': './error.js',
+					'./file.ts': './error.js',
+				},
+			}),
+			'index.ts': syntaxLowering,
+			'file.js': syntaxLowering,
+			'error.js': 'throw new Error("should not be loaded")',
 		},
 	},
 };

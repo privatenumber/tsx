@@ -20,7 +20,7 @@ export const isRelativePath = (request: string) => (
 	)
 );
 
-const isUnixPath = (request: string) => (
+export const isFilePath = (request: string) => (
 	isRelativePath(request)
 	|| path.isAbsolute(request)
 );
@@ -29,7 +29,7 @@ const isUnixPath = (request: string) => (
 export const requestAcceptsQuery = (request: string) => {
 	// ./foo.js?query
 	// /foo.js?query in UNIX
-	if (isUnixPath(request)) {
+	if (isFilePath(request)) {
 		return true;
 	}
 
@@ -48,6 +48,14 @@ export const fileUrlPrefix = 'file://';
 
 export const tsExtensionsPattern = /\.([cm]?ts|[tj]sx)($|\?)/;
 
+export const cjsExtensionPattern = /[/\\].+\.(?:cts|cjs)(?:$|\?)/;
+
 export const isJsonPattern = /\.json($|\?)/;
 
 export const isDirectoryPattern = /\/(?:$|\?)/;
+
+// Only matches packages names without subpaths (e.g. `foo` but not `foo/bar`)
+// Back slash included to exclude Windows paths
+export const isBarePackageNamePattern = /^(?:@[^/]+\/)?[^/\\]+$/;
+
+export const nodeModulesPath = `${path.sep}node_modules${path.sep}`;

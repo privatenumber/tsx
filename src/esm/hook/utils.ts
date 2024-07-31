@@ -4,21 +4,15 @@ import { tsExtensionsPattern } from '../../utils/path-utils.js';
 import { getPackageType } from './package-json.js';
 
 const getFormatFromExtension = (fileUrl: string): ModuleFormat | undefined => {
-	const queryIndex = fileUrl.indexOf('?');
-	const extension = path.extname(
-		queryIndex === -1
-			? fileUrl
-			: fileUrl.slice(0, queryIndex),
-	);
-	if (extension === '.json') {
-		return 'json';
-	}
+	[fileUrl] = fileUrl.split('?');
 
-	if (extension === '.mjs' || extension === '.mts') {
+	const extension = path.extname(fileUrl);
+
+	if (extension === '.mts') {
 		return 'module';
 	}
 
-	if (extension === '.cjs' || extension === '.cts') {
+	if (extension === '.cts') {
 		return 'commonjs';
 	}
 };
@@ -35,8 +29,6 @@ export const getFormatFromFileUrl = (fileUrl: string) => {
 		return getPackageType(fileUrl);
 	}
 };
-
-export type MaybePromise<T> = T | Promise<T>;
 
 export const namespaceQuery = 'tsx-namespace=';
 export const getNamespace = (

@@ -1,38 +1,16 @@
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { register } from './global-require-patch.js';
-import { resolveFilename } from './module-resolve-filename.js';
+import { register, type NamespacedUnregister } from './register.js';
 
-const getRequestContext = (
-	id: string,
-	fromFile: string | URL,
-) => {
-	if (!fromFile) {
-		throw new Error('The current file path (__filename or import.meta.url) must be provided in the second argument of tsx.require()');
-	}
-
-	if (
-		(typeof fromFile === 'string' && fromFile.startsWith('file://'))
-		|| fromFile instanceof URL
-	) {
-		fromFile = fileURLToPath(fromFile);
-	}
-
-	return path.resolve(path.dirname(fromFile), id);
-};
-
+let api: NamespacedUnregister | undefined;
 const tsxRequire = (
 	id: string,
 	fromFile: string | URL,
 ) => {
-	const contextId = getRequestContext(id, fromFile);
-	const unregister = register();
-	try {
-		// eslint-disable-next-line import-x/no-dynamic-require, n/global-require
-		return require(contextId);
-	} finally {
-		unregister();
+	if (!api) {
+		api = register({
+			namespace: Date.now().toString(),
+		});
 	}
+	return api.require(id, fromFile);
 };
 
 const resolve = (
@@ -40,8 +18,12 @@ const resolve = (
 	fromFile: string | URL,
 	options?: { paths?: string[] | undefined },
 ) => {
-	const contextId = getRequestContext(id, fromFile);
-	return resolveFilename(contextId, module, false, options);
+	if (!api) {
+		api = register({
+			namespace: Date.now().toString(),
+		});
+	}
+	return api.resolve(id, fromFile, options);
 };
 resolve.paths = require.resolve.paths;
 

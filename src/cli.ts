@@ -27,15 +27,23 @@ const relaySignals = (
 ) => {
 	let waitForSignal: undefined | ((signal: NodeJS.Signals) => void);
 
-	ipcSocket.on('data', (data: { type: string; signal: NodeJS.Signals }) => {
-		if (
-			data
-			&& data.type === 'signal'
-			&& waitForSignal
-		) {
-			waitForSignal(data.signal);
-		}
-	});
+	ipcSocket.on(
+		'data',
+		(
+			data: {
+				type: string;
+				signal: NodeJS.Signals;
+			},
+		) => {
+			if (
+				data
+				&& data.type === 'signal'
+				&& waitForSignal
+			) {
+				waitForSignal(data.signal);
+			}
+		},
+	);
 
 	/**
 	 * Wait for signal from preflight bindHiddenSignalsHandler

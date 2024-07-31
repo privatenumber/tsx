@@ -1,44 +1,33 @@
 import { pathToFileURL } from 'node:url';
-
-const resolveSpecifier = (
-	specifier: string,
-	fromFile: string,
-	namespace: string,
-) => {
-	const base = (
-		fromFile.startsWith('file://')
-			? fromFile
-			: pathToFileURL(fromFile)
-	);
-	const resolvedUrl = new URL(specifier, base);
-
-	/**
-	 * A namespace query is added so we get our own module cache
-	 *
-	 * I considered using an import attribute for this, but it doesn't seem to
-	 * make the request unique so it gets cached.
-	 */
-	resolvedUrl.searchParams.set('tsx-namespace', namespace);
-
-	return resolvedUrl.toString();
-};
+import type { TsxRequest } from '../types.js';
+import { fileUrlPrefix } from '../../utils/path-utils.js';
 
 export type ScopedImport = (
 	specifier: string,
-	parentURL: string,
+	parent: string,
 ) => Promise<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 export const createScopedImport = (
 	namespace: string,
 ): ScopedImport => (
 	specifier,
-	parentURL,
+	parent,
 ) => {
-	if (!parentURL) {
+	if (!parent) {
 		throw new Error('The current file path (import.meta.url) must be provided in the second argument of tsImport()');
 	}
 
+	const parentURL = (
+		parent.startsWith(fileUrlPrefix)
+			? parent
+			: pathToFileURL(parent).toString()
+	);
+
 	return import(
-		resolveSpecifier(specifier, parentURL, namespace)
+		`tsx://${JSON.stringify({
+			specifier,
+			parentURL,
+			namespace,
+		} satisfies TsxRequest)}`
 	);
 };

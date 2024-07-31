@@ -8,7 +8,7 @@ declare global {
 	}
 }
 
-declare module 'node:module' {
+declare module 'module' {
 	// https://nodejs.org/api/module.html#loadurl-context-nextload
 	interface LoadHookContext {
 		importAttributes: ImportAssertions;
@@ -17,6 +17,8 @@ declare module 'node:module' {
 	// CommonJS
 	export const _extensions: NodeJS.RequireExtensions;
 
+	export const _cache: NodeJS.Require['cache'];
+
 	export type Parent = {
 
 		/**
@@ -24,12 +26,21 @@ declare module 'node:module' {
 		 * which doesn't have a file path.
 		 */
 		filename: string | null;
+		path: string;
+		paths: string[];
 	};
 
 	export function _resolveFilename(
 		request: string,
-		parent: Parent,
-		isMain: boolean,
+		parent: Parent | undefined,
+		isMain?: boolean,
 		options?: Record<PropertyKey, unknown>,
 	): string;
+
+	export function _nodeModulePaths(path: string): string[];
+
+	interface LoadFnOutput {
+		// Added in https://github.com/nodejs/node/pull/43164
+		responseURL?: string;
+	}
 }

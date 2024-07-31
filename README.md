@@ -1,6 +1,10 @@
 <h1 align="center">
-tsx
 <br>
+<picture>
+	<source media="(prefers-color-scheme: dark)" srcset=".github/logo-dark.svg">
+	<img width="160" alt="tsx" src=".github/logo-light.svg">
+</picture>
+<br><br>
 <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/v/tsx"></a> <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/dm/tsx"></a>
 </h1>
 
@@ -14,19 +18,9 @@ TypeScript Execute (tsx): The easiest way to run TypeScript in Node.js
 
 <p align="center">
 	<a href="https://github.com/sponsors/privatenumber/sponsorships?tier_id=398771"><img width="412" src="https://raw.githubusercontent.com/privatenumber/sponsors/master/banners/assets/donate.webp"></a>
-	<a href="https://github.com/sponsors/privatenumber/sponsorships?tier_id=397608"><img width="412" src="https://raw.githubusercontent.com/privatenumber/sponsors/master/banners/assets/sponsor.webp"></a>
+	<a href="https://github.com/sponsors/privatenumber/sponsorships?tier_id=416984"><img width="412" src="https://raw.githubusercontent.com/privatenumber/sponsors/master/banners/assets/sponsor.webp"></a>
 </p>
 <p align="center"><sup><i>Already a sponsor?</i> Join the discussion in the <a href="https://github.com/pvtnbr/tsx">Development repo</a>!</sup></p>
-
-> [!TIP]
-> **Build your TypeScript projects?**
->
-> Try [<img width="20" valign="middle" src="https://raw.githubusercontent.com/privatenumber/pkgroll/master/.github/logo.webp"> pkgroll](https://github.com/privatenumber/pkgroll)—the zero-config package bundler used by _tsx_!
->
-> _pkgroll_ is a thin Rollup wrapper that makes it so simple for your package to support CommonJS, ESM, & TypeScript.
->
-> If you love tsx, you'll love pkgroll too!
-
 
 ## Sponsors
 

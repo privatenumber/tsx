@@ -6,11 +6,8 @@ export const version = '2';
 
 const toEsmFunctionString = ((imported: Record<string, unknown>) => {
 	const d = 'default';
-	const exports = Object.keys(imported);
 	if (
-		exports.length === 1
-		&& exports[0] === d
-		&& imported[d]
+		imported[d]
 		&& typeof imported[d] === 'object'
 		&& '__esModule' in imported[d]
 	) {

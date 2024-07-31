@@ -1,3 +1,6 @@
+import { register as cjsRegister } from '../../cjs/api/index.js';
+import { isFeatureSupported, esmLoadReadFile } from '../../utils/node-features.js';
+import { isBarePackageNamePattern, cjsExtensionPattern } from '../../utils/path-utils.js';
 import { register, type TsconfigOptions } from './register.js';
 
 type Options = {
@@ -5,6 +8,7 @@ type Options = {
 	onImport?: (url: string) => void;
 	tsconfig?: TsconfigOptions;
 };
+
 const tsImport = (
 	specifier: string,
 	options: string | Options,
@@ -19,6 +23,27 @@ const tsImport = (
 	const isOptionsString = typeof options === 'string';
 	const parentURL = isOptionsString ? options : options.parentURL;
 	const namespace = Date.now().toString();
+
+	// Keep registered for hanging require() calls
+	const cjs = cjsRegister({
+		namespace,
+	});
+
+	/**
+	 * In Node v18, the loader doesn't support reading the CommonJS from
+	 * a data URL, so it can't actually relay the namespace. This is a workaround
+	 * to preemptively determine whether the file is a CommonJS file, and shortcut
+	 * to using the CommonJS loader instead of going through the ESM loader first
+	 */
+	if (
+		!isFeatureSupported(esmLoadReadFile)
+		&& (
+			!isBarePackageNamePattern.test(specifier)
+			&& cjsExtensionPattern.test(specifier)
+		)
+	) {
+		return Promise.resolve(cjs.require(specifier, parentURL));
+	}
 
 	/**
 	 * We don't want to unregister this after load since there can be child import() calls

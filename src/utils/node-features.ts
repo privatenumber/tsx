@@ -53,3 +53,9 @@ export const importAttributes: Version[] = [
 export const testRunnerGlob: Version[] = [
 	[21, 0, 0],
 ];
+
+// https://github.com/nodejs/node/pull/50825
+export const esmLoadReadFile: Version[] = [
+	[20, 11, 0],
+	[21, 3, 0],
+];

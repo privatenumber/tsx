@@ -14,13 +14,13 @@ body:
         - label: I read the documentation and searched existing issues to avoid duplicates
           required: true
 
-        - label: I am reporting a confirmed bug (not seek debugging help)
+        - label: I understand this is a **bug tracker** and anything other than a proven bug will be closed
           required: true
 
-        - label: I understand this is a collaborative project and relies on my contributions
+        - label: I understand this is a free project and relies on community contributions
           required: true
 
-        - label: I read and understood the [Contribution guide](https://github.com/privatenumber/tsx/blob/develop/CONTRIBUTING.md)
+        - label: I read and understood the [Contribution guide](https://github.com/privatenumber/tsx/blob/master/CONTRIBUTING.md)
           required: true
 
   - type: markdown
@@ -90,9 +90,9 @@ body:
 
   - type: checkboxes
     attributes:
-      label: Compensating engineering work financially will speed up resolution
+      label: Compensating engineering work will speed up resolution and support the project
       options:
-        - label: I'm willing to offer financial support
+        - label: I'm willing to offer $10 for financial support
 
   - type: markdown
     attributes:

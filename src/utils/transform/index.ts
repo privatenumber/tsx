@@ -39,19 +39,24 @@ export const transformSync = (
 	filePath: string,
 	extendOptions?: TransformOptions,
 ): Transformed => {
+	const [filePathWithoutQuery, query] = filePath.split('?');
 	const define: { [key: string]: string } = {};
 
-	if (!(filePath.endsWith('.cjs') || filePath.endsWith('.cts'))) {
-		define['import.meta.url'] = JSON.stringify(pathToFileURL(filePath));
+	if (!(filePathWithoutQuery.endsWith('.cjs') || filePathWithoutQuery.endsWith('.cts'))) {
+		define['import.meta.url'] = JSON.stringify(pathToFileURL(filePathWithoutQuery) + (query ? `?${query}` : ''));
 	}
 
 	const esbuildOptions = {
 		...cacheConfig,
 		format: 'cjs',
-		sourcefile: filePath,
+		sourcefile: filePathWithoutQuery,
 		define,
 		banner: '(()=>{',
 		footer: '})()',
+
+		// CJS Annotations for Node. Used by ESM loader for CJS interop
+		platform: 'node',
+
 		...extendOptions,
 	} as const;
 

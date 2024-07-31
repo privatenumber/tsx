@@ -1,23 +1,22 @@
 # Getting started
 
-::: info Prerequisites
-You must have [Node.js](https://nodejs.org/) v18 or higher installed. tsx aims to support the [LTS versions](https://endoflife.date/nodejs) of Node.js.
-:::
+### Prerequisites
 
-## Quick try
+Before you can start using _tsx_, ensure that you have [Node.js installed](https://nodejs.org/en/download/). _tsx_ is designed to be compatible with all [maintained versions](https://endoflife.date/nodejs) of Node.js.
 
-If you want to try `tsx` without installing it, you can use it with [npx](https://docs.npmjs.com/cli/v8/commands/npx).
+## Quickstart
 
-In your command-line, simply pass in a TypeScript file you'd like to run:
+`tsx` can be executed with [npx](https://docs.npmjs.com/cli/v8/commands/npx)—a tool to run npm packages without installing them.
+
+In your command-line, simply pass in a TypeScript file you'd like to run. It's that simple!
 
 ```sh
 npx tsx ./script.ts
 ```
 
-## Installation
+## Project installation
 
-### Install to a project
-If you want to add `tsx` as a development dependency to an npm project, `cd` into the project and run the following:
+To install `tsx` as a project development dependency, run the following command in your project directory:
 
 ::: code-group
 ```sh [npm]
@@ -25,11 +24,16 @@ $ npm install -D tsx
 ```
 
 ```sh [pnpm]
-$ pnpm install -D tsx
+$ pnpm add -D tsx
+```
+
+```sh [yarn]
+$ yarn add -D tsx
 ```
 :::
 
 #### Using `tsx`
+
 Once installed, you can invoke it with your package manager while in the project directory:
 
 ::: code-group
@@ -40,31 +44,30 @@ $ npx tsx ./file.ts
 ```sh [pnpm]
 $ pnpm tsx ./file.ts
 ```
+
+```sh [yarn]
+$ yarn tsx ./file.ts
+```
 :::
 
+#### Using it in `package.json#scripts`
 
-#### Using it in `scripts`
+Project commands are usually organized in the [`package.json#scripts`](https://docs.npmjs.com/cli/v10/using-npm/scripts) object.
 
-Common commands can be added to [`package.json#scripts`](https://docs.npmjs.com/cli/v10/using-npm/scripts) 
+In the `scripts` object, you can reference `tsx` directly without `npx`:
 
-You can reference `tsx` directly in the command like so (you don't need `npx`):
-```json5
+```js
+// package.json
 {
-    // ...
-
     "scripts": {
-        "dev": "tsx ./file.ts"
-    },
-
-    // ...
+        "start": "tsx ./file.ts"// [!code highlight]
+    }
 }
 ```
 
-
-### Install globally
+## Global installation
 
 If you want to use `tsx` anywhere on your computer (without [`npx`](https://docs.npmjs.com/cli/v8/commands/npx)), install it globally:
-
 
 ::: code-group
 ```sh [npm]
@@ -72,11 +75,16 @@ $ npm install -g tsx
 ```
 
 ```sh [pnpm]
-$ pnpm install -g tsx
+$ pnpm add -g tsx
+```
+
+```sh [yarn]
+Yarn 2 doesn't support global installation
+https://yarnpkg.com/migration/guide#use-yarn-dlx-instead-of-yarn-global
 ```
 :::
 
-Then, you can call `tsx` directly:
+This allows you to call `tsx` directly:
 
 ```sh
 tsx file.ts

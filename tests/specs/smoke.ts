@@ -12,7 +12,7 @@ import { packageTypes } from '../utils/package-types.js';
 const wasmPath = path.resolve('tests/fixtures/test.wasm');
 const wasmPathUrl = pathToFileURL(wasmPath).toString();
 
-export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
+export default testSuite(async ({ describe }, { tsx, supports, version }: NodeApis) => {
 	describe('Smoke', ({ describe }) => {
 		for (const packageType of packageTypes) {
 			const isCommonJs = packageType === 'commonjs';
@@ -33,14 +33,24 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						import 'node:fs';
 
 						import * as pkgCommonjs from 'pkg-commonjs';
+
+						// Named exports from CommonJS
+						import { cjsJs } from 'pkg-commonjs/cjs';
+
 						import * as pkgModule from 'pkg-module';
+						import 'pkg-module/index';
 						import 'pkg-module/empty-export'; // implicit directory & extension
 
-						// .js
+						import 'pkg-exports/file';
+
+						// .js in esm syntax
 						import * as js from './js/index.js';
 						import './js/index.js?query=123';
+						import '@/js/index.js?query=123';
 						import './js/index';
+						import '@/js/index';
 						import './js/';
+						import '@/js/';
 
 						// No double .default.default in Dynamic Import
 						import/* comment */('./js/index.js').then(m => {
@@ -58,7 +68,9 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// .json
 						import * as json from './json/index.json';
 						import './json/index';
+						import '@/json/index';
 						import './json/';
+						import '@/json/';
 
 						// .cjs
 						import * as cjs from './cjs/index.cjs';
@@ -93,8 +105,11 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// Is TS loadable here?
 						// Import jsx?
 
-						// Unsupported files
 						expectErrors(
+							// External source maps
+							[() => import ('./file-with-sourcemap.js'), 'asdf.js:30:7'],
+
+							// Unsupported files
 							[() => import ('./file.txt'), 'Unknown file extension'],
 							[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
 							${
@@ -122,7 +137,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 							pkgCommonjs,
 							pkgModule,
 						}));
-		
+
 						// Could .js import TS files?
 
 						// Comment at EOF: could be a sourcemap declaration. Edge case for inserting functions here
@@ -135,6 +150,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						console.error(error);
 						console.log(p);
 					});
+
 					expect(p.failed).toBe(false);
 					expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(fixture.getPath('import-from-js.js'))}"`);
 					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
@@ -143,8 +159,18 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					expect(p.stdout).toMatch('"pkgModule":{"default":1,"named":2}');
 					if (isCommonJs) {
 						expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
+
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","__filename":".+?index\.js"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","__filename":".+?index\.js"\}/);
 					} else {
-						expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"default":1,"named":2}}');
+						expect(p.stdout).toMatch(
+							supports.cjsInterop
+								? '"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}'
+								: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
+						);
+
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123"\}/);
 					}
 
 					// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
@@ -171,12 +197,21 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						// Dependencies
 						import * as pkgCommonjs from 'pkg-commonjs';
 						import * as pkgModule from 'pkg-module';
+						import 'pkg-module/index';
 
-						// TODO: Test resolving TS files in dependencies (e.g. implicit extensions & export maps)
+						import 'pkg-exports/file';
 
-						// .js
+						// Resolving TS files in dependencies (e.g. implicit extensions & export maps)
+						import 'pkg-commonjs/ts.js';
+						import 'pkg-module/ts.js';
+
+						// Named exports from CommonJS
+						import { cjsJs } from 'pkg-commonjs/cjs';
+
+						// .js in esm syntax
 						import * as js from './js/index.js';
 						import './js/index.js?query=123';
+						import '@/js/index.js?query=123';
 						import './js/index';
 						import './js/';
 
@@ -236,29 +271,41 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 									: ''
 							}
 						);
-		
+
 						// .ts
 						import './ts/index.ts';
 						import './ts/index.js';
+						import '@/ts/index.js';
 						import './ts/index.jsx';
 						import './ts/index';
+						import '@/ts/index';
 						import './ts/';
-		
+						import '@/ts/';
+						import './ts/period.in.name';
+						import '@/ts/period.in.name';
+
 						// .jsx
 						import * as jsx from './jsx/index.jsx';
 						import './jsx/index.js';
+						import '@/jsx/index.js';
 						import './jsx/index';
+						import '@/jsx/index';
 						import './jsx/';
+						import '@/jsx/';
 
 						// .tsx
 						import './tsx/index.tsx';
 						import './tsx/index.js';
 						import './tsx/index.jsx';
+						import '@/tsx/index.jsx';
 						import './tsx/index';
+						import '@/tsx/index';
 						import './tsx/';
+						import '@/tsx/';
 
 						// .cts
 						import './cts/index.cjs';
+						import '@/cts/index.cjs';
 						expectErrors(
 							// TODO:
 							// [() => import ('./cts/index.cts'), 'Cannot find module'],
@@ -277,6 +324,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 
 						// .mts
 						import './mts/index.mjs';
+						import '@/mts/index.mjs';
 						expectErrors(
 							// TODO:
 							// [() => import ('./mts/index.mts'), 'Cannot find module'],
@@ -293,8 +341,11 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						);
 						// Loading via Node arg should not work via .mjs but with .mts
 
-						// Unsupported files
 						expectErrors(
+							// External source maps
+							[() => import ('./file-with-sourcemap.js'), 'asdf.js:30:7'],
+
+							// Unsupported files
 							[() => import ('./file.txt'), 'Unknown file extension'],
 							[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
 							${
@@ -335,6 +386,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 							NODE_V8_COVERAGE: 'coverage',
 						},
 					});
+
 					onTestFail((error) => {
 						console.error(error);
 						console.log(p);
@@ -348,8 +400,18 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					expect(p.stdout).toMatch('"pkgModule":{"default":1,"named":2}');
 					if (isCommonJs) {
 						expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
+
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","__filename":".+?index\.js"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","__filename":".+?index\.js"\}/);
 					} else {
-						expect(p.stdout).toMatch('"pkgCommonjs":{"default":{"default":1,"named":2}}');
+						expect(p.stdout).toMatch(
+							supports.cjsInterop
+								? '"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}'
+								: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
+						);
+
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123"\}/);
 					}
 
 					// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
@@ -360,6 +422,58 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					const coverageSourceMapCache = await hasCoverageSourcesContent(coverageDirectory);
 					expect(coverageSourceMapCache).toBe(true);
 				});
+
+				test('resolve ts in exports', async () => {
+					await using fixture = await createFixture({
+						'package.json': createPackageJson({ type: packageType }),
+						'index.ts': `
+						import A from 'pkg'
+						console.log(A satisfies 2)
+						`,
+						'node_modules/pkg': {
+							'package.json': createPackageJson({
+								name: 'pkg',
+								exports: './test.js',
+							}),
+							'test.ts': 'export default 1',
+						},
+					});
+
+					const p = await tsx(['index.ts'], {
+						cwd: fixture.path,
+					});
+					expect(p.failed).toBe(false);
+				});
+
+				/**
+				 * Node v18 has a bug:
+				 * Error [ERR_INTERNAL_ASSERTION]:
+				 * 	Code: ERR_MODULE_NOT_FOUND; The provided arguments length (2) does
+				 *  not match the required ones (3)
+				 */
+				if (!version.startsWith('18.')) {
+					test('resolve ts in main', async () => {
+						await using fixture = await createFixture({
+							'package.json': createPackageJson({ type: packageType }),
+							'index.ts': `
+							import A from 'pkg'
+							console.log(A satisfies 2);
+							`,
+							'node_modules/pkg': {
+								'package.json': createPackageJson({
+									name: 'pkg',
+									main: './test.js',
+								}),
+								'test.ts': 'export default 1',
+							},
+						});
+
+						const p = await tsx(['index.ts'], {
+							cwd: fixture.path,
+						});
+						expect(p.failed).toBe(false);
+					});
+				}
 			});
 		}
 	});

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 
 export const readJsonFile = <JsonType>(
-	filePath: string,
+	filePath: string | URL,
 ) => {
 	try {
 		const jsonString = fs.readFileSync(filePath, 'utf8');

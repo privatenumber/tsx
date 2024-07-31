@@ -4,3 +4,9 @@ export type Message = {
 	type: 'load';
 	url: string;
 };
+
+export type TsxRequest = {
+	namespace: string;
+	parentURL: string;
+	specifier: string;
+};
