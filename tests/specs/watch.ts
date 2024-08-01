@@ -7,9 +7,6 @@ import type { NodeApis } from '../utils/tsx.js';
 import { processInteract } from '../utils/process-interact.js';
 import { createPackageJson } from '../fixtures.js';
 
-// reRun debounce from src/watch/index.ts
-const watchDebounce = 100;
-
 export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 	describe('watch', async ({ test, describe, onFinish }) => {
 		const fixture = await createFixture({
@@ -338,7 +335,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					const chunkString = data.toString();
 					if (chunkString.includes('content-a content-b')) {
 						await fixture.writeFile(fileA, 'update-a');
-						await setTimeout(watchDebounce + 10);
+					} else if (chunkString.includes('update-a content-b')) {
 						await fixture.writeFile(fileB, 'update-b');
 					} else if (chunkString.includes('update-a update-b')) {
 						await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
@@ -348,7 +345,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 				});
 
 				const tsxProcessResolved = await tsxProcess;
-				const stdout = stripAnsi(tsxProcessResolved.stdout);
+				const stdout = stripAnsi(tsxProcessResolved.stdout).replaceAll(/\\+/, '/');
 				expect(stdout).toContain(`change in ./${fileA}`);
 				expect(stdout).toContain(`change in ./${fileB}`);
 				expect(stdout).toContain(`change in ./${entryFile}`);
