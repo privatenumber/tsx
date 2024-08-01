@@ -141,8 +141,8 @@ const resolveDirectory: ResolveHook = async (
 	context,
 	nextResolve,
 ) => {
-	if (specifier === '.') {
-		specifier = './';
+	if (specifier === '.' || specifier === '..') {
+		specifier += '/';
 	}
 
 	if (isDirectoryPattern.test(specifier)) {
