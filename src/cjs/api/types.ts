@@ -1,4 +1,4 @@
-import type Module from 'module';
+import type Module from 'node:module';
 
 export type LoaderState = {
 	enabled: boolean;

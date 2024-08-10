@@ -1,4 +1,4 @@
-import { setTimeout } from 'timers/promises';
+import { setTimeout } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { execaNode, type NodeOptions } from 'execa';
 import stripAnsi from 'strip-ansi';

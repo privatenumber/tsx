@@ -1,6 +1,6 @@
 import type { Readable } from 'node:stream';
-import { on } from 'events';
-import { setTimeout } from 'timers/promises';
+import { on } from 'node:events';
+import { setTimeout } from 'node:timers/promises';
 
 type MaybePromise<T> = T | Promise<T>;
 

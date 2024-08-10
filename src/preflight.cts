@@ -62,7 +62,7 @@ if (isMainThread) {
 	 * Although it is required twice, it's not executed twice because
 	 * it's cached.
 	 */
-	// eslint-disable-next-line import-x/no-unresolved, n/global-require
+	// eslint-disable-next-line import-x/no-unresolved, @typescript-eslint/no-require-imports
 	require('./cjs/index.cjs');
 
 	(async () => {
