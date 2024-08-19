@@ -36,6 +36,11 @@ const flags = {
 		type: [String],
 		description: 'Paths & globs to exclude from being watched',
 	},
+	onReturnKey: {
+		type: Boolean,
+		description: 'Trigger re-run on Return key press',
+		default: true,
+	},
 } as const;
 
 export const watchCommand = command({
@@ -216,5 +221,6 @@ export const watchCommand = command({
 	).on('all', reRun);
 
 	// On "Return" key
-	process.stdin.on('data', () => reRun('Return key'));
+	if (argv.flags.onReturnKey)
+		process.stdin.on('data', () => reRun('Return key'));
 });
