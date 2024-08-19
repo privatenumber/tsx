@@ -153,7 +153,7 @@ Back then, _ts-node_ was the go-to tool for running TypeScript in Node.js, but i
 
 Right now, the _tsx_ project development relies on user donations, which isn't sustainable in the long run. To keep _tsx_ reliable and growing, we need funding to cover maintenance and development costs.
 
-If your company uses _tsx_ and would like to sponsor the project, [we'd love to hear from you](/contact)!
+If your company uses _tsx_ and would like to support the project, consider [sponsoring us](https://github.com/sponsors/privatenumber/sponsorships?pay_prorated=false&tier_id=388346)—in return we'll put up your logo + link!
 
 ## Sponsors
 
