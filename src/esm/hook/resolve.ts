@@ -41,16 +41,29 @@ const getMissingPathFromNotFound = (
 
 	const isPackagePath = nodeError.message.match(/^Cannot find package '([^']+)'/);
 	if (isPackagePath) {
-		const [, packageJsonPath] = isPackagePath;
-		const packageJsonUrl = pathToFileURL(packageJsonPath);
-
-		if (!packageJsonUrl.pathname.endsWith('/package.json')) {
-			packageJsonUrl.pathname += '/package.json';
+		const [, packagePath] = isPackagePath;
+		if (!path.isAbsolute(packagePath)) {
+			return;
 		}
 
-		const packageJson = readJsonFile<PackageJson>(packageJsonUrl);
-		if (packageJson?.main) {
-			return new URL(packageJson.main, packageJsonUrl).toString();
+		const packageUrl = pathToFileURL(packagePath);
+
+		// Node v20.0.0 logs the package directory
+		// Slash check / works on Windows as well because it's a path URL
+		if (packageUrl.pathname.endsWith('/')) {
+			packageUrl.pathname += 'package.json';
+		}
+
+		// Node v21+ logs the package package.json path
+		if (packageUrl.pathname.endsWith('/package.json')) {
+			// packageJsonUrl.pathname += '/package.json';
+			const packageJson = readJsonFile<PackageJson>(packageUrl);
+			if (packageJson?.main) {
+				return new URL(packageJson.main, packageUrl).toString();
+			}
+		} else {
+			// Node v22.6.0 logs the entry path so we don't need to look it up from package.json
+			return packageUrl.toString();
 		}
 	}
 };
