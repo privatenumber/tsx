@@ -300,5 +300,64 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 				expect(p.stderr).toBe('');
 			}, 10_000);
 		});
+
+		describe('watch additional files', ({ test }) => {
+			test('file path & glob', async () => {
+				const entryFile = 'index.js';
+				const fileA = 'file-a';
+				const fileB = 'directory/file-b';
+				await using fixture = await createFixture({
+					[entryFile]: `
+						import fs from 'fs/promises';
+						Promise.all([
+							fs.readFile('./${fileA}', 'utf8'),
+							fs.readFile('./${fileB}', 'utf8')
+						]).then(console.log, console.error);
+					`.trim(),
+					[fileA]: 'content-a',
+					[fileB]: 'content-b',
+				});
+
+				const tsxProcess = tsx(
+					[
+						'watch',
+						'--clear-screen=false',
+						`--include=${fileA}`,
+						'--include=directory/*',
+						entryFile,
+					],
+					fixture.path,
+				);
+
+				await processInteract(
+					tsxProcess.stdout!,
+					[
+						(data) => {
+							if (data.includes("'content-a', 'content-b'")) {
+								fixture.writeFile(fileA, 'update-a');
+								return true;
+							}
+						},
+						(data) => {
+							if (data.includes("'update-a', 'content-b'")) {
+								fixture.writeFile(fileB, 'update-b');
+								return true;
+							}
+						},
+						(data) => {
+							if (data.includes("'update-a', 'update-b'")) {
+								return true;
+							}
+						},
+					],
+					9000,
+				);
+
+				tsxProcess.kill();
+
+				const tsxProcessResolved = await tsxProcess;
+				expect(tsxProcessResolved.stderr).toBe('');
+			}, 10_000);
+		});
 	});
 });
