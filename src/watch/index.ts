@@ -36,7 +36,7 @@ const flags = {
 		type: [String],
 		description: 'Paths & globs to exclude from being watched',
 	},
-	watch: {
+	include: {
 		type: [String],
 		description: 'Additional paths & globs to watch',
 	},
@@ -64,7 +64,7 @@ export const watchCommand = command({
 		tsconfigPath: argv.flags.tsconfig,
 		clearScreen: argv.flags.clearScreen,
 		ignore: argv.flags.ignore,
-		watch: argv.flags.watch,
+		include: argv.flags.include,
 		ipc: true,
 	};
 
@@ -202,7 +202,7 @@ export const watchCommand = command({
 	const watcher = watch(
 		[
 			...argv._,
-			...options.watch,
+			...options.include,
 		],
 		{
 			cwd: process.cwd(),

@@ -322,8 +322,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					[
 						'watch',
 						'--clear-screen=false',
-						`--watch=${fileA}`,
-						'--watch=directory/*',
+						`--include=${fileA}`,
+						'--include=directory/*',
 						entryFile,
 					],
 					fixture.path,
