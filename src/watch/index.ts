@@ -32,13 +32,18 @@ const flags = {
 		description: 'Clearing the screen on rerun',
 		default: true,
 	},
+	// Deprecated
 	ignore: {
 		type: [String],
-		description: 'Paths & globs to exclude from being watched',
+		description: 'Paths & globs to exclude from being watched (Deprecated: use --exclude)',
 	},
 	include: {
 		type: [String],
 		description: 'Additional paths & globs to watch',
+	},
+	exclude: {
+		type: [String],
+		description: 'Paths & globs to exclude from being watched',
 	},
 } as const;
 
@@ -63,8 +68,11 @@ export const watchCommand = command({
 		noCache: argv.flags.noCache,
 		tsconfigPath: argv.flags.tsconfig,
 		clearScreen: argv.flags.clearScreen,
-		ignore: argv.flags.ignore,
 		include: argv.flags.include,
+		exclude: [
+			...argv.flags.ignore,
+			...argv.flags.exclude,
+		],
 		ipc: true,
 	};
 
@@ -217,7 +225,7 @@ export const watchCommand = command({
 				// 3rd party packages
 				'**/{node_modules,bower_components,vendor}/**',
 
-				...options.ignore,
+				...options.exclude,
 			],
 			ignorePermissionErrors: true,
 		},
