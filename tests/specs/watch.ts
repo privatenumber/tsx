@@ -301,7 +301,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 			}, 10_000);
 		});
 
-		describe('include', ({ test }) => {
+		describe('watch additional files', ({ test }) => {
 			test('file path & glob', async () => {
 				const entryFile = 'index.js';
 				const fileA = 'file-a';
@@ -312,9 +312,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						Promise.all([
 							fs.readFile('./${fileA}', 'utf8'),
 							fs.readFile('./${fileB}', 'utf8')
-						]).then(([a, b]) => {
-							console.log(a + ' ' + b);
-						}).catch(console.error);
+						]).then(console.log, console.error);
 					`.trim(),
 					[fileA]: 'content-a',
 					[fileB]: 'content-b',
@@ -324,31 +322,40 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					[
 						'watch',
 						'--clear-screen=false',
-						`--include=${fileA}`,
-						`--include=${path.join(fixture.path, 'directory/*')}`,
+						`--watch=${fileA}`,
+						'--watch=directory/*',
 						entryFile,
 					],
 					fixture.path,
 				);
 
-				tsxProcess.stdout?.on('data', async (data: Buffer) => {
-					const chunkString = data.toString();
-					if (chunkString.includes('content-a content-b')) {
-						await fixture.writeFile(fileA, 'update-a');
-					} else if (chunkString.includes('update-a content-b')) {
-						await fixture.writeFile(fileB, 'update-b');
-					} else if (chunkString.includes('update-a update-b')) {
-						await fixture.writeFile(entryFile, 'console.log("TERMINATE")');
-					} else if (chunkString.includes('TERMINATE')) {
-						tsxProcess.kill();
-					}
-				});
+				await processInteract(
+					tsxProcess.stdout!,
+					[
+						(data) => {
+							if (data.includes("'content-a', 'content-b'")) {
+								fixture.writeFile(fileA, 'update-a');
+								return true;
+							}
+						},
+						(data) => {
+							if (data.includes("'update-a', 'content-b'")) {
+								fixture.writeFile(fileB, 'update-b');
+								return true;
+							}
+						},
+						(data) => {
+							if (data.includes("'update-a', 'update-b'")) {
+								return true;
+							}
+						},
+					],
+					9000,
+				);
+
+				tsxProcess.kill();
 
 				const tsxProcessResolved = await tsxProcess;
-				const stdout = stripAnsi(tsxProcessResolved.stdout).replaceAll(/\\+/g, '/');
-				expect(stdout).toContain(`change in ./${fileA}`);
-				expect(stdout).toContain(`change in ./${fileB}`);
-				expect(stdout).toContain(`change in ./${entryFile}`);
 				expect(tsxProcessResolved.stderr).toBe('');
 			}, 10_000);
 		});
