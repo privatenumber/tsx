@@ -15,8 +15,8 @@ export const createImplicitResolver = (
 ): SimpleResolve => (
 	request,
 ) => {
-	if (request === '.') {
-		request = './';
+	if (request === '.' || request === '..' || request.endsWith('/..')) {
+		request += '/';
 	}
 
 	/**

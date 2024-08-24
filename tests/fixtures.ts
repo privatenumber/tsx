@@ -212,6 +212,10 @@ export const files = {
 		`,
 
 		'period.in.name.ts': 'export { a } from "."',
+		dotdot: {
+			'index.ts': 'export { a } from ".."',
+			'dotdot/index.ts': 'export { a } from "../.."',
+		},
 
 		'index.js': 'throw new Error("should not be loaded")',
 	},

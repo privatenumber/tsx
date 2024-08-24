@@ -105,7 +105,7 @@ export const register: Register = (
 				parameters.set('namespace', options.namespace);
 			}
 
-			// eslint-disable-next-line n/global-require,import-x/no-dynamic-require
+			// eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-dynamic-require
 			return require(request + urlSearchParamsStringify(parameters));
 		};
 		unregister.require = scopedRequire;

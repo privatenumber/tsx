@@ -1,5 +1,5 @@
 // Hook require() to transform to CJS
-// eslint-disable-next-line import-x/no-unresolved
+// eslint-disable-next-line import-x/no-unresolved, @typescript-eslint/no-require-imports
 require('./cjs/index.cjs');
 
 /*

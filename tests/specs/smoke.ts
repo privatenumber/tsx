@@ -283,6 +283,8 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 						import '@/ts/';
 						import './ts/period.in.name';
 						import '@/ts/period.in.name';
+						import './ts/dotdot';
+						import './ts/dotdot/dotdot';
 
 						// .jsx
 						import * as jsx from './jsx/index.jsx';
@@ -452,7 +454,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 				 *  not match the required ones (3)
 				 */
 				if (!version.startsWith('18.')) {
-					test('resolve ts in main', async () => {
+					test('resolve ts in main', async ({ onTestFail }) => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson({ type: packageType }),
 							'index.ts': `
@@ -470,6 +472,9 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 
 						const p = await tsx(['index.ts'], {
 							cwd: fixture.path,
+						});
+						onTestFail(() => {
+							console.log(p);
 						});
 						expect(p.failed).toBe(false);
 					});
