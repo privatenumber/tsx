@@ -20,6 +20,7 @@ declare module 'module' {
 	export const _cache: NodeJS.Require['cache'];
 
 	export type Parent = {
+		id: string;
 
 		/**
 		 * Can be null if the parent id is 'internal/preload' (e.g. via --require)

@@ -13,7 +13,7 @@ const wasmPath = path.resolve('tests/fixtures/test.wasm');
 const wasmPathUrl = pathToFileURL(wasmPath).toString();
 
 export default testSuite(async ({ describe }, { tsx, supports, version }: NodeApis) => {
-	describe('Smoke', ({ describe }) => {
+	describe('Smoke', ({ describe, test }) => {
 		for (const packageType of packageTypes) {
 			const isCommonJs = packageType === 'commonjs';
 
@@ -481,5 +481,44 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 				}
 			});
 		}
+
+		// https://github.com/privatenumber/tsx/issues/651
+		test('resolves same relative path from CJS loaded by ESM', async ({ onTestFail }) => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'commonjs' }),
+				a: {
+					'index.ts': `
+					import { value } from './value.js';
+
+					if (value !== 1) {
+						throw new Error('Unexpected value');
+					}
+					`,
+					'value.js': 'export const value = 1;',
+				},
+				b: {
+					'index.ts': `
+					import { value } from './value.js';
+
+					if (value !== 2) {
+						throw new Error('Unexpected value');
+					}
+					`,
+					'value.js': 'export const value = 2;',
+				},
+				'index.mjs': `
+				import './a/index.js';
+				import './b/index.js';
+				`,
+			});
+
+			const p = await tsx(['index.mjs'], {
+				cwd: fixture.path,
+			});
+			onTestFail(() => {
+				console.log(p);
+			});
+			expect(p.failed).toBe(false);
+		});
 	});
 });

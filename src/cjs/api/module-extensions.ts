@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import Module from 'node:module';
 import type { TransformOptions } from 'esbuild';
 import { transformSync } from '../../utils/transform/index.js';
@@ -94,6 +95,17 @@ export const createExtensions = (
 		// If request namespace doesnt match the namespace, ignore
 		if ((searchParams.get('namespace') ?? undefined) !== namespace) {
 			return defaultLoader(module, filePath);
+		}
+
+		/**
+		 * In new Module(), m.path = path.dirname(module.id) but module.id coming from
+		 * ESM resolver may be a data: path
+		 *
+		 * In these cases, we fix m.path to be the actual directory of the file
+		 */
+		// https://github.com/nodejs/node/blob/v22.8.0/lib/internal/modules/cjs/loader.js#L298
+		if (module.id.startsWith('data:text/javascript,')) {
+			module.path = path.dirname(cleanFilePath);
 		}
 
 		// For tracking dependencies in watch mode
