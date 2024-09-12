@@ -11,15 +11,16 @@ import {
 	type NodeApis,
 } from '../utils/tsx.js';
 import { createPackageJson, createTsconfig, expectErrors } from '../fixtures.js';
+import { outdent } from 'outdent';
 
 const tsFiles = {
-	'file.ts': `
+	'file.ts': outdent`
 	import { foo } from './foo'
 	import { json } from './json.json'
 	export const message = \`\${foo} \${json} \${(typeof __filename === 'undefined' ? import.meta.url : __filename).split(/[\\\\/]/).pop()}\` as string
 	export { async } from './foo'
 	`,
-	'foo.ts': `
+	'foo.ts': outdent`
 	import { setTimeout } from 'node:timers/promises'
 	import { bar } from './bar.js'
 	export const foo = \`foo \${bar}\` as string
@@ -30,7 +31,7 @@ const tsFiles = {
 		node_modules: {
 			'pkg/index.js': 'module.exports = 1',
 		},
-		'exports-no.cts': `
+		'exports-no.cts': outdent`
 		// Supports decorators
 		const log = (target, key, descriptor) => descriptor;
 		class Example {
@@ -41,7 +42,7 @@ const tsFiles = {
 		`,
 		'exports-yes.cts': 'module.exports = require("./reexport.cjs") as string; require("pkg");',
 		'esm-syntax.js': 'export const esmSyntax = "esm syntax"',
-		'reexport.cjs': `
+		'reexport.cjs': outdent`
 		exports.cjsReexport = "cjsReexport";
 		exports.esmSyntax = require("./esm-syntax.js").esmSyntax;
 		`,
@@ -81,7 +82,11 @@ export default testSuite(({ describe }, node: NodeApis) => {
 		describe('CommonJS', ({ describe, test }) => {
 			test('cli', async () => {
 				await using fixture = await createFixture({
-					'index.ts': 'import { message } from \'./file\';\n\nconsole.log(message, new Error().stack);',
+					'index.ts': outdent`
+					import { message } from './file';
+
+					console.log(message, new Error().stack);
+					`,
 					...tsFiles,
 				});
 
@@ -95,7 +100,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 			test('loader overwritable from Module', async () => {
 				await using fixture = await createFixture({
-					'index.mjs': `
+					'index.mjs': outdent`
 					import Module from 'node:module';
 					const _require = Module.createRequire(import.meta.url);
 					_require.extensions['.ts'] = () => {};
@@ -110,12 +115,12 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 			test('works with append-transform (nyc)', async () => {
 				await using fixture = await createFixture({
-					'index.js': `
+					'index.js': outdent`
 					import path from 'node:path';
 					import './ts.ts'
 					`,
 					'ts.ts': 'export const ts = "ts" as string',
-					'hook.js': `
+					'hook.js': outdent`
 					const path = require('path');
 					const appendTransform = require('append-transform')
 					appendTransform((code, filename) => {
@@ -151,7 +156,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			describe('register', ({ test }) => {
 				test('register / unregister', async () => {
 					await using fixture = await createFixture({
-						'register.cjs': `
+						'register.cjs': outdent`
 						const { register } = require(${JSON.stringify(tsxCjsApiPath)});
 						try {
 							require('./file');
@@ -189,7 +194,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 				test('namespace', async () => {
 					await using fixture = await createFixture({
-						'require.cjs': `
+						'require.cjs': outdent`
 						const { expectErrors } = require('expect-errors');
 						const path = require('node:path');
 						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
@@ -231,7 +236,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			describe('tsx.require()', ({ test }) => {
 				test('loads', async () => {
 					await using fixture = await createFixture({
-						'require.cjs': `
+						'require.cjs': outdent`
 						const path = require('node:path');
 						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
 						try {
@@ -271,7 +276,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 				test('catchable', async () => {
 					await using fixture = await createFixture({
-						'require.cjs': `
+						'require.cjs': outdent`
 						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
 						try { tsx.require('./syntax-error', __filename); } catch {}
 						`,
@@ -288,7 +293,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 				test('chainable', async () => {
 					await using fixture = await createFixture({
-						'require.cjs': `
+						'require.cjs': outdent`
 						const path = require('node:path');
 						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
 
@@ -327,7 +332,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 				test('works with proxyquire (eslint tests)', async () => {
 					await using fixture = await createFixture({
-						'index.js': `
+						'index.js': outdent`
 						const proxyquire = require('proxyquire');
 						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
 						
@@ -340,7 +345,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						});
 						`,
 
-						'test.js': `
+						'test.js': outdent`
 						const path = require('path');
 						console.log(path.sep);
 						`,
@@ -363,7 +368,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			test('cli', async () => {
 				await using fixture = await createFixture({
 					'package.json': createPackageJson({ type: 'module' }),
-					'index.ts': `
+					'index.ts': outdent`
 					import { message } from "./file";
 					console.log(message, new Error().stack);
 					`,
@@ -375,7 +380,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					nodeOptions: [node.supports.moduleRegister ? '--import' : '--loader', tsxEsmPath],
 				});
 				expect(stdout).toContain('foo bar');
-				expect(stdout).toContain('index.ts:3:27');
+				expect(stdout).toContain('index.ts:2:22');
 			});
 
 			test('cli - cjsInterop', async () => {
@@ -396,7 +401,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				test('module.register', async () => {
 					await using fixture = await createFixture({
 						'package.json': createPackageJson({ type: 'module' }),
-						'module-register.mjs': `
+						'module-register.mjs': outdent`
 						import { register } from 'node:module';
 
 						await import('./file.ts').catch((error) => {
@@ -426,7 +431,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					test('register / unregister', async () => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson({ type: 'module' }),
-							'register.mjs': `
+							'register.mjs': outdent`
 							import { register } from ${JSON.stringify(tsxEsmApiPath)};
 							try {
 								await import('./file.ts?1');
@@ -471,7 +476,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					test('onImport', async () => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson({ type: 'module' }),
-							'register.mjs': `
+							'register.mjs': outdent`
 							import { register } from ${JSON.stringify(tsxEsmApiPath)};
 
 							const unregister = register({
@@ -497,7 +502,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					test('namespace & onImport', async () => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson({ type: 'module' }),
-							'register.mjs': `
+							'register.mjs': outdent`
 							import { setTimeout } from 'node:timers/promises';
 							import { register } from ${JSON.stringify(tsxEsmApiPath)};
 
@@ -530,7 +535,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 								'tsconfig.json': createTsconfig({
 									extends: 'doesnt-exist',
 								}),
-								'register.mjs': `
+								'register.mjs': outdent`
 								import { register } from ${JSON.stringify(tsxEsmApiPath)};
 								register();
 								`,
@@ -548,7 +553,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 								'tsconfig.json': createTsconfig({
 									extends: 'doesnt-exist',
 								}),
-								'register.mjs': `
+								'register.mjs': outdent`
 								import { register } from ${JSON.stringify(tsxEsmApiPath)};
 								register({
 									tsconfig: false,
@@ -575,14 +580,14 @@ export default testSuite(({ describe }, node: NodeApis) => {
 										jsxFragmentFactory: 'null',
 									},
 								}),
-								'register.mjs': `
+								'register.mjs': outdent`
 								import { register } from ${JSON.stringify(tsxEsmApiPath)};
 								register({
 									tsconfig: './tsconfig-custom.json',
 								});
 								await import('./tsx.tsx');
 								`,
-								'tsx.tsx': `
+								'tsx.tsx': outdent`
 								console.log(<>hi</>);
 								`,
 							});
@@ -598,14 +603,14 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						test('custom path - invalid', async () => {
 							await using fixture = await createFixture({
 								'package.json': createPackageJson({ type: 'module' }),
-								'register.mjs': `
+								'register.mjs': outdent`
 								import { register } from ${JSON.stringify(tsxEsmApiPath)};
 								register({
 									tsconfig: './doesnt-exist',
 								});
 								await import('./tsx.tsx');
 								`,
-								'tsx.tsx': `
+								'tsx.tsx': outdent`
 								console.log(<>hi</>);
 								`,
 							});
@@ -632,12 +637,12 @@ export default testSuite(({ describe }, node: NodeApis) => {
 										jsxFragmentFactory: 'null',
 									},
 								}),
-								'register.mjs': `
+								'register.mjs': outdent`
 								import { register } from ${JSON.stringify(tsxEsmApiPath)};
 								register();
 								await import('./tsx.tsx');
 								`,
-								'tsx.tsx': `
+								'tsx.tsx': outdent`
 								console.log(<>hi</>);
 								`,
 							});
@@ -659,7 +664,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					test('module', async () => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson({ type: 'module' }),
-							'import.mjs': `
+							'import.mjs': outdent`
 							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
 
 							await import('./file.ts').catch((error) => {
@@ -711,7 +716,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					test('commonjs', async () => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson({ type: 'module' }),
-							'import.cjs': `
+							'import.cjs': outdent`
 							const { tsImport } = require(${JSON.stringify(tsxEsmApiCjsPath)});
 
 							(async () => {
@@ -759,7 +764,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 					test('mts from commonjs', async () => {
 						await using fixture = await createFixture({
-							'import.cjs': `
+							'import.cjs': outdent`
 							const { tsImport } = require(${JSON.stringify(tsxEsmApiCjsPath)});
 
 							(async () => {
@@ -780,7 +785,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					test('namespace allows async nested calls', async () => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson({ type: 'module' }),
-							'import.mjs': `
+							'import.mjs': outdent`
 							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
 							tsImport('./file.ts', import.meta.url);
 							import('./file.ts').catch(() => console.log('Fails as expected'))
@@ -799,7 +804,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					test('onImport & doesnt cache files', async () => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson({ type: 'module' }),
-							'import.mjs': `
+							'import.mjs': outdent`
 							import { setTimeout } from 'node:timers/promises';
 							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
 							const dependenciesA = [];
@@ -846,7 +851,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							...tsFiles,
 							'package.json': createPackageJson({ type: 'module' }),
 							'tsconfig.json': createTsconfig({ extends: 'doesnt-exist' }),
-							'import.mjs': `
+							'import.mjs': outdent`
 							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
 
 							await tsImport('./file.ts', {
@@ -867,7 +872,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				test('no module.register error', async () => {
 					await using fixture = await createFixture({
 						'package.json': createPackageJson({ type: 'module' }),
-						'register.mjs': `
+						'register.mjs': outdent`
 						import { register } from ${JSON.stringify(tsxEsmApiPath)};
 
 						{
