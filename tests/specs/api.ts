@@ -2,6 +2,7 @@ import path from 'node:path';
 import { execaNode } from 'execa';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
+import { outdent } from 'outdent';
 import {
 	tsxCjsPath,
 	tsxCjsApiPath,
@@ -11,7 +12,6 @@ import {
 	type NodeApis,
 } from '../utils/tsx.js';
 import { createPackageJson, createTsconfig, expectErrors } from '../fixtures.js';
-import { outdent } from 'outdent';
 
 const tsFiles = {
 	'file.ts': outdent`
@@ -266,7 +266,8 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						...tsFiles,
 					});
 
-					const { stdout } = await execaNode(fixture.getPath('require.cjs'), [], {
+					const { stdout } = await execaNode('./require.cjs', [], {
+						cwd: fixture.path,
 						nodePath: node.path,
 						nodeOptions: [],
 					});

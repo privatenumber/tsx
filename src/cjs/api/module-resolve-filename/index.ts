@@ -78,7 +78,13 @@ export const createResolveFilename = (
 
 	nextResolveSimple = createTsExtensionResolver(
 		nextResolveSimple,
-		Boolean(parent?.filename && tsExtensionsPattern.test(parent.filename)),
+		Boolean(
+			// If register.namespace is used (e.g. tsx.require())
+			namespace
+
+			// If parent is a TS file
+			|| (parent?.filename && tsExtensionsPattern.test(parent.filename)),
+		),
 	);
 
 	nextResolveSimple = createImplicitResolver(nextResolveSimple);
