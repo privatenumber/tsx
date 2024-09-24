@@ -4,6 +4,7 @@ import { constants as osConstants } from 'node:os';
 import path from 'node:path';
 import { command } from 'cleye';
 import { watch } from 'chokidar';
+import picomatch from 'picomatch';
 import { lightMagenta, lightGreen, yellow } from 'kolorist';
 import { run } from '../run.js';
 import {
@@ -81,6 +82,22 @@ export const watchCommand = command({
 
 	const server = await createIpcServer();
 
+	const isIgnoreMatch = picomatch([
+		// Hidden directories like .git
+		'**/.*/**',
+
+		// Hidden files (e.g. logs or temp files)
+		'**/.*',
+
+		// 3rd party packages
+		'**/{node_modules,bower_components,vendor}/**',
+
+		// allow for relative exclude patterns, e.g. --exclude ../directory
+		...options.exclude.map(pattern => (pattern.startsWith('**') || path.isAbsolute(pattern)
+			? pattern
+			: path.join(process.cwd(), pattern))),
+	]);
+
 	server.on('data', (data) => {
 		// Collect run-time dependencies to watch
 		if (
@@ -97,7 +114,7 @@ export const watchCommand = command({
 					: data.path
 			);
 
-			if (path.isAbsolute(dependencyPath)) {
+			if (path.isAbsolute(dependencyPath) && !isIgnoreMatch(dependencyPath)) {
 				watcher.add(dependencyPath);
 			}
 		}
@@ -215,18 +232,7 @@ export const watchCommand = command({
 		{
 			cwd: process.cwd(),
 			ignoreInitial: true,
-			ignored: [
-				// Hidden directories like .git
-				'**/.*/**',
-
-				// Hidden files (e.g. logs or temp files)
-				'**/.*',
-
-				// 3rd party packages
-				'**/{node_modules,bower_components,vendor}/**',
-
-				...options.exclude,
-			],
+			ignored: file => isIgnoreMatch(file),
 			ignorePermissionErrors: true,
 		},
 	).on('all', reRun);
