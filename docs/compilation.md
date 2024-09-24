@@ -67,7 +67,7 @@ Set your CLI entry-point in [`bin`](https://docs.npmjs.com/cli/v10/configuring-n
 :::
 
 ### Build
-In your directly, simply run `pkgroll`:
+In your directory, simply run `pkgroll`:
 
 ::: code-group
 ```sh [npm]
