@@ -6,6 +6,8 @@ import { command } from 'cleye';
 import { watch } from 'chokidar';
 import picomatch from 'picomatch';
 import { lightMagenta, lightGreen, yellow } from 'kolorist';
+import globParent from 'glob-parent';
+import isGlob from 'is-glob';
 import { run } from '../run.js';
 import {
 	removeArgvFlags,
@@ -16,6 +18,7 @@ import {
 	clearScreen,
 	debounce,
 	log,
+	resolveGlobPattern,
 } from './utils.js';
 
 const flags = {
@@ -82,7 +85,7 @@ export const watchCommand = command({
 
 	const server = await createIpcServer();
 
-	const isIgnoreMatch = picomatch([
+	const isDefaultIgnore = picomatch([
 		// Hidden directories like .git
 		'**/.*/**',
 
@@ -91,12 +94,13 @@ export const watchCommand = command({
 
 		// 3rd party packages
 		'**/{node_modules,bower_components,vendor}/**',
-
-		// allow for relative exclude patterns, e.g. --exclude ../directory
-		...options.exclude.map(pattern => (pattern.startsWith('**') || path.isAbsolute(pattern)
-			? pattern
-			: path.join(process.cwd(), pattern))),
 	]);
+
+	const resolvedIncludes = options.include.map(resolveGlobPattern);
+	const isOptionsInclude = picomatch(resolvedIncludes);
+
+	const resolvedExcludes = options.exclude.map(resolveGlobPattern);
+	const isOptionsExclude = picomatch(resolvedExcludes);
 
 	server.on('data', (data) => {
 		// Collect run-time dependencies to watch
@@ -114,7 +118,12 @@ export const watchCommand = command({
 					: data.path
 			);
 
-			if (path.isAbsolute(dependencyPath) && !isIgnoreMatch(dependencyPath)) {
+			if (
+				path.isAbsolute(dependencyPath)
+				&& !isOptionsInclude(dependencyPath)
+				&& !isOptionsExclude(dependencyPath)
+				&& !isDefaultIgnore(dependencyPath)
+			) {
 				watcher.add(dependencyPath);
 			}
 		}
@@ -225,17 +234,31 @@ export const watchCommand = command({
 	 * As an alternative, we watch cwd and all run-time dependencies
 	 */
 	const watcher = watch(
-		[
-			...argv._,
-			...options.include,
-		],
+		argv._,
 		{
 			cwd: process.cwd(),
 			ignoreInitial: true,
-			ignored: file => isIgnoreMatch(file),
 			ignorePermissionErrors: true,
+			// ignore all files that are by default ignored or explicitly excluded
+			ignored: file => isDefaultIgnore(file) || isOptionsExclude(file),
 		},
 	).on('all', reRun);
+
+	if (resolvedIncludes.length > 0) {
+		const globParents = resolvedIncludes.map(pattern => (isGlob(pattern)
+			? globParent(pattern)
+			: pattern));
+
+		watch(globParents, {
+			cwd: process.cwd(),
+			ignoreInitial: true,
+			ignorePermissionErrors: true,
+			// ignore all files not in includes or explicitly excluded
+			// we need to make sure not to ignore directories otherwise chokidar won't check for it
+			ignored: file => !globParents.includes(file)
+				&& (!isOptionsInclude(file) || isOptionsExclude(file)),
+		}).on('all', reRun);
+	}
 
 	// On "Return" key
 	process.stdin.on('data', () => reRun('Return key'));

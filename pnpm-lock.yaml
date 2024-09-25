@@ -25,6 +25,12 @@ importers:
       '@types/cross-spawn':
         specifier: ^6.0.6
         version: 6.0.6
+      '@types/glob-parent':
+        specifier: ^5.1.3
+        version: 5.1.3
+      '@types/is-glob':
+        specifier: ^4.0.4
+        version: 4.0.4
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
@@ -67,6 +73,12 @@ importers:
       get-node:
         specifier: ^15.0.1
         version: 15.0.1
+      glob-parent:
+        specifier: ^6.0.2
+        version: 6.0.2
+      is-glob:
+        specifier: ^4.0.3
+        version: 4.0.3
       kolorist:
         specifier: ^1.8.0
         version: 1.8.0
@@ -968,8 +980,14 @@ packages:
   '@types/estree@1.0.5':
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
 
+  '@types/glob-parent@5.1.3':
+    resolution: {integrity: sha512-p+NciRH8TRvrgISOCQ55CP+lktMmDpOXsp4spULIIz0L4aJ6G9zFX+N0UZ2xulmJRgaQLRxXIp4xHdL6YOQjDg==}
+
   '@types/http-cache-semantics@4.0.4':
     resolution: {integrity: sha512-1m0bIFVc7eJWyve9S0RnuRgcQqF/Xd5QsUZAZeQFr1Q3/p9JWoQQEqmVy+DPTNpGXwhgIetAoYF8JSc33q29QA==}
+
+  '@types/is-glob@4.0.4':
+    resolution: {integrity: sha512-3mFBtIPQ0TQetKRDe94g8YrxJZxdMillMGegyv6zRBXvq4peRRhf2wLZ/Dl53emtTsC29dQQBwYvovS20yXpiQ==}
 
   '@types/istanbul-lib-coverage@2.0.6':
     resolution: {integrity: sha512-2QF/t/auWm0lsy8XtKVPG19v3sSOQlJe/YHZgfjb/KBBHOGSV+J2q/S671rcq9uTBrLAXmZpqJiaQbMT+zNU1w==}
@@ -4271,7 +4289,11 @@ snapshots:
 
   '@types/estree@1.0.5': {}
 
+  '@types/glob-parent@5.1.3': {}
+
   '@types/http-cache-semantics@4.0.4': {}
+
+  '@types/is-glob@4.0.4': {}
 
   '@types/istanbul-lib-coverage@2.0.6': {}
 
