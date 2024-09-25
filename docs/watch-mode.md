@@ -23,10 +23,10 @@ By default, _tsx_ watches all imported files, except those in the following dire
 
 ## Ignoring files
 
-To exclude specific files or directories from being watched, use the `--ignore` flag:
+To exclude specific files from being watched, use the `--exclude` flag:
 
 ```sh
-tsx watch --ignore ./ignore-me.js --ignore ./ignore-me-too.js ./file.ts
+tsx watch --exclude ./ignore-me.js --exclude ./ignore-me-too.js ./file.ts
 ```
 
 ### Using glob patterns
@@ -34,7 +34,15 @@ tsx watch --ignore ./ignore-me.js --ignore ./ignore-me-too.js ./file.ts
 Glob patterns allow you to define a set of files or directories to ignore. To prevent your shell from expanding the glob patterns, wrap them in quotes:
 
 ```sh
-tsx watch --ignore "./data/**/*" ./file.ts
+tsx watch --exclude "./data/**/*" ./file.ts
+```
+
+## Including files to watch
+
+To include specific files or directories to watch, use the `--include` flag:
+
+```sh
+tsx watch --include ./other-dep.txt --include "./other-deps/*" ./file.ts
 ```
 
 ## Tips
