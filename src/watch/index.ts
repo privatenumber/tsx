@@ -249,15 +249,13 @@ export const watchCommand = command({
 			? globParent(pattern)
 			: pattern));
 
-		const isGlobParent = picomatch(globParents);
-
 		watch(globParents, {
 			cwd: process.cwd(),
 			ignoreInitial: true,
 			ignorePermissionErrors: true,
 			// ignore all files not in includes or explicitly excluded
 			// we need to make sure not to ignore directories otherwise chokidar won't check for it
-			ignored: file => !isGlobParent(file)
+			ignored: file => !globParents.includes(file)
 				&& (!isOptionsInclude(file) || isOptionsExclude(file)),
 		}).on('all', reRun);
 	}

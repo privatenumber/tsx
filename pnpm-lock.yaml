@@ -34,6 +34,9 @@ importers:
       '@types/node':
         specifier: ^20.14.9
         version: 20.14.9
+      '@types/normalize-path':
+        specifier: ^3.0.2
+        version: 3.0.2
       '@types/picomatch':
         specifier: ^3.0.1
         version: 3.0.1
@@ -100,6 +103,9 @@ importers:
       node-pty:
         specifier: ^1.0.0
         version: 1.0.0
+      normalize-path:
+        specifier: ^3.0.0
+        version: 3.0.0
       outdent:
         specifier: ^0.8.0
         version: 0.8.0
@@ -1021,6 +1027,9 @@ packages:
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
+
+  '@types/normalize-path@3.0.2':
+    resolution: {integrity: sha512-DO++toKYPaFn0Z8hQ7Tx+3iT9t77IJo/nDiqTXilgEP+kPNIYdpS9kh3fXuc53ugqwp9pxC1PVjCpV1tQDyqMA==}
 
   '@types/picomatch@3.0.1':
     resolution: {integrity: sha512-1MRgzpzY0hOp9pW/kLRxeQhUWwil6gnrUYd3oEpeYBqp/FexhaCPv3F8LsYr47gtUU45fO2cm1dbwkSrHEo8Uw==}
@@ -4327,6 +4336,8 @@ snapshots:
       undici-types: 5.26.5
 
   '@types/normalize-package-data@2.4.4': {}
+
+  '@types/normalize-path@3.0.2': {}
 
   '@types/picomatch@3.0.1': {}
 
