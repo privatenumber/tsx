@@ -54,10 +54,9 @@
 		"./preflight": "./dist/preflight.cjs",
 		"./repl": "./dist/repl.mjs"
 	},
-	"packageManager": "pnpm@9.1.1",
+	"packageManager": "pnpm@9.11.0",
 	"homepage": "https://tsx.is",
 	"scripts": {
-		"prepare": "pnpm simple-git-hooks",
 		"build": "pkgroll --minify",
 		"lint": "lintroll --node --cache --ignore-pattern 'docs/*.md' .",
 		"type-check": "tsc",
@@ -66,12 +65,6 @@
 		"docs:dev": "pnpm --filter=docs dev",
 		"docs:build": "pnpm --filter=docs build",
 		"docs:preview": "pnpm --filter=docs preview"
-	},
-	"simple-git-hooks": {
-		"pre-commit": "pnpm lint-staged"
-	},
-	"lint-staged": {
-		"*.{js,ts,mjs,mts,cjs,cts,json}": "pnpm lint"
 	},
 	"engines": {
 		"node": ">=18.0.0"
@@ -106,7 +99,6 @@
 		"glob-parent": "^6.0.2",
 		"is-glob": "^4.0.3",
 		"kolorist": "^1.8.0",
-		"lint-staged": "^15.2.7",
 		"lintroll": "^1.8.1",
 		"magic-string": "^0.30.10",
 		"manten": "^1.3.0",
@@ -117,7 +109,6 @@
 		"picomatch": "^4.0.2",
 		"pkgroll": "^2.4.1",
 		"proxyquire": "^2.1.3",
-		"simple-git-hooks": "^2.11.1",
 		"split2": "^4.2.0",
 		"strip-ansi": "^7.1.0",
 		"type-fest": "^4.20.1",
