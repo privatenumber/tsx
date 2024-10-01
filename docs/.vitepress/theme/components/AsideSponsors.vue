@@ -1,52 +1,44 @@
 <template>
 	<div>
-		<h4 class="text-base font-semibold mb-2">Premium sponsors</h4>
+		<h4 class="text-base font-semibold">Premium sponsors</h4>
 	</div>
+	<a
+		href="https://www.prisma.io"
+		target="_blank"
+		rel="noopener"
+	>
+		<div class="my-4 py-6 px-6 bg-white/5">
+			<img
+				src="/logos/prisma-full.svg"
+				alt="Prisma"
+				class="object-cover"
+			>
+		</div>
+	</a>
 	<a
 		href="https://github.com/sponsors/privatenumber/sponsorships?pay_prorated=false&tier_id=388346"
 		target="_blank"
-		class="sponsor-placeholder"
+		rel="noopener"
+		class="sponsor-button"
 	>
-		Your logo + link here
-
-		<button type="button" class="sponsor-button mt-4">
-			Become a sponsor
-		</button>
+		Become a premium sponsor
 	</a>
 </template>
 
 <style scoped>
-.sponsor-placeholder {
-	@apply
-		block
-		border-2
-		border-dashed
-		rounded
-		py-6
-		text-center
-		text-sm
-		transition-colors
-		text-zinc-500
-		border-zinc-400
-		hover:text-zinc-800
-		hover:border-zinc-700;
-}
-
-html.dark .sponsor-placeholder {
-	@apply
-		border-zinc-500
-		text-zinc-500
-		hover:border-zinc-200
-		hover:text-zinc-200;
-}
-
 .sponsor-button {
 	@apply
+		block
+		w-fit
+		mx-auto
 		text-xs
 		rounded-full
+		transition-colors
 		bg-pink-500
+		hover:bg-pink-600
 		text-white
-		py-1
+		mt-5
+		py-1.5
 		px-4;
 }
 </style>
