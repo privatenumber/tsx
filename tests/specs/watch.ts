@@ -1,4 +1,5 @@
 import { setTimeout } from 'node:timers/promises';
+import path from 'node:path';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import stripAnsi from 'strip-ansi';
@@ -308,6 +309,82 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						entryFile,
 					],
 					fixtureGlob.path,
+				);
+
+				onTestFail(async () => {
+					// If timed out, force kill process
+					if (tsxProcess.exitCode === null) {
+						console.log('Force killing hanging process\n\n');
+						tsxProcess.kill();
+						console.log({
+							tsxProcess: await tsxProcess,
+						});
+					}
+				});
+
+				const negativeSignal = 'fail';
+
+				await processInteract(
+					tsxProcess.stdout!,
+					[
+						async (data) => {
+							if (data.includes(negativeSignal)) {
+								throw new Error('should not log ignored file');
+							}
+
+							if (data === 'logA logB logC\n') {
+								// These changes should not trigger a re-run
+								await Promise.all([
+									fixtureGlob.writeFile(fileA, `export default "${negativeSignal}"`),
+									fixtureGlob.writeFile(fileB, `export default "${negativeSignal}"`),
+									fixtureGlob.writeFile(depA, `export default "${negativeSignal}"`),
+								]);
+
+								await setTimeout(1000);
+								fixtureGlob.writeFile(entryFile, 'console.log("TERMINATE")');
+								return true;
+							}
+						},
+						data => data === 'TERMINATE\n',
+					],
+					9000,
+				);
+
+				tsxProcess.kill();
+
+				const p = await tsxProcess;
+				expect(p.all).not.toMatch('fail');
+				expect(p.stderr).toBe('');
+			}, 10_000);
+
+			test('with parent directory', async ({ onTestFail }) => {
+				const entryFile = 'process-directory/index.js';
+				const fileA = 'file-a.js';
+				const fileB = 'directory/file-b.js';
+				const depA = 'node_modules/a/index.js';
+
+				await using fixtureGlob = await createFixture({
+					[fileA]: 'export default "logA"',
+					[fileB]: 'export default "logB"',
+					[depA]: 'export default "logC"',
+					[entryFile]: `
+						import valueA from '../${fileA}'
+						import valueB from '../${fileB}'
+						import valueC from '../${depA}'
+						console.log(valueA, valueB, valueC)
+					`.trim(),
+				});
+
+				const tsxProcess = tsx(
+					[
+						'watch',
+						'--clear-screen=false',
+						`--ignore=../${fileA}`,
+						'--ignore=abra.js',
+						'--exclude=../directory/*',
+						'index.js',
+					],
+					path.join(fixtureGlob.path, 'process-directory'),
 				);
 
 				onTestFail(async () => {
