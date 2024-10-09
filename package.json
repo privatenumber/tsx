@@ -70,7 +70,7 @@
 		"node": ">=18.0.0"
 	},
 	"dependencies": {
-		"esbuild": "~0.23.0",
+		"esbuild": "~0.24.0",
 		"get-tsconfig": "^4.7.5"
 	},
 	"optionalDependencies": {
