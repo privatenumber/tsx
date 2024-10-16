@@ -21,8 +21,18 @@ By default, _tsx_ watches all imported files, except those in the following dire
 - `dist`
 - Hidden directories (`.*`)
 
-## Ignoring files
+## Customizing watched files
 
+### Including files to watch
+
+To include specific files or directories to watch, use the `--include` flag:
+
+```sh
+tsx watch --include ./other-dep.txt --include "./other-deps/*" ./file.ts
+```
+
+
+### Excluding files from watch
 To exclude specific files from being watched, use the `--exclude` flag:
 
 ```sh
@@ -35,14 +45,6 @@ Glob patterns allow you to define a set of files or directories to ignore. To pr
 
 ```sh
 tsx watch --exclude "./data/**/*" ./file.ts
-```
-
-## Including files to watch
-
-To include specific files or directories to watch, use the `--include` flag:
-
-```sh
-tsx watch --include ./other-dep.txt --include "./other-deps/*" ./file.ts
 ```
 
 ## Tips
