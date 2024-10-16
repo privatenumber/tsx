@@ -245,9 +245,11 @@ export const watchCommand = command({
 	).on('all', reRun);
 
 	if (resolvedIncludes.length > 0) {
-		const globParents = resolvedIncludes.map(pattern => (isGlob(pattern)
-			? globParent(pattern)
-			: pattern));
+		const globParents = resolvedIncludes.map(pattern => (
+			isGlob(pattern)
+				? globParent(pattern)
+				: pattern
+		));
 
 		watch(globParents, {
 			cwd: process.cwd(),
@@ -255,8 +257,13 @@ export const watchCommand = command({
 			ignorePermissionErrors: true,
 			// ignore all files not in includes or explicitly excluded
 			// we need to make sure not to ignore directories otherwise chokidar won't check for it
-			ignored: file => !globParents.includes(file)
-				&& (!isOptionsInclude(file) || isOptionsExclude(file)),
+			ignored: file => (
+				!globParents.includes(file)
+				&& (
+					!isOptionsInclude(file)
+					|| isOptionsExclude(file)
+				)
+			),
 		}).on('all', reRun);
 	}
 
