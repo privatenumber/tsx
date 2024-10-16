@@ -8,7 +8,7 @@ Note, the current file path must be passed in as the second argument to resolve 
 
 ::: warning Caveats
 
-- `import()` calls in the loaded files are not enhanced.
+- `import()` calls in the loaded files are not enhanced. Use [`tsImport()`](/dev-api/ts-import) instead.
 - Because it compiles ESM syntax to run in CommonJS mode, top-level await is not supported
 :::
 
