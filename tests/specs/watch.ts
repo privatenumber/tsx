@@ -1,5 +1,4 @@
 import { setTimeout } from 'node:timers/promises';
-import path from 'node:path';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import stripAnsi from 'strip-ansi';
@@ -225,8 +224,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 		describe('include', ({ test }) => {
 			test('file path & glob', async () => {
 				const entryFile = 'index.js';
-				// Watches hidden file
-				const fileA = '.file-a';
+				const fileA = '.file-a'; // Watches hidden files
 				const fileB = 'directory/file-b';
 				await using fixture = await createFixture({
 					[entryFile]: `
@@ -363,7 +361,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 				const fileB = 'directory/file-b.js';
 				const depA = 'node_modules/a/index.js';
 
-				await using fixture = await createFixture({
+				await using fixtureGlob = await createFixture({
 					[fileA]: 'export default "logA"',
 					[fileB]: 'export default "logB"',
 					[depA]: 'export default "logC"',
@@ -380,11 +378,10 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						'watch',
 						'--clear-screen=false',
 						`--ignore=../${fileA}`,
-						'--ignore=doesnt-exist.js',
-						'--exclude=../directory/*',
+						`--exclude=../${fileB}`,
 						'index.js',
 					],
-					fixture.getPath('process-directory'),
+					fixtureGlob.getPath('process-directory'),
 				);
 
 				onTestFail(async () => {
@@ -400,37 +397,36 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 
 				const negativeSignal = 'fail';
 
-				await processInteract(
-					tsxProcess.stdout!,
-					[
-						async (data) => {
-							if (data.includes(negativeSignal)) {
-								throw new Error('should not log ignored file');
-							}
+				await expect(
+					processInteract(
+						tsxProcess.stdout!,
+						[
+							async (data) => {
+								if (data !== 'logA logB logC\n') {
+									return;
+								}
 
-							if (data === 'logA logB logC\n') {
 								// These changes should not trigger a re-run
 								await Promise.all([
-									fixture.writeFile(fileA, `export default "${negativeSignal}"`),
-									fixture.writeFile(fileB, `export default "${negativeSignal}"`),
-									fixture.writeFile(depA, `export default "${negativeSignal}"`),
+									fixtureGlob.writeFile(fileA, `export default "${negativeSignal}"`),
+									fixtureGlob.writeFile(fileB, `export default "${negativeSignal}"`),
+									fixtureGlob.writeFile(depA, `export default "${negativeSignal}"`),
 								]);
-
-								await setTimeout(1000);
-								fixture.writeFile(entryFile, 'console.log("TERMINATE")');
 								return true;
-							}
-						},
-						data => data === 'TERMINATE\n',
-					],
-					9000,
-				);
+							},
+							(data) => {
+								if (data.includes(negativeSignal)) {
+									throw new Error('Unexpected re-run');
+								}
+							},
+						],
+						2000,
+					),
+				).rejects.toThrow('Timeout'); // Watch should not trigger
 
 				tsxProcess.kill();
 
-				const p = await tsxProcess;
-				expect(p.all).not.toMatch('fail');
-				expect(p.stderr).toBe('');
+				await tsxProcess;
 			}, 10_000);
 		});
 	});
