@@ -10,12 +10,11 @@ export const baseConfig = Object.freeze({
 	loader: 'default',
 });
 
-const isNodeDebuggerEnabled = process.execArgv.some((flag) => {
+// match Node.js debugger flags
+// https://nodejs.org/api/cli.html#--inspecthostport
+const NODE_DEBUGGER_FLAG_REGEX = /^--inspect(?:-brk|-port|-publish-uid|-wait)?(?:=|$)/;
 
-	// match Node.js debugger flags
-	// https://nodejs.org/api/cli.html#--inspecthostport
-	return /--inspect(-brk|-port|-publish-uid|-wait)?/.test(flag)
-})
+const isNodeDebuggerEnabled = process.execArgv.some(flag => NODE_DEBUGGER_FLAG_REGEX.test(flag));
 
 export const cacheConfig = {
 	...baseConfig,
