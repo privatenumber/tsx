@@ -10,6 +10,12 @@ export const baseConfig = Object.freeze({
 	loader: 'default',
 });
 
+// match Node.js debugger flags
+// https://nodejs.org/api/cli.html#--inspecthostport
+const NODE_DEBUGGER_FLAG_REGEX = /^--inspect(?:-brk|-port|-publish-uid|-wait)?(?:=|$)/;
+
+const isNodeDebuggerEnabled = process.execArgv.some(flag => NODE_DEBUGGER_FLAG_REGEX.test(flag));
+
 export const cacheConfig = {
 	...baseConfig,
 
@@ -17,11 +23,11 @@ export const cacheConfig = {
 
 	/**
 	 * Improve performance by only generating sourcesContent
-	 * when V8 coverage is enabled
+	 * when V8 coverage is enabled or Node.js debugger is enabled
 	 *
 	 * https://esbuild.github.io/api/#sources-content
 	 */
-	sourcesContent: Boolean(process.env.NODE_V8_COVERAGE),
+	sourcesContent: Boolean(process.env.NODE_V8_COVERAGE) || isNodeDebuggerEnabled,
 
 	/**
 	 * Smaller output for cache and marginal performance improvement:
