@@ -8,7 +8,7 @@ import type { PackageJson } from 'type-fest';
 import { readJsonFile } from '../../utils/read-json-file.js';
 import { mapTsExtensions } from '../../utils/map-ts-extensions.js';
 import type { NodeError } from '../../types.js';
-import { tsconfigPathsMatcher, allowJs } from '../../utils/tsconfig.js';
+import { tsconfigPathsMatcher, allowJs, customConditions } from '../../utils/tsconfig.js';
 import {
 	requestAcceptsQuery,
 	fileUrlPrefix,
@@ -238,6 +238,13 @@ export const resolve: ResolveHook = async (
 ) => {
 	if (!data.active || specifier.startsWith('node:')) {
 		return nextResolve(specifier, context);
+	}
+
+	if (customConditions?.length) {
+		context.conditions = [
+			...(context.conditions ?? []),
+			...customConditions,
+		];
 	}
 
 	let requestNamespace = getNamespace(specifier) ?? (

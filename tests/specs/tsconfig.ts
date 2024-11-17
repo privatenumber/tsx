@@ -2,7 +2,10 @@ import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import type { NodeApis } from '../utils/tsx.js';
 import {
-	expectErrors, jsxCheck, createPackageJson, createTsconfig,
+	expectErrors,
+	jsxCheck,
+	createPackageJson,
+	createTsconfig,
 } from '../fixtures.js';
 import { packageTypes } from '../utils/package-types.js';
 
@@ -13,7 +16,12 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 				const fixture = await createFixture({
 					...expectErrors,
 
-					'package.json': createPackageJson({ type: packageType }),
+					'package.json': createPackageJson({
+						type: packageType,
+						dependencies: {
+							'custom-condition-package': '1.0.0',
+						},
+					}),
 
 					'tsconfig.json': createTsconfig({
 						compilerOptions: {
@@ -32,6 +40,13 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						extends: './tsconfig.json',
 						compilerOptions: {
 							allowJs: true,
+						},
+					}),
+
+					'tsconfig-customConditions.json': createTsconfig({
+						extends: './tsconfig.json',
+						compilerOptions: {
+							customConditions: ['source'],
 						},
 					}),
 
@@ -85,6 +100,10 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					console.log('imported');
 					`,
 
+					'custom-condition.js': `
+          import 'custom-condition-package';
+          `,
+
 					'node_modules/tsconfig-should-not-apply': {
 						'package.json': createPackageJson({
 							exports: {
@@ -108,6 +127,23 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 							[() => require('file'), "Cannot find module"],
 						);
 						`,
+					},
+
+					'node_modules/custom-condition-package': {
+						'package.json': createPackageJson({
+							name: 'custom-condition-package',
+							version: '1.0.0',
+							exports: {
+								source: './src/index.js',
+								import: './dist/index.js',
+							},
+						}),
+						'src/index.js': `
+              console.log('imported from source');
+              `,
+						'dist/index.js': `
+              console.log('imported from dist');
+              `,
 					},
 				});
 				onFinish(async () => await fixture.rm());
@@ -173,6 +209,46 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						expect(pTsconfigAllowJs.stderr).toBe('');
 						expect(pTsconfigAllowJs.stdout).toBe('imported');
 					});
+
+					if (packageType === 'module') {
+						test('no customConditions in tsconfig.json for esm', async ({
+							onTestFail,
+						}) => {
+							const pTsconfigCustomConditions = await tsx(
+								['custom-condition.js'],
+								fixture.path,
+							);
+							onTestFail((error) => {
+								console.error(error);
+								console.log(pTsconfigCustomConditions);
+							});
+							expect(pTsconfigCustomConditions.failed).toBe(false);
+							expect(pTsconfigCustomConditions.stderr).toBe('');
+							expect(pTsconfigCustomConditions.stdout).toBe('imported from dist');
+						});
+
+						test('customConditions in tsconfig.json for esm', async ({
+							onTestFail,
+						}) => {
+							const pTsconfigCustomConditions = await tsx(
+								[
+									'--tsconfig',
+									'tsconfig-customConditions.json',
+									'custom-condition.js',
+								],
+								fixture.path,
+							);
+							onTestFail((error) => {
+								console.error(error);
+								console.log(pTsconfigCustomConditions);
+							});
+							expect(pTsconfigCustomConditions.failed).toBe(false);
+							expect(pTsconfigCustomConditions.stderr).toBe('');
+							expect(pTsconfigCustomConditions.stdout).toBe(
+								'imported from source',
+							);
+						});
+					}
 				});
 			});
 		}
