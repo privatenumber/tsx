@@ -231,5 +231,10 @@ export default defineConfig({
 		search: {
 			provider: 'local',
 		},
+
+		carbonAds: {
+			code: 'CW7DEKJY',
+			placement: 'tsxis',
+		},
 	},
 });
