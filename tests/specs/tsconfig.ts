@@ -19,7 +19,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					'package.json': createPackageJson({
 						type: packageType,
 						dependencies: {
-							'custom-condition-package': '1.0.0',
+							'custom-condition-package': '*',
 						},
 					}),
 
@@ -43,17 +43,17 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						},
 					}),
 
+					'tsconfig-broken.json': '{ asdf',
+
+					'tsconfig-unresolvable.json': createTsconfig({
+						extends: 'doesnt-exist',
+					}),
+
 					'tsconfig-customConditions.json': createTsconfig({
 						extends: './tsconfig.json',
 						compilerOptions: {
 							customConditions: ['source'],
 						},
-					}),
-
-					'tsconfig-broken.json': '{ asdf',
-
-					'tsconfig-unresolvable.json': createTsconfig({
-						extends: 'doesnt-exist',
 					}),
 
 					'index.tsx': `
@@ -131,8 +131,6 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 
 					'node_modules/custom-condition-package': {
 						'package.json': createPackageJson({
-							name: 'custom-condition-package',
-							version: '1.0.0',
 							exports: {
 								source: './src/index.js',
 								import: './dist/index.js',

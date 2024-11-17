@@ -241,10 +241,7 @@ export const resolve: ResolveHook = async (
 	}
 
 	if (customConditions?.length) {
-		context.conditions = [
-			...(context.conditions ?? []),
-			...customConditions,
-		];
+		context.conditions = context.conditions.concat(customConditions);
 	}
 
 	let requestNamespace = getNamespace(specifier) ?? (
