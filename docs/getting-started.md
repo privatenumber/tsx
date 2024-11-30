@@ -6,7 +6,7 @@ Before you can start using _tsx_, ensure that you have [Node.js installed](https
 
 ## Quickstart
 
-`tsx` can be executed with [npx](https://docs.npmjs.com/cli/v8/commands/npx)—a tool to run npm packages without installing them.
+`tsx` can be executed with [npx](https://docs.npmjs.com/cli/commands/npx/) — a tool to run npm packages without installing them.
 
 In your command-line, simply pass in a TypeScript file you'd like to run. It's that simple!
 
@@ -67,7 +67,7 @@ In the `scripts` object, you can reference `tsx` directly without `npx`:
 
 ## Global installation
 
-If you want to use `tsx` anywhere on your computer (without [`npx`](https://docs.npmjs.com/cli/v8/commands/npx)), install it globally:
+If you want to use `tsx` anywhere on your computer (without [`npx`](https://docs.npmjs.com/cli/commands/npx/)), install it globally:
 
 ::: code-group
 ```sh [npm]
