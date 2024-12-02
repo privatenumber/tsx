@@ -224,7 +224,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 		describe('include', ({ test }) => {
 			test('file path & glob', async () => {
 				const entryFile = 'index.js';
-				const fileA = 'file-a';
+				const fileA = '.file-a'; // Watches hidden files
 				const fileB = 'directory/file-b';
 				await using fixture = await createFixture({
 					[entryFile]: `
@@ -308,6 +308,80 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						entryFile,
 					],
 					fixtureGlob.path,
+				);
+
+				onTestFail(async () => {
+					// If timed out, force kill process
+					if (tsxProcess.exitCode === null) {
+						console.log('Force killing hanging process\n\n');
+						tsxProcess.kill();
+						console.log({
+							tsxProcess: await tsxProcess,
+						});
+					}
+				});
+
+				const negativeSignal = 'fail';
+
+				await expect(
+					processInteract(
+						tsxProcess.stdout!,
+						[
+							async (data) => {
+								if (data !== 'logA logB logC\n') {
+									return;
+								}
+
+								// These changes should not trigger a re-run
+								await Promise.all([
+									fixtureGlob.writeFile(fileA, `export default "${negativeSignal}"`),
+									fixtureGlob.writeFile(fileB, `export default "${negativeSignal}"`),
+									fixtureGlob.writeFile(depA, `export default "${negativeSignal}"`),
+								]);
+								return true;
+							},
+							(data) => {
+								if (data.includes(negativeSignal)) {
+									throw new Error('Unexpected re-run');
+								}
+							},
+						],
+						2000,
+					),
+				).rejects.toThrow('Timeout'); // Watch should not trigger
+
+				tsxProcess.kill();
+
+				await tsxProcess;
+			}, 10_000);
+
+			test('with parent directory', async ({ onTestFail }) => {
+				const entryFile = 'process-directory/index.js';
+				const fileA = 'file-a.js';
+				const fileB = 'directory/file-b.js';
+				const depA = 'node_modules/a/index.js';
+
+				await using fixtureGlob = await createFixture({
+					[fileA]: 'export default "logA"',
+					[fileB]: 'export default "logB"',
+					[depA]: 'export default "logC"',
+					[entryFile]: `
+						import valueA from '../${fileA}'
+						import valueB from '../${fileB}'
+						import valueC from '../${depA}'
+						console.log(valueA, valueB, valueC)
+					`.trim(),
+				});
+
+				const tsxProcess = tsx(
+					[
+						'watch',
+						'--clear-screen=false',
+						`--ignore=../${fileA}`,
+						`--exclude=../${fileB}`,
+						'index.js',
+					],
+					fixtureGlob.getPath('process-directory'),
 				);
 
 				onTestFail(async () => {
