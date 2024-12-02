@@ -16,6 +16,7 @@ import {
 	debounce,
 	log,
 } from './utils.js';
+import anymatch from 'anymatch';
 
 const flags = {
 	noCache: {
@@ -207,26 +208,37 @@ export const watchCommand = command({
 	 *
 	 * As an alternative, we watch cwd and all run-time dependencies
 	 */
+
+	const includes = options.include;
+	const excludes = options.exclude;
+	let defaultExcludes = [
+			// Hidden directories like .git
+		'**/.*/**',
+
+		// Hidden files (e.g. logs or temp files)
+		'**/.*',
+
+		// 3rd party packages
+		'**/node_modules/**',
+		'**/bower_components/**',
+		'**/vendor/**',
+	];
+
+	defaultExcludes = defaultExcludes.filter(exclude => {
+		return !includes.some(include => anymatch(exclude, include))
+	});
+
+	excludes.push(...defaultExcludes);
+
 	const watcher = watch(
 		[
 			...argv._,
-			...options.include,
+			...includes,
 		],
 		{
 			cwd: process.cwd(),
 			ignoreInitial: true,
-			ignored: [
-				// Hidden directories like .git
-				'**/.*/**',
-
-				// Hidden files (e.g. logs or temp files)
-				'**/.*',
-
-				// 3rd party packages
-				'**/{node_modules,bower_components,vendor}/**',
-
-				...options.exclude,
-			],
+			ignored: excludes,
 			ignorePermissionErrors: true,
 		},
 	).on('all', reRun);
