@@ -17,6 +17,9 @@ export let tsconfigPathsMatcher: undefined | ReturnType<typeof createPathsMatche
 // eslint-disable-next-line import-x/no-mutable-exports
 export let allowJs = false;
 
+// eslint-disable-next-line import-x/no-mutable-exports
+export let customConditions: string[] | undefined;
+
 export const loadTsconfig = (
 	configPath?: string,
 ) => {
@@ -52,4 +55,5 @@ export const loadTsconfig = (
 	fileMatcher = createFilesMatcher(tsconfig);
 	tsconfigPathsMatcher = createPathsMatcher(tsconfig);
 	allowJs = tsconfig?.config.compilerOptions?.allowJs ?? false;
+	customConditions = tsconfig?.config.compilerOptions?.customConditions;
 };
