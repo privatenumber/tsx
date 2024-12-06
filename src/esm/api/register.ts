@@ -37,7 +37,7 @@ export const register: Register = (
 	options,
 ) => {
 	if (!module.register) {
-		throw new Error(`This version of Node.js (${process.version}) does not support module.register(). Please upgrade to Node v18.19 or v20.6 and above.`);
+		throw new Error(`Version ${process.version} of your runtime does not support `module.register()`. If you are using Node.js, upgrade to Node v18.19 or v20.6 and above.`);
 	}
 
 	if (!cjsInteropApplied) {
