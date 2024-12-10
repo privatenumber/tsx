@@ -56,6 +56,8 @@ export const load: LoadHook = async (
 	}
 
 	if (isJsonPattern.test(url)) {
+		// @types/node only declares `importAttributes` type
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		context[contextAttributesProperty as keyof LoadHookContext] ||= {} as any;
 		(context[contextAttributesProperty as keyof LoadHookContext] as ImportAttributes).type = 'json';
 	}

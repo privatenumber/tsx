@@ -30,112 +30,108 @@ const formatEsbuildError = (
 	throw error;
 };
 
-export const createEsbuildTransformSync = (esbuild: typeof import('esbuild')) => {
-	// Used by cjs-loader
-	return function transformSync(
-		code: string,
-		filePath: string,
-		extendOptions?: TransformOptions,
-	): Transformed {
-		const [filePathWithoutQuery, query] = filePath.split('?');
-		const define: { [key: string]: string } = {};
+// used by cjs-loader
+export const createEsbuildTransformSync = (esbuild: typeof import('esbuild')) => (
+	code: string,
+	filePath: string,
+	extendOptions?: TransformOptions,
+): Transformed => {
+	const [filePathWithoutQuery, query] = filePath.split('?');
+	const define: { [key: string]: string } = {};
 
-		if (!(filePathWithoutQuery.endsWith('.cjs') || filePathWithoutQuery.endsWith('.cts'))) {
-			define['import.meta.url'] = JSON.stringify(pathToFileURL(filePathWithoutQuery) + (query ? `?${query}` : ''));
-		}
+	if (!(filePathWithoutQuery.endsWith('.cjs') || filePathWithoutQuery.endsWith('.cts'))) {
+		define['import.meta.url'] = JSON.stringify(pathToFileURL(filePathWithoutQuery) + (query ? `?${query}` : ''));
+	}
 
-		const esbuildOptions = {
-			...cacheConfig,
-			format: 'cjs',
-			sourcefile: filePathWithoutQuery,
-			define,
-			banner: '(()=>{',
-			footer: '})()',
+	const esbuildOptions = {
+		...cacheConfig,
+		format: 'cjs',
+		sourcefile: filePathWithoutQuery,
+		define,
+		banner: '(()=>{',
+		footer: '})()',
 
-			// CJS Annotations for Node. Used by ESM loader for CJS interop
-			platform: 'node',
+		// CJS Annotations for Node. Used by ESM loader for CJS interop
+		platform: 'node',
 
-			...extendOptions,
-		} as const;
+		...extendOptions,
+	} as const;
 
-		const hash = sha1([
+	const hash = sha1([
+		code,
+		JSON.stringify(esbuildOptions),
+		esbuild.version,
+		transformDynamicImportVersion,
+	].join('-'));
+	let transformed = cache.get(hash);
+
+	if (!transformed) {
+		transformed = applyTransformersSync(
+			filePath,
 			code,
-			JSON.stringify(esbuildOptions),
-			esbuild.version,
-			transformDynamicImportVersion,
-		].join('-'));
-		let transformed = cache.get(hash);
+			[
+				(_filePath, _code) => {
+					const patchResult = patchOptions(esbuildOptions);
+					let result;
+					try {
+						result = esbuild.transformSync(_code, esbuildOptions);
+					} catch (error) {
+						throw formatEsbuildError(error as TransformFailure);
+					}
+					return patchResult(result);
+				},
+				(_filePath, _code) => transformDynamicImport(_filePath, _code, true),
+			],
+		);
 
-		if (!transformed) {
-			transformed = applyTransformersSync(
-				filePath,
-				code,
-				[
-					(_filePath, _code) => {
-						const patchResult = patchOptions(esbuildOptions);
-						let result;
-						try {
-							result = esbuild.transformSync(_code, esbuildOptions);
-						} catch (error) {
-							throw formatEsbuildError(error as TransformFailure);
-						}
-						return patchResult(result);
-					},
-					(_filePath, _code) => transformDynamicImport(_filePath, _code, true),
-				],
-			);
+		cache.set(hash, transformed);
+	}
 
-			cache.set(hash, transformed);
-		}
-
-		return transformed;
-	};
+	return transformed;
 };
 
-export const createEsbuildTransform = (esbuild: typeof import('esbuild')) => {
-	// Used by esm-loader
-	return async function transform(
-		code: string,
-		filePath: string,
-		extendOptions?: TransformOptions,
-	): Promise<Transformed> {
-		const esbuildOptions = {
-			...cacheConfig,
-			format: 'esm',
-			sourcefile: filePath,
-			...extendOptions,
-		} as const;
+// Used by esm-loader
+export const createEsbuildTransform = (esbuild: typeof import('esbuild')) => async (
+	code: string,
+	filePath: string,
+	extendOptions?: TransformOptions,
+): Promise<Transformed> => {
+	const esbuildOptions = {
+		...cacheConfig,
+		format: 'esm',
+		sourcefile: filePath,
+		...extendOptions,
+	} as const;
 
-		const hash = sha1([
+	const hash = sha1([
+		code,
+		JSON.stringify(esbuildOptions),
+		esbuild.version,
+		transformDynamicImportVersion,
+	].join('-'));
+	let transformed = cache.get(hash);
+
+	if (!transformed) {
+		transformed = await applyTransformers(
+			filePath,
 			code,
-			JSON.stringify(esbuildOptions),
-			esbuild.version,
-			transformDynamicImportVersion,
-		].join('-'));
-		let transformed = cache.get(hash);
+			[
+				async (_filePath, _code) => {
+					const patchResult = patchOptions(esbuildOptions);
+					let result;
+					try {
+						result = await esbuild.transform(_code, esbuildOptions);
+					} catch (error) {
+						throw formatEsbuildError(error as TransformFailure);
+					}
+					return patchResult(result);
+				},
+				(_filePath, _code) => transformDynamicImport(_filePath, _code, true),
+			],
+		);
 
-		if (!transformed) {
-			transformed = await applyTransformers(
-				filePath,
-				code,
-				[
-					async (_filePath, _code) => {
-						const patchResult = patchOptions(esbuildOptions);
-						let result;
-						try {
-							result = await esbuild.transform(_code, esbuildOptions);
-						} catch (error) {
-							throw formatEsbuildError(error as TransformFailure);
-						}
-						return patchResult(result);
-					},
-					(_filePath, _code) => transformDynamicImport(_filePath, _code, true),
-				],
-			);
+		cache.set(hash, transformed);
+	}
 
-			cache.set(hash, transformed);
-		}
-
-		return transformed;
-	};
-}
+	return transformed;
+};

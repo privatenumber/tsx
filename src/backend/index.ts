@@ -1,6 +1,5 @@
-import type { Transformed } from '../utils/transform/apply-transformers';
-
 import esbuild from 'esbuild';
+import type { Transformed } from '../utils/transform/apply-transformers';
 
 import getEsbuildBackend from './esbuild';
 
@@ -11,12 +10,12 @@ export interface Backend<ExtendedTransformOptions> {
 		code: string,
 		filePath: string,
 		extendOptions?: ExtendedTransformOptions,
-	) => Transformed,
+	) => Transformed;
 	transform: (
 		code: string,
 		filePath: string,
 		extendOptions?: ExtendedTransformOptions,
-	) => Promise<Transformed>,
+	) => Promise<Transformed>;
 }
 
 const backend = getEsbuildBackend(esbuild);

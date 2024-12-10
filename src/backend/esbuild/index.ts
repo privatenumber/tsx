@@ -4,11 +4,9 @@ import { createEsbuildEvalTransformSync } from './eval';
 import { createEsbuildReplTransform } from './repl';
 import { createEsbuildTransformSync, createEsbuildTransform } from './transform';
 
-export default function getEsbuildBackend(esbuild: typeof import('esbuild')): Backend<TransformOptions> {
-	return {
-		evalTransformSync: createEsbuildEvalTransformSync(esbuild),
-		replTransform: createEsbuildReplTransform(esbuild),
-		transformSync: createEsbuildTransformSync(esbuild),
-		transform: createEsbuildTransform(esbuild),
-	}
-}
+const getEsbuildBackend = (esbuild: typeof import('esbuild')): Backend<TransformOptions> => ({
+	evalTransformSync: createEsbuildEvalTransformSync(esbuild),
+	replTransform: createEsbuildReplTransform(esbuild),
+	transformSync: createEsbuildTransformSync(esbuild),
+	transform: createEsbuildTransform(esbuild),
+}); export default getEsbuildBackend;
