@@ -5,7 +5,7 @@ import { nodeVersions } from './utils/node-versions';
 (async () => {
 	await describe('tsx', async ({ runTestSuite, describe }) => {
 		await runTestSuite(import('./specs/repl'));
-		await runTestSuite(import('./specs/transform'));
+		await runTestSuite(import('./specs/transform-esbuild'));
 
 		for (const nodeVersion of nodeVersions) {
 			const node = await createNode(nodeVersion);
