@@ -154,10 +154,6 @@ export default defineConfig({
 							link: '/learn',
 						},
 						{
-							text: 'Help center (Sponsors only)',
-							link: 'https://github.com/pvtnbr/tsx/discussions',
-						},
-						{
 							text: 'Become a Sponsor',
 							link: 'https://github.com/sponsors/privatenumber/sponsorships?tier_id=416984',
 						},
