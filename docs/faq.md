@@ -253,12 +253,6 @@ Here are some questions to help guide your decision:
 
 Ultimately, it's a decision you'll need to make based on your specific production requirements and comfort level with potential risks.
 
----
-
-# Ask a question
-
-_tsx_ offers support via [Discussions](https://github.com/pvtnbr/tsx/discussions) for [sponsors](https://github.com/sponsors/privatenumber/sponsorships?tier_id=416984). If you're a sponsor, feel free to ask more questions there!
-
 <style scoped>
 .bug-report {
 	@apply
