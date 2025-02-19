@@ -198,7 +198,7 @@ _tsx_ is recognized by both [Node.js](https://nodejs.org/en/learn/getting-starte
 
 To find more examples of where & how _tsx_ is used, [search on GitHub](https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22&type=code).
 
-## How does _tsx_ compare to [`ts-node`](https://github.com/TypeStrong/ts-node)?
+## How does _tsx_ compare with [`ts-node`](https://github.com/TypeStrong/ts-node)?
 
 `tsx` and `ts-node` are both tools for running TypeScript in Node.js, each offering different approaches to suit user preferences.
 
