@@ -1,9 +1,9 @@
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import type { LoadHook } from 'node:module';
+import type { LoadHook, LoadHookContext } from 'node:module';
 import { readFile } from 'node:fs/promises';
 import type { TransformOptions } from 'esbuild';
-import { transform, transformSync } from '../../utils/transform/index.js';
+import backend from '../../backend/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';
 import { inlineSourceMap } from '../../source-map.js';
 import { isFeatureSupported, importAttributes, esmLoadReadFile } from '../../utils/node-features.js';
@@ -56,11 +56,10 @@ export const load: LoadHook = async (
 	}
 
 	if (isJsonPattern.test(url)) {
-		if (!context[contextAttributesProperty]) {
-			context[contextAttributesProperty] = {};
-		}
-
-		context[contextAttributesProperty]!.type = 'json';
+		// @types/node only declares `importAttributes` type
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		context[contextAttributesProperty as keyof LoadHookContext] ||= {} as any;
+		(context[contextAttributesProperty as keyof LoadHookContext] as ImportAttributes).type = 'json';
 	}
 
 	const loaded = await nextLoad(url, context);
@@ -91,7 +90,7 @@ export const load: LoadHook = async (
 			 * which are already in CJS syntax.
 			 * In CTS, module.exports can be written in any pattern.
 			 */
-			const transformed = transformSync(
+			const transformed = backend.transformSync(
 				code,
 				filePath,
 				{
@@ -118,7 +117,7 @@ export const load: LoadHook = async (
 		loaded.format === 'json'
 		|| tsExtensionsPattern.test(url)
 	) {
-		const transformed = await transform(
+		const transformed = await backend.transform(
 			code,
 			filePath,
 			{

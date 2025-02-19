@@ -1,22 +1,19 @@
 import { pathToFileURL } from 'node:url';
 import {
-	transform as esbuildTransform,
-	transformSync as esbuildTransformSync,
-	version as esbuildVersion,
 	type TransformOptions,
 	type TransformFailure,
 } from 'esbuild';
-import { sha1 } from '../sha1.js';
+import { sha1 } from '../../utils/sha1.js';
 import {
 	version as transformDynamicImportVersion,
 	transformDynamicImport,
-} from './transform-dynamic-import.js';
-import cache from './cache.js';
+} from '../../utils/transform/transform-dynamic-import.js';
+import cache from '../../utils/transform/cache.js';
 import {
 	applyTransformersSync,
 	applyTransformers,
 	type Transformed,
-} from './apply-transformers.js';
+} from '../../utils/transform/apply-transformers.js';
 import {
 	cacheConfig,
 	patchOptions,
@@ -33,8 +30,8 @@ const formatEsbuildError = (
 	throw error;
 };
 
-// Used by cjs-loader
-export const transformSync = (
+// used by cjs-loader
+export const createEsbuildTransformSync = (esbuild: typeof import('esbuild')) => (
 	code: string,
 	filePath: string,
 	extendOptions?: TransformOptions,
@@ -63,7 +60,7 @@ export const transformSync = (
 	const hash = sha1([
 		code,
 		JSON.stringify(esbuildOptions),
-		esbuildVersion,
+		esbuild.version,
 		transformDynamicImportVersion,
 	].join('-'));
 	let transformed = cache.get(hash);
@@ -77,7 +74,7 @@ export const transformSync = (
 					const patchResult = patchOptions(esbuildOptions);
 					let result;
 					try {
-						result = esbuildTransformSync(_code, esbuildOptions);
+						result = esbuild.transformSync(_code, esbuildOptions);
 					} catch (error) {
 						throw formatEsbuildError(error as TransformFailure);
 					}
@@ -94,7 +91,7 @@ export const transformSync = (
 };
 
 // Used by esm-loader
-export const transform = async (
+export const createEsbuildTransform = (esbuild: typeof import('esbuild')) => async (
 	code: string,
 	filePath: string,
 	extendOptions?: TransformOptions,
@@ -109,7 +106,7 @@ export const transform = async (
 	const hash = sha1([
 		code,
 		JSON.stringify(esbuildOptions),
-		esbuildVersion,
+		esbuild.version,
 		transformDynamicImportVersion,
 	].join('-'));
 	let transformed = cache.get(hash);
@@ -123,7 +120,7 @@ export const transform = async (
 					const patchResult = patchOptions(esbuildOptions);
 					let result;
 					try {
-						result = await esbuildTransform(_code, esbuildOptions);
+						result = await esbuild.transform(_code, esbuildOptions);
 					} catch (error) {
 						throw formatEsbuildError(error as TransformFailure);
 					}
