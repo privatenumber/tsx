@@ -4,14 +4,14 @@
 			<h4 class="text-base font-semibold">Premium sponsors</h4>
 		</div>
 		<a
-			href="https://www.prisma.io"
+			href="https://sevalla.com"
 			target="_blank"
 			rel="noopener"
 		>
 			<div class="my-4 py-6 px-6 bg-white/5">
 				<img
-					src="/logos/prisma-full.svg"
-					alt="Prisma"
+					src="/logos/sevalla-full.svg"
+					alt="Sevalla"
 					class="object-cover"
 				>
 			</div>
