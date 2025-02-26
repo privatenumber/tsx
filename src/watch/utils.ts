@@ -1,4 +1,6 @@
+import path from 'node:path';
 import { gray, lightCyan } from 'kolorist';
+import normalizePath from 'normalize-path';
 
 const currentTime = () => (new Date()).toLocaleTimeString();
 
@@ -28,4 +30,11 @@ export const debounce = <T extends (this: unknown, ...args: any[]) => void>(
 			duration,
 		);
 	} as T;
+};
+
+export const resolveGlobPattern = (pattern: string): string => {
+	if (path.isAbsolute(pattern)) {
+		return normalizePath(pattern);
+	}
+	return normalizePath(path.join(process.cwd(), pattern));
 };
