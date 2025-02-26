@@ -2,7 +2,7 @@
 
 import repl, { type REPLEval } from 'node:repl';
 import { version } from '../package.json';
-import { transform } from './utils/transform/index.js';
+import backend from './backend/index.js';
 
 // Copied from
 // https://github.com/nodejs/node/blob/v18.2.0/lib/internal/main/repl.js#L37
@@ -16,7 +16,7 @@ const nodeRepl = repl.start();
 const { eval: defaultEval } = nodeRepl;
 
 const preEval: REPLEval = async function (code, context, filename, callback) {
-	const transformed = await transform(
+	const transformed = await backend.transform(
 		code,
 		filename,
 		{
