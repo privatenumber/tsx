@@ -257,7 +257,7 @@ Ultimately, it's a decision you'll need to make based on your specific productio
 
 # Ask a question
 
-_tsx_ offers support via [Discussions](https://github.com/pvtnbr/tsx/discussions) for [sponsors](https://github.com/sponsors/privatenumber/sponsorships?tier_id=416984). If you're a sponsor, feel free to ask more questions there!
+_tsx_ offers support via [Github Issues](https://github.com/privatenumber/tsx/issues) for [sponsors](https://github.com/sponsors/privatenumber/sponsorships?tier_id=416984). If you're a sponsor, feel free to ask more questions there!
 
 <style scoped>
 .bug-report {
