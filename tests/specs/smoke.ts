@@ -520,5 +520,43 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 			});
 			expect(p.failed).toBe(false);
 		});
+
+		test('gracefully handles lack of WebAssembly capability when running with --jitless', async ({ onTestFail }) => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'module' }),
+				a: {
+					'index.ts': `
+					import { value } from './value.js';
+
+					if (value !== 1) {
+						throw new Error('Unexpected value');
+					}
+					`,
+					'value.ts': 'export const value: number = 1 satisfies 1 | 2;',
+				},
+				b: {
+					'index.ts': `
+					import { value } from './value.js';
+
+					if (value !== 2) {
+						throw new Error('Unexpected value');
+					}
+					`,
+					'value.ts': 'export const value: number = 2 satisfies 1 | 2;',
+				},
+				'index.mjs': `
+				import './a/index.js';
+				import './b/index.js';
+				`,
+			});
+
+			const p = await tsx(['--jitless', 'index.mjs'], {
+				cwd: fixture.path,
+			});
+			onTestFail(() => {
+				console.log(p);
+			});
+			expect(p.failed).toBe(false);
+		});
 	});
 });

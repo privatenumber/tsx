@@ -1,12 +1,14 @@
-import { parse as parseWasm, init } from 'es-module-lexer';
 import { parse as parseJs } from 'es-module-lexer/js';
 
+let parseWasm: typeof import('es-module-lexer').parse
 let wasmParserInitialized = false;
 
-// eslint-disable-next-line promise/catch-or-return
-init.then(() => {
-	wasmParserInitialized = true;
-});
+if (typeof WebAssembly !== 'undefined') {
+	// eslint-disable-next-line promise/catch-or-return
+	import('es-module-lexer')
+		.then(({ parse, init }) => ((parseWasm = parse), init))
+		.then(() => (wasmParserInitialized = true))
+}
 
 export const parseEsm = (
 	code: string,
