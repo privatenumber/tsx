@@ -54,7 +54,7 @@
 		"./preflight": "./dist/preflight.cjs",
 		"./repl": "./dist/repl.mjs"
 	},
-	"packageManager": "pnpm@9.11.0",
+	"packageManager": "pnpm@10.9.0",
 	"homepage": "https://tsx.is",
 	"scripts": {
 		"build": "pkgroll --minify",
