@@ -2,6 +2,7 @@ import { parse as parseJs } from 'es-module-lexer/js';
 
 let parseWasm: typeof import('es-module-lexer').parse | undefined;
 
+// When Node's --jitless flag is set, WebAssembly is not available
 if (typeof WebAssembly !== 'undefined') {
 	(async () => {
 		const { parse, init } = await import('es-module-lexer');
