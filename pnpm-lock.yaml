@@ -4,7 +4,7 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-packageExtensionsChecksum: 418815b01ddb49c2310302d764888041
+packageExtensionsChecksum: sha256-LlP7CMH9fA4AJksJ43fZeNWJ9HiueUMoshCkotKoNSs=
 
 importers:
 
@@ -16,10 +16,6 @@ importers:
       get-tsconfig:
         specifier: ^4.7.5
         version: 4.7.5
-    optionalDependencies:
-      fsevents:
-        specifier: ~2.3.3
-        version: 2.3.3
     devDependencies:
       '@ampproject/remapping':
         specifier: ^2.3.0
@@ -108,6 +104,10 @@ importers:
       typescript:
         specifier: ^5.5.2
         version: 5.5.2
+    optionalDependencies:
+      fsevents:
+        specifier: ~2.3.3
+        version: 2.3.3
 
   docs:
     devDependencies:
