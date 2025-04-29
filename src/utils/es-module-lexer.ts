@@ -1,18 +1,21 @@
-import { parse as parseWasm, init } from 'es-module-lexer';
 import { parse as parseJs } from 'es-module-lexer/js';
 
-let wasmParserInitialized = false;
+let parseWasm: typeof import('es-module-lexer').parse | undefined;
 
-// eslint-disable-next-line promise/catch-or-return
-init.then(() => {
-	wasmParserInitialized = true;
-});
+// When Node's --jitless flag is set, WebAssembly is not available
+if (typeof WebAssembly !== 'undefined') {
+	(async () => {
+		const { parse, init } = await import('es-module-lexer');
+		await init;
+		parseWasm = parse;
+	})();
+}
 
 export const parseEsm = (
 	code: string,
 	filename?: string,
 ) => (
-	wasmParserInitialized
+	parseWasm
 		? parseWasm(code, filename)
 		: parseJs(code, filename)
 );

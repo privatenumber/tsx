@@ -106,5 +106,16 @@
 		"type-fest": "^4.20.1",
 		"type-flag": "^3.0.0",
 		"typescript": "^5.5.2"
+	},
+	"pnpm": {
+		"packageExtensions": {
+			"node-pty": {
+				"//": "https://github.com/microsoft/node-pty/issues/777",
+				"dependencies": {
+					"node-gyp": "11.0.0"
+				}
+			}
+		},
+		"onlyBuiltDependencies": ["node-pty", "esbuild"]
 	}
 }

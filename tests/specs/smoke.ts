@@ -520,5 +520,25 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 			});
 			expect(p.failed).toBe(false);
 		});
+
+		if (supports.cjsInterop) {
+			test('mjs file can import named export from fake ESM even with --jitless', async ({ onTestFail }) => {
+				await using fixture = await createFixture({
+					'esm-in-cjs.js': 'export const value = 1;',
+					'index.mjs': `
+					import { value } from './esm-in-cjs.js';
+					console.log(value);
+					`,
+				});
+
+				const p = await tsx(['--jitless', 'index.mjs'], {
+					cwd: fixture.path,
+				});
+				onTestFail(() => {
+					console.log(p);
+				});
+				expect(p.failed).toBe(false);
+			});
+		}
 	});
 });

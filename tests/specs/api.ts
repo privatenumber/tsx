@@ -163,18 +163,18 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						} catch {
 							console.log('Fails as expected');
 						}
-	
+
 						const unregister = register();
-	
+
 						const loaded = require('./file');
 						console.log(loaded.message);
-	
+
 						// Remove from cache
 						const loadedPath = require.resolve('./file');
 						delete require.cache[loadedPath];
-	
+
 						unregister();
-	
+
 						try {
 							require('./file');
 						} catch {
@@ -336,9 +336,9 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						'index.js': outdent`
 						const proxyquire = require('proxyquire');
 						const tsx = require(${JSON.stringify(tsxCjsApiPath)});
-						
+
 						tsx.register();
-						
+
 						proxyquire('./test.js', {
 							path: {
 								sep: 'hello world',
@@ -495,7 +495,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							nodePath: node.path,
 							nodeOptions: [],
 						});
-						expect(stdout).toBe('file.ts\nfoo.ts\njson.json\npromises\nbar.ts\npkg.js\nnode:process');
+						expect(stdout).toMatch(/^lexer-[a-zA-Z0-9]+\.mjs\nfile\.ts\nfoo\.ts\njson\.json\npromises\nbar\.ts\npkg\.js\nnode:process$/);
 					}, {
 						retry: 3,
 					});
