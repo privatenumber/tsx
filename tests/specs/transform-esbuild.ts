@@ -2,7 +2,10 @@ import { testSuite, expect } from 'manten';
 import { createFsRequire } from 'fs-require';
 import { Volume } from 'memfs';
 import outdent from 'outdent';
-import { transform, transformSync } from '../../src/utils/transform/index.js';
+import esbuild from 'esbuild';
+import getEsbuildBackend from '../../src/backend/esbuild/index.js';
+
+const backend = getEsbuildBackend(esbuild);
 
 const base64Module = (code: string) => `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`;
 
@@ -41,7 +44,7 @@ export default testSuite(({ describe }) => {
 	describe('transform', ({ describe }) => {
 		describe('sync', ({ test }) => {
 			test('transforms ESM to CJS', () => {
-				const transformed = transformSync(
+				const transformed = backend.transformSync(
 					fixtures.esm,
 					'file.js',
 					{ format: 'cjs' },
@@ -64,7 +67,7 @@ export default testSuite(({ describe }) => {
 			});
 
 			test('dynamic import', () => {
-				const dynamicImport = transformSync(
+				const dynamicImport = backend.transformSync(
 					'import((0, _url.pathToFileURL)(path).href)',
 					'file.js',
 					{ format: 'cjs' },
@@ -75,7 +78,7 @@ export default testSuite(({ describe }) => {
 
 			test('sourcemap file', () => {
 				const fileName = 'file.mts';
-				const transformed = transformSync(
+				const transformed = backend.transformSync(
 					fixtures.ts,
 					fileName,
 					{ format: 'esm' },
@@ -93,7 +96,7 @@ export default testSuite(({ describe }) => {
 
 			test('quotes in file path', () => {
 				const fileName = '\'"name.mts';
-				const transformed = transformSync(
+				const transformed = backend.transformSync(
 					fixtures.ts,
 					fileName,
 					{ format: 'esm' },
@@ -112,7 +115,7 @@ export default testSuite(({ describe }) => {
 
 		describe('async', ({ test }) => {
 			test('transforms TS to ESM', async () => {
-				const transformed = await transform(
+				const transformed = await backend.transform(
 					fixtures.ts,
 					'file.ts',
 					{ format: 'esm' },
@@ -133,7 +136,7 @@ export default testSuite(({ describe }) => {
 
 			test('sourcemap file', async () => {
 				const fileName = 'file.cts';
-				const transformed = await transform(
+				const transformed = await backend.transform(
 					fixtures.ts,
 					fileName,
 					{ format: 'esm' },

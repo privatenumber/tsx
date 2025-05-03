@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Module from 'node:module';
 import type { TransformOptions } from 'esbuild';
-import { transformSync } from '../../utils/transform/index.js';
+import backend from '../../backend/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';
 import { isESM } from '../../utils/es-module-lexer.js';
 import { shouldApplySourceMap, inlineSourceMap } from '../../source-map.js';
@@ -140,7 +140,7 @@ export const createExtensions = (
 			// CommonJS file but uses ESM import/export
 			|| isESM(code)
 		) {
-			const transformed = transformSync(
+			const transformed = backend.transformSync(
 				code,
 				filePath,
 				{

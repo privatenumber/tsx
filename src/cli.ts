@@ -2,9 +2,6 @@ import { constants as osConstants } from 'node:os';
 import type { ChildProcess, Serializable } from 'node:child_process';
 import type { Server } from 'node:net';
 import { cli } from 'cleye';
-import {
-	transformSync as esbuildTransformSync,
-} from 'esbuild';
 import { version } from '../package.json';
 import { run } from './run.js';
 import { watchCommand } from './watch/index.js';
@@ -14,6 +11,7 @@ import {
 } from './remove-argv-flags.js';
 import { isFeatureSupported, testRunnerGlob } from './utils/node-features.js';
 import { createIpcServer } from './utils/ipc/server.js';
+import backend from './backend';
 
 // const debug = (...messages: any[]) => {
 // 	if (process.env.DEBUG) {
@@ -206,16 +204,12 @@ cli({
 	if (evalType) {
 		const { inputType } = interceptedFlags;
 		const evalCode = interceptedFlags[evalType]!;
-		const transformed = esbuildTransformSync(
+		const transformed = backend.evalTransformSync(
 			evalCode,
-			{
-				loader: 'default',
-				sourcefile: '/eval.ts',
-				format: inputType === 'module' ? 'esm' : 'cjs',
-			},
+			inputType,
 		);
 
-		argvsToRun.unshift(`--${evalType}`, transformed.code);
+		argvsToRun.unshift(`--${evalType}`, transformed);
 	}
 
 	// Default --test glob to find TypeScript files
