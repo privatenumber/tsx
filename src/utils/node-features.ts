@@ -59,3 +59,9 @@ export const esmLoadReadFile: Version[] = [
 	[20, 11, 0],
 	[21, 3, 0],
 ];
+
+// https://github.com/nodejs/node/pull/55085
+export const requireEsm: Version[] = [
+	[20, 19, 0],
+	[23, 0, 0],
+];

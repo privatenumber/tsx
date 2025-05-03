@@ -93,7 +93,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 							[() => import ('./mjs/index'), 'Cannot find module'],
 							[() => import ('./mjs/'), 'Cannot find module'],
 							${
-								isCommonJs
+								isCommonJs && !supports.requireEsm
 									? `
 									[() => require('./mjs/index'), 'Cannot find module'],
 									[() => require('./mjs/'), 'Cannot find module'],
@@ -263,7 +263,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 							[() => import ('./mjs/index'), 'Cannot find module'],
 							[() => import ('./mjs/'), 'Cannot find module'],
 							${
-								isCommonJs
+								isCommonJs && !supports.requireEsm
 									? `
 									[() => require('./mjs/index'), 'Cannot find module'],
 									[() => require('./mjs/'), 'Cannot find module'],
