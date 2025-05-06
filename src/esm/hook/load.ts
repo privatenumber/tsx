@@ -56,11 +56,15 @@ export const load: LoadHook = async (
 	}
 
 	if (isJsonPattern.test(url)) {
-		if (!context[contextAttributesProperty]) {
-			context[contextAttributesProperty] = {};
+		let contextAttributes = context[contextAttributesProperty];
+		if (!contextAttributes) {
+			contextAttributes = {};
+			context[contextAttributesProperty] = contextAttributes;
 		}
 
-		context[contextAttributesProperty]!.type = 'json';
+		if (!contextAttributes.type) {
+			contextAttributes.type = 'json';
+		}
 	}
 
 	const loaded = await nextLoad(url, context);
