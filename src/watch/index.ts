@@ -4,6 +4,7 @@ import { constants as osConstants } from 'node:os';
 import path from 'node:path';
 import { command } from 'cleye';
 import { watch } from 'chokidar';
+import { Glob, hasMagic, Ignore } from 'glob';
 import { lightMagenta, lightGreen, yellow } from 'kolorist';
 import { run } from '../run.js';
 import {
@@ -199,6 +200,32 @@ export const watchCommand = command({
 	process.on('SIGINT', relaySignal);
 	process.on('SIGTERM', relaySignal);
 
+	// Parse all include paths as globs, then build a Set for fast lookups during the ignored function
+	const watchGlob = new Glob([...argv._, ...options.include], {
+		absolute: true,
+		windowsPathsNoEscape: true,
+	});
+	const watchPaths = new Set(watchGlob);
+
+	// Build an Ignore object for checking whether a path should be ignored or not. Note that we can't
+	// pass patterns in the constructor because the changes to mmopts won't be made yet.
+	const ignore = new Ignore([], watchGlob);
+	ignore.mmopts.windowsPathsNoEscape = true;
+
+	// Now add the built-in and user-specified ignore patterns
+	[
+		// Hidden directories (like .git) and files (e.g. logs or temp files)
+		'**/.*/**',
+
+		// 3rd party packages
+		'**/{node_modules,bower_components,vendor}/**',
+
+		// Convert normal, non-glob paths into globs ending in '/**', so descendants are also included
+		...options.exclude.map(o => (hasMagic(o, { windowsPathsNoEscape: true }) ? o : `${o}/**`)),
+	].forEach(p => ignore.add(p));
+
+	const cwd = process.cwd();
+
 	/**
 	 * Ideally, we can get a list of files loaded from the run above
 	 * and only watch those files, but it's not possible to detect
@@ -208,25 +235,28 @@ export const watchCommand = command({
 	 * As an alternative, we watch cwd and all run-time dependencies
 	 */
 	const watcher = watch(
-		[
-			...argv._,
-			...options.include,
-		],
+		Array.from(watchPaths),
 		{
-			cwd: process.cwd(),
+			cwd,
 			ignoreInitial: true,
-			ignored: [
-				// Hidden directories like .git
-				'**/.*/**',
+			ignored: (fullPath) => {
+				// Resolve the path to ensure it has the correct directory separators
+				const resolvedPath = path.resolve(fullPath);
 
-				// Hidden files (e.g. logs or temp files)
-				'**/.*',
+				// Never ignore files that were explicitly watched
+				if (watchPaths.has(resolvedPath)) {
+					return false;
+				}
 
-				// 3rd party packages
-				'**/{node_modules,bower_components,vendor}/**',
+				// ignore.ignored() expects a 'path-scurry' Path, but it only uses the fullpath() and
+				// relative() functions, so just make an object with those properties.
+				const p = {
+					fullpath: () => resolvedPath,
+					relative: () => path.relative(cwd, resolvedPath),
+				} as Parameters<Ignore['ignored']>[0];
 
-				...options.exclude,
-			],
+				return ignore.ignored(p);
+			},
 			ignorePermissionErrors: true,
 		},
 	).on('all', reRun);
