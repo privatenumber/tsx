@@ -17,6 +17,7 @@ import {
 	isRelativePath,
 } from '../../utils/path-utils.js';
 import type { TsxRequest } from '../types.js';
+import { logEsm as log, debugEnabled } from '../../utils/debug.js';
 import {
 	getFormatFromFileUrl,
 	namespaceQuery,
@@ -231,7 +232,8 @@ const resolveTsPaths: ResolveHook = async (
 
 const tsxProtocol = 'tsx://';
 
-export const resolve: ResolveHook = async (
+// eslint-disable-next-line import-x/no-mutable-exports
+let resolve: ResolveHook = async (
 	specifier,
 	context,
 	nextResolve,
@@ -281,6 +283,7 @@ export const resolve: ResolveHook = async (
 		return resolved;
 	}
 
+	// For TypeScript extensions that Node can't detect the format of
 	if (
 		!resolved.format
 		// Filter out data: (sourcemaps)
@@ -303,3 +306,26 @@ export const resolve: ResolveHook = async (
 
 	return resolved;
 };
+
+if (debugEnabled) {
+	const originalResolve = resolve;
+	resolve = async (
+		specifier,
+		context,
+		nextResolve,
+	) => {
+		log('resolve', {
+			specifier,
+			context,
+		});
+		const result = await originalResolve(specifier, context, nextResolve);
+		log('resolved', {
+			specifier,
+			context,
+			result,
+		});
+		return result;
+	};
+}
+
+export { resolve };

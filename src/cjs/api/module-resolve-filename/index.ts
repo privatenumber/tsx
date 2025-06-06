@@ -8,6 +8,7 @@ import {
 } from '../../../utils/path-utils.js';
 import { tsconfigPathsMatcher } from '../../../utils/tsconfig.js';
 import type { ResolveFilename, SimpleResolve, LoaderState } from '../types.js';
+import { logCjs as log } from '../../../utils/debug.js';
 import { createImplicitResolver } from './resolve-implicit-extensions.js';
 import { interopCjsExports } from './interop-cjs-exports.js';
 import { createTsExtensionResolver } from './resolve-ts-extensions.js';
@@ -70,6 +71,12 @@ export const createResolveFilename = (
 		return nextResolve(request, parent, ...restOfArgs);
 	}
 
+	log('resolve', {
+		request,
+		parent: parent?.filename ?? parent,
+		restOfArgs,
+	});
+
 	let nextResolveSimple: SimpleResolve = request_ => nextResolve(
 		request_,
 		parent,
@@ -89,10 +96,15 @@ export const createResolveFilename = (
 
 	nextResolveSimple = createImplicitResolver(nextResolveSimple);
 
-	const resolved = resolveTsPaths(cleanRequest, parent, nextResolveSimple);
-
-	return appendQuery(
-		resolved,
+	const resolved = appendQuery(
+		resolveTsPaths(cleanRequest, parent, nextResolveSimple),
 		restOfArgs.length,
 	);
+
+	log('resolved', {
+		request,
+		resolved,
+	});
+
+	return resolved;
 };

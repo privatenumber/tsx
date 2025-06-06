@@ -1,14 +1,38 @@
 import { inspect } from 'node:util';
 import { writeSync } from 'node:fs';
+import {
+	options, bgBlue, black, bgLightYellow, bgGray,
+} from 'kolorist';
 
-export const log = (
+options.enabled = true;
+options.supportLevel = 3;
+
+export const debugEnabled = process.env.TSX_DEBUG;
+
+const createLog = (
+	name: string,
+) => (
 	...args: any[]
 ) => {
+	if (!debugEnabled) {
+		return;
+	}
+
+	const prefix = `${bgGray(` tsx P${process.pid} `)} ${name}`;
+	const logMessage = args.map(argumentElement => (
+		typeof argumentElement === 'string'
+			? argumentElement
+			: inspect(argumentElement, { colors: true })
+	)).join(' ');
+
 	writeSync(
 		1,
-		`${args.map(argument => inspect(argument, { colors: true })).join(' ')}\n\n`,
+		`${prefix} ${logMessage}\n`,
 	);
 };
+
+export const logCjs = createLog(bgLightYellow(black(' CJS ')));
+export const logEsm = createLog(bgBlue(' ESM '));
 
 export const time = <T extends (...args: any[]) => unknown>(
 	name: string,

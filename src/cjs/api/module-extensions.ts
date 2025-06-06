@@ -8,6 +8,7 @@ import { isESM } from '../../utils/es-module-lexer.js';
 import { shouldApplySourceMap, inlineSourceMap } from '../../source-map.js';
 import { parent } from '../../utils/ipc/client.js';
 import { fileMatcher } from '../../utils/tsconfig.js';
+import { logCjs as log } from '../../utils/debug.js';
 import type { LoaderState } from './types.js';
 
 const typescriptExtensions = [
@@ -97,6 +98,10 @@ export const createExtensions = (
 			return defaultLoader(module, filePath);
 		}
 
+		log('load', {
+			filePath,
+		});
+
 		/**
 		 * In new Module(), m.path = path.dirname(module.id) but module.id coming from
 		 * ESM resolver may be a data: path
@@ -154,6 +159,10 @@ export const createExtensions = (
 					: transformed.code
 			);
 		}
+
+		log('loaded', {
+			filePath: cleanFilePath,
+		});
 
 		module._compile(code, cleanFilePath);
 	};

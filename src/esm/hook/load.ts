@@ -12,6 +12,7 @@ import type { Message } from '../types.js';
 import { fileMatcher } from '../../utils/tsconfig.js';
 import { isJsonPattern, tsExtensionsPattern, fileUrlPrefix } from '../../utils/path-utils.js';
 import { isESM } from '../../utils/es-module-lexer.js';
+import { logEsm as log, debugEnabled } from '../../utils/debug.js';
 import { getNamespace } from './utils.js';
 import { data } from './initialize.js';
 
@@ -21,7 +22,8 @@ const contextAttributesProperty = (
 		: 'importAssertions' as 'importAttributes'
 );
 
-export const load: LoadHook = async (
+// eslint-disable-next-line import-x/no-mutable-exports
+let load: LoadHook = async (
 	url,
 	context,
 	nextLoad,
@@ -68,6 +70,11 @@ export const load: LoadHook = async (
 	}
 
 	const loaded = await nextLoad(url, context);
+	log('loaded by next loader', {
+		url,
+		loaded,
+	});
+
 	const filePath = url.startsWith(fileUrlPrefix) ? fileURLToPath(url) : url;
 
 	if (
@@ -106,6 +113,8 @@ export const load: LoadHook = async (
 			const filePathWithNamespace = urlNamespace ? `${filePath}?namespace=${encodeURIComponent(urlNamespace)}` : filePath;
 
 			loaded.responseURL = `data:text/javascript,${encodeURIComponent(transformed.code)}?filePath=${encodeURIComponent(filePathWithNamespace)}`;
+
+			log('returning CJS export annotation', loaded);
 			return loaded;
 		}
 	}
@@ -149,3 +158,25 @@ export const load: LoadHook = async (
 
 	return loaded;
 };
+
+if (debugEnabled) {
+	const originalLoad = load;
+	load = async (
+		url,
+		context,
+		nextLoad,
+	) => {
+		log('load', {
+			url,
+			context,
+		});
+		const result = await originalLoad(url, context, nextLoad);
+		log('loaded', {
+			url,
+			result,
+		});
+		return result;
+	};
+}
+
+export { load };
