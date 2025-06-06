@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { mapTsExtensions } from '../../../utils/map-ts-extensions.js';
 import type { NodeError } from '../../../types.js';
 import {
@@ -72,10 +71,7 @@ export const createTsExtensionResolver = (
 
 		if (nodeError.code === 'MODULE_NOT_FOUND') {
 			// Exports map resolution
-			if (
-				typeof nodeError.path === 'string'
-				&& nodeError.path.endsWith(`${path.sep}package.json`)
-			) {
+			if (nodeError.path) {
 				const isExportsPath = nodeError.message.match(/^Cannot find module '([^']+)'$/);
 				if (isExportsPath) {
 					const exportsPath = isExportsPath[1];
