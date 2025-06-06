@@ -1,4 +1,4 @@
-import type { GlobalPreloadHook, InitializeHook } from 'node:module';
+import type { InitializeHook } from 'node:module';
 import type { InitializationOptions } from '../api/register.js';
 import type { Message } from '../types.js';
 import { loadTsconfig } from '../../utils/tsconfig.js';
@@ -37,6 +37,9 @@ export const initialize: InitializeHook = async (
 	}
 };
 
+type GlobalPreloadHook = () => string;
+
+// Replaced by `initialize` in Node v20.6.0, v18.19.0
 export const globalPreload: GlobalPreloadHook = () => {
 	loadTsconfig(process.env.TSX_TSCONFIG_PATH);
 	return 'process.setSourceMapsEnabled(true);';

@@ -18,7 +18,7 @@ import { data } from './initialize.js';
 const contextAttributesProperty = (
 	isFeatureSupported(importAttributes)
 		? 'importAttributes'
-		: 'importAssertions'
+		: 'importAssertions' as 'importAttributes'
 );
 
 export const load: LoadHook = async (

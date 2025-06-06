@@ -79,7 +79,7 @@
 	"devDependencies": {
 		"@ampproject/remapping": "^2.3.0",
 		"@types/cross-spawn": "^6.0.6",
-		"@types/node": "^20.14.9",
+		"@types/node": "^22.15.29",
 		"@types/split2": "^4.2.3",
 		"append-transform": "^2.0.0",
 		"cachedir": "^2.4.0",
@@ -116,6 +116,9 @@
 				}
 			}
 		},
-		"onlyBuiltDependencies": ["node-pty", "esbuild"]
+		"onlyBuiltDependencies": [
+			"node-pty",
+			"esbuild"
+		]
 	}
 }
