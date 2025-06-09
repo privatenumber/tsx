@@ -132,7 +132,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				);
 
 				if (node.supports.testRunnerGlob) {
-					expect(tsxProcess.stdout).toMatch('some passing test\n');
+					expect(tsxProcess.stdout).toMatch(/some passing test( \(.+ms\))?\n/);
 				} else {
 					expect(tsxProcess.stdout).toMatch('# pass 1\n');
 				}

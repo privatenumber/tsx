@@ -6,7 +6,7 @@ import {
 } from '../../../utils/path-utils.js';
 import { allowJs } from '../../../utils/tsconfig.js';
 import type { SimpleResolve } from '../types.js';
-import { logCjs } from '../../../utils/debug.js';
+import { logCjs as log } from '../../../utils/debug.js';
 
 /**
  * Typescript gives .ts, .cts, or .mts priority over actual .js, .cjs, or .mjs extensions
@@ -16,7 +16,12 @@ const resolveTsFilename = (
 	request: string,
 	isTsParent: boolean,
 ) => {
-	logCjs('resolveTsFilename', request);
+	log('resolveTsFilename', {
+		request,
+		isDirectory: isDirectoryPattern.test(request),
+		isTsParent,
+		allowJs,
+	});
 	if (
 		isDirectoryPattern.test(request)
 		|| (!isTsParent && !allowJs)
@@ -50,7 +55,7 @@ export const createTsExtensionResolver = (
 ): SimpleResolve => (
 	request,
 ) => {
-	logCjs('resolveTsFilename', {
+	log('resolveTsFilename', {
 		request,
 		isTsParent,
 		isFilePath: isFilePath(request),

@@ -15,13 +15,19 @@ import {
 	tsExtensionsPattern,
 	isDirectoryPattern,
 	isRelativePath,
+	nodeModulesPath,
 } from '../../utils/path-utils.js';
 import type { TsxRequest } from '../types.js';
 import { logEsm as log, debugEnabled } from '../../utils/debug.js';
 import {
+	isFeatureSupported,
+	loadReadFromSource,
+} from '../../utils/node-features.js';
+import {
 	getFormatFromFileUrl,
 	namespaceQuery,
 	getNamespace,
+	decodeCjsQuery,
 } from './utils.js';
 import { data } from './initialize.js';
 
@@ -76,6 +82,12 @@ const resolveExtensions = async (
 	throwError?: boolean,
 ) => {
 	const tryPaths = mapTsExtensions(url);
+	log('resolveExtensions', {
+		url,
+		context,
+		throwError,
+		tryPaths,
+	});
 	if (!tryPaths) {
 		return;
 	}
@@ -107,6 +119,16 @@ const resolveBase: ResolveHook = async (
 	context,
 	nextResolve,
 ) => {
+	log('resolveBase', {
+		specifier,
+		context,
+		specifierStartsWithFileUrl: specifier.startsWith(fileUrlPrefix),
+		isRelativePath: isRelativePath(specifier),
+		specifierNodeModules: specifier.includes(nodeModulesPath),
+		tsExtensionsPattern: tsExtensionsPattern.test(context.parentURL!),
+		allowJs,
+	});
+
 	/**
 	 * Only prioritize TypeScript extensions for file paths (no dependencies)
 	 * TS aliases are pre-resolved so they're file paths
@@ -118,12 +140,19 @@ const resolveBase: ResolveHook = async (
 		(
 			specifier.startsWith(fileUrlPrefix)
 			|| isRelativePath(specifier)
-		) && (
+		)
+		&& !specifier.includes('/node_modules/') // specifier is a URL (no Windows back slashes)
+		&& (
 			tsExtensionsPattern.test(context.parentURL!)
 			|| allowJs
 		)
 	) {
 		const resolved = await resolveExtensions(specifier, context, nextResolve);
+		log('resolveBase resolved', {
+			specifier,
+			context,
+			resolved,
+		});
 		if (resolved) {
 			return resolved;
 		}
@@ -132,6 +161,11 @@ const resolveBase: ResolveHook = async (
 	try {
 		return await nextResolve(specifier, context);
 	} catch (error) {
+		log('resolveBase error', {
+			specifier,
+			context,
+			error,
+		});
 		if (error instanceof Error) {
 			const nodeError = error as NodeError;
 			if (nodeError.code === 'ERR_MODULE_NOT_FOUND') {
@@ -155,6 +189,11 @@ const resolveDirectory: ResolveHook = async (
 	context,
 	nextResolve,
 ) => {
+	log('resolveDirectory', {
+		specifier,
+		context,
+		isDirectory: isDirectoryPattern.test(specifier),
+	});
 	if (specifier === '.' || specifier === '..' || specifier.endsWith('/..')) {
 		specifier += '/';
 	}
@@ -177,6 +216,11 @@ const resolveDirectory: ResolveHook = async (
 		return await resolveBase(specifier, context, nextResolve);
 	} catch (error) {
 		if (error instanceof Error) {
+			log('resolveDirectory error', {
+				specifier,
+				context,
+				error,
+			});
 			const nodeError = error as NodeError;
 			if (nodeError.code === 'ERR_UNSUPPORTED_DIR_IMPORT') {
 				const errorPath = getMissingPathFromNotFound(nodeError);
@@ -208,6 +252,15 @@ const resolveTsPaths: ResolveHook = async (
 	context,
 	nextResolve,
 ) => {
+	log('resolveTsPaths', {
+		specifier,
+		context,
+
+		requestAcceptsQuery: requestAcceptsQuery(specifier),
+		tsconfigPathsMatcher,
+		fromNodeModules: context.parentURL?.includes('/node_modules/'),
+	});
+
 	if (
 		// Bare specifier
 		!requestAcceptsQuery(specifier)
@@ -216,6 +269,9 @@ const resolveTsPaths: ResolveHook = async (
 		&& !context.parentURL?.includes('/node_modules/')
 	) {
 		const possiblePaths = tsconfigPathsMatcher(specifier);
+		log('resolveTsPaths', {
+			possiblePaths,
+		});
 		for (const possiblePath of possiblePaths) {
 			try {
 				return await resolveDirectory(
@@ -232,6 +288,8 @@ const resolveTsPaths: ResolveHook = async (
 
 const tsxProtocol = 'tsx://';
 
+const formatTracker = new Map<string, string>();
+
 // eslint-disable-next-line import-x/no-mutable-exports
 let resolve: ResolveHook = async (
 	specifier,
@@ -240,6 +298,18 @@ let resolve: ResolveHook = async (
 ) => {
 	if (!data.active || specifier.startsWith('node:')) {
 		return nextResolve(specifier, context);
+	}
+
+	// CJS resolution handled by ESM resolver
+	// Since queries are not supported in CJS, they get encoded so we have to decode them
+	if (isFeatureSupported(loadReadFromSource)) {
+		if (specifier.includes('%3F')) {
+			specifier = decodeCjsQuery(specifier);
+		}
+
+		if (context.parentURL?.includes('%3F')) {
+			context.parentURL = decodeCjsQuery(context.parentURL);
+		}
 	}
 
 	let requestNamespace = getNamespace(specifier) ?? (
@@ -272,7 +342,6 @@ let resolve: ResolveHook = async (
 	}
 
 	const [cleanSpecifier, query] = specifier.split('?');
-
 	const resolved = await resolveTsPaths(
 		cleanSpecifier,
 		context,
@@ -302,6 +371,47 @@ let resolve: ResolveHook = async (
 		&& !resolved.url.includes(namespaceQuery)
 	) {
 		resolved.url += (resolved.url.includes('?') ? '&' : '?') + namespaceQuery + requestNamespace;
+	}
+
+	if (resolved.format === 'commonjs-typescript') {
+		resolved.format = 'commonjs';
+	}
+
+	if (resolved.format === 'module-typescript') {
+		resolved.format = 'module';
+	}
+
+	// TODO: dynamic import?
+	// If the parent is a CommonJS module, we need to compile all ESM modules it requires to CommonJS
+	if (resolved.format === 'module' && context.parentURL) {
+		const parentFormat = formatTracker.get(context.parentURL);
+		if (parentFormat === 'commonjs') {
+			resolved.format = 'commonjs';
+		}
+	}
+
+	if (resolved.format === 'json' && context.parentURL) {
+		const parentFormat = formatTracker.get(context.parentURL);
+		if (parentFormat === 'commonjs') {
+			resolved.format = 'commonjs-json';
+		}
+		if (parentFormat === 'module') {
+			resolved.format = 'module-json';
+		}
+	}
+
+	formatTracker.set(resolved.url, resolved.format!);
+
+	if (
+		isFeatureSupported([
+			[20, 11, 0],
+			[22, 10, 0],
+		])
+		&& resolved.format === 'commonjs'
+		&& resolved.url.includes('?')
+	) {
+		const [url, searchParams] = resolved.url.split('?');
+		resolved.url = url + encodeURIComponent(`?${searchParams}`);
 	}
 
 	return resolved;

@@ -1,4 +1,4 @@
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import {
 	transform as esbuildTransform,
 	transformSync as esbuildTransformSync,
@@ -36,22 +36,39 @@ const formatEsbuildError = (
 // Used by cjs-loader
 export const transformSync = (
 	code: string,
-	filePath: string,
+	filePathOrUrl: string,
 	extendOptions?: TransformOptions,
 ): Transformed => {
-	const [filePathWithoutQuery, query] = filePath.split('?');
 	const define: { [key: string]: string } = {};
 
-	if (!(filePathWithoutQuery.endsWith('.cjs') || filePathWithoutQuery.endsWith('.cts'))) {
-		define['import.meta.url'] = JSON.stringify(pathToFileURL(filePathWithoutQuery) + (query ? `?${query}` : ''));
+	let url: string;
+	let filePath: string;
+	let query: string | undefined;
+
+	if (filePathOrUrl.startsWith('file://')) {
+		url = filePathOrUrl;
+		const parsed = new URL(filePathOrUrl);
+		filePath = fileURLToPath(parsed);
+	} else {
+		[filePath, query] = filePathOrUrl.split('?');
+		url = pathToFileURL(filePath) + (query ? `?${query}` : '');
+	}
+
+	if (
+		!(
+			filePath.endsWith('.cjs')
+			|| filePath.endsWith('.cts')
+		)
+	) {
+		define['import.meta.url'] = JSON.stringify(url);
 	}
 
 	const esbuildOptions = {
 		...cacheConfig,
 		format: 'cjs',
-		sourcefile: filePathWithoutQuery,
+		sourcefile: filePath,
 		define,
-		banner: '(()=>{',
+		banner: `__filename=${JSON.stringify(filePath)};(()=>{`,
 		footer: '})()',
 
 		// CJS Annotations for Node. Used by ESM loader for CJS interop
@@ -70,7 +87,7 @@ export const transformSync = (
 
 	if (!transformed) {
 		transformed = applyTransformersSync(
-			filePath,
+			filePathOrUrl,
 			code,
 			[
 				(_filePath, _code) => {

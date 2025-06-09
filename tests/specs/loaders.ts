@@ -5,7 +5,7 @@ import { createPackageJson } from '../fixtures.js';
 
 export default testSuite(({ describe }, node: NodeApis) => {
 	describe('Loaders', ({ describe }) => {
-		describe('Hooks', async ({ test }) => {
+		describe('Hooks', async ({ test, onFinish }) => {
 			const fixture = await createFixture({
 				'package.json': createPackageJson({ type: 'module' }),
 
@@ -20,6 +20,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				console.log(JSON.stringify([Boolean(fs) as unknown as string, import.meta.url]));
 				`,
 			});
+			onFinish(async () => await fixture.rm());
 
 			test('.ts', async () => {
 				const tsxResult = await node.hook(['./ts.ts'], fixture.path);

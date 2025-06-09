@@ -20,10 +20,19 @@ const tsFiles = {
 	export const message = \`\${foo} \${json} \${(typeof __filename === 'undefined' ? import.meta.url : __filename).split(/[\\\\/]/).pop()}\` as string
 	export { async } from './foo'
 	`,
+	'file1.ts': outdent`
+	import { foo } from './foo?1'
+	import { json } from './json.json?1'
+	export const message = \`\${foo} \${json} \${(typeof __filename === 'undefined' ? import.meta.url : __filename).split(/[\\\\/]/).pop()}\` as string
+	export { async } from './foo?1'
+	`,
 	'foo.ts': outdent`
 	import { setTimeout } from 'node:timers/promises'
 	import { bar } from './bar.js'
-	export const foo = \`foo \${bar}\` as string
+	enum Foo {
+		Foo = 'foo',
+	}
+	export const foo = \`\${Foo.Foo} \${bar}\` as string
 	export const async = setTimeout(10).then(() => require('./async')).catch((error) => error);
 	`,
 
@@ -414,7 +423,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							data: true,
 						})
 
-						const { message } = await import('./file.ts?nocache')
+						const { message } = await import('./file1.ts?nocache')
 						console.log(message)
 						`,
 						...tsFiles,
@@ -425,7 +434,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						nodeOptions: [],
 					});
 
-					expect(stdout).toBe('Fails as expected\nfoo bar json file.ts?nocache');
+					expect(stdout).toBe('Fails as expected\nfoo bar json file1.ts?nocache');
 				});
 
 				describe('register / unregister', ({ test, describe }) => {
@@ -443,14 +452,14 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							{
 								const unregister = register();
 
-								const { message } = await import('./file?2');
+								const { message } = await import('./file1');
 								console.log(message);
 
 								await unregister();
 							}
 
 							try {
-								await import('./file.ts?3');
+								await import('./file1.ts?3');
 							} catch {
 								console.log('Fails as expected 2');
 							}
@@ -458,7 +467,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							{
 								const unregister = register();
 
-								const { message } = await import('./file?4');
+								const { message } = await import('./file1?4');
 								console.log(message);
 
 								await unregister();
@@ -470,8 +479,9 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						const { stdout } = await execaNode(fixture.getPath('register.mjs'), [], {
 							nodePath: node.path,
 							nodeOptions: [],
+							reject: false,
 						});
-						expect(stdout).toBe('Fails as expected 1\nfoo bar json file.ts?2\nFails as expected 2\nfoo bar json file.ts?4');
+						expect(stdout).toBe('Fails as expected 1\nfoo bar json file1.ts\nFails as expected 2\nfoo bar json file1.ts?4');
 					});
 
 					test('onImport', async () => {
@@ -783,7 +793,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						expect(stdout).toBe('foo bar');
 					});
 
-					test('namespace allows async nested calls', async () => {
+					test('namespace allows async nested calls without cross contamination', async () => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson({ type: 'module' }),
 							'import.mjs': outdent`
@@ -792,14 +802,28 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							import('./file.ts').catch(() => console.log('Fails as expected'))
 							`,
 							'file.ts': 'import(\'./foo.ts\')',
-							'foo.ts': 'console.log(\'foo\' as string)',
+							'foo.ts': `
+							enum Test {
+								Foo = 'foo',
+							}
+							console.log(Test.Foo);
+							`,
 						});
 
-						const { stdout } = await execaNode(fixture.getPath('import.mjs'), [], {
+						const { stdout, stderr } = await execaNode(fixture.getPath('import.mjs'), [], {
 							nodePath: node.path,
 							nodeOptions: [],
+							reject: false,
 						});
-						expect(stdout).toBe('Fails as expected\nfoo');
+
+						if (node.supports.typeStripping) {
+							// The TS Syntax error can't be caught so it doesn't log
+							// expect(stdout).toBe('foo');
+							expect(stderr).toMatch(/ERR_INVALID_TYPESCRIPT_SYNTAX|ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX/);
+						} else {
+							expect(stdout).toBe('Fails as expected\nfoo');
+							expect(stderr).toBe('');
+						}
 					});
 
 					test('onImport & doesnt cache files', async () => {
