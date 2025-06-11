@@ -141,7 +141,7 @@ export const files = {
 	import '../json/'
 	`,
 
-	'json/index.json': JSON.stringify({ loaded: 'json' }),
+	'json/index.json': JSON.stringify({ 'loaded-file': 'json' }),
 
 	'cjs/index.cjs': sourcemap.tag`
 	const assert = require('node:assert');

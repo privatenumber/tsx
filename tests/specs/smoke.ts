@@ -161,7 +161,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 					expect(p.failed).toBe(false);
 					expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(fixture.getPath('import-from-js.js'))}"`);
 					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
-					expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
+					expect(p.stdout).toMatch('"json":{"default":{"loaded-file":"json"},"loaded-file":"json"}');
 
 					if (supports.exportModuleExports && !isCommonJs) {
 						expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"module.exports":{"named":"named"},"named":"named"}');
@@ -422,7 +422,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 					expect(p.failed).toBe(false);
 					expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(fixture.getPath('import-from-ts.ts'))}"`);
 					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
-					expect(p.stdout).toMatch('"json":{"default":{"loaded":"json"},"loaded":"json"}');
+					expect(p.stdout).toMatch('"json":{"default":{"loaded-file":"json"},"loaded-file":"json"}');
 					if (supports.exportModuleExports && !isCommonJs) {
 						expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"module.exports":{"named":"named"},"named":"named"}');
 					} else {

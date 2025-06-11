@@ -102,8 +102,9 @@ let load: LoadHook = async (
 			},
 		);
 
-		const jsonExportKeys = Object.keys(JSON.parse(code));
-		transformed.code += `\n0 && (module.exports = {${jsonExportKeys.join(',')}});`;
+		transformed.code += `\n0 && (module.exports = ${
+			JSON.stringify(Object.fromEntries(Object.keys(JSON.parse(code)).map(key => [key, 0])))
+		});`;
 
 		return {
 			shortCircuit: true,
@@ -300,8 +301,9 @@ let load: LoadHook = async (
 			},
 		);
 
-		const jsonExportKeys = Object.keys(JSON.parse(code));
-		transformed.code += `\n0 && (module.exports = {${jsonExportKeys.join(',')}});`;
+		transformed.code += `\n0 && (module.exports = ${
+			JSON.stringify(Object.fromEntries(Object.keys(JSON.parse(code)).map(key => [key, 0])))
+		});`;
 
 		return {
 			format: 'commonjs',
