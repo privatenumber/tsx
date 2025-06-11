@@ -101,7 +101,6 @@
 		"outdent": "^0.8.0",
 		"pkgroll": "^2.4.1",
 		"proxyquire": "^2.1.3",
-		"split2": "^4.2.0",
 		"strip-ansi": "^7.1.0",
 		"type-fest": "^4.20.1",
 		"type-flag": "^3.0.0",

@@ -31,8 +31,9 @@ jobs:
         shell: bash
         run: echo "PNPM_STORE=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
-        name: Cache pnpm
+      - name: Restore pnpm cache
+        id: pnpm-cache
+        uses: actions/cache@v3
         with:
           path: ${{ env.PNPM_STORE }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -40,6 +41,13 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Save pnpm cache
+        if: steps.pnpm-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          path: ${{ env.PNPM_STORE }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - name: Get Node.js cache directory
         shell: bash

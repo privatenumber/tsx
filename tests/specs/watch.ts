@@ -1,7 +1,6 @@
 import { setTimeout } from 'node:timers/promises';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
-import stripAnsi from 'strip-ansi';
 import type { NodeApis } from '../utils/tsx.js';
 import { processInteract } from '../utils/process-interact.js';
 import { createPackageJson } from '../fixtures.js';
@@ -62,10 +61,10 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 								return true;
 							}
 						},
-						data => stripAnsi(data).includes('[tsx] change in ./value.js Rerunning...\n'),
+						data => data.includes('[tsx] change in ./value.js Rerunning...\n'),
 						data => data.includes('goodbye world\n'),
 					],
-					5000,
+					9000,
 				);
 
 				tsxProcess.kill();

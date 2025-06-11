@@ -4,10 +4,13 @@ import {
 	options, bgBlue, black, bgLightYellow, bgGray,
 } from 'kolorist';
 
-options.enabled = true;
-options.supportLevel = 3;
-
 export const debugEnabled = process.env.TSX_DEBUG;
+
+// Force colors in debug mode
+if (debugEnabled) {
+	options.enabled = true;
+	options.supportLevel = 3;
+}
 
 const createLog = (
 	name: string,

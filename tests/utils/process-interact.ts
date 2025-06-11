@@ -1,6 +1,7 @@
 import type { Readable } from 'node:stream';
 import { on } from 'node:events';
 import { setTimeout } from 'node:timers/promises';
+import stripAnsi from 'strip-ansi';
 
 type OnTimeoutCallback = () => void;
 
@@ -71,7 +72,7 @@ export const processInteract = async (
 
 	while (currentAction) {
 		for await (const [chunk] of on(stdout, 'data')) {
-			const chunkString = chunk.toString();
+			const chunkString = stripAnsi(chunk.toString());
 			logs.push({
 				time: Date.now() - startTime,
 				stdout: chunkString,
