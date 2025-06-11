@@ -31,13 +31,11 @@ type API = {
 export const ptyShell = (
 	callback: (api: API) => Promise<void>,
 	options?: NodeOptions<'utf8'>,
-	debugTitle?: string,
 ) => {
 	const timeStart = Date.now();
+	const logs: string[] = [];
 	const log = (...messages: any[]) => {
-		if (debugTitle) {
-			console.log(`[${debugTitle}][${Date.now() - timeStart}ms]`, ...messages);
-		}
+		logs.push(`[${Date.now() - timeStart}ms] ${messages.map(message => JSON.stringify(message)).join(' ')}`);
 	};
 
 	const childProcess = execaNode(
@@ -58,7 +56,7 @@ export const ptyShell = (
 				deferred.resolve(line);
 				lineMap.delete(pattern);
 
-				log('line', JSON.stringify(line));
+				log('line', line);
 			}
 		}
 	};
@@ -104,17 +102,17 @@ export const ptyShell = (
 				return promptDeferred.promise;
 			},
 			waitForLine: (pattern) => {
-				log('waitForLine', pattern);
+				log('waitForLine', pattern.toString());
 				const deferred = new Deferred<string>();
 				lineMap.set(pattern, deferred);
 				return deferred.promise;
 			},
 			type: (text) => {
-				log('type', JSON.stringify(text));
+				log('type', text);
 				childProcess.send(`${text}\r`);
 			},
 			press: (key) => {
-				log('press', JSON.stringify(key));
+				log('press', key);
 				childProcess.send(key);
 			},
 		});
@@ -126,5 +124,8 @@ export const ptyShell = (
 		return stripAnsi(buffer);
 	})();
 
-	return Object.assign(childProcess, { output });
+	return Object.assign(childProcess, {
+		output,
+		logs,
+	});
 };

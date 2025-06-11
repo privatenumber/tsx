@@ -326,6 +326,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 					onTestFail(() => {
 						p.kill();
+						console.log(p.logs);
 					});
 
 					expect(await p.output).toMatch(/EXIT_CODE:\s+130/);
@@ -350,6 +351,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 					onTestFail(() => {
 						p.kill();
+						console.log(p.logs);
 					});
 
 					expectMatchInOrder(await p.output, [
@@ -380,6 +382,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 					onTestFail(() => {
 						p.kill();
+						console.log(p.logs);
 					});
 
 					expect(await p.output).toMatch(/EXIT_CODE:\s+130/);
