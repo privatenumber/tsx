@@ -82,7 +82,7 @@ const resolveExtensions = async (
 	throwError?: boolean,
 ) => {
 	const tryPaths = mapTsExtensions(url);
-	log('resolveExtensions', {
+	log(3, 'resolveExtensions', {
 		url,
 		context,
 		throwError,
@@ -119,7 +119,7 @@ const resolveBase: ResolveHook = async (
 	context,
 	nextResolve,
 ) => {
-	log('resolveBase', {
+	log(3, 'resolveBase', {
 		specifier,
 		context,
 		specifierStartsWithFileUrl: specifier.startsWith(fileUrlPrefix),
@@ -148,7 +148,7 @@ const resolveBase: ResolveHook = async (
 		)
 	) {
 		const resolved = await resolveExtensions(specifier, context, nextResolve);
-		log('resolveBase resolved', {
+		log(3, 'resolveBase resolved', {
 			specifier,
 			context,
 			resolved,
@@ -161,7 +161,7 @@ const resolveBase: ResolveHook = async (
 	try {
 		return await nextResolve(specifier, context);
 	} catch (error) {
-		log('resolveBase error', {
+		log(3, 'resolveBase error', {
 			specifier,
 			context,
 			error,
@@ -189,7 +189,7 @@ const resolveDirectory: ResolveHook = async (
 	context,
 	nextResolve,
 ) => {
-	log('resolveDirectory', {
+	log(3, 'resolveDirectory', {
 		specifier,
 		context,
 		isDirectory: isDirectoryPattern.test(specifier),
@@ -216,7 +216,7 @@ const resolveDirectory: ResolveHook = async (
 		return await resolveBase(specifier, context, nextResolve);
 	} catch (error) {
 		if (error instanceof Error) {
-			log('resolveDirectory error', {
+			log(3, 'resolveDirectory error', {
 				specifier,
 				context,
 				error,
@@ -252,7 +252,7 @@ const resolveTsPaths: ResolveHook = async (
 	context,
 	nextResolve,
 ) => {
-	log('resolveTsPaths', {
+	log(3, 'resolveTsPaths', {
 		specifier,
 		context,
 
@@ -269,7 +269,7 @@ const resolveTsPaths: ResolveHook = async (
 		&& !context.parentURL?.includes('/node_modules/')
 	) {
 		const possiblePaths = tsconfigPathsMatcher(specifier);
-		log('resolveTsPaths', {
+		log(3, 'resolveTsPaths', {
 			possiblePaths,
 		});
 		for (const possiblePath of possiblePaths) {
@@ -424,12 +424,12 @@ if (debugEnabled) {
 		context,
 		nextResolve,
 	) => {
-		log('resolve', {
+		log(2, 'resolve', {
 			specifier,
 			context,
 		});
 		const result = await originalResolve(specifier, context, nextResolve);
-		log('resolved', {
+		log(1, 'resolved', {
 			specifier,
 			context,
 			result,

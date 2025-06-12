@@ -190,7 +190,7 @@ let load: LoadHook = async (
 	}
 
 	const loaded = await nextLoad(url, context);
-	log('loaded by next loader', {
+	log(3, 'loaded by next loader', {
 		url,
 		loaded,
 	});
@@ -265,7 +265,7 @@ let load: LoadHook = async (
 				loaded.responseURL = `data:text/javascript,${encodeURIComponent(transformed.code)}?filePath=${encodeURIComponent(filePathWithNamespace)}`;
 			}
 
-			log('returning CJS export annotation', loaded);
+			log(3, 'returning CJS export annotation', loaded);
 			return loaded;
 		}
 	}
@@ -350,12 +350,12 @@ if (debugEnabled) {
 		context,
 		nextLoad,
 	) => {
-		log('load', {
+		log(2, 'load', {
 			url,
 			context,
 		});
 		const result = await originalLoad(url, context, nextLoad);
-		log('loaded', {
+		log(1, 'loaded', {
 			url,
 			result,
 		});

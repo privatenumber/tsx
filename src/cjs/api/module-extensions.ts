@@ -98,7 +98,7 @@ export const createExtensions = (
 			return defaultLoader(module, filePath);
 		}
 
-		log('load', {
+		log(2, 'load', {
 			filePath,
 		});
 
@@ -160,7 +160,7 @@ export const createExtensions = (
 			);
 		}
 
-		log('loaded', {
+		log(1, 'loaded', {
 			filePath: cleanFilePath,
 		});
 

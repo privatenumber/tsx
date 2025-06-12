@@ -71,7 +71,7 @@ export const createResolveFilename = (
 		return nextResolve(request, parent, ...restOfArgs);
 	}
 
-	log('resolve', {
+	log(2, 'resolve', {
 		request,
 		parent: parent?.filename ?? parent,
 		restOfArgs,
@@ -101,8 +101,9 @@ export const createResolveFilename = (
 		restOfArgs.length,
 	);
 
-	log('resolved', {
+	log(1, 'resolved', {
 		request,
+		parent: parent?.filename ?? parent,
 		resolved,
 	});
 

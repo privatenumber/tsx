@@ -16,7 +16,7 @@ const resolveTsFilename = (
 	request: string,
 	isTsParent: boolean,
 ) => {
-	log('resolveTsFilename', {
+	log(3, 'resolveTsFilename', {
 		request,
 		isDirectory: isDirectoryPattern.test(request),
 		isTsParent,
@@ -55,7 +55,7 @@ export const createTsExtensionResolver = (
 ): SimpleResolve => (
 	request,
 ) => {
-	log('resolveTsFilename', {
+	log(3, 'resolveTsFilename', {
 		request,
 		isTsParent,
 		isFilePath: isFilePath(request),
