@@ -109,11 +109,11 @@ export const ptyShell = (
 			},
 			type: (text) => {
 				log('type', text);
-				childProcess.send(`${text}\r`);
+				childProcess.stdin!.write(`${text}\r`);
 			},
 			press: (key) => {
 				log('press', key);
-				childProcess.send(key);
+				childProcess.stdin!.write(key);
 			},
 		});
 

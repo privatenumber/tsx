@@ -1,26 +1,22 @@
 /**
- * node-pty is wrapped in an individual module instead of
- * being called directly because it doesn't exist on Windows
- *
+ * This module wraps node-pty to isolate known Windows-specific issues:
  * https://github.com/microsoft/node-pty/issues/437
+ *
+ * On Windows, killing a pty process can leave lingering sockets or handles,
+ * preventing Node.js from exiting cleanly. By running node-pty in a separate
+ * process, we can force a clean exit without hanging the main program or test runner.
  */
 import { spawn } from 'node-pty';
 
 const [file, ...args] = process.argv.slice(2);
 
-const spawned = spawn(file, args, {
-	cols: 1000,
-});
+const ptyProcess = spawn(file, args, { cols: 1000 });
 
-process.on('message', (command) => {
-	spawned.write(command);
-});
+process.stdin.pipe(ptyProcess);
 
-spawned.onData((data) => {
-	process.stdout.write(data);
-});
+ptyProcess.onData(chunk => process.stdout.write(chunk));
 
-spawned.onExit(({ exitCode }) => {
+ptyProcess.onExit(({ exitCode }) => {
 	// eslint-disable-next-line n/no-process-exit
 	process.exit(exitCode);
 });
