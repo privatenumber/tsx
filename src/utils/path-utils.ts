@@ -46,6 +46,8 @@ export const requestAcceptsQuery = (request: string) => {
 
 export const fileUrlPrefix = 'file://';
 
+export const tsExtensions = ['.ts', '.tsx', '.jsx', '.mts', '.cts'];
+
 export const tsExtensionsPattern = /\.([cm]?ts|[tj]sx)($|\?)/;
 
 export const cjsExtensionPattern = /[/\\].+\.(?:cts|cjs)(?:$|\?)/;

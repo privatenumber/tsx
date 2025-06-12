@@ -1,6 +1,6 @@
 import path from 'node:path';
 import type { ModuleFormat } from 'node:module';
-import { tsExtensionsPattern } from '../../utils/path-utils.js';
+import { tsExtensions } from '../../utils/path-utils.js';
 import { getPackageType } from './package-json.js';
 
 const getFormatFromExtension = (fileUrl: string): ModuleFormat | undefined => {
@@ -24,7 +24,9 @@ export const getFormatFromFileUrl = (fileUrl: string) => {
 	}
 
 	// ts, tsx, jsx
-	if (tsExtensionsPattern.test(fileUrl)) {
+	const { pathname } = new URL(fileUrl);
+	const extension = path.extname(pathname);
+	if (extension === '.js' || tsExtensions.includes(extension)) {
 		return getPackageType(fileUrl);
 	}
 };

@@ -1,5 +1,5 @@
 export const packageTypes = [
-	// undefined, // TODO: Add ambiguous package type
+	undefined,
 	'module',
 	'commonjs',
 ] as const;

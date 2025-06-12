@@ -294,27 +294,6 @@ export const files = {
 			});
 			`,
 		},
-		// TODO: Package with no type field but ESM syntax
-		// (also check this in the app itself, not just in node_modules)
-		'pkg-ambiguous': {
-			'package.json': createPackageJson({
-				type: 'commonjs',
-				main: './index.js',
-			}),
-			'index.ts': 'throw new Error("should prefer .js over .ts in node_modules")',
-			'index.js': syntaxLowering,
-			'ts.ts': syntaxLowering,
-			'cjs.js': `
-			const _ = exports;
-			const cjsJs = true;
-			_.cjsJs = cjsJs;
-
-			// Annotate CommonJS exports for Node
-			0 && (module.exports = {
-				cjsJs,
-			});
-			`,
-		},
 		'pkg-module': {
 			'package.json': createPackageJson({
 				type: 'module',

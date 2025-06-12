@@ -15,12 +15,12 @@ const wasmPathUrl = pathToFileURL(wasmPath).toString();
 export default testSuite(async ({ describe }, { tsx, supports, version }: NodeApis) => {
 	describe('Smoke', ({ describe, test }) => {
 		for (const packageType of packageTypes) {
-			const isCommonJs = packageType === 'commonjs';
+			const isCommonJs = packageType !== 'module';
 
-			describe(packageType, ({ test }) => {
+			describe(`package type: ${packageType ?? 'undefined'}`, ({ test }) => {
 				test('from .js', async ({ onTestFail }) => {
 					await using fixture = await createFixture({
-						'package.json': createPackageJson({ type: packageType }),
+						'package.json': createPackageJson(packageType ? { type: packageType } : {}),
 						'import-from-js.js': outdent`
 						import assert from 'assert';
 						import { expectErrors } from 'expect-errors';
@@ -200,7 +200,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 
 				test('from .ts', async ({ onTestFail }) => {
 					await using fixture = await createFixture({
-						'package.json': createPackageJson({ type: packageType }),
+						'package.json': createPackageJson(packageType ? { type: packageType } : {}),
 
 						'import-from-ts.ts': ({ fixturePath }) => outdent`
 						import assert from 'assert';
@@ -464,7 +464,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 
 				test('resolve ts in exports', async () => {
 					await using fixture = await createFixture({
-						'package.json': createPackageJson({ type: packageType }),
+						'package.json': createPackageJson(packageType ? { type: packageType } : {}),
 						'index.ts': `
 						import A from 'pkg'
 						console.log(A satisfies 2)
@@ -493,7 +493,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 				if (!version.startsWith('18.')) {
 					test('resolve ts in main', async ({ onTestFail }) => {
 						await using fixture = await createFixture({
-							'package.json': createPackageJson({ type: packageType }),
+							'package.json': createPackageJson(packageType ? { type: packageType } : {}),
 							'index.ts': `
 							import A from 'pkg'
 							console.log(A satisfies 2);

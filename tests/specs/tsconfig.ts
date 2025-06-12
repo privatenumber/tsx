@@ -9,11 +9,11 @@ import { packageTypes } from '../utils/package-types.js';
 export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 	describe('tsconfig', ({ describe }) => {
 		for (const packageType of packageTypes) {
-			describe(packageType, async ({ describe, onFinish }) => {
+			describe(`package type: ${packageType ?? 'undefined'}`, async ({ describe, onFinish }) => {
 				const fixture = await createFixture({
 					...expectErrors,
 
-					'package.json': createPackageJson({ type: packageType }),
+					'package.json': createPackageJson(packageType ? { type: packageType } : {}),
 
 					'tsconfig.json': createTsconfig({
 						compilerOptions: {
@@ -115,7 +115,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 				describe('detected tsconfig', ({ test }) => {
 					test('invalid tsconfig should be ignored', async () => {
 						await using fixture = await createFixture({
-							'package.json': createPackageJson({ type: packageType }),
+							'package.json': createPackageJson(packageType ? { type: packageType } : {}),
 							'tsconfig.json': createTsconfig({
 								extends: 'doesnt-exist',
 							}),
@@ -141,7 +141,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 				describe('custom tsconfig', ({ test }) => {
 					test('invalid tsconfig should error', async () => {
 						await using fixture = await createFixture({
-							'package.json': createPackageJson({ type: packageType }),
+							'package.json': createPackageJson(packageType ? { type: packageType } : {}),
 							'tsconfig.json': createTsconfig({
 								extends: 'doesnt-exist',
 							}),

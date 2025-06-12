@@ -348,6 +348,10 @@ let resolve: ResolveHook = async (
 		nextResolve,
 	);
 
+	log(2, 'nextResolve', {
+		resolved,
+	});
+
 	if (resolved.format === 'builtin') {
 		return resolved;
 	}
@@ -359,6 +363,10 @@ let resolve: ResolveHook = async (
 		&& resolved.url.startsWith(fileUrlPrefix)
 	) {
 		resolved.format = await getFormatFromFileUrl(resolved.url);
+		log(2, 'getFormatFromFileUrl', {
+			resolved,
+			format: resolved.format,
+		});
 	}
 
 	if (query) {

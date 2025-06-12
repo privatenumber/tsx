@@ -195,82 +195,86 @@ let load: LoadHook = async (
 		loaded,
 	});
 
-	if (
-		isFeatureSupported(loadReadFromSource)
-		&& loaded.format === 'commonjs'
-		&& filePath.endsWith('.cjs')
-	) {
-		let code = await readFile(new URL(url), 'utf8');
-		// Contains native ESM check
-		const transformed = transformDynamicImport(filePath, code);
-		if (transformed) {
-			code = inlineSourceMap(transformed);
-		}
-		loaded.source = code;
-		loaded.shortCircuit = true;
-		return loaded;
-	}
-
-	if (
-		loaded.format === 'commonjs'
-		&& isFeatureSupported(esmLoadReadFile)
-		&& loaded.responseURL?.startsWith('file:') // Could be data:
-		&& !filePath.endsWith('.cjs') // CJS syntax doesn't need to be transformed for interop
-	) {
-		const code = await readFile(new URL(url), 'utf8');
-
-		// if the file extension is .js, only transform if using esm syntax
+	if (loaded.format === 'commonjs') {
 		if (
-			// TypeScript files
-			!filePath.endsWith('.js')
-
-			// ESM syntax in CommonJS type package
-			|| isESM(code)
+			isFeatureSupported(loadReadFromSource)
+			&& filePath.endsWith('.cjs')
 		) {
-			/**
-			 * es or cjs module lexer unfortunately cannot be used because it doesn't support
-			 * typescript syntax
-			 *
-			 * While the full code is transformed, only the exports are used for parsing.
-			 * In fact, the code can't even run because imports cannot be resolved relative
-			 * from the data: URL.
-			 *
-			 * This should pre-compile for the CJS loader to have a cache hit
-			 *
-			 * I considered extracting the CJS exports from esbuild via (0&&(module.exports={})
-			 * to minimize the data URL size but this only works for ESM->CJS and not CTS files
-			 * which are already in CJS syntax.
-			 * In CTS, module.exports can be written in any pattern.
-			 */
-			const transformed = transformSync(
-				code,
-				url,
-				{
-					tsconfigRaw: fileMatcher?.(filePath) as TransformOptions['tsconfigRaw'],
-				},
-			);
-
-			if (isFeatureSupported(loadReadFromSource)) {
-				/**
-				 * Compile ESM to CJS
-				 * In v22.15, the CJS loader logic is now moved to the ESM loader
-				 */
-				loaded.source = inlineSourceMap(transformed);
-			} else {
-				/**
-				 * This tricks Node into thinking the file is a data URL so it doesn't try to read from disk
-				 * to parse the CJS exports
-				 */
-				const filePathWithNamespace = urlNamespace ? `${filePath}?namespace=${encodeURIComponent(urlNamespace)}` : filePath;
-				loaded.responseURL = `data:text/javascript,${encodeURIComponent(transformed.code)}?filePath=${encodeURIComponent(filePathWithNamespace)}`;
+			let code = await readFile(new URL(url), 'utf8');
+			// Contains native ESM check
+			const transformed = transformDynamicImport(filePath, code);
+			if (transformed) {
+				code = inlineSourceMap(transformed);
 			}
-
-			log(3, 'returning CJS export annotation', loaded);
+			loaded.source = code;
+			loaded.shortCircuit = true;
 			return loaded;
 		}
+
+		if (
+			isFeatureSupported(esmLoadReadFile)
+			&& loaded.responseURL?.startsWith('file:') // Could be data:
+			&& !filePath.endsWith('.cjs') // CJS syntax doesn't need to be transformed for interop
+		) {
+			const code = await readFile(new URL(url), 'utf8');
+
+			// if the file extension is .js, only transform if using esm syntax
+			if (
+				// TypeScript files
+				!filePath.endsWith('.js')
+
+				// ESM syntax in CommonJS type package
+				|| isESM(code)
+			) {
+				/**
+				 * es or cjs module lexer unfortunately cannot be used because it doesn't support
+				 * typescript syntax
+				 *
+				 * While the full code is transformed, only the exports are used for parsing.
+				 * In fact, the code can't even run because imports cannot be resolved relative
+				 * from the data: URL.
+				 *
+				 * This should pre-compile for the CJS loader to have a cache hit
+				 *
+				 * I considered extracting the CJS exports from esbuild via (0&&(module.exports={})
+				 * to minimize the data URL size but this only works for ESM->CJS and not CTS files
+				 * which are already in CJS syntax.
+				 * In CTS, module.exports can be written in any pattern.
+				 */
+				const transformed = transformSync(
+					code,
+					url,
+					{
+						tsconfigRaw: fileMatcher?.(filePath) as TransformOptions['tsconfigRaw'],
+					},
+				);
+
+				if (isFeatureSupported(loadReadFromSource)) {
+					/**
+					 * Compile ESM to CJS
+					 * In v22.15, the CJS loader logic is now moved to the ESM loader
+					 */
+					loaded.source = inlineSourceMap(transformed);
+				} else {
+					/**
+					 * This tricks Node into thinking the file is a data URL so it doesn't try to
+					 * read from disk to parse the CJS exports
+					 */
+					const filePathWithNamespace = urlNamespace ? `${filePath}?namespace=${encodeURIComponent(urlNamespace)}` : filePath;
+					loaded.responseURL = `data:text/javascript,${encodeURIComponent(transformed.code)}?filePath=${encodeURIComponent(filePathWithNamespace)}`;
+				}
+
+				return loaded;
+			}
+
+			if (!loaded.source) {
+				loaded.source = code;
+				return loaded;
+			}
+		}
 	}
 
-	// CommonJS and Internal modules (e.g. node:*)
+	// Internal modules (e.g. node:*)
 	if (!loaded.source) {
 		return loaded;
 	}
