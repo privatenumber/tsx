@@ -127,5 +127,6 @@ export const ptyShell = (
 	return Object.assign(childProcess, {
 		output,
 		logs,
+		getStdout: () => buffer,
 	});
 };
