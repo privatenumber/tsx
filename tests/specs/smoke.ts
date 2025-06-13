@@ -540,5 +540,64 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 				expect(p.failed).toBe(false);
 			});
 		}
+		describe('CJS & ESM race condition', ({ test }) => {
+			test('explicit extension', async ({ onTestFail }) => {
+				await using fixture = await createFixture({
+					'index.mjs': `
+					import './require.cjs'
+					import './import.mjs'
+					`,
+					'import.mjs': 'import "./cjs.cjs"',
+					'require.cjs': `
+					if (require("./cjs.cjs") !== 123) {
+						throw new Error('CJS import failed');
+					}
+					`,
+					'cjs.cjs': `
+					module.exports = 123
+					`,
+				});
+
+				const p = await tsx(['index.mjs'], {
+					cwd: fixture.path,
+				});
+				onTestFail(() => {
+					console.log(p);
+				});
+				expect(p.failed).toBe(false);
+			});
+
+			test('implicit extension', async ({ onTestFail }) => {
+				await using fixture = await createFixture({
+					'index.mjs': `
+					import './require/index.js'
+					import './import/index.js'
+					`,
+					import: {
+						'package.json': createPackageJson({ type: 'module' }),
+						'index.js': 'import "../cjs.js"',
+					},
+					require: {
+						'package.json': createPackageJson({ type: 'commonjs' }),
+						'index.js': `
+						if (require("../cjs.js") !== 123) {
+							throw new Error('CJS import failed');
+						}
+						`,
+					},
+					'cjs.js': `
+					module.exports = 123
+					`,
+				});
+
+				const p = await tsx(['index.mjs'], {
+					cwd: fixture.path,
+				});
+				onTestFail(() => {
+					console.log(p);
+				});
+				expect(p.failed).toBe(false);
+			});
+		});
 	});
 });
