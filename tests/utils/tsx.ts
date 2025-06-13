@@ -6,9 +6,6 @@ import {
 	testRunnerGlob,
 	esmLoadReadFile,
 	requireEsm,
-	loadReadFromSource,
-	exportModuleExports,
-	typeStripping,
 	type Version,
 } from '../../src/utils/node-features.js';
 import { getNode } from './get-node.js';
@@ -63,12 +60,6 @@ export const createNode = async (
 		cjsInterop: isFeatureSupported(esmLoadReadFile, versionParsed),
 
 		requireEsm: isFeatureSupported(requireEsm, versionParsed),
-
-		loadReadFromSource: isFeatureSupported(loadReadFromSource, versionParsed),
-
-		exportModuleExports: isFeatureSupported(exportModuleExports, versionParsed),
-
-		typeStripping: isFeatureSupported(typeStripping, versionParsed),
 	};
 	const hookFlag = supports.moduleRegister ? '--import' : '--loader';
 

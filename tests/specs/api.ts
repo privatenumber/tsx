@@ -816,14 +816,8 @@ export default testSuite(({ describe }, node: NodeApis) => {
 							reject: false,
 						});
 
-						if (node.supports.typeStripping) {
-							// The TS Syntax error can't be caught so it doesn't log
-							// expect(stdout).toBe('foo');
-							expect(stderr).toMatch(/ERR_INVALID_TYPESCRIPT_SYNTAX|ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX/);
-						} else {
-							expect(stdout).toBe('Fails as expected\nfoo');
-							expect(stderr).toBe('');
-						}
+						expect(stdout).toBe('Fails as expected\nfoo');
+						expect(stderr).toBe('');
 					});
 
 					test('onImport & doesnt cache files', async () => {

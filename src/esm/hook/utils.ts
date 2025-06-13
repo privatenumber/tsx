@@ -19,6 +19,7 @@ const getFormatFromExtension = (fileUrl: string): ModuleFormat | undefined => {
 
 export const getFormatFromFileUrl = (fileUrl: string) => {
 	const format = getFormatFromExtension(fileUrl);
+
 	if (format) {
 		return format;
 	}
@@ -26,7 +27,7 @@ export const getFormatFromFileUrl = (fileUrl: string) => {
 	// ts, tsx, jsx
 	const { pathname } = new URL(fileUrl);
 	const extension = path.extname(pathname);
-	if (extension === '.js' || tsExtensions.includes(extension)) {
+	if (tsExtensions.includes(extension)) {
 		return getPackageType(fileUrl);
 	}
 };
@@ -53,14 +54,4 @@ export const getNamespace = (
 			? url.slice(startIndex)
 			: url.slice(startIndex, endIndex)
 	);
-};
-
-export const decodeCjsQuery = (url: string) => {
-	if (!url.includes('%3F')) {
-		return url;
-	}
-
-	const [baseUrl, query] = url.split('%3F', 2);
-	const decodedQuery = decodeURIComponent(query);
-	return `${baseUrl}?${decodedQuery}`;
 };

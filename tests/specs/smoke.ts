@@ -114,17 +114,10 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 							[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
 							${
 								isCommonJs
-									? (
-										supports.loadReadFromSource
-											? `
-										[() => require('./file.txt'), 'Unknown file extension ".txt"'],
-										[() => require(${JSON.stringify(wasmPath)}), 'Unknown file extension ".wasm"'],
-										`
-											: `
-										[() => require('./file.txt'), 'hello is not defined'],
-										[() => require(${JSON.stringify(wasmPath)}), 'Invalid or unexpected token'],
-										`
-									)
+									? `
+									[() => require('./file.txt'), 'hello is not defined'],
+									[() => require(${JSON.stringify(wasmPath)}), 'Invalid or unexpected token'],
+									`
 									: ''
 							}
 							${
@@ -162,29 +155,17 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 					expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(fixture.getPath('import-from-js.js'))}"`);
 					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
 					expect(p.stdout).toMatch('"json":{"default":{"loaded-file":"json"},"loaded-file":"json"}');
-
-					if (supports.exportModuleExports && !isCommonJs) {
-						expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"module.exports":{"named":"named"},"named":"named"}');
-					} else {
-						expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
-					}
+					expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
 					expect(p.stdout).toMatch('"pkgModule":{"default":1,"named":2}');
 					if (isCommonJs) {
 						expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
 
 						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","__filename":".+?index\.js"\}/);
-
-						if (!version.startsWith('21.')) {
-							expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","__filename":".+?index\.js"\}/);
-						}
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","__filename":".+?index\.js"\}/);
 					} else {
 						expect(p.stdout).toMatch(
 							supports.cjsInterop
-								? (
-									supports.exportModuleExports
-										? '"pkgCommonjs":{"default":{"default":1,"named":2},"module.exports":{"default":1,"named":2},"named":2}'
-										: '"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}'
-								)
+								? '"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}'
 								: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
 						);
 
@@ -371,17 +352,10 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 							[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
 							${
 								isCommonJs
-									? (
-										supports.loadReadFromSource
-											? `
-										[() => require('./file.txt'), 'Unknown file extension ".txt"'],
-										[() => require(${JSON.stringify(wasmPath)}), 'Unknown file extension ".wasm"'],
-										`
-											: `
-										[() => require('./file.txt'), 'hello is not defined'],
-										[() => require(${JSON.stringify(wasmPath)}), 'Invalid or unexpected token'],
-										`
-									)
+									? `
+									[() => require('./file.txt'), 'hello is not defined'],
+									[() => require(${JSON.stringify(wasmPath)}), 'Invalid or unexpected token'],
+									`
 									: ''
 							}
 							${
@@ -423,29 +397,18 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 					expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(fixture.getPath('import-from-ts.ts'))}"`);
 					expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
 					expect(p.stdout).toMatch('"json":{"default":{"loaded-file":"json"},"loaded-file":"json"}');
-					if (supports.exportModuleExports && !isCommonJs) {
-						expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"module.exports":{"named":"named"},"named":"named"}');
-					} else {
-						expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
-					}
+					expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
 					expect(p.stdout).toMatch(`"jsx":{"cjsContext":${isCommonJs},"jsx":[null,null,["div",null,"JSX"]]}`);
 					expect(p.stdout).toMatch('"pkgModule":{"default":1,"named":2}');
 					if (isCommonJs) {
 						expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
 
 						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","__filename":".+?index\.js"\}/);
-
-						if (!version.startsWith('21.')) {
-							expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","__filename":".+?index\.js"\}/);
-						}
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","__filename":".+?index\.js"\}/);
 					} else {
 						expect(p.stdout).toMatch(
 							supports.cjsInterop
-								? (
-									supports.exportModuleExports
-										? '"pkgCommonjs":{"default":{"default":1,"named":2},"module.exports":{"default":1,"named":2},"named":2}'
-										: '"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}'
-								)
+								? '"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}'
 								: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
 						);
 
