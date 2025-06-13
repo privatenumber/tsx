@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write # to enable use of OIDC for npm provenance
 
 jobs:
   release:
