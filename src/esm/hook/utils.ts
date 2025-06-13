@@ -3,31 +3,17 @@ import type { ModuleFormat } from 'node:module';
 import { tsExtensions } from '../../utils/path-utils.js';
 import { getPackageType } from './package-json.js';
 
-const getFormatFromExtension = (fileUrl: string): ModuleFormat | undefined => {
-	[fileUrl] = fileUrl.split('?');
-
-	const extension = path.extname(fileUrl);
-
-	if (extension === '.mts') {
-		return 'module';
-	}
-
-	if (extension === '.cts') {
-		return 'commonjs';
-	}
-};
-
 export const getFormatFromFileUrl = (fileUrl: string) => {
-	const format = getFormatFromExtension(fileUrl);
-
-	if (format) {
-		return format;
-	}
-
-	// ts, tsx, jsx
 	const { pathname } = new URL(fileUrl);
 	const extension = path.extname(pathname);
-	if (tsExtensions.includes(extension) || extension === '.js') {
+	if (extension === '.mts' || extension === '.mjs') {
+		return 'module';
+	}
+	if (extension === '.cts' || extension === '.cjs') {
+		return 'commonjs';
+	}
+
+	if (extension === '.js' || tsExtensions.includes(extension)) {
 		return getPackageType(fileUrl);
 	}
 };
