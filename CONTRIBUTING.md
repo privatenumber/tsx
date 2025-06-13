@@ -83,6 +83,10 @@ nvm i      # Install or use Node.js version
 pnpm i     # Install dependencies
 ```
 
+> [!TIP]
+>
+> If you encounter issues with the `node-pty` installation, please ensure you have installed the required build dependencies (listed on the [node-pty GitHub page](https://github.com/microsoft/node-pty?tab=readme-ov-file#dependencies)) before retrying the installation command.
+
 ### Building
 
 Build the source code with:
