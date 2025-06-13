@@ -27,7 +27,7 @@ export const getFormatFromFileUrl = (fileUrl: string) => {
 	// ts, tsx, jsx
 	const { pathname } = new URL(fileUrl);
 	const extension = path.extname(pathname);
-	if (tsExtensions.includes(extension)) {
+	if (tsExtensions.includes(extension) || extension === '.js') {
 		return getPackageType(fileUrl);
 	}
 };
