@@ -281,7 +281,13 @@ export const files = {
 				main: './index.js',
 			}),
 			'index.ts': 'throw new Error("should prefer .js over .ts in node_modules")',
-			'index.js': syntaxLowering,
+			'index.js': `
+			// https://github.com/privatenumber/tsx/issues/726
+			if (!require.cache) {
+				throw new Error('require.cache should be defined');
+			}
+			${syntaxLowering}
+			`,
 			'ts.ts': syntaxLowering,
 			'cjs.js': `
 			const _ = exports;
