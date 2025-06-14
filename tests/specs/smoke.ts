@@ -540,6 +540,8 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 				expect(p.failed).toBe(false);
 			});
 		}
+
+		// https://github.com/privatenumber/tsx/issues/727
 		describe('CJS & ESM race condition', ({ test }) => {
 			test('explicit extension', async ({ onTestFail }) => {
 				await using fixture = await createFixture({
@@ -598,6 +600,23 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 				});
 				expect(p.failed).toBe(false);
 			});
+		});
+
+		// https://github.com/privatenumber/tsx/issues/722
+		test('handles require loop', async ({ onTestFail }) => {
+			await using fixture = await createFixture({
+				'index.ts': 'require("./a.js")',
+				'a.js': 'require("./b.js")',
+				'b.js': 'require("./a.js")',
+			});
+
+			const p = await tsx(['index.ts'], {
+				cwd: fixture.path,
+			});
+			onTestFail(() => {
+				console.log(p);
+			});
+			expect(p.failed).toBe(false);
 		});
 	});
 });
