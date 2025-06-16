@@ -72,8 +72,8 @@ importers:
         specifier: ^0.30.10
         version: 0.30.10
       manten:
-        specifier: ^1.4.0
-        version: 1.4.0
+        specifier: ^1.5.0
+        version: 1.5.0
       memfs:
         specifier: ^4.9.3
         version: 4.9.3
@@ -2654,8 +2654,8 @@ packages:
     resolution: {integrity: sha512-QMjGbFTP0blj97EeidG5hk/QhKQ3T4ICckQGLgz38QF7Vgbk6e6FTARN8KhKxyBbWn8R0HU+bnw8aSoFPD4qtQ==}
     engines: {node: ^18.17.0 || >=20.5.0}
 
-  manten@1.4.0:
-    resolution: {integrity: sha512-MH9RsuE7xU1SaWvkqvPUXJdI1eJ6kymbxKFQ3HJ14WKaXVe1FvACocdnXi8idi0WHn+y3RWwfxw3vDsaPIb5gg==}
+  manten@1.5.0:
+    resolution: {integrity: sha512-Cdw/Sd3vbq8Y8qUT+YaxTzYMDZQn1kjOUfqD6NwzXTdLWJtIjEoXr0DuaHyb9YkU+567V/TIvj5il5/P5pV9zA==}
 
   map-age-cleaner@0.1.3:
     resolution: {integrity: sha512-bJzx6nMoP6PDLPBFmg7+xRKeFZvFboMrGlxmNj9ClvX53KrmvM5bXFXEWjbz4cz1AFn+jWJ9z/DJSz7hrs0w3w==}
@@ -6502,7 +6502,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  manten@1.4.0:
+  manten@1.5.0:
     dependencies:
       expect: 29.7.0
 
