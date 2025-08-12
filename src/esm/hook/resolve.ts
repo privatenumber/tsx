@@ -335,9 +335,11 @@ let resolve: ResolveHook = async (
 
 	// For TypeScript extensions that Node can't detect the format of
 	if (
-		!resolved.format
-		|| resolved.format === 'commonjs-typescript'
-		|| resolved.format === 'module-typescript'
+		(
+			!resolved.format
+			|| resolved.format === 'commonjs-typescript'
+			|| resolved.format === 'module-typescript'
+		)
 		// Filter out data: (sourcemaps)
 		&& resolved.url.startsWith(fileUrlPrefix)
 	) {
