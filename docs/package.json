@@ -5,6 +5,7 @@
 	"scripts": {
 		"dev": "vitepress dev --open",
 		"build": "vitepress build",
+		"prepare": "node ./scripts/hash-class-names.js ./node_modules/vitepress/dist/client/theme-default",
 		"preview": "vitepress preview"
 	},
 	"devDependencies": {
