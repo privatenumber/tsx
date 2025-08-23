@@ -1,5 +1,4 @@
 import path from 'node:path';
-import type { ModuleFormat } from 'node:module';
 import { tsExtensions } from '../../utils/path-utils.js';
 import { getPackageType } from './package-json.js';
 
