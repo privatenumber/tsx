@@ -8,8 +8,8 @@
 		"preview": "vitepress preview"
 	},
 	"devDependencies": {
-		"autoprefixer": "^10.4.19",
-		"tailwindcss": "^3.4.3",
-		"vitepress": "^1.1.0"
+		"autoprefixer": "^10.4.21",
+		"tailwindcss": "^3.4.17",
+		"vitepress": "^1.6.4"
 	}
 }
