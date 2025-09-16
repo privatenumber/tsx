@@ -158,18 +158,11 @@ If your company uses _tsx_ and would like to support the project, consider [spon
 ## Sponsors
 
 <p align="center">
-	<a href="https://github.com/sponsors/privatenumber/sponsorships?tier_id=416984" target="_blank">
-		<img src="https://cdn.jsdelivr.net/gh/privatenumber/sponsors/sponsorkit/sponsors.svg">
-	</a>
+	<Sponsors />
 	<a class="button sponsor-button mt-10 mx-auto" href="https://github.com/sponsors/privatenumber/sponsorships?tier_id=416984" target="_blank">
 		Become a sponsor
 	</a>
 </p>
-
-<script setup lang="ts">
-import ImageLink from './.vitepress/theme/components/ImageLink.vue';
-import Marquee from './.vitepress/theme/components/Marquee.vue';
-</script>
 
 <style scoped>
 .tsx-before-after {
@@ -202,3 +195,9 @@ import Marquee from './.vitepress/theme/components/Marquee.vue';
 		;
 }
 </style>
+
+<script setup lang="ts">
+import ImageLink from './.vitepress/theme/components/ImageLink.vue';
+import Marquee from './.vitepress/theme/components/Marquee.vue';
+import Sponsors from './.vitepress/theme/components/Sponsors.vue';
+</script>
