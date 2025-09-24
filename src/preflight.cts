@@ -10,8 +10,10 @@ const bindHiddenSignalsHandler = (
 	handler: NodeJS.SignalsListener,
 ) => {
 	type RelaySignals = typeof signals[number];
+
+	const hiddenHandlers = new Map<RelaySignals, NodeJS.SignalsListener>();
 	for (const signal of signals) {
-		process.on(signal, (receivedSignal) => {
+		const hiddenHandler = (receivedSignal: NodeJS.Signals) => {
 			handler(receivedSignal);
 
 			/**
@@ -22,7 +24,10 @@ const bindHiddenSignalsHandler = (
 				// eslint-disable-next-line n/no-process-exit
 				process.exit(128 + osConstants.signals[signal]);
 			}
-		});
+		};
+
+		process.on(signal, hiddenHandler);
+		hiddenHandlers.set(signal, hiddenHandler);
 	}
 
 	/**
@@ -41,7 +46,9 @@ const bindHiddenSignalsHandler = (
 	process.listeners = function (eventName) {
 		const result: BaseEventListener[] = Reflect.apply(listeners, this, arguments);
 		if (signals.includes(eventName as RelaySignals)) {
-			return result.filter(listener => listener !== handler);
+			return result.filter(
+				listener => listener !== hiddenHandlers.get(eventName as RelaySignals),
+			);
 		}
 		return result;
 	};
