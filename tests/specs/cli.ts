@@ -181,7 +181,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				'hidden-signals-handler.js': `
 				console.log('process.listeners().length = ' + process.listeners('SIGINT').length);
 				console.log('process.listenerCount() = ' + process.listenerCount('SIGINT'));
-				`
+				`,
 			});
 			onFinish(async () => await fixture.rm());
 
