@@ -178,6 +178,10 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				});
 				setTimeout(() => {}, 1e5);
 				`,
+				'hidden-signals-handler.js': `
+				console.log('process.listeners().length = ' + process.listeners('SIGINT').length);
+				console.log('process.listenerCount() = ' + process.listenerCount('SIGINT'));
+				`,
 			});
 			onFinish(async () => await fixture.rm());
 
@@ -304,6 +308,17 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			}, {
 				timeout: 10_000,
 				retry: 3,
+			});
+
+			test('Relay signal handlers are properly hidden', async () => {
+				const tsxProcess = tsx([
+					fixture.getPath('hidden-signals-handler.js'),
+				]);
+
+				const result = await tsxProcess;
+
+				expect(result.stdout).toBe('process.listeners().length = 0\nprocess.listenerCount() = 0');
+				expect(result.exitCode).toBe(0);
 			});
 
 			describe('Ctrl + C', ({ test }) => {
