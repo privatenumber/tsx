@@ -1,0 +1,347 @@
+import React, { useState } from 'react';
+import { Check, X } from 'lucide-react';
+
+const Quiz = () => {
+  const [answers, setAnswers] = useState({});
+  const [showResults, setShowResults] = useState({});
+
+  const questions = [
+    {
+      id: 1,
+      question: "¿Qué significa el principio de vinculación positiva aplicado a la Administración?",
+      options: [
+        "La Administración puede actuar libremente mientras no contradiga las normas",
+        "La norma es un fundamento previo y necesario, solo se puede actuar si hay habilitación normativa",
+        "La Administración puede dispensar a terceros del cumplimiento de reglamentos",
+        "Las actuaciones administrativas no necesitan base legal en materias no reservadas"
+      ],
+      correct: 1
+    },
+    {
+      id: 2,
+      question: "Según el art. 103.1 CE, ¿a qué debe someterse la Administración?",
+      options: [
+        "Solo a la Ley emanada del Parlamento",
+        "A la Ley y a las normas reglamentarias propias",
+        "Con sometimiento pleno a la Ley y al Derecho",
+        "Únicamente a la Constitución"
+      ],
+      correct: 2
+    },
+    {
+      id: 3,
+      question: "¿Qué supone el poder de autotutela declarativa de la Administración?",
+      options: [
+        "La necesidad de acudir a los Tribunales para ejecutar sus decisiones",
+        "La potestad de emitir declaraciones que modifican situaciones jurídicas sin intervención judicial",
+        "La obligación de contar con el consentimiento del destinatario",
+        "El sometimiento a los particulares en la tutela de derechos"
+      ],
+      correct: 1
+    },
+    {
+      id: 4,
+      question: "El principio de inderogabilidad singular de los reglamentos implica que:",
+      options: [
+        "La Administración puede dictar actos singulares en contradicción con sus reglamentos",
+        "Las resoluciones administrativas particulares no pueden vulnerar disposiciones de carácter general",
+        "Los reglamentos solo obligan a los administrados, no a la Administración",
+        "La Administración puede dispensar libremente del cumplimiento de reglamentos"
+      ],
+      correct: 1
+    },
+    {
+      id: 5,
+      question: "¿Qué artículo de la CE establece el control jurisdiccional de la potestad reglamentaria?",
+      options: [
+        "Art. 103.1 CE",
+        "Art. 9.3 CE",
+        "Art. 106.1 CE",
+        "Art. 24.1 CE"
+      ],
+      correct: 2
+    },
+    {
+      id: 6,
+      question: "El principio de eficacia (art. 103.1 CE) implica:",
+      options: [
+        "Que la eficacia prevalece sobre el principio de legalidad",
+        "Una actuación orientada al resultado y consecución de objetivos legales",
+        "Que el control jurisdiccional puede juzgar la eficacia administrativa",
+        "Que la Administración puede obviar normas por razones de eficacia"
+      ],
+      correct: 1
+    },
+    {
+      id: 7,
+      question: "El derecho a la tutela judicial efectiva (art. 24.1 CE) incluye principalmente:",
+      options: [
+        "Solo el derecho a recurrir decisiones judiciales",
+        "Únicamente el derecho a solicitar medidas cautelares",
+        "El derecho a la acción o proceso y a obtener una resolución sobre el fondo",
+        "Exclusivamente el derecho a la ejecución de sentencias"
+      ],
+      correct: 2
+    },
+    {
+      id: 8,
+      question: "Según la CE, ¿qué dos instituciones garantizan el patrimonio de los ciudadanos frente a la Administración?",
+      options: [
+        "Autotutela y tutela judicial",
+        "Expropiación forzosa y responsabilidad patrimonial",
+        "Legalidad y eficacia",
+        "Imparcialidad y objetividad"
+      ],
+      correct: 1
+    },
+    {
+      id: 9,
+      question: "El art. 9.2 CE, que fundamenta el Estado Social, establece que los poderes públicos deben:",
+      options: [
+        "Únicamente garantizar la libertad individual",
+        "Promover condiciones para que la libertad e igualdad sean reales y efectivas",
+        "Abstenerse de intervenir en la sociedad",
+        "Concentrarse solo en la prestación de servicios públicos"
+      ],
+      correct: 1
+    },
+    {
+      id: 10,
+      question: "El carácter revisor del proceso contencioso-administrativo significa que:",
+      options: [
+        "El ciudadano puede solicitar declaraciones preventivas de sus derechos",
+        "Los Tribunales pueden actuar antes que la Administración",
+        "El recurrente debe esperar a que la Administración dicte su decisión para poder recurrir",
+        "La Administración puede revisar las sentencias judiciales"
+      ],
+      correct: 2
+    },
+    {
+      id: 11,
+      question: "Los criterios de objetividad e imparcialidad de la Administración (art. 103.1 CE) implican:",
+      options: [
+        "Que la Administración es un apéndice del Gobierno sin autonomía",
+        "Que la actividad debe ser fiel a los fines legales y ponderar todos los intereses en juego",
+        "Que pueden otorgarse preferencias sin amparo normativo",
+        "Que la ideología política debe guiar las decisiones administrativas"
+      ],
+      correct: 1
+    },
+    {
+      id: 12,
+      question: "El derecho de acceso a archivos y registros administrativos (art. 105 CE) NO incluye:",
+      options: [
+        "Documentos sobre seguridad y defensa del Estado",
+        "Información sobre delitos o intimidad de personas",
+        "Documentos de cualquier procedimiento administrativo",
+        "Secretos comerciales o industriales"
+      ],
+      correct: 2
+    },
+    {
+      id: 13,
+      question: "Según el documento, ¿existe un principio constitucional general de participación administrativa?",
+      options: [
+        "Sí, establecido en el art. 103 CE con carácter general",
+        "Sí, pero solo para los funcionarios públicos",
+        "No, solo se acepta en ámbitos organizativos o funcionales concretos",
+        "Sí, aplicable a todos los procedimientos administrativos"
+      ],
+      correct: 2
+    },
+    {
+      id: 14,
+      question: "La autonomía territorial NO incluye:",
+      options: [
+        "Potestad normativa",
+        "Potestad sancionadora",
+        "Soberanía",
+        "Potestad expropiatoria"
+      ],
+      correct: 2
+    },
+    {
+      id: 15,
+      question: "El principio de coordinación del Estado sobre las CCAA supone:",
+      options: [
+        "Una ablación de competencias del ente coordinado",
+        "Una posición de supremacía que permite establecer el procedimiento de ejercicio de competencias",
+        "Poderes que se presumen sin necesidad de atribución expresa",
+        "La eliminación de la autonomía de las CCAA"
+      ],
+      correct: 1
+    },
+    {
+      id: 16,
+      question: "El art. 139.2 CE sobre unidad de mercado prohíbe:",
+      options: [
+        "Cualquier medida autonómica que incida en la circulación",
+        "Todas las medidas tributarias autonómicas",
+        "Las medidas que directa o indirectamente obstaculicen la libre circulación",
+        "El establecimiento de personas en otras CCAA"
+      ],
+      correct: 2
+    },
+    {
+      id: 17,
+      question: "El principio de solidaridad (art. 2 CE) se traduce en:",
+      options: [
+        "Solo la cooperación bilateral entre CCAA",
+        "El equilibrio económico interterritorial y la lealtad autonómica",
+        "Únicamente el Fondo de Compensación Interterritorial",
+        "La eliminación de desigualdades mediante control estatal directo"
+      ],
+      correct: 1
+    },
+    {
+      id: 18,
+      question: "¿Qué régimen de vinculación rige para las actuaciones administrativas de eficacia ablatoria?",
+      options: [
+        "Vinculación negativa",
+        "Vinculación positiva: necesitan autorización legal previa",
+        "No necesitan vinculación legal",
+        "Solo vinculación reglamentaria"
+      ],
+      correct: 1
+    },
+    {
+      id: 19,
+      question: "El deber de lealtad autonómica (Bundestreue) implica:",
+      options: [
+        "Subordinación absoluta de las CCAA al Estado",
+        "Comportarse con buena fe y lealtad al sistema autonómico y unitario",
+        "Solo cooperación en materias económicas",
+        "Eliminación de competencias concurrentes"
+      ],
+      correct: 1
+    },
+    {
+      id: 20,
+      question: "Los instrumentos que la CE proporciona al Estado para lograr el equilibrio económico interterritorial son:",
+      options: [
+        "Solo la planificación económica",
+        "Control directo de presupuestos autonómicos y locales",
+        "La planificación económica y el Fondo de Compensación Interterritorial",
+        "Únicamente medidas fiscales centralizadas"
+      ],
+      correct: 2
+    }
+  ];
+
+  const handleAnswer = (questionId, optionIndex) => {
+    setAnswers({...answers, [questionId]: optionIndex});
+    setShowResults({...showResults, [questionId]: true});
+  };
+
+  const resetQuiz = () => {
+    setAnswers({});
+    setShowResults({});
+  };
+
+  const getScore = () => {
+    let correct = 0;
+    questions.forEach(q => {
+      if (answers[q.id] === q.correct) correct++;
+    });
+    return correct;
+  };
+
+  const totalAnswered = Object.keys(answers).length;
+  const score = getScore();
+
+  return (
+    <div className="max-w-4xl mx-auto p-6 bg-gray-50 min-h-screen">
+      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">Quiz - Derecho Administrativo I</h1>
+        <p className="text-gray-600 mb-4">Tema 2: Bases Constitucionales del Derecho Administrativo</p>
+        
+        <div className="flex gap-4 text-sm">
+          <div className="bg-blue-100 px-4 py-2 rounded">
+            <span className="font-semibold">Respondidas:</span> {totalAnswered}/20
+          </div>
+          <div className="bg-green-100 px-4 py-2 rounded">
+            <span className="font-semibold">Correctas:</span> {score}/{totalAnswered}
+          </div>
+          {totalAnswered > 0 && (
+            <button 
+              onClick={resetQuiz}
+              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+            >
+              Reiniciar
+            </button>
+          )}
+        </div>
+      </div>
+
+      {questions.map((q, qIndex) => (
+        <div key={q.id} className="bg-white rounded-lg shadow-md p-6 mb-4">
+          <h3 className="font-bold text-lg mb-4 text-gray-800">
+            {qIndex + 1}. {q.question}
+          </h3>
+          
+          <div className="space-y-2">
+            {q.options.map((option, optIndex) => {
+              const isSelected = answers[q.id] === optIndex;
+              const isCorrect = optIndex === q.correct;
+              const showFeedback = showResults[q.id];
+              
+              let buttonClass = "w-full text-left p-4 rounded-lg border-2 transition-all ";
+              
+              if (!showFeedback) {
+                buttonClass += "border-gray-200 hover:border-blue-400 hover:bg-blue-50";
+              } else if (isCorrect) {
+                buttonClass += "border-green-500 bg-green-50";
+              } else if (isSelected && !isCorrect) {
+                buttonClass += "border-red-500 bg-red-50";
+              } else {
+                buttonClass += "border-gray-200 bg-gray-50";
+              }
+              
+              return (
+                <button
+                  key={optIndex}
+                  onClick={() => !showResults[q.id] && handleAnswer(q.id, optIndex)}
+                  disabled={showResults[q.id]}
+                  className={buttonClass}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-3">
+                      <span className="font-semibold text-gray-600">
+                        {String.fromCharCode(65 + optIndex)})
+                      </span>
+                      <span>{option}</span>
+                    </span>
+                    
+                    {showFeedback && isCorrect && (
+                      <Check className="text-green-600 flex-shrink-0" size={24} />
+                    )}
+                    {showFeedback && isSelected && !isCorrect && (
+                      <X className="text-red-600 flex-shrink-0" size={24} />
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {totalAnswered === 20 && (
+        <div className="bg-white rounded-lg shadow-lg p-6 text-center">
+          <h2 className="text-2xl font-bold mb-4">¡Quiz Completado!</h2>
+          <p className="text-xl mb-2">
+            Puntuación Final: <span className="font-bold text-blue-600">{score}/20</span>
+          </p>
+          <p className="text-lg text-gray-600">
+            {score >= 18 ? "¡Excelente! 🎉" : 
+             score >= 15 ? "¡Muy bien! 👏" : 
+             score >= 12 ? "Bien, pero puedes mejorar 📚" : 
+             "Necesitas repasar el tema 📖"}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Quiz;
