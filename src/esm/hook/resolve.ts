@@ -355,9 +355,11 @@ let resolve: ResolveHook = async (
 	}
 
 	// Inherit namespace
+	// Skip data URLs as they cannot properly handle query parameters
 	if (
 		requestNamespace
 		&& !resolved.url.includes(namespaceQuery)
+		&& !resolved.url.startsWith('data:')
 	) {
 		resolved.url += (resolved.url.includes('?') ? '&' : '?') + namespaceQuery + requestNamespace;
 	}
