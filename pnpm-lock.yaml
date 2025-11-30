@@ -11,7 +11,7 @@ importers:
   .:
     dependencies:
       esbuild:
-        specifier: ^0.27.0
+        specifier: ~0.27.0
         version: 0.27.0
       get-tsconfig:
         specifier: ^4.7.5
