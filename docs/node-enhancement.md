@@ -43,6 +43,9 @@ The [Node.js REPL](https://nodejs.org/en/learn/command-line/how-to-use-the-nodej
 
 ## Test runner
 
+::: Available in Node.js v21 and above
+:::
+
 _tsx_ enhances the Node.js built-in [test runner](https://nodejs.org/api/test.html) with TypeScript support. You can use it the same way:
 
 ```sh
