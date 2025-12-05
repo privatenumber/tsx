@@ -109,7 +109,7 @@ export const createExtensions = (
 		 * In these cases, we fix m.path to be the actual directory of the file
 		 */
 		// https://github.com/nodejs/node/blob/v22.8.0/lib/internal/modules/cjs/loader.js#L298
-		if (module.id.startsWith('data:text/javascript,')) {
+		if (module.id?.startsWith('data:text/javascript,')) {
 			module.path = path.dirname(cleanFilePath);
 		}
 
