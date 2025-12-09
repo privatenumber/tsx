@@ -16,6 +16,7 @@ import { nodeVersions } from './utils/node-versions';
 				await runTestSuite(import('./specs/watch'), node);
 				await runTestSuite(import('./specs/loaders'), node);
 				await runTestSuite(import('./specs/tsconfig'), node);
+				await runTestSuite(import('./specs/jsx-pragma'), node);
 			});
 		}
 	});

@@ -21,6 +21,44 @@ import {
 	cacheConfig,
 	patchOptions,
 } from './get-esbuild-options.js';
+import { parseJsxPragmas } from './parse-jsx-pragmas.js';
+
+/**
+ * Apply JSX pragmas from source code comments to esbuild options
+ * File-level pragmas override tsconfig settings (matching TypeScript behavior)
+ */
+const applyJsxPragmas = (
+	code: string,
+	filePath: string,
+	extendOptions?: TransformOptions,
+): TransformOptions | undefined => {
+	// Only parse pragmas for JSX/TSX files
+	if (
+		!filePath.endsWith('.tsx')
+		&& !filePath.endsWith('.jsx')
+	) {
+		return extendOptions;
+	}
+
+	const pragmas = parseJsxPragmas(code);
+	if (!pragmas) {
+		return extendOptions;
+	}
+
+	const tsconfigRaw = typeof extendOptions?.tsconfigRaw === 'string'
+		? JSON.parse(extendOptions.tsconfigRaw) as { compilerOptions?: Record<string, unknown> }
+		: { ...extendOptions?.tsconfigRaw } as { compilerOptions?: Record<string, unknown> };
+
+	tsconfigRaw.compilerOptions = {
+		...tsconfigRaw.compilerOptions,
+		...pragmas,
+	};
+
+	return {
+		...extendOptions,
+		tsconfigRaw,
+	};
+};
 
 const formatEsbuildError = (
 	error: TransformFailure,
@@ -63,6 +101,9 @@ export const transformSync = (
 		define['import.meta.url'] = JSON.stringify(url);
 	}
 
+	// Apply JSX pragmas from source comments (overrides tsconfig)
+	const optionsWithPragmas = applyJsxPragmas(code, filePath, extendOptions);
+
 	const esbuildOptions = {
 		...cacheConfig,
 		format: 'cjs',
@@ -74,7 +115,7 @@ export const transformSync = (
 		// CJS Annotations for Node. Used by ESM loader for CJS interop
 		platform: 'node',
 
-		...extendOptions,
+		...optionsWithPragmas,
 	} as const;
 
 	const hash = sha1([
@@ -116,11 +157,14 @@ export const transform = async (
 	filePath: string,
 	extendOptions?: TransformOptions,
 ): Promise<Transformed> => {
+	// Apply JSX pragmas from source comments (overrides tsconfig)
+	const optionsWithPragmas = applyJsxPragmas(code, filePath, extendOptions);
+
 	const esbuildOptions = {
 		...cacheConfig,
 		format: 'esm',
 		sourcefile: filePath,
-		...extendOptions,
+		...optionsWithPragmas,
 	} as const;
 
 	const hash = sha1([
