@@ -52,6 +52,8 @@ const applyJsxPragmas = (
 	tsconfigRaw.compilerOptions = {
 		...tsconfigRaw.compilerOptions,
 		...pragmas,
+		// jsxImportSource implies jsx: "react-jsx" (automatic runtime)
+		...(pragmas.jsxImportSource && { jsx: 'react-jsx' }),
 	};
 
 	return {
