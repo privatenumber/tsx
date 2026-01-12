@@ -21,6 +21,7 @@ import {
 	cacheConfig,
 	patchOptions,
 } from './get-esbuild-options.js';
+import path from 'node:path';
 
 const formatEsbuildError = (
 	error: TransformFailure,
@@ -61,6 +62,7 @@ export const transformSync = (
 		)
 	) {
 		define['import.meta.url'] = JSON.stringify(url);
+		define["import.meta.dirname"] = JSON.stringify(path.dirname(filePath));
 	}
 
 	const esbuildOptions = {

@@ -131,6 +131,7 @@ export const files = {
 	import assert from 'assert';
 	console.log(JSON.stringify({
 		importMetaUrl: import.meta.url,
+		importMetaDirname: import.meta.dirname,
 		__filename: typeof __filename !== 'undefined' ? __filename : undefined,
 	}));
 	${syntaxLowering}

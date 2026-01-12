@@ -77,13 +77,12 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 						expectErrors(
 							[() => import ('./cjs/index'), 'Cannot find module'],
 							[() => import ('./cjs/'), 'Cannot find module'],
-							${
-								isCommonJs
-									? `
+							${isCommonJs
+								? `
 									[() => require('./cjs/index'), 'Cannot find module'],
 									[() => require('./cjs/'), 'Cannot find module'],
 									`
-									: ''
+								: ''
 							}
 						);
 
@@ -92,13 +91,12 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 						expectErrors(
 							[() => import ('./mjs/index'), 'Cannot find module'],
 							[() => import ('./mjs/'), 'Cannot find module'],
-							${
-								isCommonJs && !supports.requireEsm
-									? `
+							${isCommonJs && !supports.requireEsm
+								? `
 									[() => require('./mjs/index'), 'Cannot find module'],
 									[() => require('./mjs/'), 'Cannot find module'],
 									`
-									: ''
+								: ''
 							}
 						);
 
@@ -112,18 +110,16 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 							// Unsupported files
 							[() => import ('./file.txt'), 'Unknown file extension'],
 							[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
-							${
-								isCommonJs
-									? `
+							${isCommonJs
+								? `
 									[() => require('./file.txt'), 'hello is not defined'],
 									[() => require(${JSON.stringify(wasmPath)}), 'Invalid or unexpected token'],
 									`
-									: ''
+								: ''
 							}
-							${
-								isCommonJs
-									? '[() => require(\'./broken-syntax\'), \'Transform failed\'],'
-									: ''
+							${isCommonJs
+								? '[() => require(\'./broken-syntax\'), \'Transform failed\'],'
+								: ''
 							}
 							[() => import ('./broken-syntax'), 'Transform failed'],
 						);
@@ -160,8 +156,8 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 					if (isCommonJs) {
 						expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
 
-						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","__filename":".+?index\.js"\}/);
-						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","__filename":".+?index\.js"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","importMetaDirname":".+?\/js","__filename":".+?index\.js"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","importMetaDirname":".+?\/js","__filename":".+?index\.js"\}/);
 					} else {
 						expect(p.stdout).toMatch(
 							supports.cjsInterop
@@ -169,8 +165,8 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 								: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
 						);
 
-						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js"\}/);
-						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","importMetaDirname":".+?\/js"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","importMetaDirname":".+?\/js"\}/);
 					}
 
 					// By "require()"ing an ESM file, it forces it to be compiled in a CJS context
@@ -216,16 +212,15 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 						import './js/';
 
 						// absolute path
-						${
-							isWindows
+						${isWindows
 								? ''
 								: `import ${JSON.stringify(path.join(fixturePath, 'js/index.js'))};`
-						}
+							}
 
 						// absolute file url
 						import ${JSON.stringify(
-							new URL('js/index.js', pathToFileURL(fixturePath)).toString(),
-						)};
+								new URL('js/index.js', pathToFileURL(fixturePath)).toString(),
+							)};
 
 						// No double .default.default in Dynamic Import
 						import/* comment */('./js/index.js').then(m => {
@@ -247,13 +242,12 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 						expectErrors(
 							[() => import ('./cjs/index'), 'Cannot find module'],
 							[() => import ('./cjs/'), 'Cannot find module'],
-							${
-								isCommonJs
-									? `
+							${isCommonJs
+								? `
 									[() => require('./cjs/index'), 'Cannot find module'],
 									[() => require('./cjs/'), 'Cannot find module'],
 									`
-									: ''
+								: ''
 							}
 						);
 
@@ -262,13 +256,12 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 						expectErrors(
 							[() => import ('./mjs/index'), 'Cannot find module'],
 							[() => import ('./mjs/'), 'Cannot find module'],
-							${
-								isCommonJs && !supports.requireEsm
-									? `
+							${isCommonJs && !supports.requireEsm
+								? `
 									[() => require('./mjs/index'), 'Cannot find module'],
 									[() => require('./mjs/'), 'Cannot find module'],
 									`
-									: ''
+								: ''
 							}
 						);
 
@@ -313,13 +306,12 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 							// [() => import ('./cts/index.cts'), 'Cannot find module'],
 							[() => import ('./cts/index'), 'Cannot find module'],
 							[() => import ('./cts/'), 'Cannot find module'],
-							${
-								isCommonJs
-									? `
+							${isCommonJs
+								? `
 									[() => require('./cts/index'), 'Cannot find module'],
 									[() => require('./cts/'), 'Cannot find module'],
 									`
-									: ''
+								: ''
 							}
 						);
 						// Loading via Node arg should not work via .cjs but with .cts
@@ -332,13 +324,12 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 							// [() => import ('./mts/index.mts'), 'Cannot find module'],
 							[() => import ('./mts/index'), 'Cannot find module'],
 							[() => import ('./mts/'), 'Cannot find module'],
-							${
-								isCommonJs
-									? `
+							${isCommonJs
+								? `
 									[() => require('./mts/index'), 'Cannot find module'],
 									[() => require('./mts/'), 'Cannot find module'],
 									`
-									: ''
+								: ''
 							}
 						);
 						// Loading via Node arg should not work via .mjs but with .mts
@@ -350,18 +341,16 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 							// Unsupported files
 							[() => import ('./file.txt'), 'Unknown file extension'],
 							[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
-							${
-								isCommonJs
-									? `
+							${isCommonJs
+								? `
 									[() => require('./file.txt'), 'hello is not defined'],
 									[() => require(${JSON.stringify(wasmPath)}), 'Invalid or unexpected token'],
 									`
-									: ''
+								: ''
 							}
-							${
-								isCommonJs
-									? '[() => require(\'./broken-syntax\'), \'Transform failed\'],'
-									: ''
+							${isCommonJs
+								? '[() => require(\'./broken-syntax\'), \'Transform failed\'],'
+								: ''
 							}
 							[() => import ('./broken-syntax'), 'Transform failed'],
 						);
@@ -403,8 +392,8 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 					if (isCommonJs) {
 						expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
 
-						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","__filename":".+?index\.js"\}/);
-						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","__filename":".+?index\.js"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","importMetaDirname":".+?\/js","__filename":".+?index\.js"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","importMetaDirname":".+?\/js","__filename":".+?index\.js"\}/);
 					} else {
 						expect(p.stdout).toMatch(
 							supports.cjsInterop
@@ -412,8 +401,8 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 								: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
 						);
 
-						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js"\}/);
-						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","importMetaDirname":".+?\/js"\}/);
+						expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","importMetaDirname":".+?\/js"\}/);
 					}
 
 					// By "require()"ing an ESM file, it forces it to be compiled in a CJS context

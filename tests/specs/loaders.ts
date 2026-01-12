@@ -19,6 +19,12 @@ export default testSuite(({ describe }, node: NodeApis) => {
 
 				console.log(JSON.stringify([Boolean(fs) as unknown as string, import.meta.url]));
 				`,
+				'dirname-test.mts': `
+				console.log(JSON.stringify({
+					url: import.meta.url,
+					dirname: import.meta.dirname
+				}));
+				`,
 			});
 			onFinish(async () => await fixture.rm());
 
@@ -40,6 +46,21 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				const [imported, importMetaUrl] = JSON.parse(tsxResult.stdout);
 				expect(imported).toBe(true);
 				expect(importMetaUrl.endsWith('/mts.mts')).toBeTruthy();
+
+				if (node.supports.moduleRegister) {
+					expect(tsxResult.stderr).toBe('');
+				} else {
+					expect(tsxResult.stderr).toMatch('ExperimentalWarning: Custom ESM Loaders is an experimental feature');
+				}
+				expect(tsxResult.exitCode).toBe(0);
+			});
+
+			test('import.meta.dirname', async () => {
+				const tsxResult = await node.hook(['./dirname-test.mts'], fixture.path);
+
+				const { url, dirname } = JSON.parse(tsxResult.stdout);
+				expect(url.endsWith('/dirname-test.mts')).toBeTruthy();
+				expect(dirname).toBe(fixture.path.replace(/\/$/, ''));
 
 				if (node.supports.moduleRegister) {
 					expect(tsxResult.stderr).toBe('');
