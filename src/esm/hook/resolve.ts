@@ -249,14 +249,12 @@ const resolveTsPaths: ResolveHook = async (
 
 		requestAcceptsQuery: requestAcceptsQuery(specifier),
 		tsconfigPathsMatcher,
-		fromNodeModules: context.parentURL?.includes('/node_modules/'),
 	});
 	if (
 		// Bare specifier
 		!requestAcceptsQuery(specifier)
 		// TS path alias
 		&& tsconfigPathsMatcher
-		&& !context.parentURL?.includes('/node_modules/')
 	) {
 		const possiblePaths = tsconfigPathsMatcher(specifier);
 		log(3, 'resolveTsPaths', {

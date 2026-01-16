@@ -84,31 +84,6 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					'import-typescript-child.ts': `
 					console.log('imported');
 					`,
-
-					'node_modules/tsconfig-should-not-apply': {
-						'package.json': createPackageJson({
-							exports: {
-								import: './index.mjs',
-								default: './index.cjs',
-							},
-						}),
-						'index.mjs': `
-						import { expectErrors } from 'expect-errors';
-						expectErrors(
-							[() => import ('prefix/file'), "Cannot find package 'prefix'"],
-							[() => import ('paths-exact-match'), "Cannot find package 'paths-exact-match'"],
-							[() => import ('file'), "Cannot find package 'file'"],
-						);
-						`,
-						'index.cjs': `
-						const { expectErrors } = require('expect-errors');
-						expectErrors(
-							[() => require('prefix/file'), "Cannot find module"],
-							[() => require('paths-exact-match'), "Cannot find module"],
-							[() => require('file'), "Cannot find module"],
-						);
-						`,
-					},
 				});
 				onFinish(async () => await fixture.rm());
 
