@@ -34,7 +34,7 @@ const flags = {
 	},
 	killTimeout: {
 		type: Number,
-		description: 'Milliseconds until process is forcibly killed'
+		description: 'Milliseconds until process is forcibly killed',
 		default: 5000
 	},
 	// Deprecated
