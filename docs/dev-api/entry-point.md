@@ -9,7 +9,7 @@ await import('./file.ts')
 ```
 <!-- TODO: does this work in CJS mode? -->
 
-Note, because of the order of static import evaluatation in ESM, the enhancement only works on [dynamic imports after registeration](https://nodejs.org/docs/latest-v22.x/api/module.html#:~:text=dynamic%20import()%20must%20be%20used%20for%20any%20code%20that%20should%20be%20run%20after%20the%20hooks%20are%20registered).
+Note, because of the order of static import evaluation in ESM, the enhancement only works on [dynamic imports after registeration](https://nodejs.org/docs/latest-v22.x/api/module.html#:~:text=dynamic%20import()%20must%20be%20used%20for%20any%20code%20that%20should%20be%20run%20after%20the%20hooks%20are%20registered).
 
 ::: danger
 Enhancing Node.js by loading _tsx_ from within your source code at run-time can be unexpected for collaborators who aren’t aware of it.
