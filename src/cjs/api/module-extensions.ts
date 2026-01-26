@@ -178,7 +178,7 @@ export const createExtensions = (
 	for (const extension of implicitlyResolvableExtensions) {
 		safeSet(extensions, extension, transformer, {
 			/**
-			 * Registeration needs to be enumerable for some 3rd party libraries
+			 * Registration needs to be enumerable for some 3rd party libraries
 			 * https://github.com/gulpjs/rechoir/blob/v0.8.0/index.js#L21 (used by Webpack CLI)
 			 *
 			 * If the extension already exists, inherit its enumerable property
