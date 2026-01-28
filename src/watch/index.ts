@@ -199,6 +199,9 @@ export const watchCommand = command({
 	process.on('SIGINT', relaySignal);
 	process.on('SIGTERM', relaySignal);
 
+	// On SIGHUP, trigger reload instead of exiting
+	process.on('SIGHUP', () => reRun('SIGHUP'));
+
 	/**
 	 * Ideally, we can get a list of files loaded from the run above
 	 * and only watch those files, but it's not possible to detect
