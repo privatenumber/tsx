@@ -51,3 +51,4 @@ tsx watch --exclude "./data/**/*" ./file.ts
 
 - Press <kbd>Return</kbd> to manually rerun the script.
 - Use `--clear-screen=false` to prevent the screen from clearing on rerun.
+- Use `--reload-on-keypress=false` to disable reloading on keypress. If your child process uses stdin raw mode, be sure to disable this.

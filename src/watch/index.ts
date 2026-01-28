@@ -45,6 +45,11 @@ const flags = {
 		type: [String],
 		description: 'Paths & globs to exclude from being watched',
 	},
+	reloadOnKeypress: {
+		type: Boolean,
+		description: 'Reload on keypress (press Return key to manually rerun). Disable if your process uses stdin raw mode.',
+		default: true,
+	},
 } as const;
 
 export const watchCommand = command({
@@ -232,5 +237,7 @@ export const watchCommand = command({
 	).on('all', reRun);
 
 	// On "Return" key
-	process.stdin.on('data', () => reRun('Return key'));
+	if (argv.flags.reloadOnKeypress && process.stdin.isTTY) {
+		process.stdin.on('data', () => reRun('Return key'));
+	}
 });
