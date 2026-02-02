@@ -35,8 +35,10 @@ const connectToServer = () => new Promise<SendToParent | void>((resolve) => {
 	socket.unref();
 });
 
+// before connection, store messages locally
+const queue = [];
 export const parent: Parent = {
-	send: undefined,
+	send: x => queue.push(x),
 };
 
 export const connectingToServer = connectToServer();
@@ -44,6 +46,10 @@ export const connectingToServer = connectToServer();
 connectingToServer.then(
 	(send) => {
 		parent.send = send;
+		
+		// process the queue
+		queue.forEach(x => send(x));
+		queue.length = 0;
 	},
 	() => {},
 );
