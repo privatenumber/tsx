@@ -16,6 +16,7 @@ import {
 	isDirectoryPattern,
 	isRelativePath,
 } from '../../utils/path-utils.js';
+import { enhanceModuleError } from '../../utils/enhance-module-error.js';
 import type { TsxRequest } from '../types.js';
 import { logEsm as log, debugEnabled } from '../../utils/debug.js';
 import {
@@ -74,6 +75,7 @@ const resolveExtensions = async (
 	context: ResolveHookContext,
 	nextResolve: NextResolve,
 	throwError?: boolean,
+	searchedPaths?: string[],
 ) => {
 	const tryPaths = mapTsExtensions(url);
 	log(3, 'resolveExtensions', {
@@ -88,6 +90,8 @@ const resolveExtensions = async (
 
 	let caughtError: unknown;
 	for (const tsPath of tryPaths) {
+		// Track searched paths if provided
+		searchedPaths?.push(tsPath);
 		try {
 			return await nextResolve(tsPath, context);
 		} catch (error) {
@@ -251,6 +255,10 @@ const resolveTsPaths: ResolveHook = async (
 		tsconfigPathsMatcher,
 		fromNodeModules: context.parentURL?.includes('/node_modules/'),
 	});
+
+	// Track searched paths for better error messages
+	const searchedPaths: string[] = [];
+
 	if (
 		// Bare specifier
 		!requestAcceptsQuery(specifier)
@@ -263,6 +271,7 @@ const resolveTsPaths: ResolveHook = async (
 			possiblePaths,
 		});
 		for (const possiblePath of possiblePaths) {
+			searchedPaths.push(possiblePath);
 			try {
 				return await resolveDirectory(
 					pathToFileURL(possiblePath).toString(),
@@ -273,7 +282,17 @@ const resolveTsPaths: ResolveHook = async (
 		}
 	}
 
-	return resolveDirectory(specifier, context, nextResolve);
+	try {
+		return await resolveDirectory(specifier, context, nextResolve);
+	} catch (error) {
+		if (
+			error instanceof Error
+			&& searchedPaths.length > 0
+		) {
+			throw enhanceModuleError(error as NodeError, searchedPaths);
+		}
+		throw error;
+	}
 };
 
 const tsxProtocol = 'tsx://';
