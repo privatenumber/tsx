@@ -1,5 +1,6 @@
 import Module from 'node:module';
 import { fileURLToPath } from 'node:url';
+import type { NodeError } from '../../../types.js';
 import {
 	isFilePath,
 	fileUrlPrefix,
@@ -7,6 +8,7 @@ import {
 	nodeModulesPath,
 } from '../../../utils/path-utils.js';
 import { tsconfigPathsMatcher } from '../../../utils/tsconfig.js';
+import { enhanceModuleError } from '../../../utils/enhance-module-error.js';
 import type { ResolveFilename, SimpleResolve, LoaderState } from '../types.js';
 import { logCjs as log } from '../../../utils/debug.js';
 import { createImplicitResolver } from './resolve-implicit-extensions.js';
@@ -24,6 +26,9 @@ const resolveTsPaths = (
 		request = fileURLToPath(request);
 	}
 
+	// Track searched paths for better error messages
+	const searchedPaths: string[] = [];
+
 	// Resolve TS path alias
 	if (
 		tsconfigPathsMatcher
@@ -36,13 +41,24 @@ const resolveTsPaths = (
 	) {
 		const possiblePaths = tsconfigPathsMatcher(request);
 		for (const possiblePath of possiblePaths) {
+			searchedPaths.push(possiblePath);
 			try {
 				return nextResolve(possiblePath);
 			} catch {}
 		}
 	}
 
-	return nextResolve(request);
+	try {
+		return nextResolve(request);
+	} catch (error) {
+		if (
+			error instanceof Error
+			&& searchedPaths.length > 0
+		) {
+			throw enhanceModuleError(error as NodeError, searchedPaths);
+		}
+		throw error;
+	}
 };
 
 export const createResolveFilename = (
