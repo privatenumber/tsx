@@ -354,5 +354,102 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 				await tsxProcess;
 			}, 10_000);
 		});
+
+		describe('prefer include over exclude', ({ test }) => {
+			test('file path & glob', async ({ onTestFail }) => {
+				const entryFile = 'index.js';
+				const fileA = 'file-a.js';
+				const fileB = 'directory/file-b.js';
+				const fileC = 'directory/file-c.js';
+				const depA = 'node_modules/a/index.js';
+
+				await using fixture = await createFixture({
+					[fileA]: 'export default "logA"',
+					[fileB]: 'export default "logB"',
+					[fileC]: 'export default "logC"',
+					[depA]: 'export default "logD"',
+					[entryFile]: `
+						import valueA from './${fileA}'
+						import valueB from './${fileB}'
+						import valueC from './${fileC}'
+						import valueD from './${depA}'
+						console.log(valueA, valueB, valueC, valueD)
+					`.trim(),
+				});
+
+				const tsxProcess = tsx(
+					[
+						'watch',
+						'--clear-screen=false',
+						`--ignore=${fileA}`,
+						'--exclude=directory/*',
+						`--include=${fileC}`,
+						entryFile,
+					],
+					fixture.path,
+				);
+
+				onTestFail(async () => {
+					// If timed out, force kill process
+					if (tsxProcess.exitCode === null) {
+						console.log('Force killing hanging process\n\n');
+						tsxProcess.kill();
+						console.log({
+							tsxProcess: await tsxProcess,
+						});
+					}
+				});
+
+				const negativeSignal = 'fail';
+
+				await expect(
+					processInteract(
+						tsxProcess.stdout!,
+						[
+							async (data) => {
+								if (data !== 'logA logB logC logD\n') {
+									return;
+								}
+
+								// These changes should not trigger a re-run
+								await Promise.all([
+									fixture.writeFile(fileA, `export default "${negativeSignal}"`),
+									fixture.writeFile(fileB, `export default "${negativeSignal}"`),
+									fixture.writeFile(depA, `export default "${negativeSignal}"`),
+								]);
+								return true;
+							},
+							(data) => {
+								if (data.includes(negativeSignal)) {
+									throw new Error('Unexpected re-run');
+								}
+							},
+						],
+						4000,
+					),
+				).rejects.toThrow('Timeout'); // Watch should not trigger
+
+				// This change should trigger a re-run, even though fileC's directory is excluded
+				fixture.writeFile(fileC, 'export default "updateC"');
+
+				await processInteract(
+					tsxProcess.stdout!,
+					[
+						(data) => {
+							// Now that the app has restarted, we should see the negativeSignal updates too
+							if (data === `${negativeSignal} ${negativeSignal} updateC ${negativeSignal}\n`) {
+								return true;
+							}
+						},
+					],
+					4000,
+				);
+
+				tsxProcess.kill();
+
+				const tsxProcessResolved = await tsxProcess;
+				expect(tsxProcessResolved.stderr).toBe('');
+			}, 10_000);
+		});
 	});
 });
