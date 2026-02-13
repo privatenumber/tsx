@@ -2,7 +2,7 @@ import { setTimeout } from 'node:timers/promises';
 import { testSuite, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import packageJson from '../../package.json';
-import { ptyShell, isWindows } from '../utils/pty-shell/index';
+import { ptyShell, isWindows } from '../utils/pty-shell/index.js';
 import { expectMatchInOrder } from '../utils/expect-match-in-order.js';
 import { tsxPath, type NodeApis } from '../utils/tsx.js';
 import { isProcessAlive } from '../utils/is-process-alive.js';
@@ -325,57 +325,49 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				const CtrlC = '\u0003';
 
 				test('Exit code', async ({ onTestFail }) => {
-					const p = ptyShell(async (shell) => {
-						await shell.waitForPrompt();
-						// Windows doesn't support shebangs
-						shell.type(`${node.path} ${tsxPath} ${fixture.getPath('keep-alive.js')}`);
-
-						await shell.waitForLine(/READY/);
-						shell.press(CtrlC);
-
-						await shell.waitForPrompt();
-						shell.type(`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}`);
-
-						await shell.waitForPrompt();
-					});
+					const shell = ptyShell();
 
 					onTestFail(() => {
-						p.kill();
-						console.log({
-							logs: p.logs,
-							stdout: p.getStdout(),
-						});
+						console.log({ stdout: shell.getOutput() });
 					});
 
-					expect(await p.output).toMatch(/EXIT_CODE:\s+130/);
+					await shell.waitForPrompt();
+					// Windows doesn't support shebangs
+					shell.type(`${node.path} ${tsxPath} ${fixture.getPath('keep-alive.js')}`);
+
+					await shell.waitForLine(/READY/);
+					shell.press(CtrlC);
+
+					await shell.waitForPrompt();
+					shell.type(`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}`);
+
+					await shell.waitForPrompt();
+
+					expect(await shell.close()).toMatch(/EXIT_CODE:\s+130/);
 				}, 10_000);
 
 				test('Catchable', async ({ onTestFail }) => {
-					const p = ptyShell(async (shell) => {
-						await shell.waitForPrompt();
-						shell.type(`${node.path} ${tsxPath} ${fixture.getPath('catch-signals.js')}`);
-
-						await shell.waitForLine(/READY/);
-						shell.press(CtrlC);
-
-						await shell.waitForLine(/PRESS AGAIN/);
-						shell.press(CtrlC);
-
-						await shell.waitForPrompt();
-						shell.type(`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}`);
-
-						await shell.waitForPrompt();
-					});
+					const shell = ptyShell();
 
 					onTestFail(() => {
-						p.kill();
-						console.log({
-							logs: p.logs,
-							stdout: p.getStdout(),
-						});
+						console.log({ stdout: shell.getOutput() });
 					});
 
-					expectMatchInOrder(await p.output, [
+					await shell.waitForPrompt();
+					shell.type(`${node.path} ${tsxPath} ${fixture.getPath('catch-signals.js')}`);
+
+					await shell.waitForLine(/READY/);
+					shell.press(CtrlC);
+
+					await shell.waitForLine(/PRESS AGAIN/);
+					shell.press(CtrlC);
+
+					await shell.waitForPrompt();
+					shell.type(`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}`);
+
+					await shell.waitForPrompt();
+
+					expectMatchInOrder(await shell.close(), [
 						'READY\r\n',
 						process.platform === 'win32' ? '' : '^C',
 						'SIGINT PRESS AGAIN\r\n',
@@ -387,29 +379,25 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				});
 
 				test('Infinite loop', async ({ onTestFail }) => {
-					const p = ptyShell(async (shell) => {
-						await shell.waitForPrompt();
-						// Windows doesn't support shebangs
-						shell.type(`${node.path} ${tsxPath} ${fixture.getPath('infinite-loop.js')}`);
-
-						await shell.waitForLine(/^\r?\d+$/);
-						shell.press(CtrlC);
-
-						await shell.waitForPrompt();
-						shell.type(`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}`);
-
-						await shell.waitForPrompt();
-					});
+					const shell = ptyShell();
 
 					onTestFail(() => {
-						p.kill();
-						console.log({
-							logs: p.logs,
-							stdout: p.getStdout(),
-						});
+						console.log({ stdout: shell.getOutput() });
 					});
 
-					expect(await p.output).toMatch(/EXIT_CODE:\s+130/);
+					await shell.waitForPrompt();
+					// Windows doesn't support shebangs
+					shell.type(`${node.path} ${tsxPath} ${fixture.getPath('infinite-loop.js')}`);
+
+					await shell.waitForLine(/^\r?\d+$/);
+					shell.press(CtrlC);
+
+					await shell.waitForPrompt();
+					shell.type(`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}`);
+
+					await shell.waitForPrompt();
+
+					expect(await shell.close()).toMatch(/EXIT_CODE:\s+130/);
 				}, 10_000);
 			});
 		});
