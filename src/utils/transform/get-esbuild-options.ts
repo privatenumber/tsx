@@ -45,7 +45,7 @@ export const cacheConfig = {
 	 * esbuild renames variables even if minification is not enabled
 	 * https://esbuild.github.io/try/#dAAwLjE5LjUAAGNvbnN0IGEgPSAxOwooZnVuY3Rpb24gYSgpIHt9KTs
 	 */
-	keepNames: true,
+	keepNames: process.env.TSX_ESBUILD_KEEP_NAMES !== 'false',
 };
 
 export const patchOptions = (
