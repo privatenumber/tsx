@@ -354,5 +354,66 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 				await tsxProcess;
 			}, 10_000);
 		});
+
+		test('SIGHUP triggers reload', async ({ onTestFinish, onTestFail }) => {
+			if (process.platform === 'win32') {
+				return;
+			}
+
+			const fixtureSighup = await createFixture({
+				'package.json': createPackageJson({
+					type: 'module',
+				}),
+				'index.js': `
+					console.log('hello from index');
+				`,
+			});
+			onTestFinish(async () => await fixtureSighup.rm());
+
+			const tsxProcess = tsx(
+				[
+					'watch',
+					'--clear-screen=false',
+					'index.js',
+				],
+				fixtureSighup.path,
+			);
+
+			onTestFail(async () => {
+				if (tsxProcess.exitCode === null) {
+					console.log('Force killing hanging process\n\n');
+					tsxProcess.kill('SIGKILL');
+					console.log({
+						tsxProcess: await tsxProcess,
+					});
+				}
+			});
+
+			await processInteract(
+				tsxProcess.stdout!,
+				[
+					async (data) => {
+						if (data.includes('hello from index\n')) {
+							// Send SIGHUP signal to trigger reload
+							await setTimeout(100);
+							tsxProcess.kill('SIGHUP');
+							return true;
+						}
+					},
+					data => data.includes('SIGHUP') && (data.includes('Rerunning...') || data.includes('Restarting...')),
+					data => data.includes('hello from index\n'),
+				],
+				9000,
+			);
+
+			tsxProcess.kill();
+
+			const { all } = await tsxProcess;
+			expect(all).toMatch('SIGHUP');
+			expect(all).toMatch(/Rerunning|Restarting/);
+			// Should have run at least twice (initial + reload)
+			const runCount = (all.match(/hello from index/g) || []).length;
+			expect(runCount).toBeGreaterThanOrEqual(2);
+		}, 10_000);
 	});
 });
