@@ -1,32 +1,41 @@
-import path from 'node:path';
 import {
-	getTsconfig,
-	parseTsconfig,
 	createFilesMatcher,
 	createPathsMatcher,
-	type TsConfigResult,
+	getTsconfig,
+	parseTsconfig,
 	type FileMatcher,
-} from 'get-tsconfig';
+	type TsConfigResult,
+} from "get-tsconfig";
+import path from "node:path";
 
 // eslint-disable-next-line import-x/no-mutable-exports
 export let fileMatcher: undefined | FileMatcher;
 
 // eslint-disable-next-line import-x/no-mutable-exports
-export let tsconfigPathsMatcher: undefined | ReturnType<typeof createPathsMatcher>;
+export let tsconfigPathsMatcher:
+	| undefined
+	| ReturnType<typeof createPathsMatcher>;
 
 // eslint-disable-next-line import-x/no-mutable-exports
 export let allowJs = false;
 
-export const loadTsconfig = (
-	configPath?: string,
-) => {
+export const loadTsconfig = (configPath?: string) => {
 	let tsconfig: TsConfigResult | null = null;
 	if (configPath) {
 		const resolvedConfigPath = path.resolve(configPath);
-		tsconfig = {
-			path: resolvedConfigPath,
-			config: parseTsconfig(resolvedConfigPath),
-		};
+		try {
+			tsconfig = {
+				path: resolvedConfigPath,
+				config: parseTsconfig(resolvedConfigPath),
+			};
+		} catch (error) {
+			// the error from parseTsConfig contains a user friendly stack trace... but its not
+			// very actionable and contains a big chunk of raw minified source above it so we re-throw
+			// a new error with a more actionable message instead.
+			throw new Error(
+				`Failed to load tsconfig from path "${resolvedConfigPath}". Please ensure the file exists and is a valid tsconfig.json.`,
+			);
+		}
 	} else {
 		try {
 			tsconfig = getTsconfig();
