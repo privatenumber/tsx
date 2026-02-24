@@ -15,6 +15,7 @@ import {
 	tsExtensionsPattern,
 	isDirectoryPattern,
 	isRelativePath,
+	isFilePath,
 } from '../../utils/path-utils.js';
 import type { TsxRequest } from '../types.js';
 import { logEsm as log, debugEnabled } from '../../utils/debug.js';
@@ -252,8 +253,9 @@ const resolveTsPaths: ResolveHook = async (
 		fromNodeModules: context.parentURL?.includes('/node_modules/'),
 	});
 	if (
-		// Bare specifier
-		!requestAcceptsQuery(specifier)
+		// Bare specifier or TS path alias (e.g. `ns:foo`) - not a file path or file:// URL
+		!isFilePath(specifier)
+		&& !specifier.startsWith(fileUrlPrefix)
 		// TS path alias
 		&& tsconfigPathsMatcher
 		&& !context.parentURL?.includes('/node_modules/')

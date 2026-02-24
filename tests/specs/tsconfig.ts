@@ -136,6 +136,33 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						expect(pTsconfig.stderr).toBe('');
 						expect(pTsconfig.stdout).toBe('');
 					});
+
+					test('tsconfig paths with colon in alias name', async ({ onTestFail }) => {
+						await using fixture = await createFixture({
+							'package.json': createPackageJson(packageType ? { type: packageType } : {}),
+							'tsconfig.json': createTsconfig({
+								compilerOptions: {
+									baseUrl: '.',
+									paths: {
+										'ns:*': ['./src/*'],
+									},
+								},
+							}),
+							'src/utils.ts': `export const value = 'success'`,
+							'index.ts': `
+							import { value } from 'ns:utils';
+							console.log(value);
+							`,
+						});
+
+						const result = await tsx(['index.ts'], fixture.path);
+						onTestFail((error) => {
+							console.error(error);
+							console.log(result);
+						});
+						expect(result.failed).toBe(false);
+						expect(result.stdout).toBe('success');
+					});
 				});
 
 				describe('custom tsconfig', ({ test }) => {
