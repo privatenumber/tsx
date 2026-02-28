@@ -1,5 +1,7 @@
 import { setTimeout } from 'node:timers/promises';
-import { testSuite, expect } from 'manten';
+import {
+	describe, test, onFinish, onTestFail, expect,
+} from 'manten';
 import { createFixture } from 'fs-fixture';
 import packageJson from '../../package.json';
 import { ptyShell, isWindows } from '../utils/pty-shell/index.js';
@@ -7,18 +9,18 @@ import { expectMatchInOrder } from '../utils/expect-match-in-order.js';
 import { tsxPath, type NodeApis } from '../utils/tsx.js';
 import { isProcessAlive } from '../utils/is-process-alive.js';
 
-export default testSuite(({ describe }, node: NodeApis) => {
+export const cli = (node: NodeApis) => {
 	const { tsx } = node;
 
-	describe('CLI', ({ describe, test }) => {
-		describe('argv', async ({ describe, onFinish }) => {
+	describe('CLI', () => {
+		describe('argv', async () => {
 			const fixture = await createFixture({
 				// Unnecessary TS to test syntax
 				'log-argv.ts': 'console.log(JSON.stringify(process.argv) as string)',
 			});
 			onFinish(async () => await fixture.rm());
 
-			describe('version', ({ test }) => {
+			describe('version', () => {
 				test('shows version', async () => {
 					const tsxProcess = await tsx(['--version']);
 
@@ -40,7 +42,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				});
 			});
 
-			describe('help', ({ test }) => {
+			describe('help', () => {
 				test('shows help', async () => {
 					const tsxProcess = await tsx(['--help']);
 
@@ -64,7 +66,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			});
 		});
 
-		describe('eval & print', ({ test }) => {
+		describe('eval & print', () => {
 			test('TypeScript', async () => {
 				const tsxProcess = await tsx([
 					'--eval',
@@ -140,7 +142,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			}, 10_000);
 		}
 
-		describe('Signals', async ({ describe, test, onFinish }) => {
+		describe('Signals', async () => {
 			const signals = ['SIGINT', 'SIGTERM'];
 			const fixture = await createFixture({
 				'propagates-signal.js': 'process.exit(process.argv[2])',
@@ -194,9 +196,9 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				expect(tsxProcess.exitCode).toBe(exitCode);
 			}, 10_000);
 
-			describe('Relays kill signal', ({ test }) => {
+			describe('Relays kill signal', () => {
 				for (const signal of signals) {
-					test(signal, async ({ onTestFail }) => {
+					test(signal, async () => {
 						const tsxProcess = tsx([
 							fixture.getPath('catch-signals.js'),
 						]);
@@ -321,10 +323,10 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				expect(result.exitCode).toBe(0);
 			});
 
-			describe('Ctrl + C', ({ test }) => {
+			describe('Ctrl + C', () => {
 				const CtrlC = '\u0003';
 
-				test('Exit code', async ({ onTestFail }) => {
+				test('Exit code', async () => {
 					const shell = ptyShell();
 
 					onTestFail(() => {
@@ -346,7 +348,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					expect(await shell.close()).toMatch(/EXIT_CODE:\s+130/);
 				}, 10_000);
 
-				test('Catchable', async ({ onTestFail }) => {
+				test('Catchable', async () => {
 					const shell = ptyShell();
 
 					onTestFail(() => {
@@ -378,7 +380,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					retry: 3,
 				});
 
-				test('Infinite loop', async ({ onTestFail }) => {
+				test('Infinite loop', async () => {
 					const shell = ptyShell();
 
 					onTestFail(() => {
@@ -427,4 +429,4 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			await tsxProcess;
 		});
 	});
-});
+};

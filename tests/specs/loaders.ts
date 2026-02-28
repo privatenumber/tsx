@@ -1,11 +1,13 @@
-import { testSuite, expect } from 'manten';
+import {
+	describe, test, onFinish, expect,
+} from 'manten';
 import { createFixture } from 'fs-fixture';
 import type { NodeApis } from '../utils/tsx.js';
 import { createPackageJson } from '../fixtures.js';
 
-export default testSuite(({ describe }, node: NodeApis) => {
-	describe('Loaders', ({ describe }) => {
-		describe('Hooks', async ({ test, onFinish }) => {
+export const loaders = (node: NodeApis) => {
+	describe('Loaders', () => {
+		describe('Hooks', async () => {
 			const fixture = await createFixture({
 				'package.json': createPackageJson({ type: 'module' }),
 
@@ -50,7 +52,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			});
 		});
 
-		describe('CJS patching', async ({ test }) => {
+		describe('CJS patching', async () => {
 			const fixture = await createFixture({
 				'package.json': createPackageJson({ type: 'commonjs' }),
 
@@ -89,4 +91,4 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			// });
 		});
 	});
-});
+};

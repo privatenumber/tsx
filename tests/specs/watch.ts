@@ -1,12 +1,14 @@
 import { setTimeout } from 'node:timers/promises';
-import { testSuite, expect } from 'manten';
+import {
+	describe, test, onFinish, onTestFinish, onTestFail, expect,
+} from 'manten';
 import { createFixture } from 'fs-fixture';
 import type { NodeApis } from '../utils/tsx.js';
 import { processInteract } from '../utils/process-interact.js';
 import { createPackageJson } from '../fixtures.js';
 
-export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
-	describe('watch', async ({ test, describe, onFinish }) => {
+export const watch = ({ tsx }: NodeApis) => {
+	describe('watch', async () => {
 		const fixture = await createFixture({
 			// Unnecessary TS to test syntax
 			'log-argv.ts': 'console.log(JSON.stringify(process.argv) as string)',
@@ -20,7 +22,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 		});
 
 		for (const packageType of ['module', 'commonjs'] as const) {
-			test(`watch files for changes in ${packageType} package`, async ({ onTestFinish, onTestFail }) => {
+			test(`watch files for changes in ${packageType} package`, async () => {
 				const fixtureWatch = await createFixture({
 					'package.json': createPackageJson({
 						type: packageType,
@@ -127,7 +129,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 			expect(all).toMatch('"--some-flag"');
 		}, 10_000);
 
-		test('wait for exit', async ({ onTestFinish, onTestFail }) => {
+		test('wait for exit', async () => {
 			const fixtureExit = await createFixture({
 				'index.js': `
 				console.log('start');
@@ -184,7 +186,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 			expect(all).toMatch(/start[\s\S]+end/);
 		}, 10_000);
 
-		describe('help', ({ test }) => {
+		describe('help', () => {
 			test('shows help', async () => {
 				const tsxProcess = await tsx(['watch', '--help']);
 
@@ -193,7 +195,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 				expect(tsxProcess.stderr).toBe('');
 			});
 
-			test('passes down --help to file', async ({ onTestFail }) => {
+			test('passes down --help to file', async () => {
 				const tsxProcess = tsx(
 					[
 						'watch',
@@ -220,7 +222,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 			}, 10_000);
 		});
 
-		describe('include', ({ test }) => {
+		describe('include', () => {
 			test('file path & glob', async () => {
 				const entryFile = 'index.js';
 				const fileA = 'file-a';
@@ -279,8 +281,8 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 			}, 10_000);
 		});
 
-		describe('exclude (ignore)', ({ test }) => {
-			test('file path & glob', async ({ onTestFail }) => {
+		describe('exclude (ignore)', () => {
+			test('file path & glob', async () => {
 				const entryFile = 'index.js';
 				const fileA = 'file-a.js';
 				const fileB = 'directory/file-b.js';
@@ -355,4 +357,4 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 			}, 10_000);
 		});
 	});
-});
+};

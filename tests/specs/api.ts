@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { execaNode } from 'execa';
-import { testSuite, expect } from 'manten';
+import { describe, test, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import { outdent } from 'outdent';
 import {
@@ -86,9 +86,9 @@ const tsFiles = {
 	...expectErrors,
 };
 
-export default testSuite(({ describe }, node: NodeApis) => {
-	describe('API', ({ describe }) => {
-		describe('CommonJS', ({ describe, test }) => {
+export const api = (node: NodeApis) => {
+	describe('API', () => {
+		describe('CommonJS', () => {
 			test('cli', async () => {
 				await using fixture = await createFixture({
 					'index.ts': outdent`
@@ -162,7 +162,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				expect(stdout).toBe('js working\nts working');
 			});
 
-			describe('register', ({ test }) => {
+			describe('register', () => {
 				test('register / unregister', async () => {
 					await using fixture = await createFixture({
 						'register.cjs': outdent`
@@ -242,7 +242,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 				});
 			});
 
-			describe('tsx.require()', ({ test }) => {
+			describe('tsx.require()', () => {
 				test('loads', async () => {
 					await using fixture = await createFixture({
 						'require.cjs': outdent`
@@ -374,7 +374,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			});
 		});
 
-		describe('module', ({ describe, test }) => {
+		describe('module', () => {
 			test('cli', async () => {
 				await using fixture = await createFixture({
 					'package.json': createPackageJson({ type: 'module' }),
@@ -437,7 +437,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					expect(stdout).toBe('Fails as expected\nfoo bar json file1.ts?nocache');
 				});
 
-				describe('register / unregister', ({ test, describe }) => {
+				describe('register / unregister', () => {
 					test('register / unregister', async () => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson({ type: 'module' }),
@@ -540,7 +540,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 						retry: 3,
 					});
 
-					describe('tsconfig', ({ test }) => {
+					describe('tsconfig', () => {
 						test('should ignore detected unresolvable tsconfig', async () => {
 							await using fixture = await createFixture({
 								'tsconfig.json': createTsconfig({
@@ -671,7 +671,7 @@ export default testSuite(({ describe }, node: NodeApis) => {
 					});
 				});
 
-				describe('tsImport()', ({ test }) => {
+				describe('tsImport()', () => {
 					test('module', async () => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson({ type: 'module' }),
@@ -916,4 +916,4 @@ export default testSuite(({ describe }, node: NodeApis) => {
 			}
 		});
 	});
-});
+};

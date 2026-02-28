@@ -1,21 +1,27 @@
 import { describe } from 'manten';
 import { createNode } from './utils/tsx';
 import { nodeVersions } from './utils/node-versions';
+import { smoke } from './specs/smoke';
+import { api } from './specs/api';
+import { cli } from './specs/cli';
+import { watch } from './specs/watch';
+import { loaders } from './specs/loaders';
+import { tsconfig } from './specs/tsconfig';
 
 (async () => {
-	await describe('tsx', async ({ runTestSuite, describe }) => {
-		await runTestSuite(import('./specs/repl'));
-		await runTestSuite(import('./specs/transform'));
+	await describe('tsx', async () => {
+		await import('./specs/repl');
+		await import('./specs/transform');
 
 		for (const nodeVersion of nodeVersions) {
 			const node = await createNode(nodeVersion);
-			await describe(`Node ${node.version}`, async ({ runTestSuite }) => {
-				await runTestSuite(import('./specs/smoke'), node);
-				await runTestSuite(import('./specs/api'), node);
-				await runTestSuite(import('./specs/cli'), node);
-				await runTestSuite(import('./specs/watch'), node);
-				await runTestSuite(import('./specs/loaders'), node);
-				await runTestSuite(import('./specs/tsconfig'), node);
+			await describe(`Node ${node.version}`, () => {
+				smoke(node);
+				api(node);
+				cli(node);
+				watch(node);
+				loaders(node);
+				tsconfig(node);
 			});
 		}
 	});

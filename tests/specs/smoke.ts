@@ -1,6 +1,8 @@
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { testSuite, expect } from 'manten';
+import {
+	describe, test, onTestFail, expect,
+} from 'manten';
 import { createFixture } from 'fs-fixture';
 import outdent from 'outdent';
 import type { NodeApis } from '../utils/tsx.js';
@@ -12,13 +14,13 @@ import { packageTypes } from '../utils/package-types.js';
 const wasmPath = path.resolve('tests/fixtures/test.wasm');
 const wasmPathUrl = pathToFileURL(wasmPath).toString();
 
-export default testSuite(async ({ describe }, { tsx, supports, version }: NodeApis) => {
-	describe('Smoke', ({ describe, test }) => {
+export const smoke = ({ tsx, supports, version }: NodeApis) => {
+	describe('Smoke', () => {
 		for (const packageType of packageTypes) {
 			const isCommonJs = packageType !== 'module';
 
-			describe(`package type: ${packageType ?? 'undefined'}`, ({ test }) => {
-				test('from .js', async ({ onTestFail }) => {
+			describe(`package type: ${packageType ?? 'undefined'}`, () => {
+				test('from .js', async () => {
 					await using fixture = await createFixture({
 						'package.json': createPackageJson(packageType ? { type: packageType } : {}),
 						'import-from-js.js': outdent`
@@ -179,7 +181,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 					expect(p.stderr).toBe('');
 				});
 
-				test('from .ts', async ({ onTestFail }) => {
+				test('from .ts', async () => {
 					await using fixture = await createFixture({
 						'package.json': createPackageJson(packageType ? { type: packageType } : {}),
 
@@ -454,7 +456,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 				 *  not match the required ones (3)
 				 */
 				if (!version.startsWith('18.')) {
-					test('resolve ts in main', async ({ onTestFail }) => {
+					test('resolve ts in main', async () => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson(packageType ? { type: packageType } : {}),
 							'index.ts': `
@@ -483,7 +485,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 		}
 
 		// https://github.com/privatenumber/tsx/issues/651
-		test('resolves same relative path from CJS loaded by ESM', async ({ onTestFail }) => {
+		test('resolves same relative path from CJS loaded by ESM', async () => {
 			await using fixture = await createFixture({
 				'package.json': createPackageJson({ type: 'commonjs' }),
 				a: {
@@ -522,7 +524,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 		});
 
 		if (supports.cjsInterop) {
-			test('mjs file can import named export from fake ESM even with --jitless', async ({ onTestFail }) => {
+			test('mjs file can import named export from fake ESM even with --jitless', async () => {
 				await using fixture = await createFixture({
 					'esm-in-cjs.js': 'export const value = 1;',
 					'index.mjs': `
@@ -542,8 +544,8 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 		}
 
 		// https://github.com/privatenumber/tsx/issues/727
-		describe('CJS & ESM race condition', ({ test }) => {
-			test('explicit extension', async ({ onTestFail }) => {
+		describe('CJS & ESM race condition', () => {
+			test('explicit extension', async () => {
 				await using fixture = await createFixture({
 					'index.mjs': `
 					import './require.cjs'
@@ -569,7 +571,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 				expect(p.failed).toBe(false);
 			});
 
-			test('implicit extension', async ({ onTestFail }) => {
+			test('implicit extension', async () => {
 				await using fixture = await createFixture({
 					'index.mjs': `
 					import './require/index.js'
@@ -603,7 +605,7 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 		});
 
 		// https://github.com/privatenumber/tsx/issues/722
-		test('handles require loop', async ({ onTestFail }) => {
+		test('handles require loop', async () => {
 			await using fixture = await createFixture({
 				'index.ts': 'require("./a.js")',
 				'a.js': 'require("./b.js")',
@@ -619,4 +621,4 @@ export default testSuite(async ({ describe }, { tsx, supports, version }: NodeAp
 			expect(p.failed).toBe(false);
 		});
 	});
-});
+};

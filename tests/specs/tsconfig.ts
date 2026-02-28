@@ -1,4 +1,6 @@
-import { testSuite, expect } from 'manten';
+import {
+	describe, test, onFinish, onTestFail, expect,
+} from 'manten';
 import { createFixture } from 'fs-fixture';
 import type { NodeApis } from '../utils/tsx.js';
 import {
@@ -6,10 +8,10 @@ import {
 } from '../fixtures.js';
 import { packageTypes } from '../utils/package-types.js';
 
-export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
-	describe('tsconfig', ({ describe }) => {
+export const tsconfig = ({ tsx }: NodeApis) => {
+	describe('tsconfig', () => {
 		for (const packageType of packageTypes) {
-			describe(`package type: ${packageType ?? 'undefined'}`, async ({ describe, onFinish }) => {
+			describe(`package type: ${packageType ?? 'undefined'}`, async () => {
 				const fixture = await createFixture({
 					...expectErrors,
 
@@ -112,7 +114,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 				});
 				onFinish(async () => await fixture.rm());
 
-				describe('detected tsconfig', ({ test }) => {
+				describe('detected tsconfig', () => {
 					test('invalid tsconfig should be ignored', async () => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson(packageType ? { type: packageType } : {}),
@@ -126,7 +128,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						expect(pTsconfig.failed).toBe(false);
 					});
 
-					test('tsconfig', async ({ onTestFail }) => {
+					test('tsconfig', async () => {
 						const pTsconfig = await tsx(['index.tsx'], fixture.path);
 						onTestFail((error) => {
 							console.error(error);
@@ -138,7 +140,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 					});
 				});
 
-				describe('custom tsconfig', ({ test }) => {
+				describe('custom tsconfig', () => {
 					test('invalid tsconfig should error', async () => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson(packageType ? { type: packageType } : {}),
@@ -152,7 +154,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						expect(pTsconfig.failed).toBe(true);
 					});
 
-					test('custom tsconfig', async ({ onTestFail }) => {
+					test('custom tsconfig', async () => {
 						const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'jsx.jsx'], fixture.path);
 						onTestFail((error) => {
 							console.error(error);
@@ -163,7 +165,7 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 						expect(pTsconfigAllowJs.stdout).toBe('');
 					});
 
-					test('allowJs in tsconfig.json', async ({ onTestFail }) => {
+					test('allowJs in tsconfig.json', async () => {
 						const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'import-typescript-parent.js'], fixture.path);
 						onTestFail((error) => {
 							console.error(error);
@@ -177,4 +179,4 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 			});
 		}
 	});
-});
+};
