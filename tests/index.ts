@@ -6,12 +6,14 @@ import { api } from './specs/api';
 import { cli } from './specs/cli';
 import { watch } from './specs/watch';
 import { loaders } from './specs/loaders';
+import { repl } from './specs/repl';
 import { tsconfig } from './specs/tsconfig';
+import { transformSpec } from './specs/transform';
 
 (async () => {
 	await describe('tsx', async () => {
-		await import('./specs/repl');
-		await import('./specs/transform');
+		await repl();
+		await transformSpec();
 
 		for (const nodeVersion of nodeVersions) {
 			const node = await createNode(nodeVersion);

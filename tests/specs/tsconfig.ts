@@ -8,175 +8,173 @@ import {
 } from '../fixtures.js';
 import { packageTypes } from '../utils/package-types.js';
 
-export const tsconfig = ({ tsx }: NodeApis) => {
-	describe('tsconfig', () => {
-		for (const packageType of packageTypes) {
-			describe(`package type: ${packageType ?? 'undefined'}`, async () => {
-				const fixture = await createFixture({
-					...expectErrors,
+export const tsconfig = ({ tsx }: NodeApis) => describe('tsconfig', () => {
+	for (const packageType of packageTypes) {
+		describe(`package type: ${packageType ?? 'undefined'}`, async () => {
+			const fixture = await createFixture({
+				...expectErrors,
 
-					'package.json': createPackageJson(packageType ? { type: packageType } : {}),
+				'package.json': createPackageJson(packageType ? { type: packageType } : {}),
 
-					'tsconfig.json': createTsconfig({
-						compilerOptions: {
-							jsxFactory: 'Array',
-							jsxFragmentFactory: 'null',
-							baseUrl: '.',
-							paths: {
-								'paths-exact-match': ['file'],
-								'prefix/*': ['*'],
-								'*/suffix': ['*'],
-							},
+				'tsconfig.json': createTsconfig({
+					compilerOptions: {
+						jsxFactory: 'Array',
+						jsxFragmentFactory: 'null',
+						baseUrl: '.',
+						paths: {
+							'paths-exact-match': ['file'],
+							'prefix/*': ['*'],
+							'*/suffix': ['*'],
+						},
+					},
+				}),
+
+				'tsconfig-allowJs.json': createTsconfig({
+					extends: './tsconfig.json',
+					compilerOptions: {
+						allowJs: true,
+					},
+				}),
+
+				'tsconfig-broken.json': '{ asdf',
+
+				'tsconfig-unresolvable.json': createTsconfig({
+					extends: 'doesnt-exist',
+				}),
+
+				'index.tsx': `
+				${jsxCheck};
+
+				import './jsx';
+
+				// Resolves relative to baseUrl
+				import 'file';
+
+				// Resolves paths - exact match
+				import 'paths-exact-match';
+
+				// Resolves paths - prefix match
+				import 'prefix/file';
+
+				// Resolves paths - suffix match
+				import 'file/suffix';
+
+				// tsconfig should not apply to dependency
+				import 'tsconfig-should-not-apply';
+				`,
+
+				'file.ts': '',
+
+				'jsx.jsx': `
+				// tsconfig not applied to jsx because allowJs is not set
+				import { expectErrors } from 'expect-errors';
+				expectErrors(
+					[() => ${jsxCheck}, 'React is not defined'],
+
+					// These should throw unless allowJs is set
+					// [() => import ('prefix/file'), "Cannot find package 'prefix'"],
+					// [() => import ('paths-exact-match'), "Cannot find package 'paths-exact-match'"],
+					// [() => import ('file'), "Cannot find package 'file'"],
+				);
+				`,
+
+				'import-typescript-parent.js': `
+				import './import-typescript-child.js';
+				`,
+
+				'import-typescript-child.ts': `
+				console.log('imported');
+				`,
+
+				'node_modules/tsconfig-should-not-apply': {
+					'package.json': createPackageJson({
+						exports: {
+							import: './index.mjs',
+							default: './index.cjs',
 						},
 					}),
-
-					'tsconfig-allowJs.json': createTsconfig({
-						extends: './tsconfig.json',
-						compilerOptions: {
-							allowJs: true,
-						},
-					}),
-
-					'tsconfig-broken.json': '{ asdf',
-
-					'tsconfig-unresolvable.json': createTsconfig({
-						extends: 'doesnt-exist',
-					}),
-
-					'index.tsx': `
-					${jsxCheck};
-
-					import './jsx';
-
-					// Resolves relative to baseUrl
-					import 'file';
-
-					// Resolves paths - exact match
-					import 'paths-exact-match';
-
-					// Resolves paths - prefix match
-					import 'prefix/file';
-
-					// Resolves paths - suffix match
-					import 'file/suffix';
-
-					// tsconfig should not apply to dependency
-					import 'tsconfig-should-not-apply';
-					`,
-
-					'file.ts': '',
-
-					'jsx.jsx': `
-					// tsconfig not applied to jsx because allowJs is not set
+					'index.mjs': `
 					import { expectErrors } from 'expect-errors';
 					expectErrors(
-						[() => ${jsxCheck}, 'React is not defined'],
-
-						// These should throw unless allowJs is set
-						// [() => import ('prefix/file'), "Cannot find package 'prefix'"],
-						// [() => import ('paths-exact-match'), "Cannot find package 'paths-exact-match'"],
-						// [() => import ('file'), "Cannot find package 'file'"],
+						[() => import ('prefix/file'), "Cannot find package 'prefix'"],
+						[() => import ('paths-exact-match'), "Cannot find package 'paths-exact-match'"],
+						[() => import ('file'), "Cannot find package 'file'"],
 					);
 					`,
-
-					'import-typescript-parent.js': `
-					import './import-typescript-child.js';
+					'index.cjs': `
+					const { expectErrors } = require('expect-errors');
+					expectErrors(
+						[() => require('prefix/file'), "Cannot find module"],
+						[() => require('paths-exact-match'), "Cannot find module"],
+						[() => require('file'), "Cannot find module"],
+					);
 					`,
+				},
+			});
+			onFinish(async () => await fixture.rm());
 
-					'import-typescript-child.ts': `
-					console.log('imported');
-					`,
-
-					'node_modules/tsconfig-should-not-apply': {
-						'package.json': createPackageJson({
-							exports: {
-								import: './index.mjs',
-								default: './index.cjs',
-							},
+			describe('detected tsconfig', () => {
+				test('invalid tsconfig should be ignored', async () => {
+					await using fixture = await createFixture({
+						'package.json': createPackageJson(packageType ? { type: packageType } : {}),
+						'tsconfig.json': createTsconfig({
+							extends: 'doesnt-exist',
 						}),
-						'index.mjs': `
-						import { expectErrors } from 'expect-errors';
-						expectErrors(
-							[() => import ('prefix/file'), "Cannot find package 'prefix'"],
-							[() => import ('paths-exact-match'), "Cannot find package 'paths-exact-match'"],
-							[() => import ('file'), "Cannot find package 'file'"],
-						);
-						`,
-						'index.cjs': `
-						const { expectErrors } = require('expect-errors');
-						expectErrors(
-							[() => require('prefix/file'), "Cannot find module"],
-							[() => require('paths-exact-match'), "Cannot find module"],
-							[() => require('file'), "Cannot find module"],
-						);
-						`,
-					},
-				});
-				onFinish(async () => await fixture.rm());
-
-				describe('detected tsconfig', () => {
-					test('invalid tsconfig should be ignored', async () => {
-						await using fixture = await createFixture({
-							'package.json': createPackageJson(packageType ? { type: packageType } : {}),
-							'tsconfig.json': createTsconfig({
-								extends: 'doesnt-exist',
-							}),
-							'index.ts': '',
-						});
-
-						const pTsconfig = await tsx(['index.ts'], fixture.path);
-						expect(pTsconfig.failed).toBe(false);
+						'index.ts': '',
 					});
 
-					test('tsconfig', async () => {
-						const pTsconfig = await tsx(['index.tsx'], fixture.path);
-						onTestFail((error) => {
-							console.error(error);
-							console.log(pTsconfig);
-						});
-						expect(pTsconfig.failed).toBe(false);
-						expect(pTsconfig.stderr).toBe('');
-						expect(pTsconfig.stdout).toBe('');
-					});
+					const pTsconfig = await tsx(['index.ts'], fixture.path);
+					expect(pTsconfig.failed).toBe(false);
 				});
 
-				describe('custom tsconfig', () => {
-					test('invalid tsconfig should error', async () => {
-						await using fixture = await createFixture({
-							'package.json': createPackageJson(packageType ? { type: packageType } : {}),
-							'tsconfig.json': createTsconfig({
-								extends: 'doesnt-exist',
-							}),
-							'index.ts': '',
-						});
-
-						const pTsconfig = await tsx(['--tsconfig', 'tsconfig.json', 'index.ts'], fixture.path);
-						expect(pTsconfig.failed).toBe(true);
+				test('tsconfig', async () => {
+					const pTsconfig = await tsx(['index.tsx'], fixture.path);
+					onTestFail((error) => {
+						console.error(error);
+						console.log(pTsconfig);
 					});
-
-					test('custom tsconfig', async () => {
-						const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'jsx.jsx'], fixture.path);
-						onTestFail((error) => {
-							console.error(error);
-							console.log(pTsconfigAllowJs);
-						});
-						expect(pTsconfigAllowJs.failed).toBe(true);
-						expect(pTsconfigAllowJs.stderr).toMatch('Error: No error thrown');
-						expect(pTsconfigAllowJs.stdout).toBe('');
-					});
-
-					test('allowJs in tsconfig.json', async () => {
-						const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'import-typescript-parent.js'], fixture.path);
-						onTestFail((error) => {
-							console.error(error);
-							console.log(pTsconfigAllowJs);
-						});
-						expect(pTsconfigAllowJs.failed).toBe(false);
-						expect(pTsconfigAllowJs.stderr).toBe('');
-						expect(pTsconfigAllowJs.stdout).toBe('imported');
-					});
+					expect(pTsconfig.failed).toBe(false);
+					expect(pTsconfig.stderr).toBe('');
+					expect(pTsconfig.stdout).toBe('');
 				});
 			});
-		}
-	});
-};
+
+			describe('custom tsconfig', () => {
+				test('invalid tsconfig should error', async () => {
+					await using fixture = await createFixture({
+						'package.json': createPackageJson(packageType ? { type: packageType } : {}),
+						'tsconfig.json': createTsconfig({
+							extends: 'doesnt-exist',
+						}),
+						'index.ts': '',
+					});
+
+					const pTsconfig = await tsx(['--tsconfig', 'tsconfig.json', 'index.ts'], fixture.path);
+					expect(pTsconfig.failed).toBe(true);
+				});
+
+				test('custom tsconfig', async () => {
+					const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'jsx.jsx'], fixture.path);
+					onTestFail((error) => {
+						console.error(error);
+						console.log(pTsconfigAllowJs);
+					});
+					expect(pTsconfigAllowJs.failed).toBe(true);
+					expect(pTsconfigAllowJs.stderr).toMatch('Error: No error thrown');
+					expect(pTsconfigAllowJs.stdout).toBe('');
+				});
+
+				test('allowJs in tsconfig.json', async () => {
+					const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'import-typescript-parent.js'], fixture.path);
+					onTestFail((error) => {
+						console.error(error);
+						console.log(pTsconfigAllowJs);
+					});
+					expect(pTsconfigAllowJs.failed).toBe(false);
+					expect(pTsconfigAllowJs.stderr).toBe('');
+					expect(pTsconfigAllowJs.stdout).toBe('imported');
+				});
+			});
+		});
+	}
+});

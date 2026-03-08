@@ -2,7 +2,7 @@ import { describe, test } from 'manten';
 import { tsx } from '../utils/tsx';
 import { processInteract } from '../utils/process-interact.js';
 
-describe('REPL', () => {
+export const repl = () => describe('REPL', () => {
 	test('handles ts', async () => {
 		const tsxProcess = tsx({
 			args: ['--interactive'],

@@ -37,7 +37,7 @@ const fixtures = {
 	`,
 };
 
-describe('transform', () => {
+export const transformSpec = () => describe('transform', () => {
 	describe('sync', () => {
 		test('transforms ESM to CJS', () => {
 			const transformed = transformSync(
