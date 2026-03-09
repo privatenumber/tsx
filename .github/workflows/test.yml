@@ -8,6 +8,7 @@ jobs:
     name: Test
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
     timeout-minutes: 10
@@ -28,14 +29,15 @@ jobs:
         uses: pnpm/action-setup@v4
 
       - name: Get pnpm store directory
+        id: pnpm-store
         shell: bash
-        run: echo "PNPM_STORE=$(pnpm store path --silent)" >> $GITHUB_ENV
+        run: echo "path=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
       - name: Restore pnpm cache
         id: pnpm-cache
         uses: actions/cache@v3
         with:
-          path: ${{ env.PNPM_STORE }}
+          path: ${{ steps.pnpm-store.outputs.path }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: ${{ runner.os }}-pnpm-
 
@@ -46,17 +48,18 @@ jobs:
         if: steps.pnpm-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v3
         with:
-          path: ${{ env.PNPM_STORE }}
+          path: ${{ steps.pnpm-store.outputs.path }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - name: Get Node.js cache directory
+        id: node-cache
         shell: bash
-        run: echo "NVE_CACHE=$(node -p 'require("cachedir")("nve")')" >> $GITHUB_ENV
+        run: echo "path=$(node -p 'require("cachedir")("nve")')" >> $GITHUB_OUTPUT
 
       - name: Cache Node.js versions
         uses: actions/cache@v3
         with:
-          path: ${{ env.NVE_CACHE }}
+          path: ${{ steps.node-cache.outputs.path }}
           key: ${{ runner.os }}-nodejs-${{ hashFiles('.nvmrc') }}-${{ hashFiles('tests/utils/node-versions.ts') }}
           restore-keys: ${{ runner.os }}-nodejs-
 

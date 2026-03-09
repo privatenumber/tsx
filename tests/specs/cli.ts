@@ -5,12 +5,45 @@ import {
 import { createFixture } from 'fs-fixture';
 import packageJson from '../../package.json';
 import { ptyShell, isWindows } from '../utils/pty-shell/index.js';
-import { expectMatchInOrder } from '../utils/expect-match-in-order.js';
 import { tsxPath, type NodeApis } from '../utils/tsx.js';
-import { isProcessAlive } from '../utils/is-process-alive.js';
+
+type Searchable = string | RegExp;
+
+const expectMatchInOrder = (
+	subject: string,
+	expectedOrder: Searchable[],
+) => {
+	let remaining = subject;
+	for (let i = 0; i < expectedOrder.length; i += 1) {
+		const previousElement = i > 0 ? expectedOrder[i - 1] : undefined;
+		const currentElement = expectedOrder[i];
+
+		if (typeof currentElement === 'string') {
+			const index = remaining.indexOf(currentElement);
+			if (index === -1) {
+				throw new Error(`Expected ${JSON.stringify(currentElement)} ${previousElement ? `to be after ${JSON.stringify(String(previousElement))}` : ''}`);
+			}
+			remaining = remaining.slice(index + currentElement.length);
+		} else {
+			const match = remaining.match(currentElement);
+			if (!match) {
+				throw new Error(`Expected ${JSON.stringify(currentElement.toString())} ${previousElement ? `to be after ${JSON.stringify(String(previousElement))}` : ''}`);
+			}
+			remaining = remaining.slice(match.index! + match[0].length);
+		}
+	}
+};
+
+const isProcessAlive = (pid: number) => {
+	try {
+		process.kill(pid, 0);
+		return true;
+	} catch {}
+	return false;
+};
 
 export const cli = (node: NodeApis) => describe('CLI', () => {
-const { tsx } = node;
+	const { tsx } = node;
 	describe('argv', async () => {
 		const fixture = await createFixture({
 			// Unnecessary TS to test syntax
@@ -185,7 +218,7 @@ const { tsx } = node;
 		});
 		onFinish(async () => await fixture.rm());
 
-		test('Propagates signal', async () => {
+		await test('Propagates signal', async () => {
 			const exitCode = Math.floor(Math.random() * 100);
 			const tsxProcess = await tsx([
 				fixture.getPath('propagates-signal.js'),
@@ -194,9 +227,9 @@ const { tsx } = node;
 			expect(tsxProcess.exitCode).toBe(exitCode);
 		}, 10_000);
 
-		describe('Relays kill signal', () => {
+		await describe('Relays kill signal', async () => {
 			for (const signal of signals) {
-				test(signal, async () => {
+				await test(signal, async () => {
 					const tsxProcess = tsx([
 						fixture.getPath('catch-signals.js'),
 					]);
@@ -243,7 +276,7 @@ const { tsx } = node;
 			}
 		});
 
-		test('Kills child when unresponsive (infinite loop)', async () => {
+		await test('Kills child when unresponsive (infinite loop)', async () => {
 			const tsxProcess = tsx([
 				fixture.getPath('infinite-loop.js'),
 			]);
@@ -275,7 +308,7 @@ const { tsx } = node;
 			expect(isProcessAlive(childPid!)).toBe(false);
 		}, 10_000);
 
-		test('Doesn\'t kill child when responsive (ignores signal)', async () => {
+		await test('Doesn\'t kill child when responsive (ignores signal)', async () => {
 			const tsxProcess = tsx([
 				fixture.getPath('ignores-signals.js'),
 			]);
@@ -310,7 +343,7 @@ const { tsx } = node;
 			retry: 3,
 		});
 
-		test('Relay signal handlers are properly hidden', async () => {
+		await test('Relay signal handlers are properly hidden', async () => {
 			const tsxProcess = tsx([
 				fixture.getPath('hidden-signals-handler.js'),
 			]);
@@ -321,10 +354,10 @@ const { tsx } = node;
 			expect(result.exitCode).toBe(0);
 		});
 
-		describe('Ctrl + C', () => {
+		await describe('Ctrl + C', async () => {
 			const CtrlC = '\u0003';
 
-			test('Exit code', async () => {
+			await test('Exit code', async () => {
 				const shell = ptyShell();
 
 				onTestFail(() => {
@@ -346,7 +379,7 @@ const { tsx } = node;
 				expect(await shell.close()).toMatch(/EXIT_CODE:\s+130/);
 			}, 10_000);
 
-			test('Catchable', async () => {
+			await test('Catchable', async () => {
 				const shell = ptyShell();
 
 				onTestFail(() => {
@@ -378,7 +411,7 @@ const { tsx } = node;
 				retry: 3,
 			});
 
-			test('Infinite loop', async () => {
+			await test('Infinite loop', async () => {
 				const shell = ptyShell();
 
 				onTestFail(() => {

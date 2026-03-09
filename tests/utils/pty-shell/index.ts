@@ -11,6 +11,18 @@ export const ptyShell = () => {
 		reject: false,
 	});
 
+	let closedShell: Promise<string> | undefined;
+
+	const close = () => {
+		closedShell ??= (async () => {
+			await subprocess.kill();
+			const result = await subprocess;
+			return stripAnsi(result.output);
+		})();
+
+		return closedShell;
+	};
+
 	return {
 		waitForPrompt: () => waitFor(subprocess, o => o.endsWith(commandCaret)),
 		waitForLine: (pattern: RegExp) => waitFor(subprocess, o => (
@@ -18,11 +30,10 @@ export const ptyShell = () => {
 		)),
 		type: (text: string) => subprocess.stdin.write(`${text}\r`),
 		press: (key: string) => subprocess.stdin.write(key),
-		close: async () => {
-			await subprocess.kill();
-			const result = await subprocess;
-			return stripAnsi(result.output);
+		close,
+		getOutput: () => String(subprocess.output),
+		[Symbol.asyncDispose]: async () => {
+			await close();
 		},
-		getOutput: () => subprocess.output,
 	};
 };

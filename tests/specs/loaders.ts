@@ -27,11 +27,7 @@ export const loaders = (node: NodeApis) => describe('Loaders', () => {
 			const tsxResult = await node.hook(['./ts.ts'], fixture.path);
 
 			expect(tsxResult.stdout).toBe('true');
-			if (node.supports.moduleRegister) {
-				expect(tsxResult.stderr).toBe('');
-			} else {
-				expect(tsxResult.stderr).toMatch('ExperimentalWarning: Custom ESM Loaders is an experimental feature');
-			}
+			expect(tsxResult.stderr).toBe('');
 			expect(tsxResult.exitCode).toBe(0);
 		});
 
@@ -42,11 +38,7 @@ export const loaders = (node: NodeApis) => describe('Loaders', () => {
 			expect(imported).toBe(true);
 			expect(importMetaUrl.endsWith('/mts.mts')).toBeTruthy();
 
-			if (node.supports.moduleRegister) {
-				expect(tsxResult.stderr).toBe('');
-			} else {
-				expect(tsxResult.stderr).toMatch('ExperimentalWarning: Custom ESM Loaders is an experimental feature');
-			}
+			expect(tsxResult.stderr).toBe('');
 			expect(tsxResult.exitCode).toBe(0);
 		});
 	});

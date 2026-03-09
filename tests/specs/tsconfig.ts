@@ -6,10 +6,11 @@ import type { NodeApis } from '../utils/tsx.js';
 import {
 	expectErrors, jsxCheck, createPackageJson, createTsconfig,
 } from '../fixtures.js';
-import { packageTypes } from '../utils/package-types.js';
 
 export const tsconfig = ({ tsx }: NodeApis) => describe('tsconfig', () => {
-	for (const packageType of packageTypes) {
+	// 'commonjs' excluded: tsconfig behavior is identical for commonjs and undefined
+	// (both resolve as CJS). Only 'module' changes resolution semantics.
+	for (const packageType of [undefined, 'module'] as const) {
 		describe(`package type: ${packageType ?? 'undefined'}`, async () => {
 			const fixture = await createFixture({
 				...expectErrors,

@@ -29,7 +29,7 @@ export const repl = () => describe('REPL', () => {
 		);
 
 		tsxProcess.kill();
-	}, 40_000);
+	}, 10_000);
 
 	test('doesn\'t error on require', async () => {
 		const tsxProcess = tsx({
@@ -51,7 +51,7 @@ export const repl = () => describe('REPL', () => {
 		);
 
 		tsxProcess.kill();
-	}, 40_000);
+	}, 10_000);
 
 	test('supports incomplete expression in segments', async () => {
 		const tsxProcess = tsx({
@@ -85,7 +85,7 @@ export const repl = () => describe('REPL', () => {
 		);
 
 		tsxProcess.kill();
-	}, 40_000);
+	}, 10_000);
 
 	test('errors on import statement', async () => {
 		const tsxProcess = tsx({
@@ -107,5 +107,5 @@ export const repl = () => describe('REPL', () => {
 		);
 
 		tsxProcess.kill();
-	}, 40_000);
+	}, 10_000);
 });

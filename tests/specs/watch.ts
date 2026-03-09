@@ -7,6 +7,26 @@ import type { NodeApis } from '../utils/tsx.js';
 import { processInteract } from '../utils/process-interact.js';
 import { createPackageJson } from '../fixtures.js';
 
+const registerWatchCleanup = (
+	tsxProcess: import('node:child_process').ChildProcess & PromiseLike<unknown>,
+) => {
+	onTestFail(async () => {
+		if (tsxProcess.exitCode === null) {
+			console.log('Force killing hanging process\n\n');
+			tsxProcess.kill('SIGKILL');
+			console.log({
+				tsxProcess: await tsxProcess,
+			});
+		}
+	});
+
+	onTestFinish(() => {
+		if (tsxProcess.exitCode === null) {
+			tsxProcess.kill('SIGKILL');
+		}
+	});
+};
+
 export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 	const fixture = await createFixture({
 		// Unnecessary TS to test syntax
@@ -14,68 +34,58 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 	});
 	onFinish(async () => await fixture.rm());
 
-	test('require file path', async () => {
+	await test('require file path', async () => {
 		const tsxProcess = await tsx(['watch']);
 		expect(tsxProcess.exitCode).toBe(1);
 		expect(tsxProcess.stderr).toMatch('Error: Missing required parameter "script path"');
 	});
 
-	for (const packageType of ['module', 'commonjs'] as const) {
-		test(`watch files for changes in ${packageType} package`, async () => {
-			const fixtureWatch = await createFixture({
-				'package.json': createPackageJson({
-					type: packageType,
-				}),
-				'index.js': `
+	// Watch mode's file-change detection is module-system-agnostic.
+	await test('watch files for changes', async () => {
+		const fixtureWatch = await createFixture({
+			'package.json': createPackageJson({
+				type: 'module',
+			}),
+			'index.js': `
 				import { value } from './value.js';
 				console.log(value);
 				`,
-				'value.js': 'export const value = \'hello world\';',
-			});
-			onTestFinish(async () => await fixtureWatch.rm());
+			'value.js': 'export const value = \'hello world\';',
+		});
+		onTestFinish(async () => fixtureWatch.rm());
 
-			const tsxProcess = tsx(
-				[
-					'watch',
-					'index.js',
-				],
-				fixtureWatch.path,
-			);
+		const tsxProcess = tsx(
+			[
+				'watch',
+				'index.js',
+			],
+			fixtureWatch.path,
+		);
+		registerWatchCleanup(tsxProcess);
 
-			onTestFail(async () => {
-				if (tsxProcess.exitCode === null) {
-					console.log('Force killing hanging process\n\n');
-					tsxProcess.kill('SIGKILL');
-					console.log({
-						tsxProcess: await tsxProcess,
-					});
-				}
-			});
+		await processInteract(
+			tsxProcess.stdout!,
+			[
+				async (data) => {
+					if (data.includes('hello world\n')) {
+						await setTimeout(1000);
+						fixtureWatch.writeFile('value.js', 'export const value = \'goodbye world\';');
+						return true;
+					}
+				},
+				data => data.includes('[tsx] change in ./value.js Rerunning...\n'),
+				data => data.includes('goodbye world\n'),
+			],
+			9000,
+		);
 
-			await processInteract(
-				tsxProcess.stdout!,
-				[
-					async (data) => {
-						if (data.includes('hello world\n')) {
-							await setTimeout(1000);
-							fixtureWatch.writeFile('value.js', 'export const value = \'goodbye world\';');
-							return true;
-						}
-					},
-					data => data.includes('[tsx] change in ./value.js Rerunning...\n'),
-					data => data.includes('goodbye world\n'),
-				],
-				9000,
-			);
+		tsxProcess.kill();
 
-			tsxProcess.kill();
+		const { all } = await tsxProcess;
+		expect(all!.startsWith('hello world\n')).toBe(true);
+	}, 10_000);
 
-			const { all } = await tsxProcess;
-			expect(all!.startsWith('hello world\n')).toBe(true);
-		}, 10_000);
-	}
-
-	test('suppresses warnings & clear screen', async () => {
+	await test('suppresses warnings & clear screen', async () => {
 		const tsxProcess = tsx(
 			[
 				'watch',
@@ -83,6 +93,7 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 			],
 			fixture.path,
 		);
+		registerWatchCleanup(tsxProcess);
 
 		await processInteract(
 			tsxProcess.stdout!,
@@ -106,7 +117,7 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 		expect(all!.startsWith('["')).toBeTruthy();
 	}, 10_000);
 
-	test('passes flags', async () => {
+	await test('passes flags', async () => {
 		const tsxProcess = tsx(
 			[
 				'watch',
@@ -115,6 +126,7 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 			],
 			fixture.path,
 		);
+		registerWatchCleanup(tsxProcess);
 
 		await processInteract(
 			tsxProcess.stdout!,
@@ -128,7 +140,7 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 		expect(all).toMatch('"--some-flag"');
 	}, 10_000);
 
-	test('wait for exit', async () => {
+	await test('wait for exit', async () => {
 		const fixtureExit = await createFixture({
 			'index.js': `
 			console.log('start');
@@ -150,16 +162,7 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 			],
 			fixtureExit.path,
 		);
-
-		onTestFail(async () => {
-			if (tsxProcess.exitCode === null) {
-				console.log('Force killing hanging process\n\n');
-				tsxProcess.kill('SIGKILL');
-				console.log({
-					tsxProcess: await tsxProcess,
-				});
-			}
-		});
+		registerWatchCleanup(tsxProcess);
 
 		onTestFinish(async () => {
 			await fixtureExit.rm();
@@ -185,7 +188,7 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 		expect(all).toMatch(/start[\s\S]+end/);
 	}, 10_000);
 
-	describe('help', () => {
+	await describe('help', () => {
 		test('shows help', async () => {
 			const tsxProcess = await tsx(['watch', '--help']);
 
@@ -203,6 +206,7 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 				],
 				fixture.path,
 			);
+			registerWatchCleanup(tsxProcess);
 
 			await processInteract(
 				tsxProcess.stdout!,
@@ -221,7 +225,7 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 		}, 10_000);
 	});
 
-	describe('include', () => {
+	await describe('include', () => {
 		test('file path & glob', async () => {
 			const entryFile = 'index.js';
 			const fileA = 'file-a';
@@ -248,6 +252,7 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 				],
 				fixture.path,
 			);
+			registerWatchCleanup(tsxProcess);
 
 			await processInteract(
 				tsxProcess.stdout!,
@@ -280,7 +285,7 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 		}, 10_000);
 	});
 
-	describe('exclude (ignore)', () => {
+	await describe('exclude (ignore)', () => {
 		test('file path & glob', async () => {
 			const entryFile = 'index.js';
 			const fileA = 'file-a.js';
@@ -309,17 +314,7 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 				],
 				fixtureGlob.path,
 			);
-
-			onTestFail(async () => {
-				// If timed out, force kill process
-				if (tsxProcess.exitCode === null) {
-					console.log('Force killing hanging process\n\n');
-					tsxProcess.kill();
-					console.log({
-						tsxProcess: await tsxProcess,
-					});
-				}
-			});
+			registerWatchCleanup(tsxProcess);
 
 			const negativeSignal = 'fail';
 
@@ -355,4 +350,95 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 			await tsxProcess;
 		}, 10_000);
 	});
+
+	await test('strips internal watch flags from child argv', async () => {
+		await using fixtureArgv = await createFixture({
+			'log-argv.ts': 'console.log(JSON.stringify(process.argv) as string)',
+			'include.ts': '',
+			'ignored.ts': '',
+		});
+
+		const tsxProcess = tsx(
+			[
+				'watch',
+				'--clear-screen=false',
+				'--include=include.ts',
+				'--exclude=ignored.ts',
+				'log-argv.ts',
+				'--user-flag',
+			],
+			fixtureArgv.path,
+		);
+		registerWatchCleanup(tsxProcess);
+
+		await processInteract(
+			tsxProcess.stdout!,
+			[data => data.startsWith('["')],
+			5000,
+		);
+
+		tsxProcess.kill();
+
+		const { all } = await tsxProcess;
+		onTestFail(() => {
+			console.log(all);
+		});
+
+		const [argvLog] = all!.split('\n');
+		const argv = JSON.parse(argvLog) as string[];
+
+		expect(argv).toContain('--user-flag');
+		expect(argv).not.toContain('--clear-screen=false');
+		expect(argv).not.toContain('--include=include.ts');
+		expect(argv).not.toContain('--exclude=ignored.ts');
+	}, 10_000);
+
+	await test('recovers after initial runtime failure', async () => {
+		await using fixtureRecovery = await createFixture({
+			'index.ts': 'throw new Error("fails")',
+		});
+
+		const tsxProcess = tsx(
+			[
+				'watch',
+				'--clear-screen=false',
+				'index.ts',
+			],
+			fixtureRecovery.path,
+		);
+		registerWatchCleanup(tsxProcess);
+
+		let output = '';
+		await processInteract(
+			tsxProcess.all!,
+			[
+				async (data) => {
+					output += data;
+					if (data.includes('Error: fails')) {
+						await setTimeout(100);
+						fixtureRecovery.writeFile('index.ts', 'console.log("recovered")');
+						return true;
+					}
+				},
+				(data) => {
+					output += data;
+					return data.includes('[tsx] change in ./index.ts Rerunning...\n');
+				},
+				(data) => {
+					output += data;
+					return data.includes('recovered\n');
+				},
+			],
+			10_000,
+		);
+
+		tsxProcess.kill();
+		await tsxProcess;
+		onTestFail(() => {
+			console.log(output);
+		});
+
+		expect(output).toMatch('Error: fails');
+		expect(output).toMatch('recovered');
+	}, 15_000);
 });

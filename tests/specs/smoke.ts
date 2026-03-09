@@ -1,4 +1,5 @@
 import path from 'node:path';
+import fs from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import {
 	describe, test, onTestFail, expect,
@@ -6,16 +7,40 @@ import {
 import { createFixture } from 'fs-fixture';
 import outdent from 'outdent';
 import type { NodeApis } from '../utils/tsx.js';
-import { hasCoverageSourcesContent } from '../utils/coverage-sources-content.js';
-import { isWindows } from '../utils/is-windows.js';
 import { files, createPackageJson } from '../fixtures.js';
-import { packageTypes } from '../utils/package-types.js';
 
 const wasmPath = path.resolve('tests/fixtures/test.wasm');
 const wasmPathUrl = pathToFileURL(wasmPath).toString();
 
+type SourceMapCache = Record<string, {
+	data: {
+		sourcesContent: string[];
+	} | null;
+}>;
+
+const hasCoverageSourcesContent = async (
+	coverageDirectory: string,
+) => {
+	const fileNames = await fs.readdir(coverageDirectory);
+	const coverageData = await Promise.all(
+		fileNames.map(
+			async file => JSON.parse(
+				await fs.readFile(path.join(coverageDirectory, file), 'utf8'),
+			),
+		),
+	);
+	return coverageData.some(coverage => (
+		coverage['source-map-cache']
+		&& (
+			Object.values(coverage['source-map-cache'] as SourceMapCache)
+				.some(value => typeof value.data?.sourcesContent?.[0] === 'string')
+		)
+	));
+};
+
 export const smoke = ({ tsx, supports, version }: NodeApis) => describe('Smoke', () => {
-	for (const packageType of packageTypes) {
+	// 'commonjs' excluded — tested by commonjs-mode-contracts.ts instead
+	for (const packageType of [undefined, 'module'] as const) {
 		const isCommonJs = packageType !== 'module';
 
 		describe(`package type: ${packageType ?? 'undefined'}`, () => {
@@ -218,7 +243,7 @@ export const smoke = ({ tsx, supports, version }: NodeApis) => describe('Smoke',
 
 					// absolute path
 					${
-						isWindows
+						process.platform === 'win32'
 							? ''
 							: `import ${JSON.stringify(path.join(fixturePath, 'js/index.js'))};`
 					}
