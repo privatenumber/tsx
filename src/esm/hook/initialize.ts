@@ -1,14 +1,17 @@
 import type { InitializeHook } from 'node:module';
+import type { TsconfigResult } from 'get-tsconfig';
 import type { InitializationOptions } from '../api/register.js';
 import type { Message } from '../types.js';
 import { loadTsconfig } from '../../utils/tsconfig.js';
 
 type Data = InitializationOptions & {
 	active: boolean;
+	parsedTsconfig: TsconfigResult | undefined;
 };
 
 export const data: Data = {
 	active: true,
+	parsedTsconfig: undefined,
 };
 
 export const initialize: InitializeHook = async (
@@ -21,7 +24,7 @@ export const initialize: InitializeHook = async (
 	data.namespace = options.namespace;
 
 	if (options.tsconfig !== false) {
-		loadTsconfig(options.tsconfig ?? process.env.TSX_TSCONFIG_PATH);
+		data.parsedTsconfig = loadTsconfig(options.tsconfig ?? process.env.TSX_TSCONFIG_PATH);
 	}
 
 	if (options.port) {
@@ -41,6 +44,6 @@ type GlobalPreloadHook = () => string;
 
 // Replaced by `initialize` in Node v20.6.0, v18.19.0
 export const globalPreload: GlobalPreloadHook = () => {
-	loadTsconfig(process.env.TSX_TSCONFIG_PATH);
+	data.parsedTsconfig = loadTsconfig(process.env.TSX_TSCONFIG_PATH);
 	return 'process.setSourceMapsEnabled(true);';
 };

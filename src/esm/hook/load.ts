@@ -1,15 +1,14 @@
 import { fileURLToPath } from 'node:url';
-import path from 'node:path';
 import type { LoadHook } from 'node:module';
 import { readFile } from 'node:fs/promises';
 import type { TransformOptions } from 'esbuild';
+import { isFileIncluded } from 'get-tsconfig';
 import { transform, transformSync } from '../../utils/transform/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';
 import { inlineSourceMap } from '../../source-map.js';
 import { isFeatureSupported, importAttributes, esmLoadReadFile } from '../../utils/node-features.js';
 import { parent } from '../../utils/ipc/client.js';
 import type { Message } from '../types.js';
-import { fileMatcher } from '../../utils/tsconfig.js';
 import { isJsonPattern, tsExtensionsPattern, fileUrlPrefix } from '../../utils/path-utils.js';
 import { isESM } from '../../utils/es-module-lexer.js';
 import { logEsm as log, debugEnabled } from '../../utils/debug.js';
@@ -106,7 +105,11 @@ let load: LoadHook = async (
 				code,
 				filePath,
 				{
-					tsconfigRaw: fileMatcher?.(filePath) as TransformOptions['tsconfigRaw'],
+					tsconfigRaw: (
+						data.parsedTsconfig && isFileIncluded(data.parsedTsconfig, filePath)
+							? data.parsedTsconfig.config as TransformOptions['tsconfigRaw']
+							: undefined
+					),
 				},
 			);
 
@@ -136,8 +139,8 @@ let load: LoadHook = async (
 			filePath,
 			{
 				tsconfigRaw: (
-					path.isAbsolute(filePath)
-						? fileMatcher?.(filePath) as TransformOptions['tsconfigRaw']
+					data.parsedTsconfig && isFileIncluded(data.parsedTsconfig, filePath)
+						? data.parsedTsconfig.config as TransformOptions['tsconfigRaw']
 						: undefined
 				),
 			},

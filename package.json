@@ -72,7 +72,7 @@
 	},
 	"dependencies": {
 		"esbuild": "~0.27.0",
-		"get-tsconfig": "^4.7.5"
+		"get-tsconfig": "5.0.0-beta.2"
 	},
 	"optionalDependencies": {
 		"fsevents": "~2.3.3"

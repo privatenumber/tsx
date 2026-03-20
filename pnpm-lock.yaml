@@ -14,8 +14,8 @@ importers:
         specifier: ~0.27.0
         version: 0.27.0
       get-tsconfig:
-        specifier: ^4.7.5
-        version: 4.7.5
+        specifier: 5.0.0-beta.2
+        version: 5.0.0-beta.2
     devDependencies:
       '@ampproject/remapping':
         specifier: ^2.3.0
@@ -70,7 +70,7 @@ importers:
         version: 1.8.1(eslint-plugin-import@2.29.1(@typescript-eslint/parser@8.2.0(eslint@8.57.0)(typescript@5.5.2))(eslint@8.57.0))(typescript@5.5.2)
       magic-string:
         specifier: ^0.30.10
-        version: 0.30.10
+        version: 0.30.18
       manten:
         specifier: ^2.0.0
         version: 2.0.0
@@ -2131,6 +2131,7 @@ packages:
   eslint-plugin-markdown@5.1.0:
     resolution: {integrity: sha512-SJeyKko1K6GwI0AN6xeCDToXDkfKZfXcexA6B+O2Wr2btUS9GrC+YgwSyVli5DJnctUHjFXcQ2cqTaAmVoLi2A==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: Please use @eslint/markdown instead
     peerDependencies:
       eslint: '>=8'
 
@@ -2203,6 +2204,7 @@ packages:
   eslint@8.57.0:
     resolution: {integrity: sha512-dZ6+mexnaTIbSBZWgou51U6OmzIhYM2VcNdtiTtI7qPNZm35Akpr0f6vtw3w1Kmn5PYo+tZVfh13WrhpS6oLqQ==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   espree@10.1.0:
@@ -2432,11 +2434,12 @@ packages:
     resolution: {integrity: sha512-w9UMqWwJxHNOvoNzSJ2oPF5wvYcvP7jUvYzhp67yEhTi17ZDBBC1z9pTdGuzjD+EFIqLSYRweZjqfiPzQ06Ebg==}
     engines: {node: '>= 0.4'}
 
-  get-tsconfig@4.7.5:
-    resolution: {integrity: sha512-ZCuZCnlqNzjb4QprAzXKdpp/gh6KTxSJuw3IBsPnV/7fV4NxC9ckB+vPTt8w7fJA0TaSD7c55BR47JD6MEDyDw==}
-
   get-tsconfig@4.7.6:
     resolution: {integrity: sha512-ZAqrLlu18NbDdRaHq+AKXzAmqIUPswPWKUchfytdAjiRFnCe5ojG2bstg6mRiZabkKfCoL/e98pbBELIV/YCeA==}
+
+  get-tsconfig@5.0.0-beta.2:
+    resolution: {integrity: sha512-AuzbH5JFraduk5MrkK5Q4/c3pxYJEYfq9BoEkiVxPsgerS7ky9oF/5mzoIG3y8CB/xc91QtW0Lk7d0hHi6Q9lw==}
+    engines: {node: '>=20.20.0'}
 
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
@@ -2448,11 +2451,12 @@ packages:
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   global-cache-dir@6.0.0:
     resolution: {integrity: sha512-UOwXU6ulg3VQsSyKf0QAVcW4EFq3hFehFHV/ne76iQ9FAw4ZpXHXsmw8AwUueGI13y4apVML/Pb+njilLn/RCw==}
@@ -2608,6 +2612,7 @@ packages:
 
   inflight@1.0.6:
     resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
+    deprecated: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
@@ -3035,9 +3040,6 @@ packages:
   lru-cache@6.0.0:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
     engines: {node: '>=10'}
-
-  magic-string@0.30.10:
-    resolution: {integrity: sha512-iIRwTIf0QKV3UAnYK4PU8uiEc4SRh5jX0mwpIwETPpHdhVM4f53RSwS/vXvN1JhGX+Cs7B8qIq3d6AH49O5fAQ==}
 
   magic-string@0.30.18:
     resolution: {integrity: sha512-yi8swmWbO17qHhwIBNeeZxTceJMeBvWJaId6dyvTSOwTipqeHhMhOrz6513r1sOKnpvQ7zkhlG8tPrpilwTxHQ==}
@@ -3695,6 +3697,7 @@ packages:
 
   rimraf@3.0.2:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
+    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rollup@4.19.0:
@@ -4014,7 +4017,7 @@ packages:
   tar@7.4.3:
     resolution: {integrity: sha512-5S7Va8hKfV7W5U6g3aYxXmlPoZVAwUMy9AOKyF2fVuZa2UD3qZjg578OrLRt8PcNN1PleVaL/5/yYATNL0ICUw==}
     engines: {node: '>=18'}
-    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exhorbitant rates) by contacting i@izs.me
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   terminal-columns@1.4.1:
     resolution: {integrity: sha512-IKVL/itiMy947XWVv4IHV7a0KQXvKjj4ptbi7Ew9MPMcOLzkiQeyx3Gyvh62hKrfJ0RZc4M1nbhzjNM39Kyujw==}
@@ -4868,7 +4871,7 @@ snapshots:
   '@jridgewell/gen-mapping@0.3.3':
     dependencies:
       '@jridgewell/set-array': 1.2.1
-      '@jridgewell/sourcemap-codec': 1.4.15
+      '@jridgewell/sourcemap-codec': 1.5.5
       '@jridgewell/trace-mapping': 0.3.25
 
   '@jridgewell/gen-mapping@0.3.5':
@@ -4952,7 +4955,7 @@ snapshots:
       estree-walker: 2.0.2
       glob: 10.4.5
       is-reference: 1.2.1
-      magic-string: 0.30.10
+      magic-string: 0.30.18
     optionalDependencies:
       rollup: 4.19.0
 
@@ -4960,7 +4963,7 @@ snapshots:
     dependencies:
       '@rollup/pluginutils': 5.1.0(rollup@4.19.0)
       estree-walker: 2.0.2
-      magic-string: 0.30.10
+      magic-string: 0.30.18
     optionalDependencies:
       rollup: 4.19.0
 
@@ -4984,7 +4987,7 @@ snapshots:
   '@rollup/plugin-replace@5.0.7(rollup@4.19.0)':
     dependencies:
       '@rollup/pluginutils': 5.1.0(rollup@4.19.0)
-      magic-string: 0.30.10
+      magic-string: 0.30.18
     optionalDependencies:
       rollup: 4.19.0
 
@@ -6899,11 +6902,11 @@ snapshots:
       es-errors: 1.3.0
       get-intrinsic: 1.3.0
 
-  get-tsconfig@4.7.5:
+  get-tsconfig@4.7.6:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
-  get-tsconfig@4.7.6:
+  get-tsconfig@5.0.0-beta.2:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
@@ -7562,10 +7565,6 @@ snapshots:
     dependencies:
       yallist: 4.0.0
 
-  magic-string@0.30.10:
-    dependencies:
-      '@jridgewell/sourcemap-codec': 1.4.15
-
   magic-string@0.30.18:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -8017,7 +8016,7 @@ snapshots:
       '@rollup/plugin-replace': 5.0.7(rollup@4.19.0)
       '@rollup/pluginutils': 5.1.0(rollup@4.19.0)
       esbuild: 0.23.0
-      magic-string: 0.30.10
+      magic-string: 0.30.18
       rollup: 4.19.0
     optionalDependencies:
       typescript: 5.5.2

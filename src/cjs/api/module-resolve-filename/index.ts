@@ -1,12 +1,12 @@
 import Module from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { resolvePathAlias, type TsconfigResult } from 'get-tsconfig';
 import {
 	isFilePath,
 	fileUrlPrefix,
 	tsExtensionsPattern,
 	nodeModulesPath,
 } from '../../../utils/path-utils.js';
-import { tsconfigPathsMatcher } from '../../../utils/tsconfig.js';
 import type { ResolveFilename, SimpleResolve, LoaderState } from '../types.js';
 import { logCjs as log } from '../../../utils/debug.js';
 import { createImplicitResolver } from './resolve-implicit-extensions.js';
@@ -18,6 +18,7 @@ const resolveTsPaths = (
 	request: string,
 	parent: Module.Parent | undefined,
 	nextResolve: SimpleResolve,
+	tsconfig: TsconfigResult | undefined,
 ) => {
 	// Support file protocol
 	if (request.startsWith(fileUrlPrefix)) {
@@ -26,7 +27,7 @@ const resolveTsPaths = (
 
 	// Resolve TS path alias
 	if (
-		tsconfigPathsMatcher
+		tsconfig
 
 		// bare specifier
 		&& !isFilePath(request)
@@ -34,7 +35,7 @@ const resolveTsPaths = (
 		// Dependency paths should not be resolved using tsconfig.json
 		&& !parent?.filename?.includes(nodeModulesPath)
 	) {
-		const possiblePaths = tsconfigPathsMatcher(request);
+		const possiblePaths = resolvePathAlias(tsconfig, request);
 		for (const possiblePath of possiblePaths) {
 			try {
 				return nextResolve(possiblePath);
@@ -48,6 +49,7 @@ const resolveTsPaths = (
 export const createResolveFilename = (
 	state: LoaderState,
 	nextResolve: ResolveFilename,
+	tsconfig: TsconfigResult | undefined,
 	namespace?: string,
 ): ResolveFilename => (
 	request,
@@ -92,12 +94,13 @@ export const createResolveFilename = (
 			// If parent is a TS file
 			|| (parent?.filename && tsExtensionsPattern.test(parent.filename)),
 		),
+		tsconfig?.config.compilerOptions?.allowJs ?? false,
 	);
 
 	nextResolveSimple = createImplicitResolver(nextResolveSimple);
 
 	const resolved = appendQuery(
-		resolveTsPaths(cleanRequest, parent, nextResolveSimple),
+		resolveTsPaths(cleanRequest, parent, nextResolveSimple, tsconfig),
 		restOfArgs.length,
 	);
 

@@ -68,16 +68,16 @@ export const register: Register = (
 		enabled: true,
 	};
 
-	loadTsconfig(process.env.TSX_TSCONFIG_PATH);
+	const tsconfig = loadTsconfig(process.env.TSX_TSCONFIG_PATH);
 
 	// register
 	process.setSourceMapsEnabled(true);
 
 	const originalResolveFilename = Module._resolveFilename;
-	const resolveFilename = createResolveFilename(state, originalResolveFilename, options?.namespace);
+	const resolveFilename = createResolveFilename(state, originalResolveFilename, tsconfig, options?.namespace);
 	Module._resolveFilename = resolveFilename;
 
-	const unregisterExtensions = createExtensions(state, Module._extensions, options?.namespace);
+	const unregisterExtensions = createExtensions(state, Module._extensions, tsconfig, options?.namespace);
 
 	const unregister = () => {
 		if (sourceMapsEnabled === false) {

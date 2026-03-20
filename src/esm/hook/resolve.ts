@@ -5,10 +5,10 @@ import type {
 	ResolveHookContext,
 } from 'node:module';
 import type { PackageJson } from 'type-fest';
+import { resolvePathAlias } from 'get-tsconfig';
 import { readJsonFile } from '../../utils/read-json-file.js';
 import { mapTsExtensions } from '../../utils/map-ts-extensions.js';
 import type { NodeError } from '../../types.js';
-import { tsconfigPathsMatcher, allowJs } from '../../utils/tsconfig.js';
 import {
 	requestAcceptsQuery,
 	fileUrlPrefix,
@@ -113,6 +113,8 @@ const resolveBase: ResolveHook = async (
 	context,
 	nextResolve,
 ) => {
+	const allowJs = data.parsedTsconfig?.config.compilerOptions?.allowJs ?? false;
+
 	log(3, 'resolveBase', {
 		specifier,
 		context,
@@ -248,17 +250,17 @@ const resolveTsPaths: ResolveHook = async (
 		context,
 
 		requestAcceptsQuery: requestAcceptsQuery(specifier),
-		tsconfigPathsMatcher,
+		tsconfig: data.parsedTsconfig,
 		fromNodeModules: context.parentURL?.includes('/node_modules/'),
 	});
 	if (
 		// Bare specifier
 		!requestAcceptsQuery(specifier)
 		// TS path alias
-		&& tsconfigPathsMatcher
+		&& data.parsedTsconfig
 		&& !context.parentURL?.includes('/node_modules/')
 	) {
-		const possiblePaths = tsconfigPathsMatcher(specifier);
+		const possiblePaths = resolvePathAlias(data.parsedTsconfig, specifier);
 		log(3, 'resolveTsPaths', {
 			possiblePaths,
 		});

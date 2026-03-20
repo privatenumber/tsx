@@ -4,7 +4,6 @@ import {
 	isFilePath,
 	isDirectoryPattern,
 } from '../../../utils/path-utils.js';
-import { allowJs } from '../../../utils/tsconfig.js';
 import type { SimpleResolve } from '../types.js';
 import { logCjs as log } from '../../../utils/debug.js';
 
@@ -15,6 +14,7 @@ const resolveTsFilename = (
 	resolve: SimpleResolve,
 	request: string,
 	isTsParent: boolean,
+	allowJs: boolean,
 ) => {
 	log(3, 'resolveTsFilename', {
 		request,
@@ -52,6 +52,7 @@ const resolveTsFilename = (
 export const createTsExtensionResolver = (
 	nextResolve: SimpleResolve,
 	isTsParent: boolean,
+	allowJs: boolean,
 ): SimpleResolve => (
 	request,
 ) => {
@@ -63,7 +64,7 @@ export const createTsExtensionResolver = (
 
 	// It should only try to resolve TS extensions first if it's a local file (non dependency)
 	if (isFilePath(request)) {
-		const resolvedTsFilename = resolveTsFilename(nextResolve, request, isTsParent);
+		const resolvedTsFilename = resolveTsFilename(nextResolve, request, isTsParent, allowJs);
 		if (resolvedTsFilename) {
 			return resolvedTsFilename;
 		}
@@ -80,7 +81,7 @@ export const createTsExtensionResolver = (
 				const isExportsPath = nodeError.message.match(/^Cannot find module '([^']+)'$/);
 				if (isExportsPath) {
 					const exportsPath = isExportsPath[1];
-					const tsFilename = resolveTsFilename(nextResolve, exportsPath, isTsParent);
+					const tsFilename = resolveTsFilename(nextResolve, exportsPath, isTsParent, allowJs);
 					if (tsFilename) {
 						return tsFilename;
 					}
@@ -89,14 +90,14 @@ export const createTsExtensionResolver = (
 				const isMainPath = nodeError.message.match(/^Cannot find module '([^']+)'. Please verify that the package.json has a valid "main" entry$/);
 				if (isMainPath) {
 					const mainPath = isMainPath[1];
-					const tsFilename = resolveTsFilename(nextResolve, mainPath, isTsParent);
+					const tsFilename = resolveTsFilename(nextResolve, mainPath, isTsParent, allowJs);
 					if (tsFilename) {
 						return tsFilename;
 					}
 				}
 			}
 
-			const resolvedTsFilename = resolveTsFilename(nextResolve, request, isTsParent);
+			const resolvedTsFilename = resolveTsFilename(nextResolve, request, isTsParent, allowJs);
 			if (resolvedTsFilename) {
 				return resolvedTsFilename;
 			}
