@@ -1,4 +1,5 @@
 import { pathToFileURL, fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
 import {
 	transform as esbuildTransform,
 	transformSync as esbuildTransformSync,
@@ -61,6 +62,8 @@ export const transformSync = (
 		)
 	) {
 		define['import.meta.url'] = JSON.stringify(url);
+		define['import.meta.dirname'] = JSON.stringify(dirname(filePath));
+		define['import.meta.filename'] = JSON.stringify(filePath);
 	}
 
 	const esbuildOptions = {
