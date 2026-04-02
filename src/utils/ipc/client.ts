@@ -48,8 +48,10 @@ connectingToServer.then(
 		parent.send = send;
 		
 		// process the queue
-		queue.forEach(x => send(x));
-		queue.length = 0;
+        if (!!send) {
+		  queue.forEach(x => send(x));
+		  queue.length = 0;
+		}
 	},
 	() => {},
 );
