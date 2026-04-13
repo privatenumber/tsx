@@ -74,6 +74,55 @@ export default testSuite(async ({ describe }, { tsx }: NodeApis) => {
 			}, 10_000);
 		}
 
+		test('tracks dependencies loaded before IPC connects', async ({ onTestFinish, onTestFail }) => {
+			const fixtureWatch = await createFixture({
+				'package.json': createPackageJson({ type: 'commonjs' }),
+				'index.js': `
+				import { value } from './value.js';
+				console.log(value);
+				`,
+				'value.js': 'export const value = \'hello world\';',
+			});
+			onTestFinish(async () => await fixtureWatch.rm());
+
+			const tsxProcess = tsx(
+				[
+					'watch',
+					'--clear-screen=false',
+					'index.js',
+				],
+				fixtureWatch.path,
+			);
+
+			onTestFail(async () => {
+				if (tsxProcess.exitCode === null) {
+					console.log('Force killing hanging process\n\n');
+					tsxProcess.kill('SIGKILL');
+					console.log({ tsxProcess: await tsxProcess });
+				}
+			});
+
+			// No artificial delay: verifies that dependencies reported via IPC before
+			// the socket connection is established are still queued and delivered
+			await processInteract(
+				tsxProcess.stdout!,
+				[
+					(data) => {
+						if (data.includes('hello world\n')) {
+							fixtureWatch.writeFile('value.js', 'export const value = \'goodbye world\';');
+							return true;
+						}
+					},
+					data => data.includes('[tsx] change in ./value.js Rerunning...\n'),
+					data => data.includes('goodbye world\n'),
+				],
+				9000,
+			);
+
+			tsxProcess.kill();
+			await tsxProcess;
+		}, 10_000);
+
 		test('suppresses warnings & clear screen', async () => {
 			const tsxProcess = tsx(
 				[
