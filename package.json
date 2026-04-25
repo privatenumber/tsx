@@ -55,7 +55,7 @@
 		"./repl": "./dist/repl.mjs"
 	},
 	"packageManager": "pnpm@10.9.0",
-	"homepage": "https://tsx.is",
+	"homepage": "https://tsx.hirok.io",
 	"scripts": {
 		"build": "pkgroll --minify",
 		"lint": "lintroll --node --cache --ignore-pattern 'docs/*.md' .",
