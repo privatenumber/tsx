@@ -360,6 +360,7 @@ let resolve: ResolveHook = async (
 	if (
 		requestNamespace
 		&& !resolved.url.includes(namespaceQuery)
+		&& !resolved.url.startsWith('data:')
 	) {
 		resolved.url += (resolved.url.includes('?') ? '&' : '?') + namespaceQuery + requestNamespace;
 	}
