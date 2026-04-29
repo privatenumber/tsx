@@ -71,7 +71,7 @@
 		"node": ">=18.0.0"
 	},
 	"dependencies": {
-		"esbuild": "~0.27.0"
+		"esbuild": "~0.28.0"
 	},
 	"optionalDependencies": {
 		"fsevents": "~2.3.3"
