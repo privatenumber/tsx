@@ -510,7 +510,15 @@ export const api = (node: NodeApis) => describe('API', () => {
 						nodePath: node.path,
 						nodeOptions: [],
 					});
-					expect(stdout).toMatch(/^lexer-[a-zA-Z0-9]+\.mjs\nfile\.ts\nfoo\.ts\njson\.json\npromises\nbar\.ts\npkg\.js\nnode:process$/);
+					// Node 25+ reorders the loader-thread callbacks: the es-module-lexer chunk
+					// is loaded before our hook is wired up (so `lexer-*.mjs` is missing) and
+					// `json.json` arrives after the rest because of how import-attributes
+					// resolution is now scheduled.
+					expect(stdout).toMatch(
+						node.supports.cjsModuleExportsKey
+							? /^file\.ts\nfoo\.ts\npromises\nbar\.ts\npkg\.js\nnode:process\njson\.json$/
+							: /^lexer-[a-zA-Z0-9]+\.mjs\nfile\.ts\nfoo\.ts\njson\.json\npromises\nbar\.ts\npkg\.js\nnode:process$/,
+					);
 				}, {
 					retry: 3,
 				});
@@ -540,7 +548,12 @@ export const api = (node: NodeApis) => describe('API', () => {
 						nodePath: node.path,
 						nodeOptions: [],
 					});
-					expect(stdout).toBe('file.ts\nfoo.ts\njson.json\nbar.ts\npkg.js');
+					// Node 25+ defers json.json (import-attributes scheduling) — see "onImport" test.
+					expect(stdout).toBe(
+						node.supports.cjsModuleExportsKey
+							? 'file.ts\nfoo.ts\nbar.ts\npkg.js\njson.json'
+							: 'file.ts\nfoo.ts\njson.json\nbar.ts\npkg.js',
+					);
 				}, {
 					retry: 3,
 				});
