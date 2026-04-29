@@ -806,7 +806,10 @@ export const api = (node: NodeApis) => describe('API', () => {
 						tsImport('./file.ts', import.meta.url);
 						import('./file.ts').catch(() => console.log('Fails as expected'))
 						`,
-						'file.ts': 'import(\'./foo.ts\')',
+						// `enum` is non-strippable, so Node's native type-stripping (default in 22.7+)
+						// rejects the naked dynamic import — we need that rejection to assert
+						// "no cross contamination". tsx transforms it normally for tsImport.
+						'file.ts': 'enum Marker { A } void Marker.A; import(\'./foo.ts\')',
 						'foo.ts': `
 						enum Test {
 							Foo = 'foo',
