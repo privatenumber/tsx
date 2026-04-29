@@ -137,7 +137,11 @@ export const smoke = ({ tsx, supports, version }: NodeApis) => describe('Smoke',
 
 						// Unsupported files
 						[() => import ('./file.txt'), 'Unknown file extension'],
-						[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
+						${
+							supports.wasmModules
+								? ''
+								: `[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],`
+						}
 						${
 							isCommonJs
 								? `
@@ -375,7 +379,11 @@ export const smoke = ({ tsx, supports, version }: NodeApis) => describe('Smoke',
 
 						// Unsupported files
 						[() => import ('./file.txt'), 'Unknown file extension'],
-						[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
+						${
+							supports.wasmModules
+								? ''
+								: `[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],`
+						}
 						${
 							isCommonJs
 								? `

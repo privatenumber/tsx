@@ -65,3 +65,9 @@ export const requireEsm: Version[] = [
 	[20, 19, 0],
 	[23, 0, 0],
 ];
+
+// https://github.com/nodejs/node/pull/55241 — --experimental-wasm-modules unflagged
+export const wasmModules: Version[] = [
+	[22, 12, 0],
+	[23, 0, 0],
+];

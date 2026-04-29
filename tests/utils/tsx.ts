@@ -6,6 +6,7 @@ import {
 	testRunnerGlob,
 	esmLoadReadFile,
 	requireEsm,
+	wasmModules,
 	type Version,
 } from '../../src/utils/node-features.js';
 import { getNode } from './get-node.js';
@@ -60,6 +61,8 @@ export const createNode = async (
 		cjsInterop: isFeatureSupported(esmLoadReadFile, versionParsed),
 
 		requireEsm: isFeatureSupported(requireEsm, versionParsed),
+
+		wasmModules: isFeatureSupported(wasmModules, versionParsed),
 	};
 	const hookFlag = supports.moduleRegister ? '--import' : '--loader';
 
