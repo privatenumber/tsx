@@ -4,7 +4,7 @@ import {
 	isFeatureSupported,
 	moduleRegister,
 	testRunnerGlob,
-	requireEsm,
+	isRequireEsmSupported,
 	cjsModuleExportsKey,
 	isCjsLiftSupported,
 	wasmModules,
@@ -61,7 +61,7 @@ export const createNode = async (
 
 		cjsInterop: isCjsLiftSupported(versionParsed),
 
-		requireEsm: isFeatureSupported(requireEsm, versionParsed),
+		requireEsm: isRequireEsmSupported(versionParsed),
 
 		cjsModuleExportsKey: isFeatureSupported(cjsModuleExportsKey, versionParsed),
 

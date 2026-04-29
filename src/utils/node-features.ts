@@ -60,11 +60,14 @@ export const esmLoadReadFile: Version[] = [
 	[21, 3, 0],
 ];
 
+// require(esm) extension/index fallback — `require('./mjs/index')` resolving to
+// `./mjs/index.mjs` and `require('./mjs/')` resolving to `./mjs/index.mjs`.
+// Confirmed working on Node 20.19+. Observed broken on Node 22.22 and 25.9.
 // https://github.com/nodejs/node/pull/55085
-export const requireEsm: Version[] = [
-	[20, 19, 0],
-	[23, 0, 0],
-];
+export const isRequireEsmSupported = (current: Version): boolean => {
+	const [major, minor] = current;
+	return major === 20 && minor >= 19;
+};
 
 // https://github.com/nodejs/node/pull/55229 — `module.exports` namespace key on CJS imports.
 // Verified absent on Node 22.22, present on 23.0.0, 23.11.1, 24.15.0, 25.9.0.
