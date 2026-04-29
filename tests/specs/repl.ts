@@ -68,13 +68,13 @@ export const repl = () => describe('REPL', () => {
 					}
 				},
 				(data) => {
-					if (data.includes('... ')) {
+					if (data.includes('... ') || data.includes('| ')) {
 						tsxProcess.stdin!.write('1\r');
 						return true;
 					}
 				},
 				(data) => {
-					if (data.includes('... ')) {
+					if (data.includes('... ') || data.includes('| ')) {
 						tsxProcess.stdin!.write(')\r');
 						return true;
 					}
