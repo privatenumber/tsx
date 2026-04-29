@@ -210,8 +210,14 @@ export const api = (node: NodeApis) => describe('API', () => {
 					const api = tsx.register({ namespace: 'abcd' });
 
 					expectErrors(
-						// Loading explicit/resolved file path should be ignored by loader (extensions)
-						[() => require('./file.ts'), 'SyntaxError'],
+						// Loading explicit/resolved file path should be ignored by loader (extensions).
+						// Pre-Node-22.7, .ts is parsed as JS → SyntaxError on the ESM import statement.
+						// Post-22.7, require(esm) parses the .ts as ESM and fails resolving extensionless './foo'.
+						[() => require('./file.ts'), ${
+							node.supports.cjsInterop
+								? "'SyntaxError'"
+								: "'Cannot find module'"
+						}],
 
 						// resolver should preserve full file path when ignoring
 						[() => require('./file.ts?asdf'), "Cannot find module './file.ts?asdf'"]
