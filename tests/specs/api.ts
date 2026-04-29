@@ -721,7 +721,11 @@ export const api = (node: NodeApis) => describe('API', () => {
 					expect(stdout).toMatch(new RegExp([
 						'Fails as expected 1',
 						String.raw`foo bar json file\.ts\?tsx-namespace=\d+`,
-						'cts loaded',
+						// Node 22.7+ enables --experimental-strip-types by default, which
+						// rejects non-strippable TS syntax (decorators in exports-no.cts)
+						// before tsx's transform runs. The .catch turns that into
+						// `SyntaxError` instead of the file's `console.log('cts loaded')`.
+						node.supports.cjsInterop ? 'cts loaded' : 'SyntaxError',
 						'cjsReexport esm syntax',
 						'cjsReexport esm syntax',
 						String.raw`foo bar json file\.ts\?with-query&tsx-namespace=\d+`,
