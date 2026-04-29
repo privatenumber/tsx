@@ -185,7 +185,11 @@ export const smoke = ({ tsx, supports, version }: NodeApis) => describe('Smoke',
 				expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(fixture.getPath('import-from-js.js'))}"`);
 				expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
 				expect(p.stdout).toMatch('"json":{"default":{"loaded-file":"json"},"loaded-file":"json"}');
-				expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
+				expect(p.stdout).toMatch(
+					!isCommonJs && supports.cjsModuleExportsKey
+						? '"cjs":{"default":{"named":"named"},"module.exports":{"named":"named"},"named":"named"}'
+						: '"cjs":{"default":{"named":"named"},"named":"named"}',
+				);
 				expect(p.stdout).toMatch('"pkgModule":{"default":1,"named":2}');
 				if (isCommonJs) {
 					expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
@@ -196,7 +200,9 @@ export const smoke = ({ tsx, supports, version }: NodeApis) => describe('Smoke',
 					expect(p.stdout).toMatch(
 						supports.cjsInterop
 							? '"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}'
-							: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
+							: supports.cjsModuleExportsKey
+								? '"pkgCommonjs":{"default":{"default":1,"named":2},"module.exports":{"default":1,"named":2}}'
+								: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
 					);
 
 					expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js"\}/);
@@ -431,7 +437,11 @@ export const smoke = ({ tsx, supports, version }: NodeApis) => describe('Smoke',
 				expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(fixture.getPath('import-from-ts.ts'))}"`);
 				expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
 				expect(p.stdout).toMatch('"json":{"default":{"loaded-file":"json"},"loaded-file":"json"}');
-				expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
+				expect(p.stdout).toMatch(
+					!isCommonJs && supports.cjsModuleExportsKey
+						? '"cjs":{"default":{"named":"named"},"module.exports":{"named":"named"},"named":"named"}'
+						: '"cjs":{"default":{"named":"named"},"named":"named"}',
+				);
 				expect(p.stdout).toMatch(`"jsx":{"cjsContext":${isCommonJs},"jsx":[null,null,["div",null,"JSX"]]}`);
 				expect(p.stdout).toMatch('"pkgModule":{"default":1,"named":2}');
 				if (isCommonJs) {
@@ -443,7 +453,9 @@ export const smoke = ({ tsx, supports, version }: NodeApis) => describe('Smoke',
 					expect(p.stdout).toMatch(
 						supports.cjsInterop
 							? '"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}'
-							: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
+							: supports.cjsModuleExportsKey
+								? '"pkgCommonjs":{"default":{"default":1,"named":2},"module.exports":{"default":1,"named":2}}'
+								: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
 					);
 
 					expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js"\}/);

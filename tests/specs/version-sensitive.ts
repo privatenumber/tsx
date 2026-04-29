@@ -30,11 +30,19 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 		const tsxProcess = await node.tsx(['index.ts'], fixture.path);
 
 		expect(tsxProcess.failed).toBe(false);
-		expect(tsxProcess.stdout).toBe(
-			node.supports.cjsInterop
-				? '{"default":{"default":1,"named":2},"named":2}'
-				: '{"default":{"default":1,"named":2}}',
-		);
+		const expectedShape = (() => {
+			if (node.supports.cjsInterop) {
+				// cjs-module-lexer lifts named exports onto the namespace
+				return '{"default":{"default":1,"named":2},"named":2}';
+			}
+			if (node.supports.cjsModuleExportsKey) {
+				// Node 25+: `module.exports` exposed as its own namespace key
+				return '{"default":{"default":1,"named":2},"module.exports":{"default":1,"named":2}}';
+			}
+			// Node 22.7+ pre-25: only the default wrapper
+			return '{"default":{"default":1,"named":2}}';
+		})();
+		expect(tsxProcess.stdout).toBe(expectedShape);
 		expect(tsxProcess.stderr).toBe('');
 	});
 

@@ -4,8 +4,9 @@ import {
 	isFeatureSupported,
 	moduleRegister,
 	testRunnerGlob,
-	esmLoadReadFile,
 	requireEsm,
+	cjsModuleExportsKey,
+	isCjsLiftSupported,
 	wasmModules,
 	type Version,
 } from '../../src/utils/node-features.js';
@@ -58,9 +59,11 @@ export const createNode = async (
 		// https://nodejs.org/docs/latest-v18.x/api/cli.html#--test
 		cliTestFlag: isFeatureSupported([[18, 1, 0]], versionParsed),
 
-		cjsInterop: isFeatureSupported(esmLoadReadFile, versionParsed),
+		cjsInterop: isCjsLiftSupported(versionParsed),
 
 		requireEsm: isFeatureSupported(requireEsm, versionParsed),
+
+		cjsModuleExportsKey: isFeatureSupported(cjsModuleExportsKey, versionParsed),
 
 		wasmModules: isFeatureSupported(wasmModules, versionParsed),
 	};

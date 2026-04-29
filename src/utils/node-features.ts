@@ -66,6 +66,24 @@ export const requireEsm: Version[] = [
 	[23, 0, 0],
 ];
 
+// https://github.com/nodejs/node/pull/55229 — `module.exports` namespace key on CJS imports.
+// Verified absent on Node 22.22, present on 23.0.0, 23.11.1, 24.15.0, 25.9.0.
+export const cjsModuleExportsKey: Version[] = [
+	[23, 0, 0],
+];
+
+// cjs-module-lexer namespace lift (named exports surface at the top of `import * as ns`).
+// Present in 20.11+/21.3+/22.0+, but observed disabled by 22.22 (CI Node 22.6 passes; 22.22 fails).
+// Best guess threshold is 22.7.0 (when --experimental-detect-module became default).
+export const isCjsLiftSupported = (current: Version): boolean => {
+	const [major, minor] = current;
+	if (major < 20) return false;
+	if (major === 20) return minor >= 11;
+	if (major === 21) return minor >= 3;
+	if (major === 22) return minor < 7;
+	return false;
+};
+
 // https://github.com/nodejs/node/pull/55241 — --experimental-wasm-modules unflagged
 export const wasmModules: Version[] = [
 	[22, 12, 0],
