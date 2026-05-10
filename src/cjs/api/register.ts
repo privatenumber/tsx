@@ -74,10 +74,20 @@ export const register: Register = (
 	process.setSourceMapsEnabled(true);
 
 	const originalResolveFilename = Module._resolveFilename;
-	const resolveFilename = createResolveFilename(state, originalResolveFilename, tsconfig, options?.namespace);
+	const resolveFilename = createResolveFilename(
+		state,
+		originalResolveFilename,
+		tsconfig,
+		options?.namespace,
+	);
 	Module._resolveFilename = resolveFilename;
 
-	const unregisterExtensions = createExtensions(state, Module._extensions, tsconfig, options?.namespace);
+	const unregisterExtensions = createExtensions(
+		state,
+		Module._extensions,
+		tsconfig,
+		options?.namespace,
+	);
 
 	const unregister = () => {
 		if (sourceMapsEnabled === false) {

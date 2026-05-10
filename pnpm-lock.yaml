@@ -13,9 +13,6 @@ importers:
       esbuild:
         specifier: ~0.27.0
         version: 0.27.0
-      get-tsconfig:
-        specifier: 5.0.0-beta.2
-        version: 5.0.0-beta.2
     devDependencies:
       '@ampproject/remapping':
         specifier: ^2.3.0
@@ -62,6 +59,9 @@ importers:
       get-node:
         specifier: ^15.0.1
         version: 15.0.1
+      get-tsconfig:
+        specifier: 5.0.0-beta.5
+        version: 5.0.0-beta.5
       kolorist:
         specifier: ^1.8.0
         version: 1.8.0
@@ -2437,8 +2437,8 @@ packages:
   get-tsconfig@4.7.6:
     resolution: {integrity: sha512-ZAqrLlu18NbDdRaHq+AKXzAmqIUPswPWKUchfytdAjiRFnCe5ojG2bstg6mRiZabkKfCoL/e98pbBELIV/YCeA==}
 
-  get-tsconfig@5.0.0-beta.2:
-    resolution: {integrity: sha512-AuzbH5JFraduk5MrkK5Q4/c3pxYJEYfq9BoEkiVxPsgerS7ky9oF/5mzoIG3y8CB/xc91QtW0Lk7d0hHi6Q9lw==}
+  get-tsconfig@5.0.0-beta.5:
+    resolution: {integrity: sha512-/6gFNr0N04nob252sTQxyFLi3eKFRqIg1I87YcqAMT1i6SQrSF6KujUEQrtrjMV0H/eejTCltLdDSTEMzHbnsQ==}
     engines: {node: '>=20.20.0'}
 
   glob-parent@5.1.2:
@@ -6906,7 +6906,7 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
-  get-tsconfig@5.0.0-beta.2:
+  get-tsconfig@5.0.0-beta.5:
     dependencies:
       resolve-pkg-maps: 1.0.0
 

@@ -71,8 +71,7 @@
 		"node": ">=18.0.0"
 	},
 	"dependencies": {
-		"esbuild": "~0.27.0",
-		"get-tsconfig": "5.0.0-beta.2"
+		"esbuild": "~0.27.0"
 	},
 	"optionalDependencies": {
 		"fsevents": "~2.3.3"
@@ -93,6 +92,7 @@
 		"fs-fixture": "^2.4.0",
 		"fs-require": "^1.6.0",
 		"get-node": "^15.0.1",
+		"get-tsconfig": "5.0.0-beta.5",
 		"kolorist": "^1.8.0",
 		"lintroll": "^1.8.1",
 		"magic-string": "^0.30.10",
