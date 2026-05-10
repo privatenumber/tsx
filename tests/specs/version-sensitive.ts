@@ -64,7 +64,7 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 
 		expect(tsxProcess.failed).toBe(false);
 		expect(tsxProcess.stdout).toBe(
-			node.supports.requireEsm
+			node.supports.requireEsmExtensionlessMjs
 				? '{"index":1,"directory":1}'
 				: '{"index":"MODULE_NOT_FOUND","directory":"MODULE_NOT_FOUND"}',
 		);
@@ -95,7 +95,7 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 			cwd: fixture.path,
 		});
 
-		if (node.version.startsWith('18.')) {
+		if (!node.supports.modulePackageMainResolution) {
 			expect(tsxProcess.failed).toBe(true);
 			expect(tsxProcess.all).toContain('ERR_INTERNAL_ASSERTION');
 			return;

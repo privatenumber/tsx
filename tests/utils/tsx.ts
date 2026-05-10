@@ -1,10 +1,13 @@
 import { fileURLToPath } from 'node:url';
 import { execaNode, type NodeOptions } from 'execa';
 import {
+	cjsNamespaceFromLoadHook,
 	isFeatureSupported,
+	isFeatureSupportedInRange,
+	modulePackageMainResolution,
 	moduleRegister,
 	testRunnerGlob,
-	esmLoadReadFile,
+	requireEsmExtensionlessMjs,
 	requireEsm,
 	type Version,
 } from '../../src/utils/node-features.js';
@@ -57,9 +60,16 @@ export const createNode = async (
 		// https://nodejs.org/docs/latest-v18.x/api/cli.html#--test
 		cliTestFlag: isFeatureSupported([[18, 1, 0]], versionParsed),
 
-		cjsInterop: isFeatureSupported(esmLoadReadFile, versionParsed),
+		cjsInterop: isFeatureSupportedInRange(cjsNamespaceFromLoadHook, versionParsed),
 
 		requireEsm: isFeatureSupported(requireEsm, versionParsed),
+
+		requireEsmExtensionlessMjs: isFeatureSupportedInRange(
+			requireEsmExtensionlessMjs,
+			versionParsed,
+		),
+
+		modulePackageMainResolution: isFeatureSupported(modulePackageMainResolution, versionParsed),
 	};
 	const hookFlag = supports.moduleRegister ? '--import' : '--loader';
 

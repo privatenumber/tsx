@@ -1,4 +1,8 @@
 export type Version = [number, number, number];
+export type VersionRange = {
+	from: Version;
+	before?: Version;
+};
 
 // Is v1 greater or equal to v2?
 const isVersionGreaterOrEqual = (v1: Version, v2: Version): boolean => {
@@ -12,6 +16,8 @@ const isVersionGreaterOrEqual = (v1: Version, v2: Version): boolean => {
 	}
 	return majorDiff > 0;
 };
+
+const isVersionLessThan = (v1: Version, v2: Version) => !isVersionGreaterOrEqual(v1, v2);
 
 const currentNodeVersion = process.versions.node.split('.').map(Number) as Version;
 
@@ -35,6 +41,19 @@ export const isFeatureSupported = (
 
 	return false;
 };
+
+export const isFeatureSupportedInRange = (
+	ranges: VersionRange[],
+	current = currentNodeVersion,
+) => (
+	ranges.some(({ from, before }) => (
+		isVersionGreaterOrEqual(current, from)
+		&& (
+			before === undefined
+			|| isVersionLessThan(current, before)
+		)
+	))
+);
 
 // https://nodejs.org/docs/latest/api/module.html#moduleregisterspecifier-parenturl-options
 export const moduleRegister: Version[] = [
@@ -63,5 +82,42 @@ export const esmLoadReadFile: Version[] = [
 // https://github.com/nodejs/node/pull/55085
 export const requireEsm: Version[] = [
 	[20, 19, 0],
+	[22, 12, 0],
 	[23, 0, 0],
+];
+
+// https://github.com/nodejs/node/pull/50825
+// https://github.com/nodejs/node/pull/54769
+export const cjsNamespaceFromLoadHook: VersionRange[] = [
+	{
+		from: [20, 11, 0],
+		before: [21, 0, 0],
+	},
+	{
+		from: [21, 3, 0],
+		before: [22, 0, 0],
+	},
+	{
+		from: [22, 0, 0],
+		before: [22, 10, 0],
+	},
+];
+
+// https://github.com/nodejs/node/pull/55085
+// https://github.com/nodejs/node/pull/55590
+export const requireEsmExtensionlessMjs: VersionRange[] = [
+	{
+		from: [20, 19, 0],
+		before: [20, 19, 5],
+	},
+	{
+		from: [22, 12, 0],
+		before: [22, 14, 0],
+	},
+];
+
+// https://github.com/nodejs/node/pull/55708
+export const modulePackageMainResolution: Version[] = [
+	[18, 20, 5],
+	[19, 0, 0],
 ];

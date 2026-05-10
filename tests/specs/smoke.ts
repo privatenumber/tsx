@@ -38,7 +38,7 @@ const hasCoverageSourcesContent = async (
 	));
 };
 
-export const smoke = ({ tsx, supports, version }: NodeApis) => describe('Smoke', () => {
+export const smoke = ({ tsx, supports }: NodeApis) => describe('Smoke', () => {
 	// 'commonjs' excluded — tested by commonjs-mode-contracts.ts instead
 	for (const packageType of [undefined, 'module'] as const) {
 		const isCommonJs = packageType !== 'module';
@@ -119,7 +119,7 @@ export const smoke = ({ tsx, supports, version }: NodeApis) => describe('Smoke',
 						[() => import ('./mjs/index'), 'Cannot find module'],
 						[() => import ('./mjs/'), 'Cannot find module'],
 						${
-							isCommonJs && !supports.requireEsm
+							isCommonJs && !supports.requireEsmExtensionlessMjs
 								? `
 								[() => require('./mjs/index'), 'Cannot find module'],
 								[() => require('./mjs/'), 'Cannot find module'],
@@ -289,7 +289,7 @@ export const smoke = ({ tsx, supports, version }: NodeApis) => describe('Smoke',
 						[() => import ('./mjs/index'), 'Cannot find module'],
 						[() => import ('./mjs/'), 'Cannot find module'],
 						${
-							isCommonJs && !supports.requireEsm
+							isCommonJs && !supports.requireEsmExtensionlessMjs
 								? `
 								[() => require('./mjs/index'), 'Cannot find module'],
 								[() => require('./mjs/'), 'Cannot find module'],
@@ -473,13 +473,7 @@ export const smoke = ({ tsx, supports, version }: NodeApis) => describe('Smoke',
 				expect(p.failed).toBe(false);
 			});
 
-			/**
-			 * Node v18 has a bug:
-			 * Error [ERR_INTERNAL_ASSERTION]:
-			 * 	Code: ERR_MODULE_NOT_FOUND; The provided arguments length (2) does
-			 *  not match the required ones (3)
-			 */
-			if (!version.startsWith('18.')) {
+			if (supports.modulePackageMainResolution) {
 				test('resolve ts in main', async () => {
 					await using fixture = await createFixture({
 						'package.json': createPackageJson(packageType ? { type: packageType } : {}),
