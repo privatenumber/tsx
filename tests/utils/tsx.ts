@@ -9,6 +9,9 @@ import {
 	testRunnerGlob,
 	requireEsmExtensionlessMjs,
 	requireEsm,
+	cjsNamespaceModuleExports,
+	nativeTypeScript,
+	wasmModules,
 	type Version,
 } from '../../src/utils/node-features.js';
 import { getNode } from './get-node.js';
@@ -61,6 +64,12 @@ export const createNode = async (
 		cliTestFlag: isFeatureSupported([[18, 1, 0]], versionParsed),
 
 		cjsInterop: isFeatureSupportedInRange(cjsNamespaceFromLoadHook, versionParsed),
+
+		cjsNamespaceModuleExports: isFeatureSupported(cjsNamespaceModuleExports, versionParsed),
+
+		nativeTypeScript: isFeatureSupported(nativeTypeScript, versionParsed),
+
+		wasmModules: isFeatureSupported(wasmModules, versionParsed),
 
 		requireEsm: isFeatureSupported(requireEsm, versionParsed),
 

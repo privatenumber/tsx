@@ -86,6 +86,26 @@ export const requireEsm: Version[] = [
 	[23, 0, 0],
 ];
 
+// Node v23 exposes CJS module.exports on the synthetic ESM namespace.
+// https://github.com/nodejs/node/pull/57366
+// https://github.com/nodejs/node/blob/v23.0.0/lib/internal/modules/esm/translators.js#L187-L224
+export const cjsNamespaceModuleExports: Version[] = [
+	[23, 0, 0],
+];
+
+// https://github.com/nodejs/node/pull/56350
+export const nativeTypeScript: Version[] = [
+	[22, 18, 0],
+	[23, 6, 0],
+	[24, 0, 0],
+];
+
+// https://github.com/nodejs/node/pull/57038
+export const wasmModules: Version[] = [
+	[22, 19, 0],
+	[24, 5, 0],
+];
+
 // https://github.com/nodejs/node/pull/50825
 // https://github.com/nodejs/node/pull/54769
 export const cjsNamespaceFromLoadHook: VersionRange[] = [

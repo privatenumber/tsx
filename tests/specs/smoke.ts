@@ -38,6 +38,17 @@ const hasCoverageSourcesContent = async (
 	));
 };
 
+const getSmokeOutput = (stdout: string) => {
+	const output = stdout.split('\n').find(line => line.includes('"import.meta.url"'));
+	if (!output) {
+		throw new Error(`Smoke output not found in ${JSON.stringify(stdout)}`);
+	}
+	return JSON.parse(output) as {
+		cjs: unknown;
+		pkgCommonjs: unknown;
+	};
+};
+
 export const smoke = ({ tsx, supports }: NodeApis) => describe('Smoke', () => {
 	// 'commonjs' excluded — tested by commonjs-mode-contracts.ts instead
 	for (const packageType of [undefined, 'module'] as const) {
@@ -137,7 +148,11 @@ export const smoke = ({ tsx, supports }: NodeApis) => describe('Smoke', () => {
 
 						// Unsupported files
 						[() => import ('./file.txt'), 'Unknown file extension'],
-						[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
+						${
+							supports.wasmModules
+								? ''
+								: `[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],`
+						}
 						${
 							isCommonJs
 								? `
@@ -181,7 +196,22 @@ export const smoke = ({ tsx, supports }: NodeApis) => describe('Smoke', () => {
 				expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(fixture.getPath('import-from-js.js'))}"`);
 				expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
 				expect(p.stdout).toMatch('"json":{"default":{"loaded-file":"json"},"loaded-file":"json"}');
-				expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
+				const smokeOutput = getSmokeOutput(p.stdout);
+				expect(smokeOutput.cjs).toEqual({
+					default: {
+						named: 'named',
+					},
+					...(
+						!isCommonJs && supports.cjsNamespaceModuleExports
+							? {
+								'module.exports': {
+									named: 'named',
+								},
+							}
+							: {}
+					),
+					named: 'named',
+				});
 				expect(p.stdout).toMatch('"pkgModule":{"default":1,"named":2}');
 				if (isCommonJs) {
 					expect(p.stdout).toMatch('"pkgCommonjs":{"default":1,"named":2}');
@@ -189,11 +219,33 @@ export const smoke = ({ tsx, supports }: NodeApis) => describe('Smoke', () => {
 					expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","__filename":".+?index\.js"\}/);
 					expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","__filename":".+?index\.js"\}/);
 				} else {
-					expect(p.stdout).toMatch(
-						supports.cjsInterop
-							? '"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}'
-							: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
-					);
+					if (supports.cjsNamespaceModuleExports) {
+						expect(smokeOutput.pkgCommonjs).toEqual({
+							default: {
+								default: 1,
+								named: 2,
+							},
+							'module.exports': {
+								default: 1,
+								named: 2,
+							},
+						});
+					} else if (supports.cjsInterop) {
+						expect(smokeOutput.pkgCommonjs).toEqual({
+							default: {
+								default: 1,
+								named: 2,
+							},
+							named: 2,
+						});
+					} else {
+						expect(smokeOutput.pkgCommonjs).toEqual({
+							default: {
+								default: 1,
+								named: 2,
+							},
+						});
+					}
 
 					expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js"\}/);
 					expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123"\}/);
@@ -375,7 +427,11 @@ export const smoke = ({ tsx, supports }: NodeApis) => describe('Smoke', () => {
 
 						// Unsupported files
 						[() => import ('./file.txt'), 'Unknown file extension'],
-						[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],
+						${
+							supports.wasmModules
+								? ''
+								: `[() => import (${JSON.stringify(wasmPathUrl)}), 'Unknown file extension'],`
+						}
 						${
 							isCommonJs
 								? `
@@ -423,7 +479,22 @@ export const smoke = ({ tsx, supports }: NodeApis) => describe('Smoke', () => {
 				expect(p.stdout).toMatch(`"import.meta.url":"${pathToFileURL(fixture.getPath('import-from-ts.ts'))}"`);
 				expect(p.stdout).toMatch(`"js":{"cjsContext":${isCommonJs},"default":1,"named":2}`);
 				expect(p.stdout).toMatch('"json":{"default":{"loaded-file":"json"},"loaded-file":"json"}');
-				expect(p.stdout).toMatch('"cjs":{"default":{"named":"named"},"named":"named"}');
+				const smokeOutput = getSmokeOutput(p.stdout);
+				expect(smokeOutput.cjs).toEqual({
+					default: {
+						named: 'named',
+					},
+					...(
+						!isCommonJs && supports.cjsNamespaceModuleExports
+							? {
+								'module.exports': {
+									named: 'named',
+								},
+							}
+							: {}
+					),
+					named: 'named',
+				});
 				expect(p.stdout).toMatch(`"jsx":{"cjsContext":${isCommonJs},"jsx":[null,null,["div",null,"JSX"]]}`);
 				expect(p.stdout).toMatch('"pkgModule":{"default":1,"named":2}');
 				if (isCommonJs) {
@@ -432,11 +503,33 @@ export const smoke = ({ tsx, supports }: NodeApis) => describe('Smoke', () => {
 					expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js","__filename":".+?index\.js"\}/);
 					expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123","__filename":".+?index\.js"\}/);
 				} else {
-					expect(p.stdout).toMatch(
-						supports.cjsInterop
-							? '"pkgCommonjs":{"default":{"default":1,"named":2},"named":2}'
-							: '"pkgCommonjs":{"default":{"default":1,"named":2}}',
-					);
+					if (supports.cjsNamespaceModuleExports) {
+						expect(smokeOutput.pkgCommonjs).toEqual({
+							default: {
+								default: 1,
+								named: 2,
+							},
+							'module.exports': {
+								default: 1,
+								named: 2,
+							},
+						});
+					} else if (supports.cjsInterop) {
+						expect(smokeOutput.pkgCommonjs).toEqual({
+							default: {
+								default: 1,
+								named: 2,
+							},
+							named: 2,
+						});
+					} else {
+						expect(smokeOutput.pkgCommonjs).toEqual({
+							default: {
+								default: 1,
+								named: 2,
+							},
+						});
+					}
 
 					expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js"\}/);
 					expect(p.stdout).toMatch(/\{"importMetaUrl":"file:\/\/\/.+?\/js\/index\.js\?query=123"\}/);

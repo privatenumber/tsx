@@ -2,6 +2,14 @@ import { describe, test } from 'manten';
 import { tsx } from '../utils/tsx';
 import { processInteract } from '../utils/process-interact.js';
 
+// Node 24 uses "| " for multiline input; older REPLs use "... ".
+// https://github.com/nodejs/node/blob/v24.15.0/lib/internal/readline/interface.js#L100
+// https://github.com/nodejs/node/blob/v22.22.2/lib/repl.js#L1191-L1198
+const isContinuationPrompt = (data: string) => (
+	data.includes('... ')
+	|| data.includes('| ')
+);
+
 export const repl = () => describe('REPL', () => {
 	test('handles ts', async () => {
 		const tsxProcess = tsx({
@@ -68,13 +76,13 @@ export const repl = () => describe('REPL', () => {
 					}
 				},
 				(data) => {
-					if (data.includes('... ')) {
+					if (isContinuationPrompt(data)) {
 						tsxProcess.stdin!.write('1\r');
 						return true;
 					}
 				},
 				(data) => {
-					if (data.includes('... ')) {
+					if (isContinuationPrompt(data)) {
 						tsxProcess.stdin!.write(')\r');
 						return true;
 					}

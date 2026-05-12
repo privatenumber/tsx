@@ -356,6 +356,9 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 
 		await describe('Ctrl + C', async () => {
 			const CtrlC = '\u0003';
+			const ctrlCExitCodePattern = isWindows
+				? /EXIT_CODE:\s+(?:130|-1073741510)/
+				: /EXIT_CODE:\s+130/;
 
 			await test('Exit code', async () => {
 				const shell = ptyShell();
@@ -376,7 +379,7 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 
 				await shell.waitForPrompt();
 
-				expect(await shell.close()).toMatch(/EXIT_CODE:\s+130/);
+				expect(await shell.close()).toMatch(ctrlCExitCodePattern);
 			}, 10_000);
 
 			await test('Catchable', async () => {
@@ -430,7 +433,7 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 
 				await shell.waitForPrompt();
 
-				expect(await shell.close()).toMatch(/EXIT_CODE:\s+130/);
+				expect(await shell.close()).toMatch(ctrlCExitCodePattern);
 			}, 10_000);
 		});
 	});

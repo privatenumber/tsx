@@ -86,6 +86,18 @@ const tsFiles = {
 	...expectErrors,
 };
 
+const expectImportedFiles = (
+	stdout: string,
+	expected: string[],
+) => {
+	const lexerPattern = /^lexer-[a-zA-Z0-9]+\.mjs$/;
+	const lines = stdout.split('\n').filter(Boolean);
+	const actual = lines.filter(line => !lexerPattern.test(line));
+
+	expect(actual.sort()).toEqual([...expected].sort());
+	expect(lines.every(line => lexerPattern.test(line) || expected.includes(line))).toBe(true);
+};
+
 export const api = (node: NodeApis) => describe('API', () => {
 	describe('CommonJS', () => {
 		test('cli', async () => {
@@ -211,7 +223,7 @@ export const api = (node: NodeApis) => describe('API', () => {
 
 					expectErrors(
 						// Loading explicit/resolved file path should be ignored by loader (extensions)
-						[() => require('./file.ts'), 'SyntaxError'],
+						[() => require('./file.ts'), ${JSON.stringify(node.supports.nativeTypeScript ? 'Cannot find module' : 'SyntaxError')}],
 
 						// resolver should preserve full file path when ignoring
 						[() => require('./file.ts?asdf'), "Cannot find module './file.ts?asdf'"]
@@ -504,7 +516,15 @@ export const api = (node: NodeApis) => describe('API', () => {
 						nodePath: node.path,
 						nodeOptions: [],
 					});
-					expect(stdout).toMatch(/^lexer-[a-zA-Z0-9]+\.mjs\nfile\.ts\nfoo\.ts\njson\.json\npromises\nbar\.ts\npkg\.js\nnode:process$/);
+					expectImportedFiles(stdout, [
+						'file.ts',
+						'foo.ts',
+						'json.json',
+						'promises',
+						'bar.ts',
+						'pkg.js',
+						'node:process',
+					]);
 				}, {
 					retry: 3,
 				});
@@ -534,7 +554,13 @@ export const api = (node: NodeApis) => describe('API', () => {
 						nodePath: node.path,
 						nodeOptions: [],
 					});
-					expect(stdout).toBe('file.ts\nfoo.ts\njson.json\nbar.ts\npkg.js');
+					expectImportedFiles(stdout, [
+						'file.ts',
+						'foo.ts',
+						'json.json',
+						'bar.ts',
+						'pkg.js',
+					]);
 				}, {
 					retry: 3,
 				});
@@ -800,7 +826,7 @@ export const api = (node: NodeApis) => describe('API', () => {
 						tsImport('./file.ts', import.meta.url);
 						import('./file.ts').catch(() => console.log('Fails as expected'))
 						`,
-						'file.ts': 'import(\'./foo.ts\')',
+						'file.ts': 'await import(\'./foo.ts\')',
 						'foo.ts': `
 						enum Test {
 							Foo = 'foo',
@@ -815,7 +841,7 @@ export const api = (node: NodeApis) => describe('API', () => {
 						reject: false,
 					});
 
-					expect(stdout).toBe('Fails as expected\nfoo');
+					expect(stdout.split('\n').sort()).toEqual(['Fails as expected', 'foo'].sort());
 					expect(stderr).toBe('');
 				});
 

@@ -6,7 +6,7 @@ import { createPackageJson } from '../fixtures';
 // Lightweight tests for behaviors that vary across Node versions.
 // Run on every Node version in the CI matrix.
 export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensitive', () => {
-	test('CJS namespace import shape depends on cjsInterop', async () => {
+	test('CJS namespace import shape depends on Node version', async () => {
 		await using fixture = await createFixture({
 			'package.json': createPackageJson({ type: 'module' }),
 			'index.ts': `
@@ -31,9 +31,13 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 
 		expect(tsxProcess.failed).toBe(false);
 		expect(tsxProcess.stdout).toBe(
-			node.supports.cjsInterop
-				? '{"default":{"default":1,"named":2},"named":2}'
-				: '{"default":{"default":1,"named":2}}',
+			node.supports.cjsNamespaceModuleExports
+				? '{"default":{"default":1,"named":2},"module.exports":{"default":1,"named":2}}'
+				: (
+					node.supports.cjsInterop
+						? '{"default":{"default":1,"named":2},"named":2}'
+						: '{"default":{"default":1,"named":2}}'
+				),
 		);
 		expect(tsxProcess.stderr).toBe('');
 	});

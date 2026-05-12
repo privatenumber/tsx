@@ -21,6 +21,28 @@ const importAttributesProperty = (
 		: 'importAssertions' as 'importAttributes'
 );
 
+const isCommonJsFormat = (
+	format: string | null | undefined,
+) => (
+	format === 'commonjs'
+	|| format === 'commonjs-typescript'
+);
+
+const isModuleTypeScriptFormat = (
+	format: string | null | undefined,
+) => (
+	format === 'module-typescript'
+	|| format === 'typescript'
+);
+
+const getTsconfigRaw = (
+	filePath: string,
+) => (
+	data.parsedTsconfig && isFileIncluded(data.parsedTsconfig, filePath)
+		? data.parsedTsconfig.config as TransformOptions['tsconfigRaw']
+		: undefined
+);
+
 // eslint-disable-next-line import-x/no-mutable-exports
 let load: LoadHook = async (
 	url,
@@ -75,9 +97,10 @@ let load: LoadHook = async (
 	});
 
 	const filePath = url.startsWith(fileUrlPrefix) ? fileURLToPath(url) : url;
+	const loadedFormat = loaded.format as string | undefined;
 
 	if (
-		loaded.format === 'commonjs'
+		isCommonJsFormat(loadedFormat)
 		&& isFeatureSupported(esmLoadReadFile)
 		&& loaded.responseURL?.startsWith('file:') // Could be data:
 		&& !filePath.endsWith('.cjs') // CJS syntax doesn't need to be transformed for interop
@@ -85,12 +108,12 @@ let load: LoadHook = async (
 		const code = await readFile(new URL(url), 'utf8');
 
 		// if the file extension is .js, only transform if using esm syntax
-		if (!filePath.endsWith('.js') || isESM(code)) {
+		if (loadedFormat === 'commonjs-typescript' || !filePath.endsWith('.js') || isESM(code)) {
 			/**
 			 * es or cjs module lexer unfortunately cannot be used because it doesn't support
 			 * typescript syntax
 			 *
-			 * While the full code is transformed, only the exports are used for parsing.
+			 * In the normal CJS annotation path, only the exports are used for parsing.
 			 * In fact, the code can't even run because imports cannot be resolved relative
 			 * from the data: URL.
 			 *
@@ -105,16 +128,17 @@ let load: LoadHook = async (
 				code,
 				filePath,
 				{
-					tsconfigRaw: (
-						data.parsedTsconfig && isFileIncluded(data.parsedTsconfig, filePath)
-							? data.parsedTsconfig.config as TransformOptions['tsconfigRaw']
-							: undefined
-					),
+					tsconfigRaw: getTsconfigRaw(filePath),
 				},
 			);
 
 			const filePathWithNamespace = urlNamespace ? `${filePath}?namespace=${encodeURIComponent(urlNamespace)}` : filePath;
 
+			loaded.format = 'commonjs';
+			if (loadedFormat === 'commonjs-typescript' || filePath.endsWith('.cts')) {
+				// Avoid Node's strip-only TypeScript CJS loader for syntax esbuild supports.
+				loaded.source = inlineSourceMap(transformed);
+			}
 			loaded.responseURL = `data:text/javascript,${encodeURIComponent(transformed.code)}?filePath=${encodeURIComponent(filePathWithNamespace)}`;
 
 			log(3, 'returning CJS export annotation', loaded);
@@ -129,20 +153,33 @@ let load: LoadHook = async (
 
 	const code = loaded.source.toString();
 
+	if (loadedFormat === 'commonjs-typescript') {
+		const transformed = transformSync(
+			code,
+			filePath,
+			{
+				tsconfigRaw: getTsconfigRaw(filePath),
+			},
+		);
+
+		return {
+			...loaded,
+			format: 'commonjs',
+			source: inlineSourceMap(transformed),
+		};
+	}
+
 	if (
 		// Support named imports in JSON modules
 		loaded.format === 'json'
+		|| isModuleTypeScriptFormat(loadedFormat)
 		|| tsExtensionsPattern.test(url)
 	) {
 		const transformed = await transform(
 			code,
 			filePath,
 			{
-				tsconfigRaw: (
-					data.parsedTsconfig && isFileIncluded(data.parsedTsconfig, filePath)
-						? data.parsedTsconfig.config as TransformOptions['tsconfigRaw']
-						: undefined
-				),
+				tsconfigRaw: getTsconfigRaw(filePath),
 			},
 		);
 
