@@ -8,6 +8,23 @@ import { createPackageJson } from '../fixtures';
 // Run on every Node version in the CI matrix.
 export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensitive', () => {
 	if (node.supports.moduleRegisterHooksCjsReload) {
+		test('CLI runs without warnings', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'module' }),
+				'index.ts': 'console.log("loaded" as string)',
+			});
+
+			const { exitCode, stderr, stdout } = await node.tsx(['index.ts'], {
+				cwd: fixture.path,
+				env: {
+					NODE_OPTIONS: '--throw-deprecation',
+				},
+			});
+			expect(exitCode).toBe(0);
+			expect(stderr).toBe('');
+			expect(stdout).toBe('loaded');
+		});
+
 		test('ESM loader avoids module.register deprecation', async () => {
 			await using fixture = await createFixture({
 				'package.json': createPackageJson({ type: 'module' }),
