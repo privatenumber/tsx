@@ -361,7 +361,7 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 				: /EXIT_CODE:\s+130/;
 
 			await test('Exit code', async () => {
-				const shell = ptyShell();
+				await using shell = ptyShell();
 
 				onTestFail(() => {
 					console.log({ stdout: shell.getOutput() });
@@ -383,7 +383,7 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 			}, 10_000);
 
 			await test('Catchable', async () => {
-				const shell = ptyShell();
+				await using shell = ptyShell();
 
 				onTestFail(() => {
 					console.log({ stdout: shell.getOutput() });
@@ -415,7 +415,7 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 			});
 
 			await test('Infinite loop', async () => {
-				const shell = ptyShell();
+				await using shell = ptyShell();
 
 				onTestFail(() => {
 					console.log({ stdout: shell.getOutput() });

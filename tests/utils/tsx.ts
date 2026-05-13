@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { execaNode, type NodeOptions } from 'execa';
+import { onTestFail, onTestFinish } from 'manten';
 import {
 	cjsNamespaceFromLoadHook,
 	isFeatureSupported,
@@ -35,21 +36,48 @@ const hookPath = new URL('../../dist/esm/index.cjs', import.meta.url).toString()
 
 export const tsx = (
 	options: Options,
-) => execaNode(
-	tsxPath,
-	options.args,
-	{
-		env: {
-			TSX_DISABLE_CACHE: '1',
-			DEBUG: '1',
+) => {
+	const tsxProcess = execaNode(
+		tsxPath,
+		options.args,
+		{
+			env: {
+				TSX_DISABLE_CACHE: '1',
+				DEBUG: '1',
+			},
+			nodePath: options.nodePath,
+			nodeOptions: [],
+			cwd: options.cwd,
+			reject: false,
+			all: true,
 		},
-		nodePath: options.nodePath,
-		nodeOptions: [],
-		cwd: options.cwd,
-		reject: false,
-		all: true,
-	},
-);
+	);
+
+	let result: unknown;
+	let disposed: Promise<void> | undefined;
+	const dispose = () => {
+		disposed ??= (async () => {
+			if (tsxProcess.exitCode === null) {
+				tsxProcess.kill('SIGKILL');
+			}
+			result = await tsxProcess;
+		})();
+		return disposed;
+	};
+
+	let testFailed = false;
+	onTestFail(() => {
+		testFailed = true;
+	});
+	onTestFinish(async () => {
+		await dispose();
+		if (testFailed) {
+			console.log(result);
+		}
+	});
+
+	return tsxProcess;
+};
 
 export const createNode = async (
 	nodeVersion: string,
@@ -97,7 +125,7 @@ export const createNode = async (
 			cwdOrOptions?: string | NodeOptions,
 		) => {
 			const isCwd = typeof cwdOrOptions === 'string';
-			return execaNode(
+			const tsxProcess = execaNode(
 				tsxPath,
 				args,
 				{
@@ -121,6 +149,31 @@ export const createNode = async (
 					},
 				},
 			);
+
+			let result: unknown;
+			let disposed: Promise<void> | undefined;
+			const dispose = () => {
+				disposed ??= (async () => {
+					if (tsxProcess.exitCode === null) {
+						tsxProcess.kill('SIGKILL');
+					}
+					result = await tsxProcess;
+				})();
+				return disposed;
+			};
+
+			let testFailed = false;
+			onTestFail(() => {
+				testFailed = true;
+			});
+			onTestFinish(async () => {
+				await dispose();
+				if (testFailed) {
+					console.log(result);
+				}
+			});
+
+			return tsxProcess;
 		},
 
 		cjsPatched: (

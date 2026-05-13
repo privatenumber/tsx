@@ -1,13 +1,61 @@
-import { describe, test, expect } from 'manten';
+import { setTimeout } from 'node:timers/promises';
+import {
+	describe, test, expect,
+} from 'manten';
 import { execaNode } from 'execa';
 import { createFixture } from 'fs-fixture';
 import { tsxEsmApiPath, tsxEsmPath, type NodeApis } from '../utils/tsx';
 import { createPackageJson } from '../fixtures';
+import { processInteract } from '../utils/process-interact.js';
 
 // Lightweight tests for behaviors that vary across Node versions.
 // Run on every Node version in the CI matrix.
-export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensitive', () => {
+export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensitive', async () => {
 	if (node.supports.moduleRegisterHooksCjsReload) {
+		await test('watch reruns when imported TypeScript file changes', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'commonjs' }),
+				'index.ts': `
+					import { value } from './value.ts';
+					console.log(value);
+					`,
+				'value.ts': 'export const value = "first";',
+			});
+
+			const tsxProcess = node.tsx(['watch', '--clear-screen=false', 'index.ts'], fixture.path);
+
+			let output = '';
+			await processInteract(
+				tsxProcess.stdout!,
+				[
+					async (data) => {
+						output += data;
+						if (data.includes('first\n')) {
+							await setTimeout(1000);
+							fixture.writeFile('value.ts', 'export const value = "second";');
+							return true;
+						}
+					},
+					(data) => {
+						output += data;
+						return data.includes('[tsx] change in ./value.ts Rerunning...\n');
+					},
+					(data) => {
+						output += data;
+						return data.includes('second\n');
+					},
+				],
+				10_000,
+			);
+
+			tsxProcess.kill();
+			await tsxProcess;
+
+			expect(output).toContain('first\n');
+			expect(output).toContain('[tsx] change in ./value.ts Rerunning...\n');
+			expect(output).toContain('second\n');
+		}, 12_000);
+
 		test('CLI runs without warnings', async () => {
 			await using fixture = await createFixture({
 				'package.json': createPackageJson({ type: 'module' }),

@@ -7,26 +7,6 @@ import type { NodeApis } from '../utils/tsx.js';
 import { processInteract } from '../utils/process-interact.js';
 import { createPackageJson } from '../fixtures.js';
 
-const registerWatchCleanup = (
-	tsxProcess: import('node:child_process').ChildProcess & PromiseLike<unknown>,
-) => {
-	onTestFail(async () => {
-		if (tsxProcess.exitCode === null) {
-			console.log('Force killing hanging process\n\n');
-			tsxProcess.kill('SIGKILL');
-			console.log({
-				tsxProcess: await tsxProcess,
-			});
-		}
-	});
-
-	onTestFinish(() => {
-		if (tsxProcess.exitCode === null) {
-			tsxProcess.kill('SIGKILL');
-		}
-	});
-};
-
 export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 	const fixture = await createFixture({
 		// Unnecessary TS to test syntax
@@ -61,8 +41,6 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 			],
 			fixtureWatch.path,
 		);
-		registerWatchCleanup(tsxProcess);
-
 		await processInteract(
 			tsxProcess.stdout!,
 			[
@@ -93,8 +71,6 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 			],
 			fixture.path,
 		);
-		registerWatchCleanup(tsxProcess);
-
 		await processInteract(
 			tsxProcess.stdout!,
 			[
@@ -126,8 +102,6 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 			],
 			fixture.path,
 		);
-		registerWatchCleanup(tsxProcess);
-
 		await processInteract(
 			tsxProcess.stdout!,
 			[data => data.startsWith('["')],
@@ -162,8 +136,6 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 			],
 			fixtureExit.path,
 		);
-		registerWatchCleanup(tsxProcess);
-
 		onTestFinish(async () => {
 			await fixtureExit.rm();
 		});
@@ -206,8 +178,6 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 				],
 				fixture.path,
 			);
-			registerWatchCleanup(tsxProcess);
-
 			await processInteract(
 				tsxProcess.stdout!,
 				[data => data.startsWith('["')],
@@ -252,8 +222,6 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 				],
 				fixture.path,
 			);
-			registerWatchCleanup(tsxProcess);
-
 			await processInteract(
 				tsxProcess.stdout!,
 				[
@@ -314,8 +282,6 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 				],
 				fixtureGlob.path,
 			);
-			registerWatchCleanup(tsxProcess);
-
 			const negativeSignal = 'fail';
 
 			await expect(
@@ -369,8 +335,6 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 			],
 			fixtureArgv.path,
 		);
-		registerWatchCleanup(tsxProcess);
-
 		await processInteract(
 			tsxProcess.stdout!,
 			[data => data.startsWith('["')],
@@ -406,8 +370,6 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 			],
 			fixtureRecovery.path,
 		);
-		registerWatchCleanup(tsxProcess);
-
 		let output = '';
 		await processInteract(
 			tsxProcess.all!,
