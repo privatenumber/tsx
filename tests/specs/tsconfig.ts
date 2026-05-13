@@ -138,6 +138,44 @@ export const tsconfig = ({ tsx }: NodeApis) => describe('tsconfig', () => {
 					expect(pTsconfig.stderr).toBe('');
 					expect(pTsconfig.stdout).toBe('');
 				});
+
+				const configDirectoryPlaceholder = `${'$'}{configDir}`;
+				test(`paths can use ${configDirectoryPlaceholder} without baseUrl`, async () => {
+					await using fixture = await createFixture({
+						'package.json': createPackageJson(packageType ? { type: packageType } : {}),
+						'tsconfig.json': createTsconfig({
+							include: [
+								'index.ts',
+								'src/**/*.ts',
+							],
+							compilerOptions: {
+								outDir: './dist',
+								paths: {
+									'@/*': [`${configDirectoryPlaceholder}/src/*`],
+								},
+							},
+						}),
+						'index.ts': `
+						import { value } from '@/value';
+
+						console.log(value);
+						`,
+						src: {
+							'value.ts': `
+							export const value: string = 'resolved via configDir';
+							`,
+						},
+					});
+
+					const pTsconfig = await tsx(['index.ts'], fixture.path);
+					onTestFail((error) => {
+						console.error(error);
+						console.log(pTsconfig);
+					});
+					expect(pTsconfig.failed).toBe(false);
+					expect(pTsconfig.stderr).toBe('');
+					expect(pTsconfig.stdout).toBe('resolved via configDir');
+				});
 			});
 
 			describe('custom tsconfig', () => {
