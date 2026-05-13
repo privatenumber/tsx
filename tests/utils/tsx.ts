@@ -6,6 +6,7 @@ import {
 	isFeatureSupportedInRange,
 	modulePackageMainResolution,
 	moduleRegister,
+	moduleRegisterHooksCjsReload,
 	testRunnerGlob,
 	requireEsmExtensionlessMjs,
 	requireEsm,
@@ -57,6 +58,8 @@ export const createNode = async (
 	const versionParsed = node.version.split('.').map(Number) as Version;
 	const supports = {
 		moduleRegister: isFeatureSupported(moduleRegister, versionParsed),
+
+		moduleRegisterHooksCjsReload: isFeatureSupported(moduleRegisterHooksCjsReload, versionParsed),
 
 		testRunnerGlob: isFeatureSupported(testRunnerGlob, versionParsed),
 

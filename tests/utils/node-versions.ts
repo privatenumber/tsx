@@ -13,6 +13,8 @@ export const nodeVersions = [
 			&& process.platform !== 'win32'
 		)
 			? [
+				latestMajor('26.1.0'),
+				latestMajor('25.9.0'),
 				latestMajor('22.22.2'),
 				latestMajor('21.7.3'),
 				latestMajor('20.20.2'),

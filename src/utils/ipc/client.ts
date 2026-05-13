@@ -7,6 +7,8 @@ export type Parent = {
 	send: SendToParent | void;
 };
 
+let queuedMessages: Record<string, unknown>[] = [];
+
 const connectToServer = () => new Promise<SendToParent | void>((resolve) => {
 	const pipePath = getPipePath(process.ppid);
 	const socket: net.Socket = net.createConnection(
@@ -36,14 +38,26 @@ const connectToServer = () => new Promise<SendToParent | void>((resolve) => {
 });
 
 export const parent: Parent = {
-	send: undefined,
+	send: (data) => {
+		queuedMessages.push(data);
+	},
 };
 
 export const connectingToServer = connectToServer();
 
 connectingToServer.then(
 	(send) => {
+		if (send) {
+			for (const message of queuedMessages) {
+				send(message);
+			}
+		}
+
+		queuedMessages = [];
 		parent.send = send;
 	},
-	() => {},
+	() => {
+		queuedMessages = [];
+		parent.send = undefined;
+	},
 );

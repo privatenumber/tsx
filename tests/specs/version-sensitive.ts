@@ -1,11 +1,54 @@
 import { describe, test, expect } from 'manten';
+import { execaNode } from 'execa';
 import { createFixture } from 'fs-fixture';
-import type { NodeApis } from '../utils/tsx';
+import { tsxEsmApiPath, tsxEsmPath, type NodeApis } from '../utils/tsx';
 import { createPackageJson } from '../fixtures';
 
 // Lightweight tests for behaviors that vary across Node versions.
 // Run on every Node version in the CI matrix.
 export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensitive', () => {
+	if (node.supports.moduleRegisterHooksCjsReload) {
+		test('ESM loader avoids module.register deprecation', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'module' }),
+				'index.ts': 'console.log("loaded" as string)',
+			});
+
+			const { exitCode, stderr, stdout } = await execaNode(fixture.getPath('index.ts'), {
+				nodePath: node.path,
+				nodeOptions: ['--throw-deprecation', '--import', tsxEsmPath],
+				reject: false,
+			});
+			expect(exitCode).toBe(0);
+			expect(stderr).not.toContain('DEP0205');
+			expect(stdout).toBe('loaded');
+		});
+
+		test('register API avoids module.register deprecation', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'module' }),
+				'register.mjs': `
+					import { register } from ${JSON.stringify(tsxEsmApiPath)};
+
+					const unregister = register();
+					const { message } = await import('./file');
+					console.log(message);
+					await unregister();
+					`,
+				'file.ts': 'export const message = "loaded" as string;',
+			});
+
+			const { exitCode, stderr, stdout } = await execaNode(fixture.getPath('register.mjs'), [], {
+				nodePath: node.path,
+				nodeOptions: ['--throw-deprecation'],
+				reject: false,
+			});
+			expect(exitCode).toBe(0);
+			expect(stderr).not.toContain('DEP0205');
+			expect(stdout).toBe('loaded');
+		});
+	}
+
 	test('CJS namespace import shape depends on Node version', async () => {
 		await using fixture = await createFixture({
 			'package.json': createPackageJson({ type: 'module' }),
@@ -30,15 +73,46 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 		const tsxProcess = await node.tsx(['index.ts'], fixture.path);
 
 		expect(tsxProcess.failed).toBe(false);
-		expect(tsxProcess.stdout).toBe(
-			node.supports.cjsNamespaceModuleExports
-				? '{"default":{"default":1,"named":2},"module.exports":{"default":1,"named":2}}'
-				: (
-					node.supports.cjsInterop
-						? '{"default":{"default":1,"named":2},"named":2}'
-						: '{"default":{"default":1,"named":2}}'
-				),
-		);
+		const namespace = JSON.parse(tsxProcess.stdout);
+		if (node.supports.moduleRegisterHooksCjsReload) {
+			expect(namespace).toEqual({
+				default: {
+					default: 1,
+					named: 2,
+				},
+				'module.exports': {
+					default: 1,
+					named: 2,
+				},
+				named: 2,
+			});
+		} else if (node.supports.cjsNamespaceModuleExports) {
+			expect(namespace).toEqual({
+				default: {
+					default: 1,
+					named: 2,
+				},
+				'module.exports': {
+					default: 1,
+					named: 2,
+				},
+			});
+		} else if (node.supports.cjsInterop) {
+			expect(namespace).toEqual({
+				default: {
+					default: 1,
+					named: 2,
+				},
+				named: 2,
+			});
+		} else {
+			expect(namespace).toEqual({
+				default: {
+					default: 1,
+					named: 2,
+				},
+			});
+		}
 		expect(tsxProcess.stderr).toBe('');
 	});
 
@@ -67,11 +141,11 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 		const tsxProcess = await node.tsx(['index.ts'], fixture.path);
 
 		expect(tsxProcess.failed).toBe(false);
-		expect(tsxProcess.stdout).toBe(
-			node.supports.requireEsmExtensionlessMjs
-				? '{"index":1,"directory":1}'
-				: '{"index":"MODULE_NOT_FOUND","directory":"MODULE_NOT_FOUND"}',
-		);
+		if (node.supports.requireEsmExtensionlessMjs) {
+			expect(tsxProcess.stdout).toBe('{"index":1,"directory":1}');
+		} else {
+			expect(tsxProcess.stdout).toBe('{"index":"MODULE_NOT_FOUND","directory":"MODULE_NOT_FOUND"}');
+		}
 		expect(tsxProcess.stderr).toBe('');
 	});
 

@@ -61,6 +61,17 @@ export const moduleRegister: Version[] = [
 	[20, 6, 0],
 ];
 
+// Node can re-enter Module._load from sync ESM hooks for CommonJS only after
+// this flag was added to the sync load/translate path.
+// https://github.com/nodejs/node/pull/59929
+// https://github.com/nodejs/node/blob/v24.11.1/lib/internal/modules/esm/load.js#L144-L171
+// https://github.com/nodejs/node/blob/v24.11.1/lib/internal/modules/esm/translators.js#L345-L356
+export const moduleRegisterHooksCjsReload: Version[] = [
+	[24, 11, 1],
+	[25, 1, 0],
+	[26, 0, 0],
+];
+
 // https://nodejs.org/docs/latest/api/esm.html#import-attributes
 export const importAttributes: Version[] = [
 	[18, 19, 0],

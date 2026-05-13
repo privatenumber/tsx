@@ -5,6 +5,7 @@ import { loadTsconfig } from '../../utils/tsconfig.js';
 import type { RequiredProperty } from '../../types.js';
 import { urlSearchParamsStringify } from '../../utils/url-search-params-stringify.js';
 import { fileUrlPrefix } from '../../utils/path-utils.js';
+import { activateGlobalCjsLoader } from '../../utils/cjs-loader-state.js';
 import type { LoaderState } from './types.js';
 import { createExtensions } from './module-extensions.js';
 import { createResolveFilename } from './module-resolve-filename/index.js';
@@ -88,6 +89,11 @@ export const register: Register = (
 		tsconfig,
 		options?.namespace,
 	);
+	const unregisterGlobalCjsLoader = (
+		options?.namespace
+			? undefined
+			: activateGlobalCjsLoader()
+	);
 
 	const unregister = () => {
 		if (sourceMapsEnabled === false) {
@@ -103,6 +109,7 @@ export const register: Register = (
 			Module._resolveFilename = originalResolveFilename;
 		}
 		unregisterExtensions();
+		unregisterGlobalCjsLoader?.();
 	};
 
 	if (options?.namespace) {
