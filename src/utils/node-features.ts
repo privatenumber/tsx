@@ -90,6 +90,13 @@ export const esmLoadReadFile: Version[] = [
 	[21, 3, 0],
 ];
 
+// https://github.com/nodejs/node/pull/48740
+// https://github.com/nodejs/node/blob/v20.11.0/doc/api/esm.md#L328-L362
+export const importMetaPathProperties: Version[] = [
+	[20, 11, 0],
+	[21, 2, 0],
+];
+
 // https://github.com/nodejs/node/pull/55085
 export const requireEsm: Version[] = [
 	[20, 19, 0],

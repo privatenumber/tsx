@@ -1,4 +1,6 @@
+import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
+import { pathToFileURL } from 'node:url';
 import {
 	describe, test, expect,
 } from 'manten';
@@ -179,6 +181,77 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 			});
 		}
 		expect(tsxProcess.stderr).toBe('');
+	});
+
+	test('import.meta path properties follow Node file module support', async () => {
+		await using fixture = await createFixture({
+			'direct.js': `
+				console.log(JSON.stringify({
+					dirname: import.meta.dirname,
+					filename: import.meta.filename,
+					ownsDirname: Object.hasOwn(import.meta, 'dirname'),
+					ownsFilename: Object.hasOwn(import.meta, 'filename'),
+					ownsUrl: Object.hasOwn(import.meta, 'url'),
+					url: import.meta.url,
+				}));
+				`,
+			'require.cjs': 'require("./required.js");',
+			'required.js': `
+				console.log(JSON.stringify({
+					dirname: import.meta.dirname,
+					filename: import.meta.filename,
+					ownsDirname: Object.hasOwn(import.meta, 'dirname'),
+					ownsFilename: Object.hasOwn(import.meta, 'filename'),
+					ownsUrl: Object.hasOwn(import.meta, 'url'),
+					url: import.meta.url,
+				}));
+				export const loaded = true;
+				`,
+		});
+
+		const directProcess = await node.tsx(['direct.js'], fixture.path);
+		expect(directProcess.failed).toBe(false);
+		expect(directProcess.stderr).toBe('');
+		const directFilePath = fixture.getPath('direct.js');
+		if (node.supports.importMetaPathProperties) {
+			expect(JSON.parse(directProcess.stdout)).toEqual({
+				dirname: path.dirname(directFilePath),
+				filename: directFilePath,
+				ownsDirname: true,
+				ownsFilename: true,
+				ownsUrl: true,
+				url: pathToFileURL(directFilePath).toString(),
+			});
+		} else {
+			expect(JSON.parse(directProcess.stdout)).toEqual({
+				ownsDirname: false,
+				ownsFilename: false,
+				ownsUrl: true,
+				url: pathToFileURL(directFilePath).toString(),
+			});
+		}
+
+		const requireProcess = await node.tsx(['require.cjs'], fixture.path);
+		expect(requireProcess.failed).toBe(false);
+		expect(requireProcess.stderr).toBe('');
+		const requiredFilePath = fixture.getPath('required.js');
+		if (node.supports.importMetaPathProperties) {
+			expect(JSON.parse(requireProcess.stdout)).toEqual({
+				dirname: path.dirname(requiredFilePath),
+				filename: requiredFilePath,
+				ownsDirname: true,
+				ownsFilename: true,
+				ownsUrl: true,
+				url: pathToFileURL(requiredFilePath).toString(),
+			});
+		} else {
+			expect(JSON.parse(requireProcess.stdout)).toEqual({
+				ownsDirname: false,
+				ownsFilename: false,
+				ownsUrl: true,
+				url: pathToFileURL(requiredFilePath).toString(),
+			});
+		}
 	});
 
 	test('require(esm) support controls extensionless .mjs resolution', async () => {

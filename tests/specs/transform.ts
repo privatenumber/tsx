@@ -1,8 +1,11 @@
 import { describe, test, expect } from 'manten';
 import { createFsRequire } from 'fs-require';
+import { createFixture } from 'fs-fixture';
+import { execaNode } from 'execa';
 import { Volume } from 'memfs';
 import outdent from 'outdent';
 import { transform, transformSync } from '../../src/utils/transform/index.js';
+import { inlineSourceMap } from '../../src/source-map.js';
 
 const base64Module = (code: string) => `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`;
 
@@ -60,6 +63,103 @@ export const transformSpec = () => describe('transform', () => {
 				named: 'named',
 				url: expect.stringMatching(/^file:\/\/\/.*\/file.js$/),
 			});
+		});
+
+		test('import.meta helper cannot be shadowed by user bindings', () => {
+			const transformed = transformSync(
+				`
+				const define_import_meta_default = { url: 'shadowed' };
+				export const url = import.meta.url;
+				export const local = define_import_meta_default.url;
+				`,
+				'file.js',
+				{ format: 'cjs' },
+			);
+
+			const fsRequire = createFsRequire(Volume.fromJSON({
+				'/file.js': transformed.code,
+			}));
+
+			expect(fsRequire('/file.js')).toEqual({
+				local: 'shadowed',
+				url: expect.stringMatching(/^file:\/\/\/.*\/file.js$/),
+			});
+		});
+
+		test('doesnt emit import.meta helper without import.meta syntax', () => {
+			const transformed = transformSync(
+				`
+				// import.meta.url
+				const text = 'import.meta.url';
+				export const value = text;
+				`,
+				'file.js',
+				{ format: 'cjs' },
+			);
+
+			expect(transformed.code).not.toContain('import_meta');
+		});
+
+		test('supports import.meta object access', () => {
+			const transformed = transformSync(
+				`
+				export const meta = import.meta;
+				export const computed = import.meta['url'];
+				export const destructured = (() => {
+					const { url } = import.meta;
+					return url;
+				})();
+				export const prototype = Object.getPrototypeOf(import.meta);
+				export const hasProto = '__proto__' in import.meta;
+				export const urlDescriptor = Object.getOwnPropertyDescriptor(import.meta, 'url');
+				`,
+				'file.js',
+				{ format: 'cjs' },
+			);
+			const loaded = createFsRequire(Volume.fromJSON({
+				'/file.js': transformed.code,
+			}))('/file.js');
+
+			expect(loaded.meta.url).toMatch(/^file:\/\/\/.*\/file.js$/);
+			expect(loaded.computed).toMatch(/^file:\/\/\/.*\/file.js$/);
+			expect(loaded.destructured).toMatch(/^file:\/\/\/.*\/file.js$/);
+			expect(loaded.urlDescriptor).toStrictEqual({
+				configurable: true,
+				enumerable: true,
+				value: expect.stringMatching(/^file:\/\/\/.*\/file.js$/),
+				writable: true,
+			});
+
+			// TODO: Match native Node import.meta shape without adding another
+			// source-map transform pass.
+			// expect(Object.getPrototypeOf(loaded.meta)).toBe(null);
+			// expect(loaded.prototype).toBe(null);
+			// expect(loaded.hasProto).toBe(false);
+		});
+
+		test('import.meta helper preserves source map columns', async () => {
+			await using fixture = await createFixture({});
+			const fileName = fixture.getPath('source-map-check.ts');
+			const transformed = transformSync(
+				outdent`
+				export const meta = import.meta;
+				const value = 'x';
+				throw new Error('source-map-check');
+				`,
+				fileName,
+				{ format: 'cjs' },
+			);
+			await fixture.writeFile('source-map-check.cjs', inlineSourceMap(transformed));
+
+			const { exitCode, stderr } = await execaNode(
+				fixture.getPath('source-map-check.cjs'),
+				{
+					nodeOptions: ['--enable-source-maps'],
+					reject: false,
+				},
+			);
+			expect(exitCode).toBe(1);
+			expect(stderr).toContain(`${fileName}:3:7`);
 		});
 
 		test('dynamic import', () => {

@@ -8,6 +8,7 @@ import {
 	modulePackageMainResolution,
 	moduleRegister,
 	moduleRegisterHooksCjsReload,
+	importMetaPathProperties,
 	testRunnerGlob,
 	requireEsmExtensionlessMjs,
 	requireEsm,
@@ -88,6 +89,8 @@ export const createNode = async (
 		moduleRegister: isFeatureSupported(moduleRegister, versionParsed),
 
 		moduleRegisterHooksCjsReload: isFeatureSupported(moduleRegisterHooksCjsReload, versionParsed),
+
+		importMetaPathProperties: isFeatureSupported(importMetaPathProperties, versionParsed),
 
 		testRunnerGlob: isFeatureSupported(testRunnerGlob, versionParsed),
 
