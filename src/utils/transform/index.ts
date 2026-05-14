@@ -110,6 +110,53 @@ export const transformSync = (
 	return transformed;
 };
 
+
+// Used by esm sync hook (registerHooks) — ESM format, no __filename banner
+export const transformEsmSync = (
+	code: string,
+	filePath: string,
+	extendOptions?: TransformOptions,
+): Transformed => {
+	const esbuildOptions = {
+		...cacheConfig,
+		format: 'esm',
+		sourcefile: filePath,
+		...extendOptions,
+	} as const;
+
+	const hash = sha1([
+		code,
+		JSON.stringify(esbuildOptions),
+		esbuildVersion,
+		transformDynamicImportVersion,
+	].join('-'));
+	let transformed = cache.get(hash);
+
+	if (!transformed) {
+		transformed = applyTransformersSync(
+			filePath,
+			code,
+			[
+				(_filePath, _code) => {
+					const patchResult = patchOptions(esbuildOptions);
+					let result;
+					try {
+						result = esbuildTransformSync(_code, esbuildOptions);
+					} catch (error) {
+						throw formatEsbuildError(error as TransformFailure);
+					}
+					return patchResult(result);
+				},
+				(_filePath, _code) => transformDynamicImport(_filePath, _code, true),
+			],
+		);
+
+		cache.set(hash, transformed);
+	}
+
+	return transformed;
+};
+
 // Used by esm-loader
 export const transform = async (
 	code: string,

@@ -1,9 +1,9 @@
 import { fileURLToPath } from 'node:url';
 import type { LoadHook } from 'node:module';
 import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import type { TransformOptions } from 'esbuild';
-import { isFileIncluded } from 'get-tsconfig';
-import { transform, transformSync } from '../../utils/transform/index.js';
+import { transform, transformSync, transformEsmSync } from '../../utils/transform/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';
 import { inlineSourceMap } from '../../source-map.js';
 import { isFeatureSupported, importAttributes, esmLoadReadFile } from '../../utils/node-features.js';
@@ -14,6 +14,8 @@ import { isESM } from '../../utils/es-module-lexer.js';
 import { logEsm as log, debugEnabled } from '../../utils/debug.js';
 import { getNamespace } from './utils.js';
 import { data } from './initialize.js';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const isFileIncluded: typeof import('get-tsconfig')['isFileIncluded'] = (...args) => (require('get-tsconfig') as typeof import('get-tsconfig')).isFileIncluded(...args);
 
 const importAttributesProperty = (
 	isFeatureSupported(importAttributes)
@@ -182,4 +184,116 @@ if (debugEnabled) {
 	};
 }
 
+
 export { load };
+
+export const loadSync = (
+	url: string,
+	context: any,
+	nextLoad: any,
+) => {
+	if (!data.active) {
+		return nextLoad(url, context);
+	}
+
+	const urlNamespace = getNamespace(url);
+	if (data.namespace && data.namespace !== urlNamespace) {
+		return nextLoad(url, context);
+	}
+
+	if (data.port) {
+		const parsedUrl = new URL(url);
+		parsedUrl.searchParams.delete('tsx-namespace');
+		data.port.postMessage({
+			type: 'load',
+			url: parsedUrl.toString(),
+		} satisfies Message);
+	}
+
+	if (parent.send) {
+		parent.send({
+			type: 'dependency',
+			path: url,
+		});
+	}
+
+	if (isJsonPattern.test(url)) {
+		context = {
+			...context,
+			[importAttributesProperty]: {
+				...(context[importAttributesProperty] ?? {}),
+				type: 'json',
+			},
+		};
+	}
+
+	const loaded = nextLoad(url, context);
+
+	const filePath = url.startsWith(fileUrlPrefix) ? fileURLToPath(url) : url;
+
+	if (
+		loaded.format === 'commonjs'
+		&& isFeatureSupported(esmLoadReadFile)
+		&& loaded.responseURL?.startsWith('file:')
+		&& !filePath.endsWith('.cjs')
+	) {
+		const code = readFileSync(new URL(url), 'utf8');
+
+		if (!filePath.endsWith('.js') || isESM(code)) {
+			const transformed = transformSync(
+				code,
+				filePath,
+				{
+					tsconfigRaw: (
+						data.parsedTsconfig && isFileIncluded(data.parsedTsconfig, filePath)
+							? data.parsedTsconfig.config as TransformOptions['tsconfigRaw']
+							: undefined
+					),
+				},
+			);
+
+			const filePathWithNamespace = urlNamespace ? `${filePath}?namespace=${encodeURIComponent(urlNamespace)}` : filePath;
+
+			loaded.responseURL = `data:text/javascript,${encodeURIComponent(transformed.code)}?filePath=${encodeURIComponent(filePathWithNamespace)}`;
+
+			return loaded;
+		}
+	}
+
+	if (!loaded.source) {
+		return loaded;
+	}
+
+	const code = loaded.source.toString();
+
+	if (
+		loaded.format === 'json'
+		|| tsExtensionsPattern.test(url)
+	) {
+		const transformed = transformEsmSync(
+			code,
+			filePath,
+			{
+				tsconfigRaw: (
+					data.parsedTsconfig && isFileIncluded(data.parsedTsconfig, filePath)
+						? data.parsedTsconfig.config as TransformOptions['tsconfigRaw']
+						: undefined
+				),
+			},
+		);
+
+		return {
+			format: 'module',
+			source: inlineSourceMap(transformed),
+		};
+	}
+
+	if (loaded.format === 'module') {
+		const dynamicImportTransformed = transformDynamicImport(filePath, code);
+		if (dynamicImportTransformed) {
+			loaded.source = inlineSourceMap(dynamicImportTransformed);
+		}
+	}
+
+	return loaded;
+};

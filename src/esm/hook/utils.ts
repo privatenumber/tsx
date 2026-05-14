@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { tsExtensions } from '../../utils/path-utils.js';
-import { getPackageType } from './package-json.js';
+import { getPackageType, getPackageTypeSync } from './package-json.js';
 
 export const getFormatFromFileUrl = (fileUrl: string) => {
 	const { pathname } = new URL(fileUrl);
@@ -14,6 +14,21 @@ export const getFormatFromFileUrl = (fileUrl: string) => {
 
 	if (extension === '.js' || tsExtensions.includes(extension)) {
 		return getPackageType(fileUrl);
+	}
+};
+
+export const getFormatFromFileUrlSync = (fileUrl: string) => {
+	const { pathname } = new URL(fileUrl);
+	const extension = path.extname(pathname);
+	if (extension === '.mts' || extension === '.mjs') {
+		return 'module';
+	}
+	if (extension === '.cts' || extension === '.cjs') {
+		return 'commonjs';
+	}
+
+	if (extension === '.js' || tsExtensions.includes(extension)) {
+		return getPackageTypeSync(fileUrl);
 	}
 };
 

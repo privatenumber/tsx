@@ -4,6 +4,9 @@ import type { Message } from '../types.js';
 import type { RequiredProperty } from '../../types.js';
 import { interopCjsExports } from '../../cjs/api/module-resolve-filename/interop-cjs-exports.js';
 import { createScopedImport, type ScopedImport } from './scoped-import.js';
+import { loadSync, resolveSync } from '../hook/index.js';
+import { data } from '../hook/initialize.js';
+import { loadTsconfig } from '../../utils/tsconfig.js';
 
 export type TsconfigOptions = false | string;
 
@@ -36,8 +39,8 @@ let cjsInteropApplied = false;
 export const register: Register = (
 	options,
 ) => {
-	if (!module.register) {
-		throw new Error(`This version of Node.js (${process.version}) does not support module.register(). Please upgrade to Node v18.19 or v20.6 and above.`);
+	if (!module.register && !module.registerHooks) {
+		throw new Error(`This version of Node.js (${process.version}) does not support module.register() or module.registerHooks(). Please upgrade to Node v18.19 or v20.6 and above.`);
 	}
 
 	if (!cjsInteropApplied) {
@@ -54,6 +57,50 @@ export const register: Register = (
 
 	const { sourceMapsEnabled } = process;
 	process.setSourceMapsEnabled(true);
+
+	if (module.registerHooks) {
+
+		// Initialize shared data (normally done by module.register's initialize hook)
+		data.namespace = options?.namespace;
+		if (options?.tsconfig !== false) {
+			data.parsedTsconfig = loadTsconfig(options?.tsconfig ?? process.env.TSX_TSCONFIG_PATH);
+		}
+
+		let onImportPort: import('node:worker_threads').MessagePort | undefined;
+		if (options?.onImport) {
+			const { port1, port2 } = new MessageChannel();
+			data.port = port2;
+			const { onImport } = options;
+			onImportPort = port1;
+			port1.on('message', (message: Message) => {
+				if (message.type === 'load') {
+					onImport(message.url);
+				}
+			});
+			port1.unref();
+		}
+
+		const hooks = module.registerHooks({
+			resolve: resolveSync as Parameters<typeof module.registerHooks>[0]['resolve'],
+			load: loadSync as Parameters<typeof module.registerHooks>[0]['load'],
+		});
+
+		const unregisterFn = async () => {
+			if (sourceMapsEnabled === false) {
+				process.setSourceMapsEnabled(false);
+			}
+			hooks.deregister();
+			data.port = undefined;
+			onImportPort?.close();
+		};
+
+		const unregister = unregisterFn as unknown as NamespacedUnregister;
+		if (options?.namespace) {
+			unregister.import = createScopedImport(options.namespace);
+			unregister.unregister = unregisterFn;
+		}
+		return unregister;
+	}
 
 	const { port1, port2 } = new MessageChannel();
 	module.register(

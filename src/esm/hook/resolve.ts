@@ -3,9 +3,10 @@ import { pathToFileURL } from 'node:url';
 import type {
 	ResolveHook,
 	ResolveHookContext,
+	ResolveFnOutput,
+	ResolveHookSync,
 } from 'node:module';
 import type { PackageJson } from 'type-fest';
-import { resolvePathAlias } from 'get-tsconfig';
 import { readJsonFile } from '../../utils/read-json-file.js';
 import { mapTsExtensions } from '../../utils/map-ts-extensions.js';
 import type { NodeError } from '../../types.js';
@@ -20,12 +21,16 @@ import type { TsxRequest } from '../types.js';
 import { logEsm as log, debugEnabled } from '../../utils/debug.js';
 import {
 	getFormatFromFileUrl,
+	getFormatFromFileUrlSync,
 	namespaceQuery,
 	getNamespace,
 } from './utils.js';
 import { data } from './initialize.js';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const resolvePathAlias: typeof import('get-tsconfig')['resolvePathAlias'] = (...args) => (require('get-tsconfig') as typeof import('get-tsconfig')).resolvePathAlias(...args);
 
 type NextResolve = Parameters<ResolveHook>[2];
+type NextResolveSync = Parameters<ResolveHookSync>[2];
 
 const getMissingPathFromNotFound = (
 	nodeError: NodeError,
@@ -389,3 +394,221 @@ if (debugEnabled) {
 }
 
 export { resolve };
+
+const resolveExtensionsSync = (
+	url: string,
+	context: ResolveHookContext,
+	nextResolve: NextResolveSync,
+	throwError?: boolean,
+) => {
+	const tryPaths = mapTsExtensions(url);
+	if (!tryPaths) return;
+
+	let caughtError: unknown;
+	for (const tsPath of tryPaths) {
+		try {
+			return nextResolve(tsPath, context);
+		} catch (error) {
+			const { code } = error as NodeError;
+			if (
+				code !== 'ERR_MODULE_NOT_FOUND'
+				&& code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED'
+			) {
+				throw error;
+			}
+			caughtError = error;
+		}
+	}
+
+	if (throwError) {
+		throw caughtError;
+	}
+};
+
+const resolveBaseSync = (
+	specifier: string,
+	context: ResolveHookContext,
+	nextResolve: NextResolveSync,
+) => {
+	const allowJs = data.parsedTsconfig?.config.compilerOptions?.allowJs ?? false;
+
+	if (
+		(
+			specifier.startsWith(fileUrlPrefix)
+			|| isRelativePath(specifier)
+		) && (
+			tsExtensionsPattern.test(context.parentURL!)
+			|| allowJs
+		)
+	) {
+		const resolved = resolveExtensionsSync(specifier, context, nextResolve);
+		if (resolved) {
+			return resolved;
+		}
+	}
+
+	try {
+		return nextResolve(specifier, context);
+	} catch (error) {
+		if (error instanceof Error) {
+			const nodeError = error as NodeError;
+			if (nodeError.code === 'ERR_MODULE_NOT_FOUND') {
+				const errorPath = getMissingPathFromNotFound(nodeError);
+				if (errorPath) {
+					const resolved = resolveExtensionsSync(errorPath, context, nextResolve);
+					if (resolved) {
+						return resolved;
+					}
+				}
+			}
+		}
+		throw error;
+	}
+};
+
+const resolveDirectorySync = (
+	specifier: string,
+	context: ResolveHookContext,
+	nextResolve: NextResolveSync,
+) => {
+	if (specifier === '.' || specifier === '..' || specifier.endsWith('/..')) {
+		specifier += '/';
+	}
+
+	if (isDirectoryPattern.test(specifier)) {
+		const urlParsed = new URL(specifier, context.parentURL);
+		urlParsed.pathname = path.join(urlParsed.pathname, 'index');
+		return resolveExtensionsSync(
+			urlParsed.toString(),
+			context,
+			nextResolve,
+			true,
+		)!;
+	}
+
+	try {
+		return resolveBaseSync(specifier, context, nextResolve);
+	} catch (error) {
+		if (error instanceof Error) {
+			const nodeError = error as NodeError;
+			if (nodeError.code === 'ERR_UNSUPPORTED_DIR_IMPORT') {
+				const errorPath = getMissingPathFromNotFound(nodeError);
+				if (errorPath) {
+					try {
+						return resolveExtensionsSync(
+							`${errorPath}/index`,
+							context,
+							nextResolve,
+							true,
+						)!;
+					} catch (_error) {
+						const __error = _error as Error;
+						const { message } = __error;
+						__error.message = __error.message.replace(`${'/index'.replace('/', path.sep)}'`, "'");
+						__error.stack = __error.stack!.replace(message, __error.message);
+						throw __error;
+					}
+				}
+			}
+		}
+		throw error;
+	}
+};
+
+const resolveTsPathsSync = (
+	specifier: string,
+	context: ResolveHookContext,
+	nextResolve: NextResolveSync,
+) => {
+	if (
+		!requestAcceptsQuery(specifier)
+		&& data.parsedTsconfig
+		&& !context.parentURL?.includes('/node_modules/')
+	) {
+		const possiblePaths = resolvePathAlias(data.parsedTsconfig, specifier);
+		for (const possiblePath of possiblePaths) {
+			try {
+				return resolveDirectorySync(
+					pathToFileURL(possiblePath).toString(),
+					context,
+					nextResolve,
+				);
+			} catch {}
+		}
+	}
+
+	return resolveDirectorySync(specifier, context, nextResolve);
+};
+
+export const resolveSync = (
+	specifier: string,
+	context: ResolveHookContext,
+	nextResolve: NextResolveSync,
+) => {
+	if (!data.active || specifier.startsWith('node:')) {
+		return nextResolve(specifier, context);
+	}
+
+	let requestNamespace = getNamespace(specifier) ?? (
+		context.parentURL && getNamespace(context.parentURL)
+	);
+
+	if (data.namespace) {
+		let tsImportRequest: TsxRequest | undefined;
+
+		if (specifier.startsWith(tsxProtocol)) {
+			try {
+				tsImportRequest = JSON.parse(specifier.slice(tsxProtocol.length));
+			} catch {}
+
+			if (tsImportRequest?.namespace) {
+				requestNamespace = tsImportRequest.namespace;
+			}
+		}
+
+		if (data.namespace !== requestNamespace) {
+			return nextResolve(specifier, context);
+		}
+
+		if (tsImportRequest) {
+			specifier = tsImportRequest.specifier;
+			context.parentURL = tsImportRequest.parentURL;
+		}
+	}
+
+	const [cleanSpecifier, query] = specifier.split('?');
+
+	const resolved = resolveTsPathsSync(
+		cleanSpecifier,
+		context,
+		nextResolve,
+	);
+
+	if (resolved.format === 'builtin') {
+		return resolved;
+	}
+
+	if (
+		(
+			!resolved.format
+			|| resolved.format === 'commonjs-typescript'
+			|| resolved.format === 'module-typescript'
+		)
+		&& resolved.url.startsWith(fileUrlPrefix)
+	) {
+		resolved.format = getFormatFromFileUrlSync(resolved.url);
+	}
+
+	if (query) {
+		resolved.url += `?${query}`;
+	}
+
+	if (
+		requestNamespace
+		&& !resolved.url.includes(namespaceQuery)
+	) {
+		resolved.url += (resolved.url.includes('?') ? '&' : '?') + namespaceQuery + requestNamespace;
+	}
+
+	return resolved;
+};

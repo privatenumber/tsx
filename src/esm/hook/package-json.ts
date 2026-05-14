@@ -65,3 +65,56 @@ export const getPackageType = async (
 	const packageJson = await findPackageJson(filePath);
 	return packageJson?.type ?? 'commonjs';
 };
+
+const readPackageJsonSync = (filePath: string) => {
+	if (packageJsonCache.has(filePath)) {
+		return packageJsonCache.get(filePath);
+	}
+
+	if (!fs.existsSync(filePath)) {
+		packageJsonCache.set(filePath, undefined);
+		return;
+	}
+
+	const packageJsonString = fs.readFileSync(filePath, 'utf8');
+	try {
+		const packageJson = JSON.parse(packageJsonString) as PackageJson;
+		packageJsonCache.set(filePath, packageJson);
+		return packageJson;
+	} catch {
+		throw new Error(`Error parsing: ${filePath}`);
+	}
+};
+
+const findPackageJsonSync = (
+	filePath: string,
+) => {
+	let packageJsonUrl = new URL('package.json', filePath);
+
+	while (true) {
+		if (packageJsonUrl.pathname.endsWith('/node_modules/package.json')) {
+			break;
+		}
+
+		const packageJsonPath = fileURLToPath(packageJsonUrl);
+		const packageJson = readPackageJsonSync(packageJsonPath);
+
+		if (packageJson) {
+			return packageJson;
+		}
+
+		const lastPackageJSONUrl = packageJsonUrl;
+		packageJsonUrl = new URL('../package.json', packageJsonUrl);
+
+		if (packageJsonUrl.pathname === lastPackageJSONUrl.pathname) {
+			break;
+		}
+	}
+};
+
+export const getPackageTypeSync = (
+	filePath: string,
+) => {
+	const packageJson = findPackageJsonSync(filePath);
+	return packageJson?.type ?? 'commonjs';
+};
