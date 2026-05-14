@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Module from 'node:module';
 import type { TransformOptions } from 'esbuild';
-import { isFileIncluded, type TsconfigResult } from 'get-tsconfig';
+import type { TsconfigResult } from 'get-tsconfig';
 import { transformSync } from '../../utils/transform/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';
 import { isESM } from '../../utils/es-module-lexer.js';
@@ -146,6 +146,8 @@ export const createExtensions = (
 			// CommonJS file but uses ESM import/export
 			|| isESM(code)
 		) {
+			// eslint-disable-next-line @typescript-eslint/no-require-imports
+			const { isFileIncluded } = require('get-tsconfig') as typeof import('get-tsconfig');
 			const transformed = transformSync(
 				code,
 				filePath,

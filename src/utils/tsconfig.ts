@@ -1,8 +1,10 @@
-import { getTsconfig, readTsconfig, type TsconfigResult } from 'get-tsconfig';
+import type { TsconfigResult } from 'get-tsconfig';
 
 export const loadTsconfig = (
 	configPath?: string,
 ): TsconfigResult | undefined => {
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	const { getTsconfig, readTsconfig } = require('get-tsconfig') as typeof import('get-tsconfig');
 	if (configPath) {
 		return readTsconfig(configPath);
 	}

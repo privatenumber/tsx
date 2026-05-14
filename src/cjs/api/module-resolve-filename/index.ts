@@ -1,6 +1,6 @@
 import Module from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { resolvePathAlias, type TsconfigResult } from 'get-tsconfig';
+import type { TsconfigResult } from 'get-tsconfig';
 import {
 	isFilePath,
 	fileUrlPrefix,
@@ -35,6 +35,8 @@ const resolveTsPaths = (
 		// Dependency paths should not be resolved using tsconfig.json
 		&& !parent?.filename?.includes(nodeModulesPath)
 	) {
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		const { resolvePathAlias } = require('get-tsconfig') as typeof import('get-tsconfig');
 		const possiblePaths = resolvePathAlias(tsconfig, request);
 		for (const possiblePath of possiblePaths) {
 			try {
