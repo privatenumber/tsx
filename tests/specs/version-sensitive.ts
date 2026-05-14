@@ -14,6 +14,128 @@ import { processInteract } from '../utils/process-interact.js';
 // Run on every Node version in the CI matrix.
 export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensitive', async () => {
 	if (node.supports.moduleRegisterHooksCjsReload) {
+		test('composes with other registerHooks loaders', async () => {
+			await using fixture = await createFixture({
+				'observer.mjs': `
+					import { registerHooks } from 'node:module';
+
+					const events = [];
+					const record = (event) => {
+						events.push(event);
+					};
+
+					registerHooks({
+						resolve(specifier, context, nextResolve) {
+							const result = nextResolve(specifier, context);
+							if (specifier.endsWith('.ts')) {
+								record({
+									hook: 'resolve',
+									specifier,
+									format: result.format ?? null,
+								});
+							}
+							return result;
+						},
+						load(url, context, nextLoad) {
+							const result = nextLoad(url, context);
+							if (url.endsWith('.ts')) {
+								record({
+									hook: 'load',
+									file: url.slice(url.lastIndexOf('/') + 1),
+									format: result.format ?? null,
+									sourceType: typeof result.source,
+								});
+							}
+							return result;
+						},
+					});
+
+					process.once('beforeExit', () => {
+						console.log(JSON.stringify(events));
+					});
+					`,
+				'entry.ts': `
+					import { value } from './value.ts';
+
+					console.log(\`entry:\${value}\`);
+					`,
+				'value.ts': 'export const value: string = "loaded";',
+			});
+
+			const run = async (
+				nodeOptions: string[],
+				expectedEvents: unknown[],
+			) => {
+				const process = await execaNode(fixture.getPath('entry.ts'), {
+					nodePath: node.path,
+					nodeOptions,
+					reject: false,
+				});
+
+				expect(process.exitCode).toBe(0);
+				expect(process.stderr).toBe('');
+				const stdoutLines = process.stdout.split('\n');
+				expect(stdoutLines[0]).toBe('entry:loaded');
+				expect(JSON.parse(stdoutLines[1])).toEqual(expectedEvents);
+			};
+			const observerUrl = pathToFileURL(fixture.getPath('observer.mjs')).toString();
+
+			await run(
+				['--import', observerUrl, '--import', tsxEsmPath],
+				[
+					{
+						hook: 'resolve',
+						specifier: pathToFileURL(fixture.getPath('entry.ts')).toString(),
+						format: null,
+					},
+					{
+						hook: 'load',
+						file: 'entry.ts',
+						format: 'commonjs',
+						sourceType: 'object',
+					},
+					{
+						hook: 'resolve',
+						specifier: pathToFileURL(fixture.getPath('value.ts')).toString(),
+						format: null,
+					},
+					{
+						hook: 'load',
+						file: 'value.ts',
+						format: 'commonjs',
+						sourceType: 'object',
+					},
+				],
+			);
+			await run(
+				['--import', tsxEsmPath, '--import', observerUrl],
+				[
+					{
+						hook: 'resolve',
+						specifier: pathToFileURL(fixture.getPath('entry.ts')).toString(),
+						format: 'commonjs',
+					},
+					{
+						hook: 'load',
+						file: 'entry.ts',
+						format: 'commonjs',
+						sourceType: 'string',
+					},
+					{
+						hook: 'resolve',
+						specifier: pathToFileURL(fixture.getPath('value.ts')).toString(),
+						format: 'commonjs',
+					},
+					{
+						hook: 'load',
+						file: 'value.ts',
+						format: 'commonjs',
+						sourceType: 'string',
+					},
+				],
+			);
+		});
+
 		await test('watch reruns when imported TypeScript file changes', async () => {
 			await using fixture = await createFixture({
 				'package.json': createPackageJson({ type: 'commonjs' }),
