@@ -2,7 +2,11 @@ import module from 'node:module';
 import { MessageChannel, type MessagePort } from 'node:worker_threads';
 import type { Message } from '../types.js';
 import type { RequiredProperty } from '../../types.js';
+import { isFeatureSupported, moduleRegisterHooksCjsReload } from '../../utils/node-features.js';
 import { interopCjsExports } from '../../cjs/api/module-resolve-filename/interop-cjs-exports.js';
+import { createData } from '../hook/initialize.js';
+import { createLoadSync } from '../hook/load.js';
+import { createResolveSync } from '../hook/resolve.js';
 import { createScopedImport, type ScopedImport } from './scoped-import.js';
 
 export type TsconfigOptions = false | string;
@@ -36,7 +40,12 @@ let cjsInteropApplied = false;
 export const register: Register = (
 	options,
 ) => {
-	if (!module.register) {
+	const supportsRegisterHooks = (
+		typeof module.registerHooks === 'function'
+		&& isFeatureSupported(moduleRegisterHooksCjsReload)
+	);
+
+	if (!module.register && !supportsRegisterHooks) {
 		throw new Error(`This version of Node.js (${process.version}) does not support module.register(). Please upgrade to Node v18.19 or v20.6 and above.`);
 	}
 
@@ -54,6 +63,34 @@ export const register: Register = (
 
 	const { sourceMapsEnabled } = process;
 	process.setSourceMapsEnabled(true);
+
+	if (supportsRegisterHooks) {
+		const hookData = createData({
+			namespace: options?.namespace,
+			onImport: options?.onImport,
+			tsconfig: options?.tsconfig,
+		});
+		const registeredHooks = module.registerHooks({
+			load: createLoadSync(hookData),
+			resolve: createResolveSync(hookData),
+		});
+
+		const unregister = (async () => {
+			hookData.active = false;
+			registeredHooks.deregister();
+
+			if (sourceMapsEnabled === false) {
+				process.setSourceMapsEnabled(false);
+			}
+		}) as NamespacedUnregister;
+
+		if (options?.namespace) {
+			unregister.import = createScopedImport(options.namespace);
+			unregister.unregister = unregister;
+		}
+
+		return unregister;
+	}
 
 	const { port1, port2 } = new MessageChannel();
 	module.register(

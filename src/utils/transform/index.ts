@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import {
 	transform as esbuildTransform,
@@ -7,6 +8,7 @@ import {
 	type TransformFailure,
 } from 'esbuild';
 import { sha1 } from '../sha1.js';
+import { importMetaPathProperties, isFeatureSupported } from '../node-features.js';
 import {
 	version as transformDynamicImportVersion,
 	transformDynamicImport,
@@ -33,14 +35,30 @@ const formatEsbuildError = (
 	throw error;
 };
 
+const getImportMeta = (
+	filePath: string,
+	url: string,
+) => ({
+	...(
+		// Keep dirname/filename aligned to Node in this major because exposing
+		// new properties can break user shims. In the next major, tsx can
+		// backport them because transformed CJS already owns import.meta.
+		isFeatureSupported(importMetaPathProperties)
+			? {
+				dirname: path.dirname(filePath),
+				filename: filePath,
+			}
+			: {}
+	),
+	url,
+});
+
 // Used by cjs-loader
 export const transformSync = (
 	code: string,
 	filePathOrUrl: string,
 	extendOptions?: TransformOptions,
 ): Transformed => {
-	const define: { [key: string]: string } = {};
-
 	let url: string;
 	let filePath: string;
 	let query: string | undefined;
@@ -54,20 +72,10 @@ export const transformSync = (
 		url = pathToFileURL(filePath) + (query ? `?${query}` : '');
 	}
 
-	if (
-		!(
-			filePath.endsWith('.cjs')
-			|| filePath.endsWith('.cts')
-		)
-	) {
-		define['import.meta.url'] = JSON.stringify(url);
-	}
-
-	const esbuildOptions = {
+	const esbuildOptions: TransformOptions = {
 		...cacheConfig,
 		format: 'cjs',
 		sourcefile: filePath,
-		define,
 		banner: `__filename=${JSON.stringify(filePath)};(()=>{`,
 		footer: '})()',
 
@@ -75,10 +83,23 @@ export const transformSync = (
 		platform: 'node',
 
 		...extendOptions,
-	} as const;
+	};
+
+	if (
+		code.includes('import.meta')
+		&& esbuildOptions.format === 'cjs'
+		&& !filePath.endsWith('.cjs')
+		&& !filePath.endsWith('.cts')
+	) {
+		esbuildOptions.define = {
+			...esbuildOptions.define,
+			'import.meta': JSON.stringify(getImportMeta(filePath, url)),
+		};
+	}
 
 	const hash = sha1([
 		code,
+		url,
 		JSON.stringify(esbuildOptions),
 		esbuildVersion,
 		transformDynamicImportVersion,
@@ -141,6 +162,51 @@ export const transform = async (
 					let result;
 					try {
 						result = await esbuildTransform(_code, esbuildOptions);
+					} catch (error) {
+						throw formatEsbuildError(error as TransformFailure);
+					}
+					return patchResult(result);
+				},
+				(_filePath, _code) => transformDynamicImport(_filePath, _code, true),
+			],
+		);
+
+		cache.set(hash, transformed);
+	}
+
+	return transformed;
+};
+
+export const transformEsmSync = (
+	code: string,
+	filePath: string,
+	extendOptions?: TransformOptions,
+): Transformed => {
+	const esbuildOptions = {
+		...cacheConfig,
+		format: 'esm',
+		sourcefile: filePath,
+		...extendOptions,
+	} as const;
+
+	const hash = sha1([
+		code,
+		JSON.stringify(esbuildOptions),
+		esbuildVersion,
+		transformDynamicImportVersion,
+	].join('-'));
+	let transformed = cache.get(hash);
+
+	if (!transformed) {
+		transformed = applyTransformersSync(
+			filePath,
+			code,
+			[
+				(_filePath, _code) => {
+					const patchResult = patchOptions(esbuildOptions);
+					let result;
+					try {
+						result = esbuildTransformSync(_code, esbuildOptions);
 					} catch (error) {
 						throw formatEsbuildError(error as TransformFailure);
 					}

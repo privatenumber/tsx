@@ -26,7 +26,7 @@ export const createImplicitResolver = (
 	 */
 	if (isDirectoryPattern.test(request)) {
 		// If directory, can be index.js, index.ts, etc.
-		let joinedPath = path.join(request, 'index.js');
+		let joinedPath = path.join(request, 'index');
 
 		/**
 		 * path.join will remove the './' prefix if it exists
@@ -49,7 +49,7 @@ export const createImplicitResolver = (
 
 		if (nodeError.code === 'MODULE_NOT_FOUND') {
 			try {
-				return nextResolve(`${request}${path.sep}index.js`);
+				return nextResolve(`${request}${path.sep}index`);
 			} catch {}
 		}
 

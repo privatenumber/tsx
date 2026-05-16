@@ -2,12 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Module from 'node:module';
 import type { TransformOptions } from 'esbuild';
+import { isFileIncluded, type TsconfigResult } from 'get-tsconfig';
 import { transformSync } from '../../utils/transform/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';
 import { isESM } from '../../utils/es-module-lexer.js';
 import { shouldApplySourceMap, inlineSourceMap } from '../../source-map.js';
 import { parent } from '../../utils/ipc/client.js';
-import { fileMatcher } from '../../utils/tsconfig.js';
 import { logCjs as log } from '../../utils/debug.js';
 import type { LoaderState } from './types.js';
 
@@ -76,6 +76,7 @@ const safeSet = <T extends Record<string, unknown>>(
 export const createExtensions = (
 	state: LoaderState,
 	extensions: NodeJS.RequireExtensions,
+	tsconfig: TsconfigResult | undefined,
 	namespace?: string,
 ) => {
 	const defaultLoader = extensions['.js'];
@@ -149,7 +150,11 @@ export const createExtensions = (
 				code,
 				filePath,
 				{
-					tsconfigRaw: fileMatcher?.(cleanFilePath) as TransformOptions['tsconfigRaw'],
+					tsconfigRaw: (
+						tsconfig && isFileIncluded(tsconfig, cleanFilePath)
+							? tsconfig.config as TransformOptions['tsconfigRaw']
+							: undefined
+					),
 				},
 			);
 

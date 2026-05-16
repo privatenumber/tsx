@@ -34,11 +34,11 @@ export default defineConfig({
 		}],
 		['meta', {
 			property: 'og:image',
-			content: 'https://tsx.is/social.png',
+			content: 'https://tsx.hirok.io/social.png',
 		}],
 		['meta', {
 			property: 'og:url',
-			content: 'https://tsx.is',
+			content: 'https://tsx.hirok.io',
 		}],
 		['meta', {
 			property: 'og:description',
