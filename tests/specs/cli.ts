@@ -1,4 +1,5 @@
 import { setTimeout } from 'node:timers/promises';
+import { on } from 'node:events';
 import {
 	describe, test, onFinish, onTestFail, expect,
 } from 'manten';
@@ -40,6 +41,58 @@ const isProcessAlive = (pid: number) => {
 		return true;
 	} catch {}
 	return false;
+};
+
+const isAbortError = (
+	error: unknown,
+) => error instanceof Error && error.name === 'AbortError';
+
+const waitForSignalRelay = async (
+	stdoutStream: NodeJS.ReadableStream,
+	signalName: string,
+	sendSignal: () => void,
+) => {
+	let stdout = '';
+	let sentFirstSignal = false;
+	let sentSecondSignal = isWindows;
+
+	try {
+		for await (const [data] of on(stdoutStream, 'data', {
+			close: ['end', 'close'],
+			signal: AbortSignal.timeout(10_000),
+		})) {
+			stdout += data.toString();
+
+			if (!sentFirstSignal && stdout.includes('READY')) {
+				sentFirstSignal = true;
+				sendSignal();
+
+				if (sentSecondSignal) {
+					return stdout;
+				}
+			}
+
+			if (!sentSecondSignal && stdout.includes(`${signalName} PRESS AGAIN`)) {
+				sentSecondSignal = true;
+				sendSignal();
+				return stdout;
+			}
+		}
+	} catch (error) {
+		if (isAbortError(error)) {
+			throw Object.assign(
+				new Error(`Timed out waiting for ${signalName} relay`),
+				{ stdout },
+			);
+		}
+
+		throw error;
+	}
+
+	throw Object.assign(
+		new Error(`Process exited before ${signalName} relay completed`),
+		{ stdout },
+	);
 };
 
 export const cli = (node: NodeApis) => describe('CLI', () => {
@@ -183,10 +236,10 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 			
 			for (const name of signals) {
 				process.once(name, () => {
-					console.log(name, 'PRESS AGAIN');
 					process.once(name, () => {
 						process.exit(200);
 					});
+					console.log(name, 'PRESS AGAIN');
 				});
 			}
 			
@@ -234,25 +287,27 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 						fixture.getPath('catch-signals.js'),
 					]);
 
-					tsxProcess.stdout!.once('data', () => {
-						tsxProcess.kill(signal, {
-							forceKillAfterTimeout: false,
-						});
-
-						tsxProcess.stdout!.once('data', () => {
-							tsxProcess.kill(signal, {
-								forceKillAfterTimeout: false,
-							});
-						});
-					});
-
-					const tsxProcessResolved = await tsxProcess;
+					let stdout = '';
+					let tsxProcessResolved: Awaited<typeof tsxProcess> | undefined;
 
 					onTestFail(() => {
-						console.log(tsxProcessResolved);
+						console.log({
+							tsxProcessResolved,
+							stdout,
+						});
 					});
 
-					if (process.platform === 'win32') {
+					stdout = await waitForSignalRelay(
+						tsxProcess.stdout!,
+						signal,
+						() => tsxProcess.kill(signal, {
+							forceKillAfterTimeout: false,
+						}),
+					);
+
+					tsxProcessResolved = await tsxProcess;
+
+					if (isWindows) {
 						/**
 						 * Windows doesn't support sending signals to processes.
 						 * https://nodejs.org/api/process.html#signal-events
@@ -261,10 +316,10 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 						 * of the target process, and afterwards, subprocess will report that the process
 						 * was terminated by signal.
 						 */
-						expect(tsxProcessResolved.stdout).toBe('READY');
+						expect(stdout.trim()).toBe('READY');
 					} else {
 						expect(tsxProcessResolved.exitCode).toBe(200);
-						expectMatchInOrder(tsxProcessResolved.stdout, [
+						expectMatchInOrder(stdout, [
 							'READY\n',
 							`${signal} PRESS AGAIN`,
 						]);

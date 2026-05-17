@@ -176,6 +176,68 @@ export const tsconfig = ({ tsx }: NodeApis) => describe('tsconfig', () => {
 					expect(pTsconfig.stderr).toBe('');
 					expect(pTsconfig.stdout).toBe('resolved via configDir');
 				});
+
+				test('tsconfig paths can match colon aliases', async () => {
+					await using fixture = await createFixture({
+						'package.json': createPackageJson(packageType ? { type: packageType } : {}),
+						'tsconfig.json': createTsconfig({
+							compilerOptions: {
+								baseUrl: '.',
+								paths: {
+									'ns:*': ['./src/*'],
+								},
+							},
+						}),
+						'index.mts': `
+						import { value } from 'ns:utils.mjs';
+
+						console.log(value);
+						`,
+						src: {
+							'utils.mts': "export const value = 'success';",
+						},
+					});
+
+					const pTsconfig = await tsx(['index.mts'], fixture.path);
+					onTestFail((error) => {
+						console.error(error);
+						console.log(pTsconfig);
+					});
+					expect(pTsconfig.failed).toBe(false);
+					expect(pTsconfig.stderr).toBe('');
+					expect(pTsconfig.stdout).toBe('success');
+				});
+
+				test('tsconfig paths do not resolve data URLs', async () => {
+					await using fixture = await createFixture({
+						'package.json': createPackageJson(packageType ? { type: packageType } : {}),
+						'tsconfig.json': createTsconfig({
+							compilerOptions: {
+								baseUrl: '.',
+								paths: {
+									'data:*': ['./src/wrong.mjs'],
+								},
+							},
+						}),
+						'index.mts': `
+						import { value } from 'data:text/javascript,export%20const%20value%20%3D%20%22data-url%22%3B';
+
+						console.log(value);
+						`,
+						src: {
+							'wrong.mts': "export const value = 'wrong';",
+						},
+					});
+
+					const pTsconfig = await tsx(['index.mts'], fixture.path);
+					onTestFail((error) => {
+						console.error(error);
+						console.log(pTsconfig);
+					});
+					expect(pTsconfig.failed).toBe(false);
+					expect(pTsconfig.stderr).toBe('');
+					expect(pTsconfig.stdout).toBe('data-url');
+				});
 			});
 
 			describe('custom tsconfig', () => {

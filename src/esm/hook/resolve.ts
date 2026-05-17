@@ -11,11 +11,11 @@ import { readJsonFile } from '../../utils/read-json-file.js';
 import { mapTsExtensions } from '../../utils/map-ts-extensions.js';
 import type { NodeError } from '../../types.js';
 import {
-	requestAcceptsQuery,
 	fileUrlPrefix,
 	tsExtensionsPattern,
 	isDirectoryPattern,
 	isRelativePath,
+	isFilePath,
 } from '../../utils/path-utils.js';
 import type { TsxRequest } from '../types.js';
 import { isGlobalCjsLoaderActive } from '../../utils/cjs-loader-state.js';
@@ -30,6 +30,15 @@ import { data as defaultData, type Data } from './initialize.js';
 
 type NextResolve = Parameters<ResolveHook>[2];
 type NextResolveSync = Parameters<ResolveHookSync>[2];
+
+const urlLikeSpecifierPattern = /^(?:[a-z][\d+.a-z-]*:\/\/|data:|file:|node:)/i;
+
+const isTsconfigPathAliasSpecifier = (
+	specifier: string,
+) => (
+	!isFilePath(specifier)
+	&& !urlLikeSpecifierPattern.test(specifier)
+);
 
 const getMissingPathFromNotFound = (
 	nodeError: NodeError,
@@ -425,17 +434,18 @@ const resolveTsPaths = async (
 	nextResolve: NextResolve,
 	hookData: Data,
 ) => {
+	const tsconfigPathAliasSpecifier = isTsconfigPathAliasSpecifier(specifier);
 	log(3, 'resolveTsPaths', {
 		specifier,
 		context,
 
-		requestAcceptsQuery: requestAcceptsQuery(specifier),
+		tsconfigPathAliasSpecifier,
 		tsconfig: hookData.parsedTsconfig,
 		fromNodeModules: context.parentURL?.includes('/node_modules/'),
 	});
 	if (
-		// Bare specifier
-		!requestAcceptsQuery(specifier)
+		// Bare specifier or TS path alias (e.g. `ns:foo`)
+		tsconfigPathAliasSpecifier
 		// TS path alias
 		&& hookData.parsedTsconfig
 		&& !context.parentURL?.includes('/node_modules/')
@@ -465,17 +475,18 @@ const resolveTsPathsSync = (
 	nextResolve: NextResolveSync,
 	hookData: Data,
 ) => {
+	const tsconfigPathAliasSpecifier = isTsconfigPathAliasSpecifier(specifier);
 	log(3, 'resolveTsPathsSync', {
 		specifier,
 		context,
 
-		requestAcceptsQuery: requestAcceptsQuery(specifier),
+		tsconfigPathAliasSpecifier,
 		tsconfig: hookData.parsedTsconfig,
 		fromNodeModules: context.parentURL?.includes('/node_modules/'),
 	});
 	if (
-		// Bare specifier
-		!requestAcceptsQuery(specifier)
+		// Bare specifier or TS path alias (e.g. `ns:foo`)
+		tsconfigPathAliasSpecifier
 		// TS path alias
 		&& hookData.parsedTsconfig
 		&& !context.parentURL?.includes('/node_modules/')
