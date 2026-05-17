@@ -1,4 +1,5 @@
 import { setTimeout } from 'node:timers/promises';
+import { on } from 'node:events';
 import {
 	describe, test, onFinish, onTestFail, expect,
 } from 'manten';
@@ -40,6 +41,58 @@ const isProcessAlive = (pid: number) => {
 		return true;
 	} catch {}
 	return false;
+};
+
+const isAbortError = (
+	error: unknown,
+) => error instanceof Error && error.name === 'AbortError';
+
+const waitForSignalRelay = async (
+	stdoutStream: NodeJS.ReadableStream,
+	signalName: string,
+	sendSignal: () => void,
+) => {
+	let stdout = '';
+	let sentFirstSignal = false;
+	let sentSecondSignal = isWindows;
+
+	try {
+		for await (const [data] of on(stdoutStream, 'data', {
+			close: ['end', 'close'],
+			signal: AbortSignal.timeout(10_000),
+		})) {
+			stdout += data.toString();
+
+			if (!sentFirstSignal && stdout.includes('READY')) {
+				sentFirstSignal = true;
+				sendSignal();
+
+				if (sentSecondSignal) {
+					return stdout;
+				}
+			}
+
+			if (!sentSecondSignal && stdout.includes(`${signalName} PRESS AGAIN`)) {
+				sentSecondSignal = true;
+				sendSignal();
+				return stdout;
+			}
+		}
+	} catch (error) {
+		if (isAbortError(error)) {
+			throw Object.assign(
+				new Error(`Timed out waiting for ${signalName} relay`),
+				{ stdout },
+			);
+		}
+
+		throw error;
+	}
+
+	throw Object.assign(
+		new Error(`Process exited before ${signalName} relay completed`),
+		{ stdout },
+	);
 };
 
 export const cli = (node: NodeApis) => describe('CLI', () => {
@@ -244,53 +297,13 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 						});
 					});
 
-					await new Promise<void>((resolve, reject) => {
-						let sentFirstSignal = false;
-						let sentSecondSignal = isWindows;
-
-						const cleanup = () => {
-							globalThis.clearTimeout(timeout);
-							tsxProcess.stdout!.off('data', onData);
-						};
-
-						const timeout = globalThis.setTimeout(
-							() => {
-								cleanup();
-								reject(Object.assign(
-									new Error(`Timed out waiting for ${signal} relay`),
-									{ stdout },
-								));
-							},
-							10_000,
-						);
-
-						const onData = (data: Buffer) => {
-							stdout += data.toString();
-
-							if (!sentFirstSignal && stdout.includes('READY')) {
-								sentFirstSignal = true;
-								tsxProcess.kill(signal, {
-									forceKillAfterTimeout: false,
-								});
-
-								if (sentSecondSignal) {
-									cleanup();
-									resolve();
-								}
-							}
-
-							if (!sentSecondSignal && stdout.includes(`${signal} PRESS AGAIN`)) {
-								sentSecondSignal = true;
-								tsxProcess.kill(signal, {
-									forceKillAfterTimeout: false,
-								});
-								cleanup();
-								resolve();
-							}
-						};
-
-						tsxProcess.stdout!.on('data', onData);
-					});
+					stdout = await waitForSignalRelay(
+						tsxProcess.stdout!,
+						signal,
+						() => tsxProcess.kill(signal, {
+							forceKillAfterTimeout: false,
+						}),
+					);
 
 					tsxProcessResolved = await tsxProcess;
 
