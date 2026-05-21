@@ -6,6 +6,8 @@ import {
 } from 'manten';
 import { execaNode } from 'execa';
 import { createFixture } from 'fs-fixture';
+import { createData } from '../../src/esm/hook/initialize.js';
+import { createLoadSync } from '../../src/esm/hook/load.js';
 import { tsxEsmApiPath, tsxEsmPath, type NodeApis } from '../utils/tsx';
 import { createPackageJson } from '../fixtures';
 import { processInteract } from '../utils/process-interact.js';
@@ -309,6 +311,43 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 			expect(process.exitCode).toBe(0);
 			expect(process.stderr).toBe('');
 			expect(JSON.parse(process.stdout)).toEqual({
+				diff: true,
+				extension: ['js', 'cjs', 'mjs'],
+			});
+		});
+
+		test('sync ESM hook preserves ESM-to-CJS bridge JSON require', async () => {
+			await using fixture = await createFixture({
+				'mocharc.json': JSON.stringify({
+					diff: true,
+					extension: ['js', 'cjs', 'mjs'],
+				}),
+			});
+			const jsonUrl = pathToFileURL(fixture.getPath('mocharc.json')).toString();
+			const loadSync = createLoadSync(createData({ tsconfig: false }));
+
+			// Simulates Node's internal ESM->CJS bridge frame for JSON requires.
+			const loadAndTranslateForRequireInImportedCJS = () => loadSync(
+				jsonUrl,
+				{
+					conditions: ['node', 'import'],
+					format: 'json',
+					importAttributes: { type: 'json' },
+				},
+				() => ({
+					format: 'json',
+					responseURL: jsonUrl,
+					source: JSON.stringify({
+						diff: true,
+						extension: ['js', 'cjs', 'mjs'],
+					}),
+				}),
+			);
+
+			const loaded = loadAndTranslateForRequireInImportedCJS();
+
+			expect(loaded.format).toBe('json');
+			expect(JSON.parse(loaded.source as string)).toEqual({
 				diff: true,
 				extension: ['js', 'cjs', 'mjs'],
 			});
