@@ -244,11 +244,24 @@ const prepareJsonAttributes = (
 	};
 };
 
+const commonJsFromEsmBridgeStackFrame = 'loadAndTranslateForRequireInImportedCJS';
+
 const isCommonJsRequireContext = (
 	{ conditions }: Parameters<LoadHook>[1],
 ) => (
 	conditions?.includes('require') === true
 	&& !conditions.includes('import')
+);
+
+const isCommonJsFromEsmBridgeRequireContext = (
+	{ conditions }: Parameters<LoadHook>[1],
+) => (
+	// Yarn PnP on Node 24+ can send `import` conditions for JSON required
+	// by a CommonJS module reached through the ESM->CJS bridge. Node still
+	// parses the hook result as JSON on that path, so transforming it to ESM
+	// breaks the CommonJS consumer.
+	conditions?.includes('import') === true
+	&& new Error('Detect CommonJS JSON require bridge').stack?.includes(commonJsFromEsmBridgeStackFrame) === true
 );
 
 export const createLoad = (
@@ -377,7 +390,11 @@ export const createLoad = (
 		const code = decodeSource(loaded.source);
 		// CJS JSON require still parses hook source as JSON after module hooks.
 		// https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/cjs/loader.js#L1969-L1978
-		const shouldTransformJson = loadedFormat === 'json' && !isCommonJsRequireContext(context);
+		const shouldTransformJson = (
+			loadedFormat === 'json'
+			&& !isCommonJsRequireContext(context)
+			&& !isCommonJsFromEsmBridgeRequireContext(context)
+		);
 
 		if (loadedFormat === 'commonjs-typescript') {
 			const transformed = transformSync(
@@ -528,7 +545,11 @@ export const createLoadSync = (
 		const code = decodeSource(loaded.source);
 		// CJS JSON require still parses hook source as JSON after module hooks.
 		// https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/cjs/loader.js#L1969-L1978
-		const shouldTransformJson = loadedFormat === 'json' && !isCommonJsRequireContext(context);
+		const shouldTransformJson = (
+			loadedFormat === 'json'
+			&& !isCommonJsRequireContext(context)
+			&& !isCommonJsFromEsmBridgeRequireContext(context)
+		);
 
 		if (loadedFormat === 'commonjs-typescript') {
 			const transformed = transformSync(
