@@ -803,6 +803,46 @@ export const api = (node: NodeApis) => describe('API', () => {
 					].join(String.raw`\n`)));
 				});
 
+				test('requires a CJS dependency from CJS-context .ts under namespace', async () => {
+					// Regression: tsx's CJS resolver appends a
+					// `?namespace=<id>` cache-isolation query to the resolved
+					// file path. The CJS loader runs that path through
+					// pathToFileURL to dispatch via the module customization
+					// hooks, encoding the `?` as `%3F` inside the URL pathname
+					// and re-entering ESM resolve with that URL as the
+					// specifier. Without a guard the encoded segment reached
+					// Node's default resolver and ENOENT'd with
+					// "Cannot find module .../index.cjs?namespace=...".
+					// Reproduces on every supported Node version.
+					await using fixture = await createFixture({
+						'package.json': createPackageJson({ type: 'module' }),
+						'import.mjs': outdent`
+						import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+						await tsImport('./nested/entry.ts', import.meta.url);
+						`,
+						'nested/package.json': createPackageJson({ name: 'nested' }),
+						'nested/entry.ts': outdent`
+						const { osType } = require('cjs-dep');
+						console.log('type:', typeof osType);
+						`,
+						'node_modules/cjs-dep/package.json': createPackageJson({
+							name: 'cjs-dep',
+							main: './index.cjs',
+						}),
+						'node_modules/cjs-dep/index.cjs': outdent`
+						const os = require('node:os');
+						module.exports = { osType: os.type() };
+						`,
+					});
+
+					const { stdout } = await execaNode(fixture.getPath('import.mjs'), [], {
+						nodePath: node.path,
+						nodeOptions: [],
+					});
+
+					expect(stdout).toBe('type: string');
+				});
+
 				test('namespace allows async nested calls without cross contamination', async () => {
 					await using fixture = await createFixture({
 						'package.json': createPackageJson({ type: 'module' }),
