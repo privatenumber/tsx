@@ -1180,4 +1180,55 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 			expect(tsxProcess.exitCode).toBe(0);
 		}, 10_000);
 	}
+
+	// https://github.com/privatenumber/tsx/issues/800
+	if (node.supports.moduleRegisterHooksCjsReload) {
+		test('CJS require inside node_modules does not get TS extension rewriting', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'module' }),
+				'index.ts': `
+				import { value } from 'fake-ajv';
+				console.log('loaded:', value);
+				`,
+				node_modules: {
+					'fake-ajv': {
+						'package.json': createPackageJson({
+							name: 'fake-ajv',
+							type: 'commonjs',
+							main: './dist/main.js',
+						}),
+						dist: {
+							// main.js requires a file in a subdirectory
+							'main.js': `
+							const serialize = require('./compile/jtd/serialize');
+							module.exports.value = serialize.result;
+							`,
+							compile: {
+								// index.js exists — the bug causes tsx to look for index.jsx instead
+								'index.js': 'module.exports.compile = true;',
+								jtd: {
+									// serialize.js does require('..') to get compile/index.js
+									'serialize.js': `
+									const parent = require('..');
+									module.exports.result = parent.compile ? "ok" : "fail";
+									`,
+								},
+							},
+						},
+					},
+				},
+			});
+
+			// Use --import=tsx/esm (not the tsx CLI) to trigger the ESM sync hooks path
+			const p = await execaNode('index.ts', [], {
+				cwd: fixture.path,
+				nodePath: node.path,
+				nodeOptions: ['--import', tsxEsmPath],
+				reject: false,
+				all: true,
+			});
+			expect(p.failed).toBe(false);
+			expect(p.stdout).toMatch('loaded: ok');
+		});
+	}
 });

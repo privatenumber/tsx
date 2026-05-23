@@ -719,6 +719,15 @@ export const createResolveSync = (
 			!hookData.active
 			|| specifier.startsWith('node:')
 			|| (isCommonJsRequireContext(context) && isGlobalCjsLoaderActive())
+			// Skip tsx resolution for internal dependency requires on Node 24+.
+			// When a CJS file inside node_modules does require('./path'), Node 24
+			// dispatches through the ESM sync hooks. tsx should not apply TS extension
+			// rewriting to these internal dependency paths.
+			|| (
+				isCommonJsRequireContext(context)
+				&& context.parentURL?.includes('/node_modules/')
+				&& isFilePath(specifier)
+			)
 		) {
 			return nextResolve(specifier, context);
 		}
