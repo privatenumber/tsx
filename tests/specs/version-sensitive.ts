@@ -314,6 +314,141 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 			});
 		});
 
+		// https://github.com/privatenumber/tsx/issues/800
+		test('sync ESM hook resolves directory requires inside dependencies', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'commonjs' }),
+				'entry.cjs': 'console.log(JSON.stringify(require("dep")));',
+				node_modules: {
+					// Bare dependency required with a trailing slash, like
+					// readable-stream's `require('process/')`. The trailing slash
+					// must not be treated as a relative directory.
+					'bare-dep': {
+						'package.json': createPackageJson({
+							type: 'commonjs',
+							main: './index.js',
+						}),
+						'index.js': 'module.exports = "bare-ok";',
+					},
+					dep: {
+						'package.json': createPackageJson({
+							type: 'commonjs',
+							main: './lib/sub/entry.js',
+						}),
+						lib: {
+							// `require('..')` from the nested entry resolves here.
+							'index.js': 'module.exports = { parent: "parent-ok" };',
+							sub: {
+								'entry.js': `
+									const parent = require('..');
+									const bare = require('bare-dep/');
+									module.exports = { parent: parent.parent, bare };
+									`,
+							},
+						},
+					},
+				},
+			});
+
+			const process = await node.hook(['entry.cjs'], fixture.path);
+
+			expect(process.stderr).toBe('');
+			expect(process.exitCode).toBe(0);
+			expect(JSON.parse(process.stdout)).toEqual({
+				parent: 'parent-ok',
+				bare: 'bare-ok',
+			});
+		});
+
+		// https://github.com/privatenumber/tsx/issues/800
+		test('sync ESM hook resolves a dependency directory require to a TypeScript index', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'commonjs' }),
+				'entry.cjs': 'console.log(require("ts-dep").tag);',
+				'node_modules/ts-dep': {
+					'package.json': createPackageJson({
+						type: 'commonjs',
+						main: './lib/sub/entry.js',
+					}),
+					lib: {
+						// TypeScript directory index, with no index.js sibling: the
+						// type annotation proves it is transformed, not found as JS.
+						'index.ts': 'export const tag: string = "ts-index";',
+						sub: {
+							'entry.js': 'module.exports = require("..");',
+						},
+					},
+				},
+			});
+
+			const process = await node.hook(['entry.cjs'], fixture.path);
+
+			expect(process.stderr).toBe('');
+			expect(process.exitCode).toBe(0);
+			expect(process.stdout).toBe('ts-index');
+		});
+
+		// https://github.com/privatenumber/tsx/issues/800
+		test('sync ESM hook resolves a dependency directory require via package.json "main"', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'commonjs' }),
+				'entry.cjs': 'console.log(require("main-dep").from);',
+				'node_modules/main-dep': {
+					'package.json': createPackageJson({
+						type: 'commonjs',
+						main: './lib/sub/entry.js',
+					}),
+					lib: {
+						// Nested package.json "main" with no index file: require('..')
+						// must fall back to it rather than a synthesized index.
+						'package.json': createPackageJson({ main: './real-main.js' }),
+						'real-main.js': 'module.exports = { from: "real-main" };',
+						sub: {
+							'entry.js': 'module.exports = require("..");',
+						},
+					},
+				},
+			});
+
+			const process = await node.hook(['entry.cjs'], fixture.path);
+
+			expect(process.stderr).toBe('');
+			expect(process.exitCode).toBe(0);
+			expect(process.stdout).toBe('real-main');
+		});
+
+		// https://github.com/privatenumber/tsx/issues/800
+		test('sync ESM hook resolves a trailing-slash package require to a TypeScript main', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'commonjs' }),
+				'entry.cjs': 'console.log(require("driver-dep").v);',
+				node_modules: {
+					'driver-dep': {
+						'package.json': createPackageJson({
+							type: 'commonjs',
+							main: './entry.js',
+						}),
+						// Trailing-slash require of a package whose main is TS-only:
+						// must still retry TypeScript extensions on the package main.
+						'entry.js': 'module.exports = require("ts-main-pkg/");',
+					},
+					'ts-main-pkg': {
+						'package.json': createPackageJson({
+							type: 'commonjs',
+							main: './main.js',
+						}),
+						'main.ts': 'export const v: string = "ts-main";',
+					},
+				},
+			});
+
+			const process = await node.hook(['entry.cjs'], fixture.path);
+
+			expect(process.stderr).toBe('');
+			expect(process.exitCode).toBe(0);
+			expect(process.stdout).toBe('ts-main');
+		});
+
 		await test('watch reruns when imported TypeScript file changes', async () => {
 			await using fixture = await createFixture({
 				'package.json': createPackageJson({ type: 'commonjs' }),
@@ -1179,56 +1314,5 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 			}
 			expect(tsxProcess.exitCode).toBe(0);
 		}, 10_000);
-	}
-
-	// https://github.com/privatenumber/tsx/issues/800
-	if (node.supports.moduleRegisterHooksCjsReload) {
-		test('CJS require inside node_modules does not get TS extension rewriting', async () => {
-			await using fixture = await createFixture({
-				'package.json': createPackageJson({ type: 'module' }),
-				'index.ts': `
-				import { value } from 'fake-ajv';
-				console.log('loaded:', value);
-				`,
-				node_modules: {
-					'fake-ajv': {
-						'package.json': createPackageJson({
-							name: 'fake-ajv',
-							type: 'commonjs',
-							main: './dist/main.js',
-						}),
-						dist: {
-							// main.js requires a file in a subdirectory
-							'main.js': `
-							const serialize = require('./compile/jtd/serialize');
-							module.exports.value = serialize.result;
-							`,
-							compile: {
-								// index.js exists — the bug causes tsx to look for index.jsx instead
-								'index.js': 'module.exports.compile = true;',
-								jtd: {
-									// serialize.js does require('..') to get compile/index.js
-									'serialize.js': `
-									const parent = require('..');
-									module.exports.result = parent.compile ? "ok" : "fail";
-									`,
-								},
-							},
-						},
-					},
-				},
-			});
-
-			// Use --import=tsx/esm (not the tsx CLI) to trigger the ESM sync hooks path
-			const p = await execaNode('index.ts', [], {
-				cwd: fixture.path,
-				nodePath: node.path,
-				nodeOptions: ['--import', tsxEsmPath],
-				reject: false,
-				all: true,
-			});
-			expect(p.failed).toBe(false);
-			expect(p.stdout).toMatch('loaded: ok');
-		});
 	}
 });

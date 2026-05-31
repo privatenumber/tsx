@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import type {
 	ResolveHook,
 	ResolveHookContext,
@@ -94,6 +94,13 @@ const isModuleNotFound = (
 ) => (
 	code === 'ERR_MODULE_NOT_FOUND'
 	|| code === 'MODULE_NOT_FOUND'
+);
+
+const isCommonJsRequireContext = (
+	context: ResolveHookContext,
+) => (
+	context.conditions.includes('require')
+	&& !context.conditions.includes('import')
 );
 
 const resolveExtensions = async (
@@ -387,17 +394,38 @@ const resolveDirectorySync = (
 	}
 
 	if (isDirectoryPattern.test(specifier)) {
+		// On Node's sync hooks, a CommonJS require() inside a dependency reaches
+		// this hook. A bare specifier with a trailing slash (e.g. `process/`) is a
+		// package, not a relative directory, so defer to resolveBaseSync, which
+		// lets Node resolve the package while retrying TypeScript extensions.
+		// https://github.com/privatenumber/tsx/issues/800
+		const isCjsRequire = isCommonJsRequireContext(context);
+		if (isCjsRequire && !isFilePath(specifier)) {
+			return resolveBaseSync(specifier, context, nextResolve, hookData);
+		}
+
 		const urlParsed = new URL(specifier, context.parentURL);
 
 		// If directory, can be index.js, index.ts, etc.
 		urlParsed.pathname = path.join(urlParsed.pathname, 'index');
 
-		return resolveExtensionsSync(
-			urlParsed.toString(),
+		if (!isCjsRequire) {
+			return resolveExtensionsSync(urlParsed.toString(), context, nextResolve, true)!;
+		}
+
+		// Node's CommonJS resolver rejects file:// URLs, so resolve the implicit
+		// index from a filesystem path. Fall back to Node's directory resolution
+		// (package.json "main") via resolveBaseSync when no index file exists.
+		//
+		// This prefers the index over "main", matching tsx's CommonJS loader
+		// (which prioritizes index.ts). Native Node resolves "main" first.
+		const indexResolved = resolveExtensionsSync(
+			fileURLToPath(urlParsed),
 			context,
 			nextResolve,
-			true,
-		)!;
+			false,
+		);
+		return indexResolved ?? resolveBaseSync(specifier, context, nextResolve, hookData);
 	}
 
 	try {
@@ -518,13 +546,6 @@ const resolveTsPathsSync = (
 };
 
 const tsxProtocol = 'tsx://';
-
-const isCommonJsRequireContext = (
-	context: ResolveHookContext,
-) => (
-	context.conditions.includes('require')
-	&& !context.conditions.includes('import')
-);
 
 const addQuery = (
 	url: string,
@@ -719,15 +740,6 @@ export const createResolveSync = (
 			!hookData.active
 			|| specifier.startsWith('node:')
 			|| (isCommonJsRequireContext(context) && isGlobalCjsLoaderActive())
-			// Skip tsx resolution for internal dependency requires on Node 24+.
-			// When a CJS file inside node_modules does require('./path'), Node 24
-			// dispatches through the ESM sync hooks. tsx should not apply TS extension
-			// rewriting to these internal dependency paths.
-			|| (
-				isCommonJsRequireContext(context)
-				&& context.parentURL?.includes('/node_modules/')
-				&& isFilePath(specifier)
-			)
 		) {
 			return nextResolve(specifier, context);
 		}
