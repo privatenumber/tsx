@@ -199,6 +199,23 @@ export const watchCommand = command({
 	process.on('SIGINT', relaySignal);
 	process.on('SIGTERM', relaySignal);
 
+	const cwd = process.cwd();
+
+	/**
+	 * Resolve relative exclude patterns against cwd so that patterns like
+	 * `../sibling/**` are matched by chokidar regardless of platform.
+	 * Patterns that start with `../` or `./` are made absolute; pure glob
+	 * patterns such as `**\/*.ts` are left unchanged so they continue to
+	 * match relative paths inside cwd.
+	 */
+	const resolvedExclude = options.exclude.map(
+		pattern => (
+			pattern.startsWith('../') || pattern.startsWith('./')
+				? path.resolve(cwd, pattern)
+				: pattern
+		),
+	);
+
 	/**
 	 * Ideally, we can get a list of files loaded from the run above
 	 * and only watch those files, but it's not possible to detect
@@ -213,7 +230,7 @@ export const watchCommand = command({
 			...options.include,
 		],
 		{
-			cwd: process.cwd(),
+			cwd,
 			ignoreInitial: true,
 			ignored: [
 				// Hidden directories like .git
@@ -225,7 +242,7 @@ export const watchCommand = command({
 				// 3rd party packages
 				'**/{node_modules,bower_components,vendor}/**',
 
-				...options.exclude,
+				...resolvedExclude,
 			],
 			ignorePermissionErrors: true,
 		},
