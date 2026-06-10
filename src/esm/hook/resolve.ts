@@ -32,7 +32,7 @@ import {
 	getNamespace,
 	parentImportsCommonJsExports,
 } from './utils.js';
-import { data as defaultData, type Data } from './initialize.js';
+import type { Data } from './initialize.js';
 
 type NextResolve = Parameters<ResolveHook>[2];
 type NextResolveSync = Parameters<ResolveHookSync>[2];
@@ -850,5 +850,3 @@ export const createResolveSync = (
 		return result;
 	};
 };
-
-export const resolve = createResolve(defaultData);

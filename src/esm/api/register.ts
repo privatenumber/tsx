@@ -37,6 +37,10 @@ export type Register = {
 
 let cjsInteropApplied = false;
 
+// Deduplicates same-millisecond registrations, which would otherwise reuse
+// the same cached loader module and share per-registration hook state
+let registrationCount = 0;
+
 const collectImportSpecifiers = (
 	argv: string[],
 ) => {
@@ -154,10 +158,12 @@ export const register: Register = (
 		return unregister;
 	}
 
+	registrationCount += 1;
+
 	const { port1, port2 } = new MessageChannel();
 	module.register(
 		// Load new copy of loader so it can be registered multiple times
-		`./esm/index.mjs?${Date.now()}`,
+		`./esm/index.mjs?${Date.now()}.${registrationCount}`,
 		{
 			parentURL: import.meta.url,
 			data: {

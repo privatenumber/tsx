@@ -4,6 +4,7 @@
 import * as workerThreads from 'node:worker_threads';
 import { isFeatureSupported, moduleRegister, moduleRegisterHooksCjsReload } from '../utils/node-features.js';
 import { register } from './api/index.js';
+import { createHooks } from './hook/index.js';
 
 // Loaded via --import flag
 if (
@@ -22,4 +23,13 @@ if (
 	register();
 }
 
-export * from './hook/index.js';
+// Hook state must live in this entry's module scope: module.register() loads
+// a new cache-busted copy of this entry per registration, but bundled chunks
+// it imports are shared and only evaluate once. State in a shared chunk would
+// be overwritten by every registration (namespaces clobbering each other).
+export const {
+	initialize,
+	globalPreload,
+	load,
+	resolve,
+} = createHooks();

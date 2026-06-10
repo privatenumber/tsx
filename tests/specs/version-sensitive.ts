@@ -2,7 +2,7 @@ import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
 import {
-	describe, test, expect, skip,
+	describe, test, expect, skip, onTestFail,
 } from 'manten';
 import { execaNode } from 'execa';
 import { createFixture } from 'fs-fixture';
@@ -887,6 +887,48 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 			},
 			plainLoaded: false,
 		});
+	});
+
+	test('tsImport propagates load errors across repeated registrations', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'import.mjs': `
+				import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+
+				for (let i = 1; i <= 6; i += 1) {
+					const result = await tsImport('./bad.ts', import.meta.url).then(
+						() => 'resolved',
+						error => \`rejected (\${error.code})\`,
+					);
+					console.log(\`call \${i}: \${result}\`);
+				}
+				console.log('done');
+				`,
+			'bad.ts': `
+				import icon from './icon.svg';
+				export default icon;
+				`,
+			'icon.svg': '<svg/>',
+		});
+
+		const process = await execaNode(fixture.getPath('import.mjs'), [], {
+			nodePath: node.path,
+			nodeOptions: ['--no-warnings'],
+			reject: false,
+
+			// Each registration multiplying resolution work manifests as a hang
+			// long before this timeout; the linear path finishes in seconds.
+			timeout: 30_000,
+		});
+		onTestFail(() => {
+			console.log(process);
+		});
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stdout).toBe([
+			...Array.from({ length: 6 }, (_, i) => `call ${i + 1}: rejected (ERR_UNKNOWN_FILE_EXTENSION)`),
+			'done',
+		].join('\n'));
 	});
 
 	test('CJS namespace import shape depends on Node version', async () => {
