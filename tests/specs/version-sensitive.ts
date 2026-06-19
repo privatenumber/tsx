@@ -2,7 +2,7 @@ import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
 import {
-	describe, test, expect, skip,
+	describe, test, expect, skip, onTestFail,
 } from 'manten';
 import { execaNode } from 'execa';
 import { createFixture } from 'fs-fixture';
@@ -886,6 +886,101 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 				namespaced: true,
 			},
 			plainLoaded: false,
+		});
+	});
+
+	test('tsImport propagates load errors across repeated registrations', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'import.mjs': `
+				import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+
+				for (let i = 1; i <= 6; i += 1) {
+					const result = await tsImport('./bad.ts', import.meta.url).then(
+						() => 'resolved',
+						error => \`rejected (\${error.code})\`,
+					);
+					console.log(\`call \${i}: \${result}\`);
+				}
+				console.log('done');
+				`,
+			'bad.ts': `
+				import icon from './icon.svg';
+				export default icon;
+				`,
+			'icon.svg': '<svg/>',
+		});
+
+		const process = await execaNode(fixture.getPath('import.mjs'), [], {
+			nodePath: node.path,
+			nodeOptions: ['--no-warnings'],
+			reject: false,
+
+			// Each registration multiplying resolution work manifests as a hang
+			// long before this timeout; the linear path finishes in seconds.
+			timeout: 30_000,
+		});
+		onTestFail(() => {
+			console.log(process);
+		});
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stdout).toBe([
+			...Array.from({ length: 6 }, (_, i) => `call ${i + 1}: rejected (ERR_UNKNOWN_FILE_EXTENSION)`),
+			'done',
+		].join('\n'));
+	});
+
+	test('concurrent registrations keep their namespaces isolated', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'import.mjs': `
+				import { register } from ${JSON.stringify(tsxEsmApiPath)};
+
+				const tag = url => new URL(url).searchParams.get('tsx-namespace');
+
+				// Both registrations stay active at once: registering the second
+				// must not overwrite the namespace the first routes on, and each
+				// hook must handle only its own namespace.
+				const one = register({ namespace: 'one' });
+				const two = register({ namespace: 'two' });
+
+				const first = await one.import('./module.ts', import.meta.url);
+				const second = await two.import('./module.ts', import.meta.url);
+
+				console.log(JSON.stringify({
+					first: { tag: tag(first.url), loadCount: first.loadCount },
+					second: { tag: tag(second.url), loadCount: second.loadCount },
+				}));
+				`,
+			'module.ts': `
+				globalThis.__loadCount = (globalThis.__loadCount ?? 0) + 1;
+				export const loadCount: number = globalThis.__loadCount;
+				export const url = import.meta.url;
+				`,
+		});
+
+		const process = await execaNode(fixture.getPath('import.mjs'), [], {
+			nodePath: node.path,
+			nodeOptions: ['--no-warnings'],
+			reject: false,
+		});
+		onTestFail(() => {
+			console.log(process);
+		});
+
+		expect(process.exitCode).toBe(0);
+		expect(JSON.parse(process.stdout)).toEqual({
+			// Each registration resolves the module under its own namespace, and
+			// the namespace query busts the cache so it evaluates once per namespace.
+			first: {
+				tag: 'one',
+				loadCount: 1,
+			},
+			second: {
+				tag: 'two',
+				loadCount: 2,
+			},
 		});
 	});
 

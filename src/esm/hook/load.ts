@@ -28,7 +28,7 @@ import {
 	getNamespace,
 	moduleSourceByUrl,
 } from './utils.js';
-import { data as defaultData, type Data } from './initialize.js';
+import type { Data } from './initialize.js';
 
 const importAttributesProperty = (
 	isFeatureSupported(importAttributes)
@@ -598,5 +598,3 @@ export const createLoadSync = (
 		return result;
 	};
 };
-
-export const load = createLoad(defaultData);
