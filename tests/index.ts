@@ -10,6 +10,7 @@ import { repl } from './specs/repl';
 import { processInteractSpec } from './specs/process-interact';
 import { tsconfig } from './specs/tsconfig';
 import { transformSpec } from './specs/transform';
+import { mapTsExtensionsSpec } from './specs/map-ts-extensions';
 import { commonJsModeContracts } from './specs/commonjs-mode-contracts';
 import { nodeCapabilitiesSpec } from './specs/node-capabilities';
 import { versionSensitiveTests } from './specs/version-sensitive';
@@ -22,6 +23,7 @@ import { versionSensitiveTests } from './specs/version-sensitive';
 		await repl();
 		await processInteractSpec();
 		await transformSpec();
+		await mapTsExtensionsSpec();
 		await nodeCapabilitiesSpec();
 
 		const [primaryNodeVersion, ...compatNodeVersions] = nodeVersions;

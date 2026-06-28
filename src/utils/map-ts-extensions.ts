@@ -1,5 +1,10 @@
 import path from 'node:path';
-import { isFilePath, fileUrlPrefix, nodeModulesPath } from './path-utils.js';
+import {
+	isFilePath,
+	fileUrlPrefix,
+	nodeModulesPath,
+	tsExtensionsPattern,
+} from './path-utils.js';
 
 const implicitJsExtensions = ['.js', '.json'];
 const implicitTsExtensions = ['.ts', '.tsx', '.jsx'];
@@ -30,23 +35,42 @@ export const mapTsExtensions = (
 	const [pathname] = splitPath;
 	const extension = path.extname(pathname);
 
-	const tryPaths: string[] = [];
-
+	/**
+	 * Swappable JS extension (.js/.jsx/.cjs/.mjs): try the TypeScript
+	 * equivalents first, then the original (the swap list includes it).
+	 *
+	 * We intentionally don't also append extensions to the full path
+	 * (e.g. `foo.js.ts`) — such files don't exist in practice, and each
+	 * non-existent candidate forces Node's resolver to probe a whole family
+	 * of paths (extension + directory/index lookups), which is the main
+	 * source of redundant fs `stat` calls during resolution.
+	 */
 	const tryExtensions = tsExtensions[extension];
 	if (tryExtensions) {
 		const extensionlessPath = pathname.slice(0, -extension.length);
-
-		tryPaths.push(
-			...tryExtensions.map(
-				extension_ => (
-					extensionlessPath
-					+ extension_
-					+ pathQuery
-				),
+		return tryExtensions.map(
+			extension_ => (
+				extensionlessPath
+				+ extension_
+				+ pathQuery
 			),
 		);
 	}
 
+	/**
+	 * Explicit TypeScript extension (.ts/.tsx/.cts/.mts): the path already
+	 * points at the file, so resolve it as-is instead of appending extensions
+	 * (e.g. `foo.ts.ts`). This is the dominant case for projects that import
+	 * with explicit extensions, and previously generated only dead candidates.
+	 */
+	if (tsExtensionsPattern.test(pathname)) {
+		return [pathname + pathQuery];
+	}
+
+	/**
+	 * Otherwise (extensionless, or an unrecognized extension): guess the
+	 * extension. Dependencies prioritize .js over .ts.
+	 */
 	const guessExtensions = (
 		(
 			!(filePath.startsWith(fileUrlPrefix) || isFilePath(pathname))
@@ -56,15 +80,11 @@ export const mapTsExtensions = (
 			? dependencyExtensions
 			: localExtensions
 	);
-	tryPaths.push(
-		...guessExtensions.map(
-			extension_ => (
-				pathname
-				+ extension_
-				+ pathQuery
-			),
+	return guessExtensions.map(
+		extension_ => (
+			pathname
+			+ extension_
+			+ pathQuery
 		),
 	);
-
-	return tryPaths;
 };
