@@ -94,7 +94,12 @@ export const createResolveFilename = (
 			// If parent is a TS file
 			|| (parent?.filename && tsExtensionsPattern.test(parent.filename)),
 		),
-		tsconfig?.config.compilerOptions?.allowJs ?? false,
+		// `allowJs` applies TypeScript-first resolution to local files only.
+		// Imports from inside node_modules are dependencies: their requested
+		// path should win (published packages ship runnable .js), so don't
+		// probe TypeScript extensions for them.
+		(tsconfig?.config.compilerOptions?.allowJs ?? false)
+		&& !parent?.filename?.includes(nodeModulesPath),
 	);
 
 	nextResolveSimple = createImplicitResolver(nextResolveSimple);

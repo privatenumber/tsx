@@ -262,14 +262,16 @@ export const tsconfig = ({ tsx }: NodeApis) => describe('tsconfig', () => {
 		// even when the project enables `allowJs`. Prioritizing TypeScript
 		// extensions for imports made from inside node_modules would load the
 		// decoy `.ts` instead (and probe many dead paths getting there).
+		// Covers both resolvers: the ESM hook and the CommonJS resolver.
 		const fixture = await createFixture({
 			'package.json': createPackageJson({ type: 'module' }),
 			'tsconfig.json': createTsconfig({ compilerOptions: { allowJs: true } }),
-			'index.ts': 'import { value } from \'dependency\';\nconsole.log(value);',
+			'esm.ts': 'import { value } from \'esm-dependency\';\nconsole.log(value);',
+			'cjs.cts': 'console.log(require(\'cjs-dependency\').value);',
 			node_modules: {
-				dependency: {
+				'esm-dependency': {
 					'package.json': createPackageJson({
-						name: 'dependency',
+						name: 'esm-dependency',
 						type: 'module',
 						exports: './index.js',
 					}),
@@ -277,12 +279,31 @@ export const tsconfig = ({ tsx }: NodeApis) => describe('tsconfig', () => {
 					'value.js': 'export const value = \'from-dependency-js\';',
 					'value.ts': 'export const value = \'from-decoy-ts\';',
 				},
+				'cjs-dependency': {
+					'package.json': createPackageJson({
+						name: 'cjs-dependency',
+						main: 'index.js',
+					}),
+					'index.js': 'module.exports = require(\'./value\');',
+					'value.js': 'module.exports = { value: \'from-dependency-js\' };',
+					'value.ts': 'export const value = \'from-decoy-ts\';',
+				},
 			},
 		});
 		onFinish(async () => await fixture.rm());
 
-		test('resolves the dependency .js over a sibling .ts', async () => {
-			const p = await tsx(['index.ts'], fixture.path);
+		test('ESM dependency resolves its own .js over a sibling .ts', async () => {
+			const p = await tsx(['esm.ts'], fixture.path);
+			onTestFail((error) => {
+				console.error(error);
+				console.log(p);
+			});
+			expect(p.exitCode).toBe(0);
+			expect(p.stdout).toBe('from-dependency-js');
+		});
+
+		test('CommonJS dependency resolves its own .js over a sibling .ts', async () => {
+			const p = await tsx(['cjs.cts'], fixture.path);
 			onTestFail((error) => {
 				console.error(error);
 				console.log(p);
