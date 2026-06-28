@@ -203,7 +203,10 @@ const resolveBase = async (
 	 * TS aliases are pre-resolved so they're file paths
 	 *
 	 * If `allowJs` is set in `tsconfig.json`, then we'll apply the same resolution logic
-	 * to files without a TypeScript extension.
+	 * to files without a TypeScript extension — but only for local files. Imports from
+	 * inside `node_modules` are dependencies: their requested path should win, and
+	 * speculatively probing TypeScript extensions first balloons fs lookups for every
+	 * dependency module without ever resolving one (they ship .js, not .ts).
 	 */
 	if (
 		(
@@ -211,7 +214,7 @@ const resolveBase = async (
 			|| isRelativePath(specifier)
 		) && (
 			tsExtensionsPattern.test(context.parentURL!)
-			|| allowJs
+			|| (allowJs && !context.parentURL?.includes('/node_modules/'))
 		)
 	) {
 		const resolved = await resolveExtensions(specifier, context, nextResolve);
@@ -274,7 +277,7 @@ const resolveBaseSync = (
 			|| isRelativePath(specifier)
 		) && (
 			tsExtensionsPattern.test(context.parentURL!)
-			|| allowJs
+			|| (allowJs && !context.parentURL?.includes('/node_modules/'))
 		)
 	) {
 		const resolved = resolveExtensionsSync(specifier, context, nextResolve);
