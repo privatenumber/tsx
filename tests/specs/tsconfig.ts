@@ -256,4 +256,39 @@ export const tsconfig = ({ tsx }: NodeApis) => describe('tsconfig', () => {
 			});
 		});
 	}
+
+	describe('allowJs does not redirect dependency imports to TypeScript files', async () => {
+		// A dependency's own relative `.js` import must resolve to that `.js`,
+		// even when the project enables `allowJs`. Prioritizing TypeScript
+		// extensions for imports made from inside node_modules would load the
+		// decoy `.ts` instead (and probe many dead paths getting there).
+		const fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'tsconfig.json': createTsconfig({ compilerOptions: { allowJs: true } }),
+			'index.ts': 'import { value } from \'dependency\';\nconsole.log(value);',
+			node_modules: {
+				dependency: {
+					'package.json': createPackageJson({
+						name: 'dependency',
+						type: 'module',
+						exports: './index.js',
+					}),
+					'index.js': 'export { value } from \'./value.js\';',
+					'value.js': 'export const value = \'from-dependency-js\';',
+					'value.ts': 'export const value = \'from-decoy-ts\';',
+				},
+			},
+		});
+		onFinish(async () => await fixture.rm());
+
+		test('resolves the dependency .js over a sibling .ts', async () => {
+			const p = await tsx(['index.ts'], fixture.path);
+			onTestFail((error) => {
+				console.error(error);
+				console.log(p);
+			});
+			expect(p.exitCode).toBe(0);
+			expect(p.stdout).toBe('from-dependency-js');
+		});
+	});
 });
