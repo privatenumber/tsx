@@ -2,6 +2,7 @@ import type { StdioOptions } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import spawn from 'cross-spawn';
 import { isFeatureSupported, moduleRegister } from './utils/node-features.js';
+import { loadTsconfig } from './utils/tsconfig.js';
 
 export const run = (
 	argv: string[],
@@ -29,6 +30,17 @@ export const run = (
 		}
 
 		if (options.tsconfigPath) {
+			// Validate the explicitly passed tsconfig in the parent process so a
+			// missing or unreadable file surfaces as a readable error here, instead
+			// of an unreadable stack trace thrown from the minified child loader.
+			try {
+				loadTsconfig(options.tsconfigPath);
+			} catch (error) {
+				console.error((error as Error).message);
+				// eslint-disable-next-line n/no-process-exit
+				process.exit(1);
+			}
+
 			environment.TSX_TSCONFIG_PATH = options.tsconfigPath;
 		}
 	}
