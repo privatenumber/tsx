@@ -260,6 +260,60 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 	});
 
 	await describe('exclude (ignore)', () => {
+		test('parent/adjacent directory', async () => {
+			// Regression test for https://github.com/privatenumber/tsx/issues/785
+			// --exclude patterns starting with "../" should suppress restarts
+			// triggered by files in parent or adjacent directories.
+
+			await using fixtureParent = await createFixture({
+				// The app under watch runs from "app/" with cwd = <fixture>/app
+				'app/index.ts': `
+					import { value } from '../sibling/dep.ts';
+					console.log('running:', value);
+				`.trim(),
+				'sibling/dep.ts': 'export const value = "initial"',
+			});
+
+			const appDirectory = fixtureParent.getPath('app');
+
+			const tsxProcess = tsx(
+				[
+					'watch',
+					'--clear-screen=false',
+					'--exclude=../sibling/**',
+					'index.ts',
+				],
+				appDirectory,
+			);
+			const negativeSignal = 'fail';
+
+			await expect(
+				processInteract(
+					tsxProcess.stdout!,
+					[
+						async ({ output }) => {
+							if (!output.includes('running: initial\n')) {
+								return;
+							}
+
+							// Change in the excluded sibling directory must not trigger a re-run
+							await fixtureParent.writeFile('sibling/dep.ts', `export const value = "${negativeSignal}"`);
+							return true;
+						},
+						({ output }) => {
+							if (output.includes(negativeSignal)) {
+								throw new Error('Unexpected re-run triggered by excluded sibling file');
+							}
+						},
+					],
+					2000,
+				),
+			).rejects.toThrow('Timeout'); // Watcher must remain quiet
+
+			tsxProcess.kill();
+			await tsxProcess;
+		}, 15_000);
+
 		test('file path & glob', async () => {
 			const entryFile = 'index.js';
 			const fileA = 'file-a.js';
