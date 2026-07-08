@@ -17,6 +17,18 @@ import {
 	log,
 } from './utils.js';
 
+const ignoredDependencyDirectories = new Set([
+	'node_modules',
+	'bower_components',
+	'vendor',
+]);
+
+const isInIgnoredDependencyDirectory = (
+	filePath: string,
+) => filePath.split(/[\\/]+/).some(
+	pathSegment => ignoredDependencyDirectories.has(pathSegment),
+);
+
 const flags = {
 	noCache: {
 		type: Boolean,
@@ -97,7 +109,10 @@ export const watchCommand = command({
 					: data.path
 			);
 
-			if (path.isAbsolute(dependencyPath)) {
+			if (
+				path.isAbsolute(dependencyPath)
+				&& !isInIgnoredDependencyDirectory(dependencyPath)
+			) {
 				watcher.add(dependencyPath);
 			}
 		}
@@ -216,6 +231,8 @@ export const watchCommand = command({
 			cwd: process.cwd(),
 			ignoreInitial: true,
 			ignored: [
+				isInIgnoredDependencyDirectory,
+
 				// Hidden directories like .git
 				'**/.*/**',
 
