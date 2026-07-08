@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import {
 	describe, test, onFinish, onTestFinish, onTestFail, expect, skip,
@@ -319,6 +321,72 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 
 			tsxProcess.kill();
 
+			await tsxProcess;
+		}, 10_000);
+
+		test('pnpm dependency realpaths outside cwd', async () => {
+			if (process.platform === 'win32') {
+				skip('Uses POSIX symlinks to reproduce pnpm workspace layout');
+			}
+
+			const dependencyFile = 'node_modules/.pnpm/pnpm-dep@1.0.0/node_modules/pnpm-dep/index.js';
+			const entryFile = 'packages/app/index.js';
+			const negativeSignal = 'fail';
+
+			await using fixturePnpm = await createFixture({
+				[dependencyFile]: 'module.exports = { value: "dependency" };',
+				[entryFile]: `
+					const { value } = require('pnpm-dep');
+					console.log(value);
+					setInterval(() => {}, 1000);
+				`.trim(),
+			});
+
+			const appNodeModulesPath = path.join(fixturePnpm.path, 'packages/app/node_modules');
+			await fs.mkdir(appNodeModulesPath, { recursive: true });
+			await fs.symlink(
+				'../../../node_modules/.pnpm/pnpm-dep@1.0.0/node_modules/pnpm-dep',
+				path.join(appNodeModulesPath, 'pnpm-dep'),
+				'dir',
+			);
+
+			const tsxProcess = tsx(
+				[
+					'watch',
+					'--clear-screen=false',
+					'index.js',
+				],
+				path.join(fixturePnpm.path, 'packages/app'),
+			);
+
+			await expect(
+				processInteract(
+					tsxProcess.stdout!,
+					[
+						async ({ output }) => {
+							if (!output.includes('dependency\n')) {
+								return;
+							}
+
+							// Give watch mode time to process the runtime dependency path.
+							await setTimeout(1000);
+							await fixturePnpm.writeFile(dependencyFile, `module.exports = { value: "${negativeSignal}" };`);
+							return true;
+						},
+						({ output }) => {
+							if (
+								output.includes('Restarting...')
+								|| output.includes(negativeSignal)
+							) {
+								throw new Error('Unexpected re-run');
+							}
+						},
+					],
+					3000,
+				),
+			).rejects.toThrow('Timeout'); // Watch should not trigger for node_modules realpaths
+
+			tsxProcess.kill();
 			await tsxProcess;
 		}, 10_000);
 	});
