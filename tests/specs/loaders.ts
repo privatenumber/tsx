@@ -57,6 +57,45 @@ export const loaders = (node: NodeApis) => describe('Loaders', () => {
 				},
 			});
 		});
+
+		test('passes transformed source to chained loaders', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'module' }),
+				'entry.ts': `
+					import { test } from './another.ts';
+
+					console.log(test('ok'));
+					`,
+				'another.ts': `
+					export function test(input: string) {
+						return input;
+					}
+					`,
+				'inspect-loader.mjs': `
+					export const load = async (url, context, nextLoad) => {
+						const result = await nextLoad(url, context);
+
+						if (url.endsWith('/another.ts') && String(result.source).includes(': string')) {
+							throw new Error('loader received untransformed TypeScript');
+						}
+
+						return result;
+					};
+					`,
+			});
+
+			const result = await node.tsx(
+				[
+					'--loader',
+					pathToFileURL(fixture.getPath('inspect-loader.mjs')).toString(),
+					'./entry.ts',
+				],
+				fixture.path,
+			);
+
+			expect(result.exitCode).toBe(0);
+			expect(result.stdout).toBe('ok');
+		});
 	});
 
 	describe('CJS patching', async () => {
