@@ -104,6 +104,32 @@ const isCommonJsRequireContext = (
 	&& !context.conditions.includes('import')
 );
 
+// Drive letter (`C:\foo`, `C:/foo`) or UNC (`\\server\share`) paths
+const windowsAbsolutePathPattern = /^(?:[a-z]:[\\/]|\\\\)/i;
+
+/**
+ * Windows absolute paths cannot be parsed as URLs: the drive letter is
+ * parsed as the URL scheme (e.g. `C:` in `C:\foo`), so Node's ESM loader
+ * rejects them with ERR_UNSUPPORTED_ESM_URL_SCHEME
+ * https://github.com/privatenumber/tsx/issues/667
+ *
+ * CommonJS require() is excluded because Node's CommonJS resolver supports
+ * absolute paths but rejects file:// URLs
+ */
+const windowsPathToFileUrl = (
+	specifier: string,
+	context: ResolveHookContext,
+) => (
+	(
+		windowsAbsolutePathPattern.test(specifier)
+		// Filters out non-Windows platforms, where the pattern can match a relative path
+		&& path.isAbsolute(specifier)
+		&& !isCommonJsRequireContext(context)
+	)
+		? pathToFileURL(specifier).toString()
+		: specifier
+);
+
 /**
  * Maps a candidate specifier to a file path if it can be statted directly.
  * Returns undefined when existence can't be cheaply determined
@@ -687,7 +713,7 @@ export const createResolve = (
 		const [cleanSpecifier, query] = specifier.split('?');
 
 		const resolved = await resolveTsPaths(
-			cleanSpecifier,
+			windowsPathToFileUrl(cleanSpecifier, context),
 			context,
 			nextResolve,
 			hookData,
@@ -832,7 +858,7 @@ export const createResolveSync = (
 		const [cleanSpecifier, query] = specifier.split('?');
 
 		const resolved = resolveTsPathsSync(
-			cleanSpecifier,
+			windowsPathToFileUrl(cleanSpecifier, context),
 			context,
 			nextResolve,
 			hookData,
