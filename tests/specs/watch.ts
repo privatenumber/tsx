@@ -401,6 +401,42 @@ export const watch = ({ tsx, path: nodePath }: NodeApis) => describe('watch', as
 		expect(all).toMatch(/start[\s\S]+end/);
 	}, 10_000);
 
+	await describe('Ctrl + C', async () => {
+		const CtrlC = '\u0003';
+
+		await test('exits with 130 when script already exited (issue #734)', async () => {
+			await using fixtureExited = await createFixture({
+				'index.js': 'console.log("READY")',
+			});
+
+			await using shell = ptyShell();
+
+			onTestFail(() => {
+				console.log({ stdout: shell.getOutput() });
+			});
+
+			await shell.waitForPrompt();
+			// PowerShell needs the call operator to run a quoted command
+			shell.type(`${isWindows ? '& ' : ''}"${nodePath}" "${tsxPath}" watch "${fixtureExited.getPath('index.js')}"`);
+
+			await shell.waitForLine(/READY/);
+
+			// Wait for the child process to exit so the watcher is idle
+			await setTimeout(1000);
+			shell.press(CtrlC);
+
+			await shell.waitForPrompt();
+			shell.type(`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}`);
+
+			await shell.waitForPrompt();
+
+			expect(await shell.close()).toMatch(/EXIT_CODE:\s+130/);
+		}, {
+			timeout: 15_000,
+			retry: 3,
+		});
+	});
+
 	await describe('help', () => {
 		test('shows help', async () => {
 			const tsxProcess = await tsx(['watch', '--help']);
