@@ -16,7 +16,7 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 		await using fixture = await createFixture({
 			'old-cache/sentinel': '',
 		});
-		const cache = new FileCache<CacheValue>(
+		const _cache = new FileCache<CacheValue>(
 			fixture.getPath('cache'),
 			fixture.getPath('old-cache'),
 		);
@@ -24,6 +24,15 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 		await waitForImmediate();
 		expect(await fixture.exists('cache')).toBe(false);
 		expect(await fixture.exists('old-cache/sentinel')).toBe(true);
+	});
+
+	await test('creates its directory on the first operation', async () => {
+		await using fixture = await createFixture();
+		const cache = new FileCache<CacheValue>(
+			fixture.getPath('cache'),
+			fixture.getPath('missing-old-cache'),
+		);
+
 		expect(cache.get(getKey(0))).toBeUndefined();
 		expect(await fixture.exists('cache')).toBe(true);
 	});
