@@ -8,6 +8,7 @@ import { watch } from './specs/watch';
 import { loaders } from './specs/loaders';
 import { repl } from './specs/repl';
 import { processInteractSpec } from './specs/process-interact';
+import { ptyShellSpec } from './specs/pty-shell';
 import { tsconfig } from './specs/tsconfig';
 import { transformSpec } from './specs/transform';
 import { transformCacheSpec } from './specs/transform-cache';
@@ -24,6 +25,7 @@ import { esmHookResolve } from './specs/esm-hook-resolve';
 	await describe('tsx', async () => {
 		await repl();
 		await processInteractSpec();
+		await ptyShellSpec();
 		await transformCacheSpec();
 		await transformSpec();
 		await nodeCapabilitiesSpec();

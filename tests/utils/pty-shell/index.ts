@@ -1,5 +1,6 @@
 import { spawn, waitFor } from 'pty-spawn';
 import stripAnsi from 'strip-ansi';
+import { onTestFinish } from 'manten';
 
 export const isWindows = process.platform === 'win32';
 const shell = isWindows ? 'powershell.exe' : 'bash';
@@ -26,6 +27,10 @@ export const ptyShell = () => {
 
 		return closedShell;
 	};
+	// A timed-out callback can remain blocked after Manten starts the next retry.
+	onTestFinish(async () => {
+		await close();
+	});
 
 	return {
 		waitForPrompt: () => waitFor(
