@@ -1,4 +1,6 @@
 import path from 'node:path';
+import { getOptionValue } from 'get-option-value';
+import { inspectFlag } from 'get-option-value/flags';
 import type { TransformOptions, TransformResult } from 'esbuild';
 import type { SourceMap } from '@ampproject/remapping';
 
@@ -10,11 +12,11 @@ export const baseConfig = Object.freeze({
 	loader: 'default',
 });
 
-// match Node.js debugger flags
-// https://nodejs.org/api/cli.html#--inspecthostport
-const NODE_DEBUGGER_FLAG_REGEX = /^--inspect(?:-brk|-port|-publish-uid|-wait)?(?:=|$)/;
-
-const isNodeDebuggerEnabled = process.execArgv.some(flag => NODE_DEBUGGER_FLAG_REGEX.test(flag));
+// Whether Node's inspector is enabled — via --inspect / --inspect-brk /
+// --inspect-wait, on the CLI or in NODE_OPTIONS. get-option-value mirrors
+// Node's own resolution (implications + NODE_OPTIONS), which a manual
+// process.execArgv scan misses.
+const isNodeDebuggerEnabled = getOptionValue(inspectFlag);
 
 export const cacheConfig = {
 	...baseConfig,

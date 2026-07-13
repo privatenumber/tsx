@@ -62,6 +62,9 @@ importers:
       get-node:
         specifier: ^15.0.4
         version: 15.0.4
+      get-option-value:
+        specifier: ^1.0.0
+        version: 1.0.0
       get-tsconfig:
         specifier: 5.0.0-beta.5
         version: 5.0.0-beta.5
@@ -2822,6 +2825,10 @@ packages:
   get-node@15.0.4:
     resolution: {integrity: sha512-em3oHkEgfS0gpK2g2vglilfqQh0JAf5U3LdXFssILV43um6x4eNTCp8nBNDNW+9HCtt3hf9b07zIEJnn7Wo8Iw==}
     engines: {node: '>=18.18.0'}
+
+  get-option-value@1.0.0:
+    resolution: {integrity: sha512-bzT5zH4T7uOqfivTgttdwe+NT4ki3YM5PYAHzqofQeTur8gFR+XzbxZbzPbQcxEkjbB0q79xhkT0MPP9vJtcCQ==}
+    engines: {node: '>=18'}
 
   get-proto@1.0.1:
     resolution: {integrity: sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g==}
@@ -8263,6 +8270,8 @@ snapshots:
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+
+  get-option-value@1.0.0: {}
 
   get-proto@1.0.1:
     dependencies:
