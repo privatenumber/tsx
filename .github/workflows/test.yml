@@ -36,11 +36,13 @@ jobs:
         run: pnpm install
 
       - name: Get Node.js cache directory
+        if: runner.os == 'Linux'
         id: node-cache
         shell: bash
         run: echo "path=$(node -p 'require("cachedir")("nve")')" >> "$GITHUB_OUTPUT"
 
       - name: Cache Node.js versions
+        if: runner.os == 'Linux'
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
         with:
           path: ${{ steps.node-cache.outputs.path }}
