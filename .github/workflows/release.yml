@@ -17,6 +17,7 @@ jobs:
   release:
     name: Release
     needs: test
+    if: github.repository == 'privatenumber/tsx'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
