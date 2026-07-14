@@ -603,10 +603,7 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 					'SIGINT PRESS AGAIN\r\n',
 					/EXIT_CODE:\s+200/,
 				]);
-			}, {
-				timeout: 10_000,
-				retry: 3,
-			});
+			}, 10_000);
 
 			await test('Infinite loop', async () => {
 				await using shell = ptyShell();
