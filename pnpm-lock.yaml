@@ -96,8 +96,8 @@ importers:
         specifier: ^2.1.3
         version: 2.1.3
       pty-spawn:
-        specifier: ^1.1.0
-        version: 1.1.0
+        specifier: ^1.1.1
+        version: 1.1.1
       semantic-release:
         specifier: 25.0.6
         version: 25.0.6(typescript@5.5.2)
@@ -109,7 +109,7 @@ importers:
         version: 7.2.0
       type-fest:
         specifier: ^4.20.1
-        version: 4.20.1
+        version: 4.41.0
       type-flag:
         specifier: ^3.0.0
         version: 3.0.0
@@ -4294,8 +4294,8 @@ packages:
   proxyquire@2.1.3:
     resolution: {integrity: sha512-BQWfCqYM+QINd+yawJz23tbBM40VIGXOdDw3X344KcclI/gtBbdWF6SlQ4nK/bYhF9d27KYug9WzljHC6B9Ysg==}
 
-  pty-spawn@1.1.0:
-    resolution: {integrity: sha512-Rrcr5hT49XWapvsZGVu64SSSquJ1fk+X4orPcEFpwosUDlCnQsiYn2BiaJpsf3Ww7sbyykubfT/NgYA4XqyEiA==}
+  pty-spawn@1.1.1:
+    resolution: {integrity: sha512-l1dVBTNoOWNxuhG0UYm2ghqLXJ1fy3V10ehy0kBdgdnT7UNjwXezOfYmmOnvlZ6Ax4GDBWhAoX/5kn2UmWFF1w==}
     engines: {node: '>=20.20.0'}
 
   pump@3.0.0:
@@ -4940,10 +4940,6 @@ packages:
   type-fest@2.19.0:
     resolution: {integrity: sha512-RAH822pAdBgcNMAfWnCBU3CFZcfZ/i1eZjwFU/dsLKumyuuP3niueg2UAukXYF0E2AAoc82ZSSf9J0WQBinzHA==}
     engines: {node: '>=12.20'}
-
-  type-fest@4.20.1:
-    resolution: {integrity: sha512-R6wDsVsoS9xYOpy8vgeBlqpdOyzJ12HNfQhC/aAKWM3YoCV9TtunJzh/QpkMgeDhkoynDcw5f1y+qF9yc/HHyg==}
-    engines: {node: '>=16'}
 
   type-fest@4.41.0:
     resolution: {integrity: sha512-TeTSQ6H5YHvpqVwBRcnLDCBnDOHWYu7IvGbHT6N8AOymcr9PJGjc1GTtiWZTYg0NCgYwvnYWEkVChQAr9bjfwA==}
@@ -9082,7 +9078,7 @@ snapshots:
   make-asynchronous@1.1.0:
     dependencies:
       p-event: 6.0.1
-      type-fest: 4.20.1
+      type-fest: 4.41.0
       web-worker: 1.5.0
 
   make-fetch-happen@14.0.3:
@@ -9310,7 +9306,7 @@ snapshots:
       make-fetch-happen: 14.0.3
       nopt: 8.1.0
       proc-log: 5.0.0
-      semver: 7.6.2
+      semver: 7.8.0
       tar: 7.4.3
       which: 5.0.0
     transitivePeerDependencies:
@@ -9745,7 +9741,7 @@ snapshots:
       module-not-found-error: 1.0.1
       resolve: 1.22.8
 
-  pty-spawn@1.1.0:
+  pty-spawn@1.1.1:
     dependencies:
       node-pty: 1.2.0-beta.10
     transitivePeerDependencies:
@@ -9785,7 +9781,7 @@ snapshots:
     dependencies:
       find-up-simple: 1.0.1
       read-pkg: 9.0.1
-      type-fest: 4.20.1
+      type-fest: 4.41.0
 
   read-package-up@12.0.0:
     dependencies:
@@ -9819,7 +9815,7 @@ snapshots:
       '@types/normalize-package-data': 2.4.4
       normalize-package-data: 6.0.2
       parse-json: 8.3.0
-      type-fest: 4.20.1
+      type-fest: 4.41.0
       unicorn-magic: 0.1.0
 
   readable-stream@2.3.8:
@@ -10588,8 +10584,6 @@ snapshots:
   type-fest@1.4.0: {}
 
   type-fest@2.19.0: {}
-
-  type-fest@4.20.1: {}
 
   type-fest@4.41.0: {}
 
