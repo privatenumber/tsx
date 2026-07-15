@@ -37,8 +37,30 @@ const bindHiddenSignalsHandler = (
 
 	process.listenerCount = function (eventName) {
 		let count = Reflect.apply(listenerCount, this, arguments);
-		if (signals.includes(eventName as RelaySignals)) {
-			count -= 1;
+		const hiddenHandler = hiddenHandlers.get(eventName as RelaySignals);
+		const listener = arguments[1] as unknown;
+		const isAggregateCount = (
+			listenerCount.length === 1
+			|| arguments.length < 2
+			|| listener === undefined
+			|| listener === null
+		);
+		if (
+			hiddenHandler
+			&& (
+				isAggregateCount
+				|| listener === hiddenHandler
+			)
+		) {
+			const currentListeners: BaseEventListener[] = Reflect.apply(
+				listeners,
+				this,
+				[eventName],
+			);
+			const hiddenHandlerCount = currentListeners
+				.filter(currentListener => currentListener === hiddenHandler)
+				.length;
+			count -= hiddenHandlerCount;
 		}
 		return count;
 	};

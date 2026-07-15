@@ -317,6 +317,27 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 			console.log('process.listeners().length = ' + process.listeners('SIGINT').length);
 			console.log('process.listenerCount() = ' + process.listenerCount('SIGINT'));
 			`,
+			'hidden-signals-listener-count.js': `
+			const { EventEmitter } = require('node:events');
+			const handler = () => {};
+			const referenceEmitter = new EventEmitter();
+			referenceEmitter.on('SIGINT', handler);
+			process.on('SIGINT', handler);
+			const assertListenerCounts = () => {
+				if (process.rawListeners('SIGINT').length < 2) {
+					setImmediate(assertListenerCounts);
+					return;
+				}
+				console.log('specific = ' + process.listenerCount('SIGINT', handler));
+				console.log(
+					'invalid matches = '
+					+ (process.listenerCount('SIGINT', 'invalid') === referenceEmitter.listenerCount('SIGINT', 'invalid')),
+				);
+				process.removeAllListeners('SIGINT');
+				console.log('after removal = ' + process.listenerCount('SIGINT'));
+			};
+			assertListenerCounts();
+			`,
 		});
 		onFinish(async () => await fixture.rm());
 
@@ -447,6 +468,17 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 			const result = await tsxProcess;
 
 			expect(result.stdout).toBe('process.listeners().length = 0\nprocess.listenerCount() = 0');
+			expect(result.exitCode).toBe(0);
+		});
+
+		await test('Relay signal handler does not affect listenerCount overload', async () => {
+			const tsxProcess = tsx([
+				fixture.getPath('hidden-signals-listener-count.js'),
+			]);
+
+			const result = await tsxProcess;
+
+			expect(result.stdout).toBe('specific = 1\ninvalid matches = true\nafter removal = 0');
 			expect(result.exitCode).toBe(0);
 		});
 
