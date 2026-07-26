@@ -465,8 +465,10 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 			});
 
 			// Accumulate stdout; send a single SIGINT once READY is seen.
+			// On Windows this terminates the process unconditionally (no POSIX
+			// signal), so cleanup doesn't run there.
 			tsxProcess.stdout!.setEncoding('utf8');
-			let sentSignal = isWindows; // Windows can't send POSIX signals
+			let sentSignal = false;
 			try {
 				for await (const [chunk] of on(tsxProcess.stdout!, 'data', {
 					close: ['end', 'close'],
@@ -489,7 +491,7 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 			tsxProcessResolved = await tsxProcess;
 
 			if (isWindows) {
-				expect(stdout).toMatch('READY');
+				expect(stdout.trim()).toBe('READY');
 			} else {
 				expect(tsxProcessResolved.exitCode).toBe(42);
 				expectMatchInOrder(stdout, [
