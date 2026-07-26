@@ -26,9 +26,7 @@ const bindHiddenSignalsHandler = (
 			}
 		};
 
-		/**
-		 * Prepend so this runs before user handlers.
-		 */
+		// Prepend so this runs before user handlers.
 		process.prependListener(signal, hiddenHandler);
 		hiddenHandlers.set(signal, hiddenHandler);
 	}
