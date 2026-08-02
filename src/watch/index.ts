@@ -270,8 +270,10 @@ export const watchCommand = command({
 				() => {},
 			);
 		} else {
+			// Exit with 128 + signal number, as done by Node.js & POSIX shells
+			// https://nodejs.org/api/process.html#exit-codes
 			// eslint-disable-next-line n/no-process-exit
-			process.exit(osConstants.signals[signal]);
+			process.exit(128 + osConstants.signals[signal]);
 		}
 	};
 
