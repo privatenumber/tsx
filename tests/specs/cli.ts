@@ -328,6 +328,7 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 					setImmediate(assertListenerCounts);
 					return;
 				}
+				console.log('aggregate = ' + process.listenerCount('SIGINT'));
 				console.log('specific = ' + process.listenerCount('SIGINT', handler));
 				console.log(
 					'invalid matches = '
@@ -478,7 +479,7 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 
 			const result = await tsxProcess;
 
-			expect(result.stdout).toBe('specific = 1\ninvalid matches = true\nafter removal = 0');
+			expect(result.stdout).toBe('aggregate = 1\nspecific = 1\ninvalid matches = true\nafter removal = 0');
 			expect(result.exitCode).toBe(0);
 		});
 
