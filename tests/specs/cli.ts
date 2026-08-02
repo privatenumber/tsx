@@ -317,6 +317,16 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 			console.log('process.listeners().length = ' + process.listeners('SIGINT').length);
 			console.log('process.listenerCount() = ' + process.listenerCount('SIGINT'));
 			`,
+			'graceful-shutdown-once.js': `
+			process.once('SIGINT', async () => {
+				console.log('cleanup: started');
+				await new Promise(resolve => setTimeout(resolve, 100));
+				console.log('cleanup: finished');
+				process.exit(42);
+			});
+			setTimeout(() => {}, 1e5);
+			console.log('READY');
+			`,
 			'hidden-signals-listener-count.js': `
 			const { EventEmitter } = require('node:events');
 			const handler = () => {};
@@ -455,6 +465,61 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 
 				// This is the exit code I get from testing manually with Node
 				expect(result.exitCode).toBe(137);
+			}
+		}, {
+			timeout: 10_000,
+			retry: 3,
+		});
+
+		await test('Async process.once handler completes graceful shutdown', async () => {
+			const tsxProcess = tsx([
+				fixture.getPath('graceful-shutdown-once.js'),
+			]);
+
+			let stdout = '';
+			let tsxProcessResolved: Awaited<typeof tsxProcess> | undefined;
+
+			onTestFail(() => {
+				console.log({
+					tsxProcessResolved,
+					stdout,
+				});
+			});
+
+			// Accumulate stdout; send a single SIGINT once READY is seen.
+			// On Windows this terminates the process unconditionally (no POSIX
+			// signal), so cleanup doesn't run there.
+			tsxProcess.stdout!.setEncoding('utf8');
+			let sentSignal = false;
+			try {
+				for await (const [chunk] of on(tsxProcess.stdout!, 'data', {
+					close: ['end', 'close'],
+					signal: AbortSignal.timeout(10_000),
+				})) {
+					stdout += chunk;
+					if (!sentSignal && stdout.includes('READY')) {
+						sentSignal = true;
+						tsxProcess.kill('SIGINT', {
+							forceKillAfterTimeout: false,
+						});
+					}
+				}
+			} catch (error) {
+				if (!isAbortError(error)) {
+					throw error;
+				}
+			}
+
+			tsxProcessResolved = await tsxProcess;
+
+			if (isWindows) {
+				expect(stdout.trim()).toBe('READY');
+			} else {
+				expect(tsxProcessResolved.exitCode).toBe(42);
+				expectMatchInOrder(stdout, [
+					'cleanup: started',
+					'cleanup: finished',
+				]);
 			}
 		}, {
 			timeout: 10_000,
