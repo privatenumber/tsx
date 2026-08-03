@@ -1,0 +1,8 @@
+# tsx research and policy
+
+Cross-tool synthesis, tsx decisions, compatibility boundaries, and implementation maps. Upstream evidence belongs in the owning tool folder.
+
+| File | Covers |
+| --- | --- |
+| [module-resolution.md](./module-resolution.md) | Runtime extension-remapping policy and required resolver tests |
+| [node-integration.md](./node-integration.md) | Node feature gates, loader integration, and re-verification points |

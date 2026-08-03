@@ -64,7 +64,7 @@ Progress goes to stderr; result tables / JSON to stdout.
 
 ## Node version axis (async vs sync hooks)
 
-tsx uses async `module.register()` (a loader **worker thread**) below the CJS-reload-safe boundary, and sync `module.registerHooks()` (in-thread) at or above it. The boundary and its verification are documented in [`notes/node/module-hooks.md`](../../notes/node/module-hooks.md). The cleanest same-major A/B is:
+tsx uses async `module.register()` (a loader **worker thread**) below the CJS-reload-safe boundary, and sync `module.registerHooks()` (in-thread) at or above it. The tsx selection policy is documented in [`notes/tsx/node-integration.md`](../../notes/tsx/node-integration.md#module-hooks), and the upstream boundary is in [`notes/node/module-hooks.md`](../../notes/node/module-hooks.md#cjs-reload-support). The cleanest same-major A/B is:
 
 ```sh
 pnpm benchmark hooks-passthrough --node 24.10.0   # 24.10.0 = async worker, current (>=24.11.1) = sync
