@@ -39,7 +39,7 @@ tsExtensions['.mjs'] = ['.mts'];
  */
 const verbatimExtensions = new Set(['.ts', '.tsx', '.mts', '.cts']);
 
-export const mapTsExtensions = (
+export const getExtensionResolution = (
 	filePath: string,
 ) => {
 	const splitPath = filePath.split('?');
@@ -51,26 +51,20 @@ export const mapTsExtensions = (
 		return;
 	}
 
-	const tryPaths: string[] = [];
-
-	const tryExtensions = tsExtensions[extension];
-	if (tryExtensions) {
+	const substitutionExtensions = tsExtensions[extension];
+	if (substitutionExtensions) {
 		const extensionlessPath = pathname.slice(0, -extension.length);
 
-		tryPaths.push(
-			...tryExtensions.map(
-				extension_ => (
-					extensionlessPath
-					+ extension_
-					+ pathQuery
-				),
+		return substitutionExtensions.map(
+			extension_ => (
+				extensionlessPath
+				+ extension_
+				+ pathQuery
 			),
 		);
-
-		return tryPaths;
 	}
 
-	const guessExtensions = (
+	const implicitExtensions = (
 		(
 			!(filePath.startsWith(fileUrlPrefix) || isFilePath(pathname))
 			|| pathname.includes(nodeModulesPath)
@@ -79,15 +73,11 @@ export const mapTsExtensions = (
 			? dependencyExtensions
 			: localExtensions
 	);
-	tryPaths.push(
-		...guessExtensions.map(
-			extension_ => (
-				pathname
-				+ extension_
-				+ pathQuery
-			),
+	return implicitExtensions.map(
+		extension_ => (
+			pathname
+			+ extension_
+			+ pathQuery
 		),
 	);
-
-	return tryPaths;
 };

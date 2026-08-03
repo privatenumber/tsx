@@ -9,7 +9,7 @@ import type {
 import type { PackageJson } from 'type-fest';
 import { resolvePathAlias } from 'get-tsconfig';
 import { readJsonFile } from '../../utils/read-json-file.js';
-import { mapTsExtensions } from '../../utils/map-ts-extensions.js';
+import { getExtensionResolution } from '../../utils/extension-resolution.js';
 import type { NodeError } from '../../types.js';
 import {
 	fileUrlPrefix,
@@ -149,7 +149,7 @@ const resolveExtensions = async (
 	nextResolve: NextResolve,
 	throwError?: boolean,
 ) => {
-	const tryPaths = mapTsExtensions(url);
+	const tryPaths = getExtensionResolution(url);
 	log(3, 'resolveExtensions', {
 		url,
 		context,
@@ -196,7 +196,7 @@ const resolveExtensionsSync = (
 	nextResolve: NextResolveSync,
 	throwError?: boolean,
 ) => {
-	const tryPaths = mapTsExtensions(url);
+	const tryPaths = getExtensionResolution(url);
 	log(3, 'resolveExtensionsSync', {
 		url,
 		context,

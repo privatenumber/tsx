@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { existsSync } from 'node:fs';
-import { mapTsExtensions } from '../../../utils/map-ts-extensions.js';
+import { getExtensionResolution } from '../../../utils/extension-resolution.js';
 import type { NodeError } from '../../../types.js';
 import {
 	isFilePath,
@@ -53,12 +53,12 @@ const resolveTsFilename = (
 		return;
 	}
 
-	const tsPath = mapTsExtensions(request);
-	if (!tsPath) {
+	const tryPaths = getExtensionResolution(request);
+	if (!tryPaths) {
 		return;
 	}
 
-	for (const tryTsPath of tsPath) {
+	for (const tryTsPath of tryPaths) {
 		if (candidateDoesntExist(tryTsPath, parentPath)) {
 			continue;
 		}
