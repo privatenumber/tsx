@@ -42,9 +42,9 @@ export const getExtensionResolution = (
 	filePath: string,
 	resolveBareSpecifier = false,
 ) => {
-	const splitPath = filePath.split('?');
-	const pathQuery = splitPath[1] ? `?${splitPath[1]}` : '';
-	const [pathname] = splitPath;
+	const queryIndex = filePath.indexOf('?');
+	const pathname = queryIndex === -1 ? filePath : filePath.slice(0, queryIndex);
+	const pathQuery = queryIndex === -1 ? '' : filePath.slice(queryIndex);
 	// JavaScript parents use Node's LOAD_NODE_MODULES algorithm unchanged.
 	// TypeScript and namespaced tsx.require() parents retain TypeScript's
 	// substitution behavior for package subpaths.

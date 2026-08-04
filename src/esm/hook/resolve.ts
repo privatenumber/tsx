@@ -109,6 +109,38 @@ const isCommonJsRequireContext = (
 	&& !context.conditions.includes('import')
 );
 
+const getUrlMetadataIndex = (
+	url: string,
+) => {
+	const queryIndex = url.indexOf('?');
+	const fragmentIndex = url.indexOf('#');
+	if (queryIndex === -1) {
+		return fragmentIndex;
+	}
+	if (fragmentIndex === -1) {
+		return queryIndex;
+	}
+	return Math.min(queryIndex, fragmentIndex);
+};
+
+const getSpecifierMetadataIndex = (
+	specifier: string,
+	isCommonJsRequire: boolean,
+) => {
+	if (isCommonJsRequire) {
+		return specifier.indexOf('?');
+	}
+
+	if (
+		!isFilePath(specifier)
+		&& !urlLikeSpecifierPattern.test(specifier)
+	) {
+		return specifier.indexOf('?');
+	}
+
+	return getUrlMetadataIndex(specifier);
+};
+
 const getParentFilePath = (
 	parentURL: string | undefined,
 ) => {
@@ -117,6 +149,26 @@ const getParentFilePath = (
 	}
 
 	return fileURLToPath(new URL(parentURL));
+};
+
+const isTypeScriptParent = (
+	parentURL: string | undefined,
+) => {
+	if (!parentURL) {
+		return false;
+	}
+
+	const parentPath = getParentFilePath(parentURL);
+	if (parentPath) {
+		return tsExtensionsPattern.test(parentPath);
+	}
+
+	const metadataIndex = getUrlMetadataIndex(parentURL);
+	return tsExtensionsPattern.test(
+		metadataIndex === -1
+			? parentURL
+			: parentURL.slice(0, metadataIndex),
+	);
 };
 
 const isParentDependency = (
@@ -130,7 +182,7 @@ const resolvesTsExtensions = (
 	parentURL: string | undefined,
 	allowJs: boolean,
 ) => (
-	tsExtensionsPattern.test(getParentFilePath(parentURL) ?? '')
+	isTypeScriptParent(parentURL)
 
 	// allowJs makes local JavaScript source eligible for TypeScript resolution.
 	// Dependencies preserve published JavaScript and Node's normal resolution.
@@ -148,7 +200,8 @@ const getProbeFilePath = (
 	candidate: string,
 	parentURL: string | undefined,
 ) => {
-	const [pathname] = candidate.split('?');
+	const metadataIndex = getUrlMetadataIndex(candidate);
+	const pathname = metadataIndex === -1 ? candidate : candidate.slice(0, metadataIndex);
 	try {
 		if (pathname.startsWith(fileUrlPrefix)) {
 			return fileURLToPath(pathname);
@@ -660,7 +713,12 @@ const tsxProtocol = 'tsx://';
 const addQuery = (
 	url: string,
 	query: string,
-) => `${url}${url.includes('?') ? '&' : '?'}${query}`;
+) => {
+	const fragmentIndex = url.indexOf('#');
+	const urlWithoutFragment = fragmentIndex === -1 ? url : url.slice(0, fragmentIndex);
+	const fragment = fragmentIndex === -1 ? '' : url.slice(fragmentIndex);
+	return `${urlWithoutFragment}${urlWithoutFragment.includes('?') ? '&' : '?'}${query}${fragment}`;
+};
 
 const preserveCommonJsQueryIdentity = (
 	url: string,
@@ -738,7 +796,12 @@ export const createResolve = (
 			}
 		}
 
-		const [cleanSpecifier, query] = specifier.split('?');
+		const metadataIndex = getSpecifierMetadataIndex(
+			specifier,
+			isCommonJsRequireContext(context),
+		);
+		const cleanSpecifier = metadataIndex === -1 ? specifier : specifier.slice(0, metadataIndex);
+		const urlMetadata = metadataIndex === -1 ? '' : specifier.slice(metadataIndex);
 
 		const resolved = await resolveTsPaths(
 			cleanSpecifier,
@@ -772,8 +835,8 @@ export const createResolve = (
 			}
 		}
 
-		if (query) {
-			resolved.url += `?${query}`;
+		if (urlMetadata) {
+			resolved.url = new URL(resolved.url + urlMetadata).toString();
 		}
 
 		// Node 18's CJS ESM translator ignores loader-provided source and
@@ -883,7 +946,12 @@ export const createResolveSync = (
 			}
 		}
 
-		const [cleanSpecifier, query] = specifier.split('?');
+		const metadataIndex = getSpecifierMetadataIndex(
+			specifier,
+			isCommonJsRequireContext(context),
+		);
+		const cleanSpecifier = metadataIndex === -1 ? specifier : specifier.slice(0, metadataIndex);
+		const urlMetadata = metadataIndex === -1 ? '' : specifier.slice(metadataIndex);
 
 		const resolved = resolveTsPathsSync(
 			cleanSpecifier,
@@ -917,8 +985,8 @@ export const createResolveSync = (
 			}
 		}
 
-		if (query) {
-			resolved.url += `?${query}`;
+		if (urlMetadata) {
+			resolved.url = new URL(resolved.url + urlMetadata).toString();
 		}
 
 		// Inherit namespace

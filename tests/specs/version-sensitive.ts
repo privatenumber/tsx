@@ -347,6 +347,20 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 			});
 		});
 
+		test('sync ESM hook preserves literal hash characters in CommonJS paths', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'commonjs' }),
+				'entry.cjs': 'require("./file#1.js");',
+				'file#1.js': 'console.log("literal-hash");',
+			});
+
+			const process = await node.hook(['entry.cjs'], fixture.path);
+
+			expect(process.exitCode).toBe(0);
+			expect(process.stderr).toBe('');
+			expect(process.stdout).toBe('literal-hash');
+		});
+
 		// https://github.com/privatenumber/tsx/issues/800
 		test('sync ESM hook resolves directory requires inside dependencies', async () => {
 			await using fixture = await createFixture({
@@ -650,6 +664,58 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 		expect(process.exitCode).toBe(0);
 		expect(process.stderr).toBe('');
 		expect(process.stdout).toBe('from-path-alias');
+	});
+
+	test('preserves URL metadata through TypeScript extension fallback', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({
+				type: 'module',
+				imports: {
+					'#mapped': './mapped.ts',
+				},
+			}),
+			'entry.ts': `
+				import { value } from '#mapped';
+				import { url as fragment } from './fragment.js#fragment';
+				import { url as query } from './query.js?first?second#fragment';
+
+				console.log(JSON.stringify({ value, fragment, query }));
+				`,
+			'mapped.ts': 'export const value = "package-import";',
+			'fragment.ts': 'export const url = import.meta.url;',
+			'query.ts': 'export const url = import.meta.url;',
+		});
+
+		const process = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(JSON.parse(process.stdout)).toEqual({
+			value: 'package-import',
+			fragment: `${pathToFileURL(fixture.getPath('fragment.ts'))}#fragment`,
+			query: `${pathToFileURL(fixture.getPath('query.ts'))}?first?second#fragment`,
+		});
+	});
+
+	test('canonicalizes fragments after TypeScript extension fallback', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.ts': `
+				await import('./value.js#hello world');
+				await import('./value.js#hello%20world');
+
+				console.log(globalThis.fragmentLoadCount);
+				`,
+			'value.ts': `
+				globalThis.fragmentLoadCount = (globalThis.fragmentLoadCount ?? 0) + 1;
+				`,
+		});
+
+		const process = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('1');
 	});
 
 	test('ESM imports preserve CommonJS-classified TypeScript contracts', async () => {
