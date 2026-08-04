@@ -718,6 +718,30 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 		expect(process.stdout).toBe('1');
 	});
 
+	test('does not read namespace markers from fragments', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.ts': `
+				import { value } from './value.ts#?tsx-namespace=foreign';
+
+				console.log(value);
+				`,
+			'value.ts': `
+				enum Value {
+					Loaded = 'loaded',
+				}
+
+				export const value = Value.Loaded;
+				`,
+		});
+
+		const process = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('loaded');
+	});
+
 	test('ESM imports preserve CommonJS-classified TypeScript contracts', async () => {
 		await using fixture = await createFixture({
 			'package.json': createPackageJson({ type: 'commonjs' }),

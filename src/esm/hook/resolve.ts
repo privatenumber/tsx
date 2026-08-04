@@ -29,6 +29,7 @@ import {
 	getFormatFromFileUrlSync,
 	namespaceQuery,
 	commonJsExportPreparseQuery,
+	commonJsExportPreparseSearchParameter,
 	commonJsVirtualQuerySearchParameter,
 	getQueryWithoutParameters,
 	getNamespace,
@@ -720,6 +721,22 @@ const addQuery = (
 	return `${urlWithoutFragment}${urlWithoutFragment.includes('?') ? '&' : '?'}${query}${fragment}`;
 };
 
+const mergeUrlMetadata = (
+	url: string,
+	metadata: string,
+) => {
+	const metadataFragmentIndex = metadata.indexOf('#');
+	const query = metadata[0] === '?'
+		? metadata.slice(1, metadataFragmentIndex === -1 ? undefined : metadataFragmentIndex)
+		: '';
+	const requestFragment = metadataFragmentIndex === -1 ? '' : metadata.slice(metadataFragmentIndex);
+	const urlFragmentIndex = url.indexOf('#');
+	const urlWithoutFragment = urlFragmentIndex === -1 ? url : url.slice(0, urlFragmentIndex);
+	const urlFragment = urlFragmentIndex === -1 ? '' : url.slice(urlFragmentIndex);
+	const urlWithQuery = query ? addQuery(urlWithoutFragment, query) : urlWithoutFragment;
+	return new URL(`${urlWithQuery}${requestFragment || urlFragment}`).toString();
+};
+
 const preserveCommonJsQueryIdentity = (
 	url: string,
 	format: string | null | undefined,
@@ -803,7 +820,7 @@ export const createResolve = (
 		const cleanSpecifier = metadataIndex === -1 ? specifier : specifier.slice(0, metadataIndex);
 		const urlMetadata = metadataIndex === -1 ? '' : specifier.slice(metadataIndex);
 
-		const resolved = await resolveTsPaths(
+		const resolution = await resolveTsPaths(
 			cleanSpecifier,
 			context,
 			nextResolve,
@@ -811,12 +828,15 @@ export const createResolve = (
 		);
 
 		log(2, 'nextResolve', {
-			resolved,
+			resolved: resolution,
 		});
 
-		if (resolved.format === 'builtin') {
-			return resolved;
+		if (resolution.format === 'builtin') {
+			return resolution;
 		}
+
+		// A composed loader may reuse this result for a later request.
+		const resolved = { ...resolution };
 
 		// Filter out data: (sourcemaps)
 		if (resolved.url.startsWith(fileUrlPrefix)) {
@@ -836,7 +856,7 @@ export const createResolve = (
 		}
 
 		if (urlMetadata) {
-			resolved.url = new URL(resolved.url + urlMetadata).toString();
+			resolved.url = mergeUrlMetadata(resolved.url, urlMetadata);
 		}
 
 		// Node 18's CJS ESM translator ignores loader-provided source and
@@ -850,7 +870,7 @@ export const createResolve = (
 			&& resolved.format === 'commonjs'
 			&& implicitTsExtensionsPattern.test(resolved.url)
 			&& (
-				context.parentURL.includes(commonJsExportPreparseQuery)
+				new URL(context.parentURL).searchParams.has(commonJsExportPreparseSearchParameter)
 				|| parentImportsCommonJsExports(context.parentURL, specifier, supportsEsmLoadReadFile)
 			)
 		);
@@ -858,7 +878,7 @@ export const createResolve = (
 		// Inherit namespace
 		if (
 			requestNamespace
-			&& !resolved.url.includes(namespaceQuery)
+			&& getNamespace(resolved.url) === undefined
 		) {
 			resolved.url = addQuery(resolved.url, `${namespaceQuery}${requestNamespace}`);
 		}
@@ -953,7 +973,7 @@ export const createResolveSync = (
 		const cleanSpecifier = metadataIndex === -1 ? specifier : specifier.slice(0, metadataIndex);
 		const urlMetadata = metadataIndex === -1 ? '' : specifier.slice(metadataIndex);
 
-		const resolved = resolveTsPathsSync(
+		const resolution = resolveTsPathsSync(
 			cleanSpecifier,
 			context,
 			nextResolve,
@@ -961,12 +981,15 @@ export const createResolveSync = (
 		);
 
 		log(2, 'nextResolve', {
-			resolved,
+			resolved: resolution,
 		});
 
-		if (resolved.format === 'builtin') {
-			return resolved;
+		if (resolution.format === 'builtin') {
+			return resolution;
 		}
+
+		// A composed loader may reuse this result for a later request.
+		const resolved = { ...resolution };
 
 		// Filter out data: (sourcemaps)
 		if (resolved.url.startsWith(fileUrlPrefix)) {
@@ -986,13 +1009,13 @@ export const createResolveSync = (
 		}
 
 		if (urlMetadata) {
-			resolved.url = new URL(resolved.url + urlMetadata).toString();
+			resolved.url = mergeUrlMetadata(resolved.url, urlMetadata);
 		}
 
 		// Inherit namespace
 		if (
 			requestNamespace
-			&& !resolved.url.includes(namespaceQuery)
+			&& getNamespace(resolved.url) === undefined
 		) {
 			resolved.url = addQuery(resolved.url, `${namespaceQuery}${requestNamespace}`);
 		}

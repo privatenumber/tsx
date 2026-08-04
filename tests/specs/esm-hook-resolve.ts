@@ -59,6 +59,34 @@ export const esmHookResolve = () => describe('ESM resolve hook', () => {
 		});
 	});
 
+	test('merges async loader URL metadata without mutating its result', async () => {
+		await using fixture = await createFixture({
+			'module.ts': '',
+		});
+		const resolve = createResolve(createDefaultData());
+		const moduleUrl = pathToFileURL(fixture.getPath('module.ts')).toString();
+		const nextResult = {
+			url: `${moduleUrl}?observer=1`,
+			format: 'module' as const,
+		};
+
+		const first = await resolve(`${moduleUrl}?request=one#fragment`, context, () => nextResult);
+		const second = await resolve(`${moduleUrl}?request=two#fragment`, context, () => nextResult);
+
+		expect(first).toStrictEqual({
+			url: `${moduleUrl}?observer=1&request=one#fragment`,
+			format: 'module',
+		});
+		expect(second).toStrictEqual({
+			url: `${moduleUrl}?observer=1&request=two#fragment`,
+			format: 'module',
+		});
+		expect(nextResult).toStrictEqual({
+			url: `${moduleUrl}?observer=1`,
+			format: 'module',
+		});
+	});
+
 	test('maps Node-provided TypeScript formats in sync hooks without reading package.json', async () => {
 		await using fixture = await createFixture({
 			'package.json': '{ invalid',
@@ -101,6 +129,34 @@ export const esmHookResolve = () => describe('ESM resolve hook', () => {
 		expect(result).toStrictEqual({
 			url,
 			format: 'commonjs',
+		});
+	});
+
+	test('merges sync loader URL metadata without mutating its result', async () => {
+		await using fixture = await createFixture({
+			'module.ts': '',
+		});
+		const resolve = createResolveSync(createDefaultData());
+		const moduleUrl = pathToFileURL(fixture.getPath('module.ts')).toString();
+		const nextResult = {
+			url: `${moduleUrl}?observer=1`,
+			format: 'module' as const,
+		};
+
+		const first = resolve(`${moduleUrl}?request=one#fragment`, context, () => nextResult);
+		const second = resolve(`${moduleUrl}?request=two#fragment`, context, () => nextResult);
+
+		expect(first).toStrictEqual({
+			url: `${moduleUrl}?observer=1&request=one#fragment`,
+			format: 'module',
+		});
+		expect(second).toStrictEqual({
+			url: `${moduleUrl}?observer=1&request=two#fragment`,
+			format: 'module',
+		});
+		expect(nextResult).toStrictEqual({
+			url: `${moduleUrl}?observer=1`,
+			format: 'module',
 		});
 	});
 });

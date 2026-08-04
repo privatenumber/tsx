@@ -33,7 +33,8 @@ export const getFormatFromFileUrlSync = (fileUrl: string) => {
 	}
 };
 
-export const namespaceQuery = 'tsx-namespace=';
+export const namespaceSearchParameter = 'tsx-namespace';
+export const namespaceQuery = `${namespaceSearchParameter}=`;
 export const commonJsExportPreparseSearchParameter = 'tsx-commonjs-export-preparse';
 export const commonJsExportPreparseQuery = `${commonJsExportPreparseSearchParameter}=1`;
 export const commonJsVirtualQuerySearchParameter = 'tsx-commonjs-virtual-query';
@@ -134,22 +135,16 @@ export const parentImportsCommonJsExports = (
 export const getNamespace = (
 	url: string,
 ) => {
-	const index = url.indexOf(namespaceQuery);
-	if (index === -1) {
+	const queryIndex = url.indexOf('?');
+	const fragmentIndex = url.indexOf('#');
+	if (
+		queryIndex === -1
+		|| (fragmentIndex !== -1 && fragmentIndex < queryIndex)
+	) {
 		return;
 	}
 
-	const charBefore = url[index - 1];
-	if (charBefore !== '?' && charBefore !== '&') {
-		return;
-	}
-
-	const startIndex = index + namespaceQuery.length;
-	const endIndex = url.indexOf('&', startIndex);
-
-	return (
-		endIndex === -1
-			? url.slice(startIndex)
-			: url.slice(startIndex, endIndex)
-	);
+	return new URLSearchParams(
+		url.slice(queryIndex, fragmentIndex === -1 ? undefined : fragmentIndex),
+	).get(namespaceSearchParameter) ?? undefined;
 };
