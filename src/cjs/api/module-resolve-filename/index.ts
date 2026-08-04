@@ -5,7 +5,7 @@ import {
 	isFilePath,
 	fileUrlPrefix,
 	tsExtensionsPattern,
-	nodeModulesPath,
+	isDependencyPath,
 } from '../../../utils/path-utils.js';
 import type { ResolveFilename, SimpleResolve, LoaderState } from '../types.js';
 import { logCjs as log } from '../../../utils/debug.js';
@@ -33,7 +33,7 @@ const resolveTsPaths = (
 		&& !isFilePath(request)
 
 		// Dependency paths should not be resolved using tsconfig.json
-		&& !parent?.filename?.includes(nodeModulesPath)
+		&& !isDependencyPath(parent?.filename)
 	) {
 		const possiblePaths = resolvePathAlias(tsconfig, request);
 		for (const possiblePath of possiblePaths) {
@@ -85,17 +85,30 @@ export const createResolveFilename = (
 		...restOfArgs,
 	);
 
+	const isDependency = isDependencyPath(parent?.filename);
+	const resolveBareSpecifiers = Boolean(
+		// Namespaced tsx.require() resolves its entire graph as TypeScript.
+		namespace
+
+		// If parent is a TS file
+		|| (parent?.filename && tsExtensionsPattern.test(parent.filename)),
+	);
+	const resolveTsExtensions = Boolean(
+		resolveBareSpecifiers
+
+		// Project-level allowJs makes local JavaScript source eligible for
+		// TypeScript resolution. Published dependencies retain Node's CJS semantics.
+		// https://github.com/microsoft/TypeScript-Website/blob/4b665c09b2f57873e6ac0dc9d6d549a5cc61cf9a/packages/tsconfig-reference/copy/en/options/allowJs.md#L3-L39
+		|| (
+			tsconfig?.config.compilerOptions?.allowJs
+			&& !isDependency
+		),
+	);
 	nextResolveSimple = createTsExtensionResolver(
 		nextResolveSimple,
 		parent?.path ?? undefined,
-		Boolean(
-			// If register.namespace is used (e.g. tsx.require())
-			namespace
-
-			// If parent is a TS file
-			|| (parent?.filename && tsExtensionsPattern.test(parent.filename)),
-		),
-		tsconfig?.config.compilerOptions?.allowJs ?? false,
+		resolveTsExtensions,
+		resolveBareSpecifiers,
 	);
 
 	nextResolveSimple = createImplicitResolver(nextResolveSimple);

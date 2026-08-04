@@ -62,3 +62,7 @@ export const isDirectoryPattern = /\/(?:$|\?)/;
 export const isBarePackageNamePattern = /^(?:@[^/]+\/)?[^/\\]+$/;
 
 export const nodeModulesPath = `${path.sep}node_modules${path.sep}`;
+
+export const isDependencyPath = (
+	filePath: string | null | undefined,
+) => filePath?.split(path.sep).includes('node_modules') ?? false;

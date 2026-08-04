@@ -18,6 +18,7 @@ import {
 	isDirectoryPattern,
 	isRelativePath,
 	isFilePath,
+	isDependencyPath,
 } from '../../utils/path-utils.js';
 import type { TsxRequest } from '../types.js';
 import { isGlobalCjsLoaderActive } from '../../utils/cjs-loader-state.js';
@@ -97,11 +98,44 @@ const isModuleNotFound = (
 	|| code === 'MODULE_NOT_FOUND'
 );
 
+// Node ESM requires explicit file extensions. tsx retries a missing emitted
+// JavaScript path as source TypeScript only after Node rejects the exact path.
+// https://github.com/nodejs/node/blob/v18.20.8/doc/api/esm.md#L165-L170
+
 const isCommonJsRequireContext = (
 	context: ResolveHookContext,
 ) => (
 	context.conditions.includes('require')
 	&& !context.conditions.includes('import')
+);
+
+const getParentFilePath = (
+	parentURL: string | undefined,
+) => {
+	if (!parentURL?.startsWith(fileUrlPrefix)) {
+		return;
+	}
+
+	return fileURLToPath(new URL(parentURL));
+};
+
+const isParentDependency = (
+	parentURL: string | undefined,
+) => {
+	const parentPath = getParentFilePath(parentURL);
+	return parentPath !== undefined && isDependencyPath(parentPath);
+};
+
+const resolvesTsExtensions = (
+	parentURL: string | undefined,
+	allowJs: boolean,
+) => (
+	tsExtensionsPattern.test(getParentFilePath(parentURL) ?? '')
+
+	// allowJs makes local JavaScript source eligible for TypeScript resolution.
+	// Dependencies preserve published JavaScript and Node's normal resolution.
+	// https://github.com/microsoft/TypeScript-Website/blob/4b665c09b2f57873e6ac0dc9d6d549a5cc61cf9a/packages/tsconfig-reference/copy/en/options/allowJs.md#L3-L39
+	|| (allowJs && !isParentDependency(parentURL))
 );
 
 /**
@@ -244,33 +278,34 @@ const resolveBase = async (
 	hookData: Data,
 ) => {
 	const allowJs = hookData.parsedTsconfig?.config.compilerOptions?.allowJs ?? false;
+	const resolveTsExtensions = resolvesTsExtensions(context.parentURL, allowJs);
 
 	log(3, 'resolveBase', {
 		specifier,
 		context,
 		specifierStartsWithFileUrl: specifier.startsWith(fileUrlPrefix),
 		isRelativePath: isRelativePath(specifier),
-		tsExtensionsPattern: tsExtensionsPattern.test(context.parentURL!),
+		resolveTsExtensions,
 		allowJs,
 	});
 
 	/**
-	 * Only prioritize TypeScript extensions for file paths (no dependencies)
-	 * TS aliases are pre-resolved so they're file paths
-	 *
-	 * If `allowJs` is set in `tsconfig.json`, then we'll apply the same resolution logic
-	 * to files without a TypeScript extension.
+	 * TypeScript source and local allowJs JavaScript resolve source candidates first.
+	 * Runtime dependencies first delegate their requested path to Node.
 	 */
 	if (
 		(
 			specifier.startsWith(fileUrlPrefix)
 			|| isRelativePath(specifier)
-		) && (
-			tsExtensionsPattern.test(context.parentURL!)
-			|| allowJs
 		)
+		&& resolveTsExtensions
 	) {
-		const resolved = await resolveExtensions(specifier, context, nextResolve);
+		const resolved = await resolveExtensions(
+			specifier,
+			context,
+			nextResolve,
+			undefined,
+		);
 		log(3, 'resolveBase resolved', {
 			specifier,
 			context,
@@ -295,7 +330,12 @@ const resolveBase = async (
 				// Resolving .js -> .ts in exports/imports map
 				const errorPath = getMissingPathFromNotFound(nodeError);
 				if (errorPath) {
-					const resolved = await resolveExtensions(errorPath, context, nextResolve);
+					const resolved = await resolveExtensions(
+						errorPath,
+						context,
+						nextResolve,
+						undefined,
+					);
 					if (resolved) {
 						return resolved;
 					}
@@ -314,13 +354,14 @@ const resolveBaseSync = (
 	hookData: Data,
 ) => {
 	const allowJs = hookData.parsedTsconfig?.config.compilerOptions?.allowJs ?? false;
+	const resolveTsExtensions = resolvesTsExtensions(context.parentURL, allowJs);
 
 	log(3, 'resolveBaseSync', {
 		specifier,
 		context,
 		specifierStartsWithFileUrl: specifier.startsWith(fileUrlPrefix),
 		isRelativePath: isRelativePath(specifier),
-		tsExtensionsPattern: tsExtensionsPattern.test(context.parentURL!),
+		resolveTsExtensions,
 		allowJs,
 	});
 
@@ -328,12 +369,15 @@ const resolveBaseSync = (
 		(
 			specifier.startsWith(fileUrlPrefix)
 			|| isRelativePath(specifier)
-		) && (
-			tsExtensionsPattern.test(context.parentURL!)
-			|| allowJs
 		)
+		&& resolveTsExtensions
 	) {
-		const resolved = resolveExtensionsSync(specifier, context, nextResolve);
+		const resolved = resolveExtensionsSync(
+			specifier,
+			context,
+			nextResolve,
+			undefined,
+		);
 		log(3, 'resolveBaseSync resolved', {
 			specifier,
 			context,
@@ -358,7 +402,12 @@ const resolveBaseSync = (
 				// Resolving .js -> .ts in exports/imports map
 				const errorPath = getMissingPathFromNotFound(nodeError);
 				if (errorPath) {
-					const resolved = resolveExtensionsSync(errorPath, context, nextResolve);
+					const resolved = resolveExtensionsSync(
+						errorPath,
+						context,
+						nextResolve,
+						undefined,
+					);
 					if (resolved) {
 						return resolved;
 					}
@@ -466,7 +515,12 @@ const resolveDirectorySync = (
 		urlParsed.pathname = path.join(urlParsed.pathname, 'index');
 
 		if (!isCjsRequire) {
-			return resolveExtensionsSync(urlParsed.toString(), context, nextResolve, true)!;
+			return resolveExtensionsSync(
+				urlParsed.toString(),
+				context,
+				nextResolve,
+				true,
+			)!;
 		}
 
 		// Node's CommonJS resolver rejects file:// URLs, so resolve the implicit
@@ -532,14 +586,14 @@ const resolveTsPaths = async (
 
 		tsconfigPathAliasSpecifier,
 		tsconfig: hookData.parsedTsconfig,
-		fromNodeModules: context.parentURL?.includes('/node_modules/'),
+		fromNodeModules: isParentDependency(context.parentURL),
 	});
 	if (
 		// Bare specifier or TS path alias (e.g. `ns:foo`)
 		tsconfigPathAliasSpecifier
 		// TS path alias
 		&& hookData.parsedTsconfig
-		&& !context.parentURL?.includes('/node_modules/')
+		&& !isParentDependency(context.parentURL)
 	) {
 		const possiblePaths = resolvePathAlias(hookData.parsedTsconfig, specifier);
 		log(3, 'resolveTsPaths', {
@@ -573,14 +627,14 @@ const resolveTsPathsSync = (
 
 		tsconfigPathAliasSpecifier,
 		tsconfig: hookData.parsedTsconfig,
-		fromNodeModules: context.parentURL?.includes('/node_modules/'),
+		fromNodeModules: isParentDependency(context.parentURL),
 	});
 	if (
 		// Bare specifier or TS path alias (e.g. `ns:foo`)
 		tsconfigPathAliasSpecifier
 		// TS path alias
 		&& hookData.parsedTsconfig
-		&& !context.parentURL?.includes('/node_modules/')
+		&& !isParentDependency(context.parentURL)
 	) {
 		const possiblePaths = resolvePathAlias(hookData.parsedTsconfig, specifier);
 		log(3, 'resolveTsPathsSync', {

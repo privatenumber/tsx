@@ -7,7 +7,7 @@ import {
 import { execaNode } from 'execa';
 import { createFixture } from 'fs-fixture';
 import { tsxEsmApiPath, tsxEsmPath, type NodeApis } from '../utils/tsx';
-import { createPackageJson } from '../fixtures';
+import { createPackageJson, createTsconfig } from '../fixtures';
 import { processInteract } from '../utils/process-interact.js';
 
 // Lightweight tests for behaviors that vary across Node versions.
@@ -583,6 +583,74 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 			expect(stdout).toBe('loaded');
 		});
 	}
+
+	test('preserves ESM dependency paths with allowJs', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'tsconfig.json': createTsconfig({
+				compilerOptions: { allowJs: true },
+			}),
+			'entry.ts': 'import { value } from "dependency"; console.log(value);',
+			node_modules: {
+				dependency: {
+					'package.json': createPackageJson({
+						name: 'dependency',
+						type: 'module',
+						exports: './index.js',
+					}),
+					'index.js': 'export { value } from "./value.js";',
+					'value.js': 'export const value = "from-js";',
+					'value.ts': 'export const value = "from-ts";',
+				},
+			},
+		});
+
+		const process = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('from-js');
+	});
+
+	test('classifies JavaScript parents from their URL pathname', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.ts': 'import "./parent.js?source=file.ts";',
+			'parent.js': 'import { value } from "./value.js"; console.log(value);',
+			'value.js': 'export const value = "from-js";',
+			'value.ts': 'export const value = "from-ts";',
+		});
+
+		const process = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('from-js');
+	});
+
+	test('resolves tsconfig paths from a local parent URL containing node_modules', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'tsconfig.json': createTsconfig({
+				compilerOptions: {
+					allowJs: true,
+					baseUrl: '.',
+					paths: {
+						alias: ['./value.ts'],
+					},
+				},
+			}),
+			'entry.ts': 'await import("./parent.js?source=/node_modules/");',
+			'parent.js': 'import { value } from "alias"; console.log(value);',
+			'value.ts': 'export const value = "from-path-alias";',
+		});
+
+		const process = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('from-path-alias');
+	});
 
 	test('ESM imports preserve CommonJS-classified TypeScript contracts', async () => {
 		await using fixture = await createFixture({

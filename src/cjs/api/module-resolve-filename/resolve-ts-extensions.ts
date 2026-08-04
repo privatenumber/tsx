@@ -37,23 +37,19 @@ const resolveTsFilename = (
 	resolve: SimpleResolve,
 	request: string,
 	parentPath: string | undefined,
-	isTsParent: boolean,
-	allowJs: boolean,
+	resolveBareSpecifier: boolean,
 ) => {
 	log(3, 'resolveTsFilename', {
 		request,
 		isDirectory: isDirectoryPattern.test(request),
-		isTsParent,
-		allowJs,
 	});
 	if (
 		isDirectoryPattern.test(request)
-		|| (!isTsParent && !allowJs)
 	) {
 		return;
 	}
 
-	const tryPaths = getExtensionResolution(request);
+	const tryPaths = getExtensionResolution(request, resolveBareSpecifier);
 	if (!tryPaths) {
 		return;
 	}
@@ -80,25 +76,23 @@ const resolveTsFilename = (
 export const createTsExtensionResolver = (
 	nextResolve: SimpleResolve,
 	parentPath: string | undefined,
-	isTsParent: boolean,
-	allowJs: boolean,
+	resolveTsExtensions: boolean,
+	resolveBareSpecifier: boolean,
 ): SimpleResolve => (
 	request,
 ) => {
 	log(3, 'resolveTsFilename', {
 		request,
-		isTsParent,
+		resolveTsExtensions,
 		isFilePath: isFilePath(request),
 	});
 
-	// It should only try to resolve TS extensions first if it's a local file (non dependency)
-	if (isFilePath(request)) {
+	if (resolveTsExtensions && isFilePath(request)) {
 		const resolvedTsFilename = resolveTsFilename(
 			nextResolve,
 			request,
 			parentPath,
-			isTsParent,
-			allowJs,
+			resolveBareSpecifier,
 		);
 		if (resolvedTsFilename) {
 			return resolvedTsFilename;
@@ -110,7 +104,7 @@ export const createTsExtensionResolver = (
 	} catch (error) {
 		const nodeError = error as NodeError;
 
-		if (nodeError.code === 'MODULE_NOT_FOUND') {
+		if (resolveTsExtensions && nodeError.code === 'MODULE_NOT_FOUND') {
 			// Exports map resolution
 			if (nodeError.path) {
 				const isExportsPath = nodeError.message.match(/^Cannot find module '([^']+)'$/);
@@ -120,8 +114,7 @@ export const createTsExtensionResolver = (
 						nextResolve,
 						exportsPath,
 						parentPath,
-						isTsParent,
-						allowJs,
+						resolveBareSpecifier,
 					);
 					if (tsFilename) {
 						return tsFilename;
@@ -135,8 +128,7 @@ export const createTsExtensionResolver = (
 						nextResolve,
 						mainPath,
 						parentPath,
-						isTsParent,
-						allowJs,
+						resolveBareSpecifier,
 					);
 					if (tsFilename) {
 						return tsFilename;
@@ -148,8 +140,7 @@ export const createTsExtensionResolver = (
 				nextResolve,
 				request,
 				parentPath,
-				isTsParent,
-				allowJs,
+				resolveBareSpecifier,
 			);
 			if (resolvedTsFilename) {
 				return resolvedTsFilename;

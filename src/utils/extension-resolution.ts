@@ -3,19 +3,18 @@ import { isFilePath, fileUrlPrefix, nodeModulesPath } from './path-utils.js';
 
 const implicitJsExtensions = ['.js', '.json'];
 const implicitTsExtensions = ['.ts', '.tsx', '.jsx'];
+const nodeAssetExtensions = new Set(['.json', '.node']);
 
 // Guess extension
 const localExtensions = [...implicitTsExtensions, ...implicitJsExtensions];
 
-/**
- * If dependency, prioritize .js extensions over .ts
- *
- * .js is more likely to behave correctly than the .ts file
- * https://github.com/evanw/esbuild/releases/tag/v0.20.0
- */
+// Published JavaScript is more likely to work than source TypeScript because
+// its tsconfig and extended configs may not be published.
+// https://github.com/evanw/esbuild/releases/tag/v0.20.0
 const dependencyExtensions = [...implicitJsExtensions, ...implicitTsExtensions];
 
-// Swap extension
+// TypeScript substitutes emitted JavaScript extensions to find source files.
+// https://github.com/microsoft/TypeScript-Website/blob/e5652f43f20bf13a1671051de4dbf67eac73d6e1/packages/documentation/copy/en/modules-reference/Reference.md#L552-L570
 const tsExtensions: Record<string, string[]> = Object.create(null);
 tsExtensions['.js'] = ['.ts', '.tsx', '.js', '.jsx'];
 tsExtensions['.jsx'] = ['.tsx', '.ts', '.jsx', '.js'];
@@ -41,10 +40,23 @@ const verbatimExtensions = new Set(['.ts', '.tsx', '.mts', '.cts']);
 
 export const getExtensionResolution = (
 	filePath: string,
+	resolveBareSpecifier = false,
 ) => {
 	const splitPath = filePath.split('?');
 	const pathQuery = splitPath[1] ? `?${splitPath[1]}` : '';
 	const [pathname] = splitPath;
+	// JavaScript parents use Node's LOAD_NODE_MODULES algorithm unchanged.
+	// TypeScript and namespaced tsx.require() parents retain TypeScript's
+	// substitution behavior for package subpaths.
+	// https://github.com/nodejs/node/blob/v18.20.8/doc/api/modules.md#L227-L232
+	if (
+		!resolveBareSpecifier
+		&& !isFilePath(pathname)
+		&& !pathname.startsWith(fileUrlPrefix)
+	) {
+		return;
+	}
+
 	const extension = path.extname(pathname);
 
 	if (verbatimExtensions.has(extension)) {
@@ -62,6 +74,13 @@ export const getExtensionResolution = (
 				+ pathQuery
 			),
 		);
+	}
+
+	// JSON and native module paths belong to Node. CommonJS first checks the
+	// exact path, then applies its own .js/.json/.node fallback sequence.
+	// https://github.com/nodejs/node/blob/v18.20.8/doc/api/modules.md#L205-L209
+	if (nodeAssetExtensions.has(extension)) {
+		return;
 	}
 
 	const implicitExtensions = (
