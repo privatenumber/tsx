@@ -20,7 +20,7 @@ export const ptyShell = () => {
 
 	const close = () => {
 		closedShell ??= (async () => {
-			await subprocess.kill();
+			await subprocess.kill({ forceKill: 1000 });
 			const result = await subprocess;
 			return stripAnsi(result.output);
 		})();
