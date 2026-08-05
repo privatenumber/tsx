@@ -24,6 +24,7 @@ import type { TsxRequest } from '../types.js';
 import { isGlobalCjsLoaderActive } from '../../utils/cjs-loader-state.js';
 import { esmLoadReadFile, isFeatureSupported } from '../../utils/node-features.js';
 import { logEsm as log, debugEnabled } from '../../utils/debug.js';
+import { getPackageSubpathDirectoryInfo } from './package-subpath.js';
 import {
 	getFormatFromFileUrl,
 	getFormatFromFileUrlSync,
@@ -97,6 +98,16 @@ const isModuleNotFound = (
 ) => (
 	code === 'ERR_MODULE_NOT_FOUND'
 	|| code === 'MODULE_NOT_FOUND'
+);
+
+const isDirectoryEntryMiss = (
+	error: unknown,
+) => (
+	error instanceof Error
+	&& (
+		isModuleNotFound((error as NodeError).code)
+		|| (error as NodeError).code === 'ERR_UNSUPPORTED_DIR_IMPORT'
+	)
 );
 
 // Node ESM requires explicit file extensions. tsx retries a missing emitted
@@ -522,19 +533,49 @@ const resolveDirectory = async (
 			if (nodeError.code === 'ERR_UNSUPPORTED_DIR_IMPORT') {
 				const errorPath = getMissingPathFromNotFound(nodeError);
 				if (errorPath) {
-					try {
-						return (await resolveExtensions(
-							`${errorPath}/index`,
-							context,
-							nextResolve,
-							true,
-						))!;
-					} catch (_error) {
-						const __error = _error as Error;
-						const { message } = __error;
-						__error.message = __error.message.replace(`${'/index'.replace('/', path.sep)}'`, "'");
-						__error.stack = __error.stack!.replace(message, __error.message);
-						throw __error;
+					if (specifier.startsWith('#')) {
+						throw error;
+					}
+
+					const packageSubpath = getPackageSubpathDirectoryInfo(specifier, errorPath);
+					if (packageSubpath?.kind === 'root-exports') {
+						throw error;
+					}
+
+					if (packageSubpath?.mainUrl) {
+						try {
+							// Preserve Node's exact package main before tsx's extension fallback.
+							return await nextResolve(packageSubpath.mainUrl, context);
+						} catch (mainError) {
+							if (!isDirectoryEntryMiss(mainError)) {
+								throw mainError;
+							}
+						}
+
+						try {
+							return await resolveDirectory(
+								packageSubpath.mainUrl,
+								context,
+								nextResolve,
+								hookData,
+							);
+						} catch (mainError) {
+							if (!isDirectoryEntryMiss(mainError)) {
+								throw mainError;
+							}
+
+							// The legacy package fallback tries the directory index when "main" misses.
+						}
+					}
+
+					const indexUrl = `${errorPath}/index`;
+					const indexResolved = await resolveExtensions(
+						indexUrl,
+						context,
+						nextResolve,
+					);
+					if (indexResolved) {
+						return indexResolved;
 					}
 				}
 			}
@@ -612,19 +653,49 @@ const resolveDirectorySync = (
 			if (nodeError.code === 'ERR_UNSUPPORTED_DIR_IMPORT') {
 				const errorPath = getMissingPathFromNotFound(nodeError);
 				if (errorPath) {
-					try {
-						return resolveExtensionsSync(
-							`${errorPath}/index`,
-							context,
-							nextResolve,
-							true,
-						)!;
-					} catch (_error) {
-						const __error = _error as Error;
-						const { message } = __error;
-						__error.message = __error.message.replace(`${'/index'.replace('/', path.sep)}'`, "'");
-						__error.stack = __error.stack!.replace(message, __error.message);
-						throw __error;
+					if (specifier.startsWith('#')) {
+						throw error;
+					}
+
+					const packageSubpath = getPackageSubpathDirectoryInfo(specifier, errorPath);
+					if (packageSubpath?.kind === 'root-exports') {
+						throw error;
+					}
+
+					if (packageSubpath?.mainUrl) {
+						try {
+							// Preserve Node's exact package main before tsx's extension fallback.
+							return nextResolve(packageSubpath.mainUrl, context);
+						} catch (mainError) {
+							if (!isDirectoryEntryMiss(mainError)) {
+								throw mainError;
+							}
+						}
+
+						try {
+							return resolveDirectorySync(
+								packageSubpath.mainUrl,
+								context,
+								nextResolve,
+								hookData,
+							);
+						} catch (mainError) {
+							if (!isDirectoryEntryMiss(mainError)) {
+								throw mainError;
+							}
+
+							// The legacy package fallback tries the directory index when "main" misses.
+						}
+					}
+
+					const indexUrl = `${errorPath}/index`;
+					const indexResolved = resolveExtensionsSync(
+						indexUrl,
+						context,
+						nextResolve,
+					);
+					if (indexResolved) {
+						return indexResolved;
 					}
 				}
 			}

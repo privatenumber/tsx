@@ -4,6 +4,6 @@ Cross-tool synthesis, tsx decisions, compatibility boundaries, and implementatio
 
 | File | Covers |
 | --- | --- |
-| [module-resolution.md](./module-resolution.md) | Runtime extension-remapping policy and required resolver tests |
+| [module-resolution.md](./module-resolution.md) | Runtime extension and package-subpath policy with required resolver tests |
 | [node-integration.md](./node-integration.md) | Node feature gates, loader integration, and re-verification points |
 | [transform-backend.md](./transform-backend.md) | Per-file transform semantics and backend re-verification contract |

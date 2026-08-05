@@ -565,6 +565,378 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 		});
 	}
 
+	// https://github.com/privatenumber/tsx/issues/743
+	test('uses root exports before nested package manifests', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.ts': `
+				import { source } from 'dependency/subpath';
+
+				console.log(source);
+				`,
+			node_modules: {
+				dependency: {
+					'package.json': createPackageJson({
+						exports: {
+							'./subpath': {
+								import: './public.js',
+								require: './require.js',
+							},
+						},
+					}),
+					'public.js': 'exports.source = "root-exports";',
+					'require.js': 'exports.source = "require-exports";',
+					subpath: {
+						'package.json': createPackageJson({
+							exports: './ignored.js',
+							main: '../lib/main.js',
+						}),
+						'ignored.js': 'exports.source = "nested-exports";',
+						'index.js': 'exports.source = "index";',
+					},
+					lib: {
+						'main.js': 'exports.source = "nested-main";',
+					},
+				},
+			},
+		});
+
+		const process = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('root-exports');
+	});
+
+	// https://github.com/privatenumber/tsx/issues/743
+	test('resolves relative dependency directories with root exports', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.ts': 'import "dependency/entry";',
+			node_modules: {
+				dependency: {
+					'package.json': createPackageJson({
+						type: 'module',
+						exports: {
+							'./entry': './entry.js',
+						},
+					}),
+					'entry.js': 'import { source } from "./subpath"; console.log(source);',
+					subpath: {
+						'index.ts': 'export const source: string = "relative-index";',
+					},
+				},
+			},
+		});
+
+		const process = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('relative-index');
+	});
+
+	// https://github.com/privatenumber/tsx/issues/743
+	test('does not bypass root exports with nested package entries', async () => {
+		const entrySource = `
+			const outcome = await import('dependency/subpath').then(
+				() => 'resolved',
+				error => error.code,
+			);
+
+			console.log(outcome);
+			`;
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.mjs': entrySource,
+			'entry.ts': entrySource,
+			node_modules: {
+				dependency: {
+					'package.json': createPackageJson({
+						exports: {
+							'./subpath': './subpath',
+						},
+					}),
+					subpath: {
+						'package.json': createPackageJson({
+							main: '../lib/main.js',
+						}),
+						'index.js': 'exports.source = "index";',
+					},
+					lib: {
+						'main.js': 'exports.source = "nested-main";',
+					},
+				},
+			},
+		});
+
+		const nativeProcess = await execaNode(fixture.getPath('entry.mjs'), {
+			nodePath: node.path,
+			cwd: fixture.path,
+			reject: false,
+		});
+		const tsxProcess = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(nativeProcess.exitCode).toBe(0);
+		expect(nativeProcess.stderr).toBe('');
+		expect(nativeProcess.stdout).toBe('ERR_UNSUPPORTED_DIR_IMPORT');
+		expect(tsxProcess.exitCode).toBe(nativeProcess.exitCode);
+		expect(tsxProcess.stderr).toBe(nativeProcess.stderr);
+		expect(tsxProcess.stdout).toBe(nativeProcess.stdout);
+	});
+
+	// https://github.com/privatenumber/tsx/issues/743
+	test('does not bypass package imports with nested package entries', async () => {
+		const entrySource = `
+			const outcome = await import('#feature/option').then(
+				() => 'resolved',
+				error => error.code,
+			);
+
+			console.log(outcome);
+			`;
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({
+				type: 'module',
+				imports: {
+					'#feature/option': 'dependency/subpath',
+				},
+			}),
+			'entry.mjs': entrySource,
+			'entry.ts': entrySource,
+			node_modules: {
+				dependency: {
+					'package.json': '{}',
+					subpath: {
+						'package.json': createPackageJson({ main: '../lib/main.js' }),
+						'index.js': 'exports.source = "index";',
+					},
+					lib: {
+						'main.js': 'exports.source = "nested-main";',
+					},
+				},
+			},
+		});
+
+		const nativeProcess = await execaNode(fixture.getPath('entry.mjs'), {
+			nodePath: node.path,
+			cwd: fixture.path,
+			reject: false,
+		});
+		const tsxProcess = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(nativeProcess.exitCode).toBe(0);
+		expect(nativeProcess.stderr).toBe('');
+		expect(nativeProcess.stdout).toBe('ERR_UNSUPPORTED_DIR_IMPORT');
+		expect(tsxProcess.exitCode).toBe(nativeProcess.exitCode);
+		expect(tsxProcess.stderr).toBe(nativeProcess.stderr);
+		expect(tsxProcess.stdout).toBe(nativeProcess.stdout);
+	});
+
+	// https://github.com/privatenumber/tsx/issues/743
+	test('resolves nested package main before index and ignores nested exports', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.ts': `
+				import { source } from 'dependency/subpath';
+
+				console.log(source);
+				`,
+			node_modules: {
+				dependency: {
+					'package.json': '{}',
+					subpath: {
+						'package.json': createPackageJson({
+							exports: './ignored.js',
+							main: '../lib/main.js',
+						}),
+						'ignored.js': 'exports.source = "nested-exports";',
+						'index.js': 'exports.source = "index";',
+					},
+					lib: {
+						'main.js': 'exports.source = "nested-main";',
+					},
+				},
+			},
+		});
+
+		const process = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('nested-main');
+	});
+
+	// https://github.com/privatenumber/tsx/issues/743
+	test('resolves an exact nested package main before extension fallbacks', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.ts': `
+				import { source } from 'dependency/subpath';
+
+				console.log(source);
+				`,
+			node_modules: {
+				dependency: {
+					'package.json': '{}',
+					subpath: {
+						'package.json': createPackageJson({ main: '../lib/entry' }),
+					},
+					lib: {
+						entry: 'exports.source = "exact-main";',
+						'entry.js': 'exports.source = "extension-fallback";',
+					},
+				},
+			},
+		});
+
+		const process = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('exact-main');
+	});
+
+	// https://github.com/privatenumber/tsx/issues/743
+	test('resolves nested scoped package main before index', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.ts': `
+				import { source } from '@scope/dependency/subpath';
+
+				console.log(source);
+				`,
+			node_modules: {
+				'@scope/dependency': {
+					'package.json': '{}',
+					subpath: {
+						'package.json': createPackageJson({ main: '../lib/main.js' }),
+						'index.js': 'exports.source = "index";',
+					},
+					lib: {
+						'main.js': 'exports.source = "nested-main";',
+					},
+				},
+			},
+		});
+
+		const process = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('nested-main');
+	});
+
+	// https://github.com/privatenumber/tsx/issues/743
+	test('falls back to a dependency index when nested package main misses', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.ts': `
+				import { source } from 'dependency/subpath';
+
+				console.log(source);
+				`,
+			node_modules: {
+				dependency: {
+					'package.json': '{}',
+					subpath: {
+						'package.json': createPackageJson({
+							main: '../lib/missing.js',
+						}),
+						'index.js': 'exports.source = "index";',
+					},
+				},
+			},
+		});
+
+		const process = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stdout).toBe('index');
+	});
+
+	// https://github.com/privatenumber/tsx/issues/743
+	test('resolves a nested package main directory', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.ts': `
+				import { source } from 'dependency/subpath';
+
+				console.log(source);
+				`,
+			node_modules: {
+				dependency: {
+					'package.json': '{}',
+					subpath: {
+						'package.json': createPackageJson({ main: '../lib' }),
+					},
+					lib: {
+						'index.js': 'exports.source = "main-directory-index";',
+					},
+				},
+			},
+		});
+
+		const process = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('main-directory-index');
+	});
+
+	// https://github.com/privatenumber/tsx/issues/743
+	test('matches Node errors when dependency package entries miss', async () => {
+		const entrySource = `
+			import { fileURLToPath } from 'node:url';
+
+			const entryPath = fileURLToPath(import.meta.url);
+			const outcome = await import('dependency/subpath').then(
+				() => 'resolved',
+				error => JSON.stringify({
+					code: error.code,
+					url: error.url,
+					message: error.message.replace(entryPath, '<entry>'),
+					stackHeader: error.stack?.split('\\n')[0].replace(entryPath, '<entry>'),
+				}),
+			);
+
+			console.log(outcome);
+			`;
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.mjs': entrySource,
+			'entry.ts': entrySource,
+			node_modules: {
+				dependency: {
+					'package.json': '{}',
+					'subpath/package.json': createPackageJson({
+						main: '../lib/missing.js',
+					}),
+				},
+			},
+		});
+
+		const nativeProcess = await execaNode(fixture.getPath('entry.mjs'), {
+			nodePath: node.path,
+			cwd: fixture.path,
+			reject: false,
+		});
+		const tsxProcess = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(nativeProcess.exitCode).toBe(0);
+		expect(nativeProcess.stderr).toBe('');
+		const nativeOutcome = JSON.parse(nativeProcess.stdout);
+		expect(nativeOutcome).toMatchObject({
+			code: 'ERR_UNSUPPORTED_DIR_IMPORT',
+			url: pathToFileURL(fixture.getPath('node_modules/dependency/subpath')).toString(),
+		});
+		expect(nativeOutcome.message).not.toContain('/index');
+		expect(nativeOutcome.stackHeader).not.toContain('/index');
+		expect(tsxProcess.exitCode).toBe(nativeProcess.exitCode);
+		expect(tsxProcess.stderr).toBe(nativeProcess.stderr);
+		expect(JSON.parse(tsxProcess.stdout)).toEqual(nativeOutcome);
+	});
+
 	// Regression guards for https://github.com/privatenumber/tsx/issues/761 and #737:
 	// a dependency that ships ESM via exports.import but omits "type" was
 	// classified as CJS and lost its named or default exports. The contract relies on
