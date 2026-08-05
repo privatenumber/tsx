@@ -26,7 +26,7 @@ if (
 }
 
 // The async module.register() path registers a cache-busted copy of this
-// entry per registration (`./esm/index.mjs?<timestamp>`). Only this entry
+// entry per registration (`./esm/index.mjs?<unique-id>`). Only this entry
 // module is re-evaluated per copy — imported modules can be hoisted into
 // bundler chunks that evaluate once per thread — so the per-registration
 // hook state must be created here for each registration to get its own

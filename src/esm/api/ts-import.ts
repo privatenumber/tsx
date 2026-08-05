@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { register as cjsRegister } from '../../cjs/api/index.js';
 import { isFeatureSupported, esmLoadReadFile } from '../../utils/node-features.js';
 import { isBarePackageNamePattern, cjsExtensionPattern } from '../../utils/path-utils.js';
@@ -22,7 +23,7 @@ const tsImport = (
 
 	const isOptionsString = typeof options === 'string';
 	const parentURL = isOptionsString ? options : options.parentURL;
-	const namespace = Date.now().toString();
+	const namespace = crypto.randomUUID();
 
 	// Keep registered for hanging require() calls
 	const cjs = cjsRegister({

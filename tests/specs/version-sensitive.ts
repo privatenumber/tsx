@@ -1019,7 +1019,7 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 		expect(tsxProcess.stdout).toBe('literal-question');
 	});
 
-	test('tsImport keeps CommonJS-classified TypeScript namespace loads isolated', async () => {
+	test('tsImport keeps CommonJS-classified TypeScript loads isolated when calls share a timestamp', async () => {
 		if (!node.supports.esmLoadReadFile) {
 			return;
 		}
@@ -1027,11 +1027,11 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 		await using fixture = await createFixture({
 			'package.json': createPackageJson({ type: 'commonjs' }),
 			'import.mjs': `
-				import { setTimeout } from 'node:timers/promises';
 				import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
 
+				Date.now = () => 0;
+
 				const first = await tsImport('./file.ts', import.meta.url);
-				await setTimeout(1);
 				const second = await tsImport('./file.ts', import.meta.url);
 				const plainLoaded = await import('./file.ts').then(
 					() => true,
@@ -1108,7 +1108,7 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 
 	// Each tsImport() registers a fresh copy of the hooks. Hook state must
 	// be per-registration: the async module.register() path loads a
-	// cache-busted `esm/index.mjs?<timestamp>` per call, and if the state
+	// cache-busted `esm/index.mjs?<unique-id>` per call, and if the state
 	// lands in a bundler chunk shared across those copies, every chained
 	// registration claims the latest namespace. Each chain entry then
 	// re-applies TS extension guessing to the failed candidates of the
@@ -1124,6 +1124,8 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 			'fail.ts': "import './missing.js';",
 			'main.mjs': `
 				import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+
+				Date.now = () => 0;
 
 				for (let i = 1; i <= 7; i += 1) {
 					const outcome = await tsImport('./fail.ts', import.meta.url).then(

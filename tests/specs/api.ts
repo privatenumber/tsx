@@ -740,11 +740,11 @@ export const api = (node: NodeApis) => describe('API', () => {
 
 					expect(stdout).toMatch(new RegExp([
 						'Fails as expected 1',
-						String.raw`foo bar json file\.ts\?tsx-namespace=\d+`,
+						String.raw`foo bar json file\.ts\?tsx-namespace=[^\n]+`,
 						'cts loaded',
 						'cjsReexport esm syntax',
 						'cjsReexport esm syntax',
-						String.raw`foo bar json file\.ts\?with-query&tsx-namespace=\d+`,
+						String.raw`foo bar json file\.ts\?with-query&tsx-namespace=[^\n]+`,
 						'Fails as expected 2',
 					].join(String.raw`\n`)));
 				});
@@ -794,9 +794,9 @@ export const api = (node: NodeApis) => describe('API', () => {
 
 					expect(stdout).toMatch(new RegExp([
 						'Fails as expected 1',
-						String.raw`foo bar json file\.ts\?tsx-namespace=\d+`,
+						String.raw`foo bar json file\.ts\?tsx-namespace=[^\n]+`,
 						'foo bar',
-						String.raw`foo bar json file\.ts\?with-query&tsx-namespace=\d+`,
+						String.raw`foo bar json file\.ts\?with-query&tsx-namespace=[^\n]+`,
 						'cjsReexport esm syntax',
 						'cjsReexport esm syntax',
 						'Fails as expected 2',
