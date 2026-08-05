@@ -706,6 +706,40 @@ export const smoke = ({ tsx, supports }: NodeApis) => describe('Smoke', () => {
 		expect(p.failed).toBe(false);
 	});
 
+	// https://github.com/privatenumber/tsx/issues/667
+	describe('dynamic import of an absolute path', () => {
+		// On Windows, absolute paths (e.g. `C:\foo`) fail to parse as URLs,
+		// misinterpreting the drive letter as the URL scheme
+		for (const [name, entryFile] of [
+			['from CommonJS', 'index.ts'],
+			['from ESM', 'index.mts'],
+		] as const) {
+			test(name, async () => {
+				await using fixture = await createFixture({
+					'package.json': createPackageJson({}),
+					[entryFile]: `
+					import path from 'node:path';
+
+					import(path.resolve('file.ts')).then((imported) => {
+						console.log(imported.value);
+					});
+					`,
+					'file.ts': "export const value = 'imported';",
+				});
+
+				const p = await tsx([entryFile], {
+					cwd: fixture.path,
+				});
+				onTestFail(() => {
+					console.log(p);
+				});
+				expect(p.failed).toBe(false);
+				expect(p.stdout).toBe('imported');
+				expect(p.stderr).toBe('');
+			});
+		}
+	});
+
 	if (supports.cjsInterop) {
 		test('mjs file can import named export from fake ESM even with --jitless', async () => {
 			await using fixture = await createFixture({
