@@ -8,6 +8,13 @@ Welcome! We're excited you're interested in contributing. To ensure a smooth and
 2. Improve ESM ↔ CommonJS interoperability as the ecosystem migrates to ESM
 3. Support the [active LTS versions of Node.js](https://endoflife.date/nodejs)
 
+## Engineering principles
+
+- Improve the default behavior for everyone. Do not turn known bugs or backend limitations into user-facing opt-outs.
+- Fix behavior at the narrowest owning layer. Prefer improving or replacing an inadequate dependency over patching its output, injecting global shims, or detecting specific third-party libraries.
+- Keep tsx's public surface independent of its implementation. Add configuration or API only when it represents durable user intent with multiple valid outcomes, not an escape hatch for one backend.
+- Prefer complete, long-term solutions over workarounds. A mitigation may reduce impact, but it does not resolve the underlying issue.
+
 ## Issues & Discussions
 
 > [!IMPORTANT]
