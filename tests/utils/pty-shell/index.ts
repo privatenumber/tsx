@@ -40,7 +40,7 @@ export const ptyShell = () => {
 				.some(line => line.endsWith(commandCaret)),
 		),
 		waitForLine: (pattern: RegExp) => waitFor(subprocess, o => (
-			normalizeTerminalOutput(o).split('\n').some(line => pattern.test(line))
+			normalizeTerminalOutput(o).split('\n').slice(0, -1).some(line => pattern.test(line))
 		)),
 		type: (text: string) => subprocess.stdin.write(`${text}\r`),
 		press: (key: string) => subprocess.stdin.write(key),
