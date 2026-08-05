@@ -815,6 +815,34 @@ const mergeUrlMetadata = (
 	return new URL(`${urlWithQuery}${requestFragment || urlFragment}`).toString();
 };
 
+// When tsx's CJS resolver (preserve-query.ts) returns a path with a
+// `?namespace=<id>` cache-isolation query appended, the CJS loader feeds
+// that path through pathToFileURL to dispatch via the module customization
+// hooks. pathToFileURL encodes the `?` as `%3F` inside the URL pathname,
+// then ESM resolve re-enters with that URL as the specifier. Without tsx's
+// own virtual-query marker (`tsx-commonjs-virtual-query=1`) the encoded
+// segment is not a tsx ESM URL, just a CJS-bridge artifact. Forwarding it
+// to nextResolve makes Node stat a literal `index.cjs?namespace=...` path
+// and ENOENT. Strip the encoded segment so resolution falls back to the
+// real file on disk; the CJS bridge keeps its own Module._cache namespace
+// isolation via the in-memory cache key, so nothing else needs the query
+// at this point.
+const stripCjsBridgeArtifact = (url: string | undefined) => {
+	if (!url || !url.startsWith(fileUrlPrefix)) {
+		return url;
+	}
+	const fileUrl = new URL(url);
+	if (fileUrl.searchParams.has(commonJsVirtualQuerySearchParameter)) {
+		return url;
+	}
+	const queryIndex = fileUrl.pathname.toLowerCase().lastIndexOf('%3f');
+	if (queryIndex === -1) {
+		return url;
+	}
+	fileUrl.pathname = fileUrl.pathname.slice(0, queryIndex);
+	return fileUrl.toString();
+};
+
 const preserveCommonJsQueryIdentity = (
 	url: string,
 	format: string | null | undefined,
@@ -860,6 +888,12 @@ export const createResolve = (
 			|| specifier.startsWith('node:')
 		) {
 			return nextResolve(specifier, context);
+		}
+
+		specifier = stripCjsBridgeArtifact(specifier) ?? specifier;
+		const cleanedParentURL = stripCjsBridgeArtifact(context.parentURL);
+		if (cleanedParentURL !== context.parentURL) {
+			context.parentURL = cleanedParentURL;
 		}
 
 		let requestNamespace = getNamespace(specifier) ?? (
@@ -1018,6 +1052,12 @@ export const createResolveSync = (
 			|| (isCommonJsRequireContext(context) && isGlobalCjsLoaderActive())
 		) {
 			return nextResolve(specifier, context);
+		}
+
+		specifier = stripCjsBridgeArtifact(specifier) ?? specifier;
+		const cleanedParentURL = stripCjsBridgeArtifact(context.parentURL);
+		if (cleanedParentURL !== context.parentURL) {
+			context.parentURL = cleanedParentURL;
 		}
 
 		let requestNamespace = getNamespace(specifier) ?? (
