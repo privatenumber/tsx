@@ -1,0 +1,7 @@
+# Semantic compatibility
+
+Oxc's transform conformance registry lists Stage 3 decorators and CommonJS module transformation as unsupported plugins ([registry](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/tasks/transform_conformance/src/constants.rs#L60-L78)); exposed decorator options cover legacy decorators and metadata ([options](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/crates/oxc_transformer/src/decorator/options.rs#L3-L44)).
+
+TypeScript namespaces are lowered into separate function expressions ([namespace transform](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/crates/oxc_transformer/src/typescript/namespace.rs#L337-L444)); mutable namespace exports trigger an explicit unsupported warning ([diagnostic](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/crates/oxc_transformer/src/typescript/diagnostics.rs#L30-L33), [call site](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/crates/oxc_transformer/src/typescript/namespace.rs#L237-L252)).
+
+`export =` is rewritten during statement traversal at its source location ([module transform](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/crates/oxc_transformer/src/typescript/module.rs#L42-L80)). Inference: assignment timing is observable when later statements inspect `module.exports`.

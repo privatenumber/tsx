@@ -1,0 +1,7 @@
+# Function identity
+
+With `keepNames`, esbuild inserts name-restoration calls while lowering [function declarations](https://github.com/evanw/esbuild/blob/6ff1d8b0d8c134e867a397eef39702a223ebef9e/internal/js_parser/js_parser.go#L11326-L11332) and [arrows/function expressions](https://github.com/evanw/esbuild/blob/6ff1d8b0d8c134e867a397eef39702a223ebef9e/internal/js_parser/js_parser.go#L15864-L15895); the calls target a generated `__name` runtime helper ([construction](https://github.com/evanw/esbuild/blob/6ff1d8b0d8c134e867a397eef39702a223ebef9e/internal/js_parser/js_parser.go#L10330-L10347), [helper](https://github.com/evanw/esbuild/blob/6ff1d8b0d8c134e867a397eef39702a223ebef9e/internal/runtime/runtime.go#L114-L115)).
+
+Final symbol names are selected later by linker collision handling and the renamer ([linker](https://github.com/evanw/esbuild/blob/6ff1d8b0d8c134e867a397eef39702a223ebef9e/internal/linker/linker.go#L5449-L5560), [renamer](https://github.com/evanw/esbuild/blob/6ff1d8b0d8c134e867a397eef39702a223ebef9e/internal/renamer/renamer.go#L431-L472)); disabling identifier minification does not prevent collision suffixes.
+
+Inference: serializing a transformed function whose body contains nested name-restoration calls can leave a free `__name` reference because the helper remains in its enclosing module; esbuild documents transformed-function relocation through `toString()`/`eval()` as unsupported ([issue](https://github.com/evanw/esbuild/issues/607#issuecomment-803631469)).

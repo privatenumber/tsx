@@ -1,0 +1,7 @@
+# Function identity
+
+The Oxc NAPI transform exposes syntax/target options without enabling the minifier or mangler ([NAPI options](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/napi/transform/src/transformer.rs#L82-L170), [compiler defaults](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/crates/oxc/src/compiler.rs#L69-L90)); its TypeScript pass removes or lowers TypeScript constructs ([transform](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/crates/oxc_transformer/src/typescript/mod.rs#L74-L92)).
+
+Oxc's `keepNames` behavior belongs to its mangler and preserves function/class `name` properties by excluding collected symbols from renaming ([collection](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/crates/oxc_mangler/src/keep_names.rs#L7-L43), [exclusion](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/crates/oxc_mangler/src/lib.rs#L613-L615)).
+
+Target lowering can create root-scope dependencies ([generated helpers](./generated-helpers.md)); async lowering emits a caller that closes over a generated wrapper variable ([lowering](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/crates/oxc_transformer/src/es2017/async_to_generator.rs#L306-L415)). Inference: serializing only the lowered function cannot retain bindings left in the original program scope.

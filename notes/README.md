@@ -8,6 +8,8 @@ Each `notes/<tool>/` folder records research about that tool alone. It may descr
 
 `notes/tsx/` owns cross-tool synthesis: tsx behavior, policy decisions, compatibility boundaries, test matrices, and integration maps. It links to tool-owned evidence instead of duplicating it.
 
+Use `README.md` as a short folder index. When tools have evidence for the same domain, use the same domain filename, such as `module-resolution.md`, `import-elision.md`, or `function-identity.md`; do not create empty parity files without source-backed claims.
+
 Create a tool folder when the repository makes independent, reusable claims about that tool. Incidental dependencies do not need a folder when they only explain an owning tool's implementation. For example, a Node note may say that Node delegates type stripping to Amaro; independent Amaro behavior belongs in `notes/amaro/` if it is researched.
 
 ## Index
@@ -17,9 +19,10 @@ Create a tool folder when the repository makes independent, reusable claims abou
 | [node/](./node/README.md) | Node runtime and loader behavior |
 | [typescript/](./typescript/README.md) | TypeScript compiler and checker behavior |
 | [esbuild/](./esbuild/README.md) | esbuild resolver and transform behavior |
-| [bun/](./bun/README.md) | Bun runtime resolver behavior |
+| [bun/](./bun/README.md) | Bun runtime resolver and TypeScript transform coverage |
 | [enhanced-resolve/](./enhanced-resolve/README.md) | webpack enhanced-resolve configuration behavior |
 | [oxc-resolver/](./oxc-resolver/README.md) | oxc-resolver configuration behavior |
+| [oxc-transform/](./oxc-transform/README.md) | Oxc TypeScript transformation and generated-helper behavior |
 | [tsx/](./tsx/README.md) | tsx policy, integration, and cross-tool synthesis |
 
 ## Evidence
