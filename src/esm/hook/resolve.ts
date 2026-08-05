@@ -179,6 +179,13 @@ const isParentDependency = (
 	return parentPath !== undefined && isDependencyPath(parentPath);
 };
 
+const isImplicitJavaScriptDependency = (
+	fileUrl: string,
+) => (
+	path.extname(new URL(fileUrl).pathname) === '.js'
+	&& isDependencyPath(fileURLToPath(fileUrl))
+);
+
 const resolvesTsExtensions = (
 	parentURL: string | undefined,
 	allowJs: boolean,
@@ -845,7 +852,12 @@ export const createResolve = (
 				resolved.format = 'module';
 			} else if (resolved.format === 'commonjs-typescript') {
 				resolved.format = 'commonjs';
-			} else if (!resolved.format) {
+			} else if (
+				!resolved.format
+				&& !isImplicitJavaScriptDependency(resolved.url)
+			) {
+				// Node detects ESM syntax for typeless dependency JavaScript during load.
+				// https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/esm/get_format.js#L181-L191
 				// Older Node versions and typeless .ts can return no format.
 				resolved.format = await getFormatFromFileUrl(resolved.url);
 				log(2, 'getFormatFromFileUrl', {
@@ -998,7 +1010,12 @@ export const createResolveSync = (
 				resolved.format = 'module';
 			} else if (resolved.format === 'commonjs-typescript') {
 				resolved.format = 'commonjs';
-			} else if (!resolved.format) {
+			} else if (
+				!resolved.format
+				&& !isImplicitJavaScriptDependency(resolved.url)
+			) {
+				// Node detects ESM syntax for typeless dependency JavaScript during load.
+				// https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/esm/get_format.js#L181-L191
 				// Older Node versions and typeless .ts can return no format.
 				resolved.format = getFormatFromFileUrlSync(resolved.url);
 				log(2, 'getFormatFromFileUrlSync', {
