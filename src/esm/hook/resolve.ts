@@ -34,6 +34,7 @@ import {
 	commonJsVirtualQuerySearchParameter,
 	getQueryWithoutParameters,
 	getNamespace,
+	isDataUrl,
 	parentImportsCommonJsExports,
 } from './utils.js';
 import type { Data } from './initialize.js';
@@ -799,6 +800,17 @@ const addQuery = (
 	return `${urlWithoutFragment}${urlWithoutFragment.includes('?') ? '&' : '?'}${query}${fragment}`;
 };
 
+const addNamespace = (
+	url: string,
+	namespace: string,
+) => {
+	if (!isDataUrl(url)) {
+		return addQuery(url, `${namespaceQuery}${namespace}`);
+	}
+
+	return `${url}${url.includes('#') ? '&' : '#'}${namespaceQuery}${namespace}`;
+};
+
 const mergeUrlMetadata = (
 	url: string,
 	metadata: string,
@@ -862,10 +874,10 @@ export const createResolve = (
 			return nextResolve(specifier, context);
 		}
 
-		let requestNamespace = getNamespace(specifier) ?? (
-			// Inherit namespace from parent
-			context.parentURL && getNamespace(context.parentURL)
-		);
+		const parentNamespace = context.parentURL && getNamespace(context.parentURL);
+		let requestNamespace = isDataUrl(specifier)
+			? parentNamespace
+			: getNamespace(specifier) ?? parentNamespace;
 
 		if (hookData.namespace) {
 			let tsImportRequest: TsxRequest | undefined;
@@ -889,6 +901,17 @@ export const createResolve = (
 				specifier = tsImportRequest.specifier;
 				context.parentURL = tsImportRequest.parentURL;
 			}
+		}
+
+		if (isDataUrl(specifier)) {
+			const resolved = await nextResolve(specifier, context);
+			if (!hookData.namespace) {
+				return resolved;
+			}
+			return {
+				...resolved,
+				url: addNamespace(resolved.url, hookData.namespace),
+			};
 		}
 
 		const metadataIndex = getSpecifierMetadataIndex(
@@ -963,7 +986,7 @@ export const createResolve = (
 			requestNamespace
 			&& getNamespace(resolved.url) === undefined
 		) {
-			resolved.url = addQuery(resolved.url, `${namespaceQuery}${requestNamespace}`);
+			resolved.url = addNamespace(resolved.url, requestNamespace);
 		}
 
 		if (shouldLoadForCommonJsExportPreparse) {
@@ -1020,10 +1043,10 @@ export const createResolveSync = (
 			return nextResolve(specifier, context);
 		}
 
-		let requestNamespace = getNamespace(specifier) ?? (
-			// Inherit namespace from parent
-			context.parentURL && getNamespace(context.parentURL)
-		);
+		const parentNamespace = context.parentURL && getNamespace(context.parentURL);
+		let requestNamespace = isDataUrl(specifier)
+			? parentNamespace
+			: getNamespace(specifier) ?? parentNamespace;
 
 		if (hookData.namespace) {
 			let tsImportRequest: TsxRequest | undefined;
@@ -1047,6 +1070,17 @@ export const createResolveSync = (
 				specifier = tsImportRequest.specifier;
 				context.parentURL = tsImportRequest.parentURL;
 			}
+		}
+
+		if (isDataUrl(specifier)) {
+			const resolved = nextResolve(specifier, context);
+			if (!hookData.namespace) {
+				return resolved;
+			}
+			return {
+				...resolved,
+				url: addNamespace(resolved.url, hookData.namespace),
+			};
 		}
 
 		const metadataIndex = getSpecifierMetadataIndex(
@@ -1105,7 +1139,7 @@ export const createResolveSync = (
 			requestNamespace
 			&& getNamespace(resolved.url) === undefined
 		) {
-			resolved.url = addQuery(resolved.url, `${namespaceQuery}${requestNamespace}`);
+			resolved.url = addNamespace(resolved.url, requestNamespace);
 		}
 
 		resolved.url = preserveCommonJsQueryIdentity(

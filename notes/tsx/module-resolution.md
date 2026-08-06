@@ -53,6 +53,10 @@ Dependency TypeScript parents remain TypeScript-first; consumer `allowJs` never 
 
 Dependency classification must inspect `new URL(parentURL).pathname`, not a substring of the serialized URL ([ESM resolver](../../src/esm/hook/resolve.ts)). URL queries and fragments are not filesystem location. A local parent URL containing `?source=/node_modules/` must retain local tsconfig path behavior, while a real dependency pathname must not receive the consumer's aliases.
 
+## Namespaced URLs
+
+`tsImport()` isolates each registration with a namespace. File URLs carry that namespace in their query, while `data:` URLs carry it in a trailing fragment parameter so Node does not include the metadata in the data payload. Data URLs bypass file-oriented resolver logic because their payload can contain query and directory-like text. The trailing marker is removed only when it matches the active registration, leaving user fragments opaque. It lets absolute TypeScript imports from a `data:` module retain the registration namespace ([Node contract](../node/data-url-modules.md), [resolver](../../src/esm/hook/resolve.ts), [lookup](../../src/esm/hook/utils.ts)).
+
 ## Required test matrix
 
 Before changing resolver code, cover each policy row through every execution boundary:
@@ -65,6 +69,7 @@ Before changing resolver code, cover each policy row through every execution bou
 6. Parent URL classification with no query, a `/node_modules/` query, and a real `node_modules` pathname.
 7. Dependency subpaths with conditional root exports, package imports, scoped nested mains, an exact main before extension fallbacks, a missing main that falls through to index, a main directory, and an all-miss native-error comparison.
 8. A relative dependency directory beneath root exports, so the package-subpath boundary cannot block ordinary index fallback.
+9. A namespaced `tsImport()` graph containing base64 and raw `data:` modules, an opaque user fragment, and an absolute TypeScript child across async and sync hooks.
 
 ## Non-goals
 

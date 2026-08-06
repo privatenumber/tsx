@@ -40,6 +40,12 @@ export const commonJsExportPreparseQuery = `${commonJsExportPreparseSearchParame
 export const commonJsVirtualQuerySearchParameter = 'tsx-commonjs-virtual-query';
 export const moduleSourceByUrl = new Map<string, string>();
 
+const dataUrlPattern = /^data:/i;
+
+export const isDataUrl = (
+	url: string,
+) => dataUrlPattern.test(url);
+
 type CommonJsImportBinding = 'named' | 'namespace' | undefined;
 
 export const getQueryWithoutParameters = (
@@ -137,6 +143,20 @@ export const getNamespace = (
 ) => {
 	const queryIndex = url.indexOf('?');
 	const fragmentIndex = url.indexOf('#');
+	if (isDataUrl(url)) {
+		if (fragmentIndex === -1) {
+			return;
+		}
+
+		// Data URL fragments are user content; tsx appends its marker last.
+		const fragment = url.slice(fragmentIndex + 1);
+		const parameterIndex = fragment.lastIndexOf('&');
+		const parameter = fragment.slice(parameterIndex + 1);
+		return parameter.startsWith(namespaceQuery)
+			? parameter.slice(namespaceQuery.length)
+			: undefined;
+	}
+
 	if (
 		queryIndex === -1
 		|| (fragmentIndex !== -1 && fragmentIndex < queryIndex)

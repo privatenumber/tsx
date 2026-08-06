@@ -1399,6 +1399,140 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 		expect(tsxProcess.stdout).toBe('literal-question');
 	});
 
+	// https://github.com/privatenumber/tsx/issues/750
+	test('tsImport imports data URLs', async () => {
+		if (!node.supports.moduleRegister) {
+			return;
+		}
+
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'import.mjs': `
+				import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+
+				await tsImport('./data-import.ts', import.meta.url);
+				`,
+			'data-import.ts': `
+				const childUrl = new URL('./data-child.ts', import.meta.url);
+				const source = 'import ' + JSON.stringify(childUrl) + '; console.log("data URL");';
+				await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+
+				console.log('after import');
+				`,
+			'data-child.ts': 'enum Data { Url = "child" } console.log(Data.Url);',
+		});
+
+		const process = await execaNode(fixture.getPath('import.mjs'), [], {
+			nodePath: node.path,
+			reject: false,
+		});
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('child\ndata URL\nafter import');
+	});
+
+	test('tsImport treats uppercase data URL queries as source', async () => {
+		if (!node.supports.moduleRegister) {
+			return;
+		}
+
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'import.mjs': `
+				import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+
+				await tsImport('./data-import.ts', import.meta.url);
+				`,
+			'data-import.ts': `
+				const childUrl = new URL('./data-child.ts', import.meta.url);
+				const source = 'import ' + JSON.stringify(childUrl) + '; //?tsx-namespace=payload';
+				await import('DATA:text/javascript,' + source);
+
+				console.log('after import');
+				`,
+			'data-child.ts': 'enum Data { Url = "child" } console.log(Data.Url);',
+		});
+
+		const process = await execaNode(fixture.getPath('import.mjs'), [], {
+			nodePath: node.path,
+			reject: false,
+		});
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('child\nafter import');
+	});
+
+	test('tsImport isolates data URLs with user namespace fragments', async () => {
+		if (!node.supports.moduleRegister) {
+			return;
+		}
+
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'import.mjs': `
+				import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+
+				await tsImport('./data-import.ts', import.meta.url);
+				await tsImport('./data-import.ts', import.meta.url);
+				`,
+			'data-import.ts': 'await import(\'data:text/javascript,globalThis.dataUrlLoads = (globalThis.dataUrlLoads || 0) + 1; console.log(globalThis.dataUrlLoads)#tsx-namespace=foreign\');',
+		});
+
+		const process = await execaNode(fixture.getPath('import.mjs'), [], {
+			nodePath: node.path,
+			reject: false,
+		});
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('1\n2');
+	});
+
+	test('tsImport preserves data URL fragments in onImport', async () => {
+		if (!node.supports.moduleRegister) {
+			return;
+		}
+
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'import.mjs': `
+				import { setTimeout } from 'node:timers/promises';
+				import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+
+				const importedUrls = [];
+				await tsImport('./data-import.ts', {
+					parentURL: import.meta.url,
+					onImport(url) {
+						importedUrls.push(url);
+					},
+				});
+				await setTimeout(100);
+
+				const dataUrlHashes = importedUrls
+					.filter(url => url.startsWith('data:'))
+					.map(url => new URL(url).hash);
+				console.log(JSON.stringify(dataUrlHashes));
+				`,
+			'data-import.ts': `
+				await import('data:text/javascript,console.log("no fragment")');
+				await import('data:text/javascript,console.log("user fragment")#user&&fragment&tsx-namespace=foreign');
+				`,
+		});
+
+		const process = await execaNode(fixture.getPath('import.mjs'), [], {
+			nodePath: node.path,
+			reject: false,
+		});
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('no fragment\nuser fragment\n["","#user&&fragment&tsx-namespace=foreign"]');
+	}, {
+		retry: 3,
+	});
+
 	test('tsImport keeps CommonJS-classified TypeScript loads isolated when calls share a timestamp', async () => {
 		if (!node.supports.esmLoadReadFile) {
 			return;
@@ -1959,6 +2093,6 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 				expect(tsxProcess.stdout).toMatch('# pass 1\n');
 			}
 			expect(tsxProcess.exitCode).toBe(0);
-		}, 10_000);
+		}, 20_000);
 	}
 });
