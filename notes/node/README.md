@@ -9,6 +9,7 @@ Node runtime and loader implementation references. These notes record Node behav
 | [module-hooks.md](./module-hooks.md) | Async `module.register()` and sync `module.registerHooks()` |
 | [module-resolution.md](./module-resolution.md) | ESM root exports, CommonJS directory mains, and ESM error decoration |
 | [data-url-modules.md](./data-url-modules.md) | `data:` module payload and metadata behavior |
+| [source-maps.md](./source-maps.md) | Stack formatting and `CallSite` source-map locations |
 | [cjs-loader.md](./cjs-loader.md) | CommonJS resolution, cache identity, extensions, and ESM error decoration |
 | [cjs-esm-interop.md](./cjs-esm-interop.md) | Node's CJS-to-ESM and ESM-to-CJS interoperability |
 | [type-stripping.md](./type-stripping.md) | Node's native TypeScript type-stripping runtime |
