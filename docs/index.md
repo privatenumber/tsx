@@ -38,11 +38,11 @@ Run TypeScript code without worrying about configuration!
 
 _tsx_ runs your TypeScript code with modern and sensible defaults, making it user-friendly and especially great for beginners.
 
-### Seamless CJS ↔ ESM imports
+### CJS ↔ ESM interoperability
 
-No need to wonder whether a package is CommonJS or ESM again.
+Load ESM dependencies from CommonJS without `ERR_REQUIRE_ESM` on supported Node.js versions.
 
-If you've encountered the `ERR_REQUIRE_ESM` error in Node, you'll never see it again!
+Node.js module semantics still apply when an ES module imports CommonJS. See the [FAQ](/faq.md#why-is-my-default-import-an-object) for legacy packages with incompatible default exports.
 
 ### Watch mode
 
