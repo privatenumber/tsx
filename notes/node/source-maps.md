@@ -23,3 +23,13 @@ const location = fileName && findSourceMap(fileName)?.findOrigin(
 ```
 
 `findSourceMap()` was added in Node v12.17.0 and v13.7.0 ([v20.16.0 API history](https://github.com/nodejs/node/blob/v20.16.0/doc/api/module.md#L999-L1005)). `findOrigin()` is available from Node v18.18.0 and v20.4.0 ([v18.18.0 implementation](https://github.com/nodejs/node/blob/v18.18.0/lib/internal/source_map/source_map.js#L208-L218), [v20.4.0 implementation](https://github.com/nodejs/node/blob/v20.4.0/lib/internal/source_map/source_map.js#L208-L218)).
+
+## Test runner locations
+
+Node's test runner has a bug: test-definition mapping reads only the startup `--enable-source-maps` option ([v24.15.0 `utils.js`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/test_runner/utils.js#L208-L218)) and maps locations only when that setting is enabled ([`test.js`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/test_runner/test.js#L719-L728)). This conflicts with `module.setSourceMapsSupport()`, which Node documents as providing the same features as the startup flag ([v24.15.0 API contract](https://github.com/nodejs/node/blob/v24.15.0/doc/api/module.md#L1926-L1946)). Programmatic source-map support does not update the test-runner setting.
+
+Source-mapped test locations are available from Node v20.14.0 and v22.0.0 ([v20.14.0 implementation](https://github.com/nodejs/node/blob/v20.14.0/lib/internal/test_runner/test.js#L678-L687), [v22.0.0 implementation](https://github.com/nodejs/node/blob/v22.0.0/lib/internal/test_runner/test.js#L656-L687)).
+
+## Assertion messages
+
+Node maps generated assertion positions to the original source in Node v22.21.0, v24.9.0, and v25.0.0 ([Node PR #59751](https://github.com/nodejs/node/pull/59751)). The assertion-source helper maps a generated location through the cached source map ([v24.9.0 `error_source.js`](https://github.com/nodejs/node/blob/v24.9.0/lib/internal/errors/error_source.js#L26-L59)); it uses embedded source content when present and otherwise reads file URLs from disk ([`source_map_cache.js`](https://github.com/nodejs/node/blob/v24.9.0/lib/internal/source_map/source_map_cache.js#L407-L456)).

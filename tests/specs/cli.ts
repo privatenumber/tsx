@@ -273,6 +273,48 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 			}
 			expect(tsxProcess.exitCode).toBe(0);
 		}, 10_000);
+
+		test('maps test locations', async () => {
+			await using fixture = await createFixture({
+				'test.ts': `import assert from 'node:assert/strict'
+import { test } from 'node:test'
+
+test('source-mapped location', () => {
+    assert.ok(false)
+})
+`,
+			});
+
+			const tsxProcess = await tsx([
+				'--test',
+				'test.ts',
+			], fixture.path);
+
+			expect(tsxProcess.exitCode).toBe(1);
+			expect(tsxProcess.all!).toContain('test at test.ts:4:1');
+			expect(tsxProcess.all!).toContain('assert.ok(false)');
+		}, 10_000);
+
+		test('respects disabled test source maps', async () => {
+			await using fixture = await createFixture({
+				'test.ts': `import assert from 'node:assert/strict'
+import { test } from 'node:test'
+
+test('source-mapped location', () => {
+    assert.ok(false)
+})
+`,
+			});
+
+			const tsxProcess = await tsx([
+				'--test',
+				'--no-enable-source-maps',
+				'test.ts',
+			], fixture.path);
+
+			expect(tsxProcess.exitCode).toBe(1);
+			expect(tsxProcess.all!).not.toContain('test at test.ts:4:1');
+		}, 10_000);
 	}
 
 	describe('Signals', async () => {

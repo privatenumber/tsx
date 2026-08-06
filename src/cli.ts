@@ -227,6 +227,13 @@ cli({
 		argvsToRun.push('**/{test,test/**/*,test-*,*[.-_]test}.?(c|m)@(t|j)s');
 	}
 
+	if (interceptedFlags.test) {
+		// Work around a Node test-runner bug: it ignores programmatic source-map
+		// support for test locations and only checks this startup option.
+		// https://github.com/nodejs/node/blob/v24.15.0/lib/internal/test_runner/utils.js#L208-L218
+		argvsToRun.unshift('--enable-source-maps');
+	}
+
 	const ipc = await createIpcServer();
 
 	const childProcess = run(
