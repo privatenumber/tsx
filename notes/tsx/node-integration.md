@@ -48,6 +48,8 @@ tsx transforms TypeScript before Node's CJS preparse stage so Node constructs th
 
 For native `require(esm)` interop, tsx distinguishes accessor descriptors emitted for ESM exports from ordinary CJS data descriptors before honoring a `module.exports` escape hatch ([extension handler](../../src/cjs/api/module-extensions.ts)). This preserves ordinary CJS objects that contain a literal `module.exports` key.
 
+When esbuild rejects top-level `await` for CommonJS output, the extension handler recognizes the diagnostic only for module-system candidates that native `require(esm)` could load. It preserves esbuild's `TransformError` name, message, and source location, and adds Node's loader-facing `ERR_REQUIRE_ESM` or `ERR_REQUIRE_ASYNC_MODULE` code so callers can fall back to `import()` ([Node contract](../node/cjs-esm-interop.md#cjs-requiring-esm)). The shared transformer remains context-neutral, so this mapping does not change ESM loader diagnostics.
+
 ## Native TypeScript integration
 
 When Node provides `module-typescript` or `commonjs-typescript`, tsx preserves Node's module classification ([load hook](../../src/esm/hook/load.ts)). When Node provides no format, tsx uses its compatibility resolver and legacy CommonJS default.

@@ -35,6 +35,7 @@ const implicitlyResolvableExtensions = [
 ] as const;
 
 const moduleExportsInteropExport = 'module.exports';
+const esbuildTopLevelAwaitCjsError = 'Top-level await is currently not supported with the "cjs" output format';
 
 // tsx may still transform ESM syntax in explicit CommonJS scopes, but native
 // require(esm) only applies to these module-system candidates.
@@ -109,7 +110,12 @@ export const createExtensions = (
 	// Native require(esm) honors the explicit 'module.exports' export.
 	// https://github.com/nodejs/node/pull/55085
 	// https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/cjs/loader.js#L1704-L1706
-	const shouldApplyRequireEsmInterop = isFeatureSupported(requireEsm);
+	// Node exposes whether require(esm) is enabled through this runtime feature.
+	// https://github.com/nodejs/node/blob/v24.15.0/doc/api/process.md#L2005-L2017
+	const shouldApplyRequireEsmInterop = (
+		process.features.require_module
+		?? isFeatureSupported(requireEsm)
+	);
 
 	const transformer = (
 		module: Module,
@@ -189,19 +195,39 @@ export const createExtensions = (
 			// CommonJS file but uses ESM import/export
 			|| isEsmSyntax
 		) {
-			const transformed = transformSync(
-				code,
-				filePath,
-				{
-					tsconfigRaw,
-				},
-			);
+			try {
+				const transformed = transformSync(
+					code,
+					filePath,
+					{
+						tsconfigRaw,
+					},
+				);
 
-			code = (
-				shouldApplySourceMap()
-					? inlineSourceMap(transformed)
-					: transformed.code
-			);
+				code = (
+					shouldApplySourceMap()
+						? inlineSourceMap(transformed)
+						: transformed.code
+				);
+			} catch (error) {
+				if (
+					isRequireEsmCandidate(cleanFilePath)
+					&& error instanceof Error
+					&& error.name === 'TransformError'
+					&& error.message.includes(esbuildTopLevelAwaitCjsError)
+				) {
+					// Preserve esbuild's diagnostic, but expose Node's loader code for import() fallback.
+					// https://github.com/nodejs/node/blob/v18.20.8/lib/internal/modules/cjs/loader.js#L1387-L1396
+					// https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/esm/module_job.js#L396-L405
+					Object.assign(error, {
+						code: shouldApplyRequireEsmInterop
+							? 'ERR_REQUIRE_ASYNC_MODULE'
+							: 'ERR_REQUIRE_ESM',
+					});
+				}
+
+				throw error;
+			}
 		}
 
 		log(1, 'loaded', {

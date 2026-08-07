@@ -33,9 +33,13 @@ The load hook receives import-attributes context and reads CJS source at the bou
 
 ## CJS requiring ESM
 
-| Node behavior | PR | Verified releases or window |
+| Node behavior | Evidence | Verified releases or window |
 | --- | --- | --- |
 | CJS `require()` can load eligible ESM instead of throwing `ERR_REQUIRE_ESM`. | [nodejs/node#55085](https://github.com/nodejs/node/pull/55085) | v20.19.0, v22.12.0, v23.0.0 |
+| Without `require(esm)`, CJS `require()` rejects ESM with `ERR_REQUIRE_ESM` and recommends `import()`. | [v18.20.8 docs](https://github.com/nodejs/node/blob/v18.20.8/doc/api/modules.md#L168-L176), [loader](https://github.com/nodejs/node/blob/v18.20.8/lib/internal/modules/cjs/loader.js#L1387-L1396) | v18.20.8 |
+| An ESM graph containing top-level `await` throws `ERR_REQUIRE_ASYNC_MODULE`; callers must use `import()`. | [v20.20.2 docs](https://github.com/nodejs/node/blob/v20.20.2/doc/api/modules.md#L312-L320), [v24.15.0 loader](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/esm/module_job.js#L396-L405) | v20.20.2, v24.15.0 |
 | Normal `require(esm)` stops printing the experimental warning. | [nodejs/node#56194](https://github.com/nodejs/node/pull/56194) | v20.19.0, v22.13.0, v23.5.0 |
 | Extensionless `.mjs` lookup was broken. | [nodejs/node#55085](https://github.com/nodejs/node/pull/55085), [#55590](https://github.com/nodejs/node/pull/55590) | `[20.19.0, 20.19.5)`, `[22.12.0, 22.14.0)` |
 | Synthetic CJS namespaces expose `'module.exports'`. | [nodejs/node#53848](https://github.com/nodejs/node/pull/53848) | v23.0.0 |
+
+Node checks the async graph before synchronous evaluation unless `--experimental-print-required-tla` is enabled ([v24.15.0](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/esm/module_job.js#L396-L405)). `process.features.require_module` reports whether the runtime has `require(esm)` enabled ([v24.15.0 docs](https://github.com/nodejs/node/blob/v24.15.0/doc/api/process.md#L2005-L2017), [implementation](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/bootstrap/node.js#L285-L287)).

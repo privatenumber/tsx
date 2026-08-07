@@ -1741,6 +1741,88 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 		expect(tsxProcess.stderr).toBe('');
 	});
 
+	// Prettier and similar config loaders try require() first, then fall back to import()
+	// for Node's ESM error codes. The test preserves that protocol, not package-specific behavior.
+	// https://github.com/prettier/prettier/blob/e240f15e75f5662fc89c415e92e87de5109c6536/src/config/prettier-config/load-external-config.js#L4-L34
+	test('CommonJS top-level await errors preserve dynamic import fallback', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.cjs': `
+				const loadConfig = async () => {
+					let error
+					try {
+						require('./config.js')
+					} catch (caught) {
+						error = {
+							code: caught.code,
+							message: caught.message,
+							name: caught.name,
+						}
+					}
+
+					const { default: value } = await import('./config.js')
+					console.log(JSON.stringify({
+						error,
+						value,
+						evaluations: globalThis.evaluations,
+					}))
+				}
+
+				loadConfig()
+				`,
+			'config.js': `
+				await Promise.resolve()
+				globalThis.evaluations = (globalThis.evaluations || 0) + 1
+				export default globalThis.evaluations
+				`,
+		});
+
+		const [nativeProcess, tsxProcess] = await Promise.all([
+			execaNode(fixture.getPath('entry.cjs'), {
+				nodePath: node.path,
+				nodeOptions: [],
+				cwd: fixture.path,
+				env: {
+					NODE_OPTIONS: '',
+				},
+				reject: false,
+			}),
+			node.tsx(['entry.cjs'], fixture.path),
+		]);
+
+		expect(nativeProcess.exitCode).toBe(0);
+		expect(nativeProcess.stderr).toBe('');
+		const nativeOutcome = JSON.parse(nativeProcess.stdout);
+		const expectedErrorCode = (
+			node.supports.requireEsm
+				? 'ERR_REQUIRE_ASYNC_MODULE'
+				: 'ERR_REQUIRE_ESM'
+		);
+		expect(nativeOutcome.error.code).toBe(expectedErrorCode);
+		expect(nativeOutcome.error.name).toBe('Error');
+		if (node.supports.requireEsm) {
+			expect(nativeOutcome.error.message).toContain('require() cannot be used on an ESM graph with top-level await.');
+		} else {
+			expect(nativeOutcome.error.message).toContain('require() of ES Module');
+			expect(nativeOutcome.error.message).toContain('import()');
+		}
+		expect(nativeOutcome).toMatchObject({
+			value: 1,
+			evaluations: 1,
+		});
+
+		expect(tsxProcess.exitCode).toBe(0);
+		expect(tsxProcess.stderr).toBe('');
+		const tsxOutcome = JSON.parse(tsxProcess.stdout);
+		expect(tsxOutcome).toMatchObject({
+			value: 1,
+			evaluations: 1,
+		});
+		expect(tsxOutcome.error.code).toBe(nativeOutcome.error.code);
+		expect(tsxOutcome.error.name).toBe('TransformError');
+		expect(tsxOutcome.error.message).toContain('Top-level await is currently not supported with the "cjs" output format');
+	});
+
 	if (node.supports.requireEsm) {
 		test('require(esm) supports module.exports interop export', async () => {
 			const jsModuleSource = (extension: string) => `
