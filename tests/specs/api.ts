@@ -173,6 +173,33 @@ export const api = (node: NodeApis) => describe('API', () => {
 			expect(stdout).toBe('js working\nts working');
 		});
 
+		test('supports synthetic modules from nyc', async () => {
+			await using fixture = await createFixture({
+				'index.cjs': outdent`
+				const Module = require('node:module')
+				const path = require('node:path')
+				let source
+
+				Module._extensions['.js']({
+					_compile(code) {
+						source = code
+					},
+				}, path.join(__dirname, 'source.js'))
+
+				console.log(source)
+				`,
+				'source.js': 'module.exports = "source"',
+			});
+
+			const { stdout } = await execaNode('./index.cjs', {
+				cwd: fixture.path,
+				nodePath: node.path,
+				nodeOptions: ['--require', tsxCjsPath],
+			});
+
+			expect(stdout).toBe('module.exports = "source"');
+		});
+
 		describe('register', () => {
 			test('register / unregister', async () => {
 				await using fixture = await createFixture({
