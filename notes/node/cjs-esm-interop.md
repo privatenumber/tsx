@@ -16,6 +16,12 @@ The lexer implementation changed without changing the supported grammar:
 - v24.11.1 uses vendored `cjs-module-lexer` ([grammar](https://github.com/nodejs/node/blob/v24.11.1/deps/cjs-module-lexer/README.md#L7-L51)).
 - v24.14.0 uses `internalBinding('cjs_lexer')` through [nodejs/node#61456](https://github.com/nodejs/node/pull/61456), backed by Merve ([grammar](https://github.com/nodejs/node/blob/v24.14.0/deps/merve/merve.h#L82-L102)).
 
+### Default import contract
+
+Node's synthetic `default` export for a CommonJS module is always the complete `module.exports` value. The translator skips a detected CommonJS property named `default` and unconditionally assigns the synthetic `default` and `module.exports` namespace exports to the complete value ([v26.7.0 implementation](https://github.com/nodejs/node/blob/v26.7.0/lib/internal/modules/esm/translators.js#L259-L274), [contract](https://github.com/nodejs/node/blob/v26.7.0/doc/api/esm.md?plain=1#L537-L552)).
+
+`__esModule` does not affect this direction of interop. For a CommonJS module that assigns a callable to `exports.default`, a native ESM default import is the containing object and the callable remains at `.default`. Node locks that result for canonical Babel and TypeScript output ([fixtures](https://github.com/nodejs/node/blob/v26.7.0/test/fixtures/es-modules/exports-cases2.js#L9-L27), [assertions](https://github.com/nodejs/node/blob/v26.7.0/test/fixtures/es-modules/cjs-exports.mjs#L16-L37)).
+
 ## ESM importing CJS
 
 | Node behavior | PR | Verified releases |
