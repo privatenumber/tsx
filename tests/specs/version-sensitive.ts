@@ -978,6 +978,106 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 		});
 	}
 
+	// #338: Yarn PnP exposed this CommonJS loader source boundary.
+	// https://github.com/privatenumber/tsx/issues/338
+	test('composes with a PnP-shaped CommonJS loader', async () => {
+		await using fixture = await createFixture({
+			'entry.mts': `
+				enum Message {
+					Loaded = 'pnp-loaded',
+				}
+
+				import dependency from 'pnp-dependency';
+
+				console.log(dependency.message === Message.Loaded);
+				`,
+			'pnp-dependency.cjs': 'module.exports = { message: "pnp-loaded" };',
+			'pnp-loader.mjs': `
+				const dependencyUrl = new URL('./pnp-dependency.cjs', import.meta.url).href;
+
+				export const resolve = async (specifier, context, nextResolve) => {
+					if (specifier === 'pnp-dependency') {
+						return {
+							shortCircuit: true,
+							url: dependencyUrl,
+						};
+					}
+
+					return nextResolve(specifier, context);
+				};
+
+				export const load = async (url, context, nextLoad) => {
+					if (url === dependencyUrl) {
+						return {
+							format: 'commonjs',
+							shortCircuit: true,
+							source: undefined,
+						};
+					}
+
+					return nextLoad(url, context);
+				};
+				`,
+		});
+
+		const process = await node.tsx(['entry.mts'], {
+			cwd: fixture.path,
+			env: {
+				NODE_OPTIONS: `--no-warnings --experimental-loader ${pathToFileURL(fixture.getPath('pnp-loader.mjs')).toString()}`,
+			},
+		});
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('true');
+	});
+
+	if (node.supports.moduleRegister) {
+		// Node 20.6-20.10 throws before falling back to read the child source.
+		// https://github.com/nodejs/node/pull/50825
+		test('Node loaders fall back to a nullish CommonJS source', async () => {
+			await using fixture = await createFixture({
+				'entry.cjs': 'require("./dependency.cjs").load();',
+				'dependency.cjs': 'exports.load = () => console.log("dependency-loaded");',
+				'loader.mjs': `
+					import { readFileSync } from 'node:fs';
+
+					export const load = async (url, context, nextLoad) => {
+						if (url.endsWith('/dependency.cjs')) {
+							return nextLoad(url, context);
+						}
+
+						return {
+							format: context.format,
+							shortCircuit: true,
+							source: readFileSync(new URL(url)),
+						};
+					};
+					`,
+				'register.mjs': `
+					import { register } from 'node:module';
+
+					register('./loader.mjs', import.meta.url);
+					`,
+			});
+
+			const process = await execaNode(fixture.getPath('entry.cjs'), [], {
+				cwd: fixture.path,
+				nodePath: node.path,
+				nodeOptions: [
+					'--no-warnings',
+					'--import',
+					pathToFileURL(fixture.getPath('register.mjs')).toString(),
+				],
+				reject: false,
+			});
+
+			expect(process.exitCode).toBe(0);
+			expect(process.stderr).toBe('');
+			expect(process.stdout).toBe('dependency-loaded');
+		});
+	}
+
 	test('preserves ESM dependency paths with allowJs', async () => {
 		await using fixture = await createFixture({
 			'package.json': createPackageJson({ type: 'module' }),
