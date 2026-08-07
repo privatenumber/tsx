@@ -1,21 +1,5 @@
 <template>
 	<div class="mb-8">
-		<div>
-			<h4 class="text-base font-semibold">Premium sponsors</h4>
-		</div>
-		<a
-			href="https://sevalla.com"
-			target="_blank"
-			rel="noopener"
-		>
-			<div class="my-4 py-6 px-6 bg-white/5">
-				<img
-					src="/logos/sevalla-full.svg"
-					alt="Sevalla"
-					class="object-cover"
-				>
-			</div>
-		</a>
 		<a
 			href="https://github.com/sponsors/privatenumber/sponsorships?pay_prorated=false&tier_id=388346"
 			target="_blank"

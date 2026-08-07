@@ -46,16 +46,23 @@ export const requestAcceptsQuery = (request: string) => {
 
 export const fileUrlPrefix = 'file://';
 
-export const tsExtensionsPattern = /\.([cm]?ts|[tj]sx)($|\?)/;
+export const tsExtensions = ['.ts', '.tsx', '.jsx', '.mts', '.cts'];
 
-export const cjsExtensionPattern = /[/\\].+\.(?:cts|cjs)(?:$|\?)/;
+export const tsExtensionsPattern = /\.([cm]?ts|[tj]sx)(?:$|[?#])/;
+export const implicitTsExtensionsPattern = /\.(?:ts|tsx|jsx)(?:$|[?#])/;
 
-export const isJsonPattern = /\.json($|\?)/;
+export const cjsExtensionPattern = /[/\\].+\.(?:cts|cjs)(?:$|[?#])/;
 
-export const isDirectoryPattern = /\/(?:$|\?)/;
+export const isJsonPattern = /\.json(?:$|[?#])/;
+
+export const isDirectoryPattern = /\/(?:$|[?#])/;
 
 // Only matches packages names without subpaths (e.g. `foo` but not `foo/bar`)
 // Back slash included to exclude Windows paths
 export const isBarePackageNamePattern = /^(?:@[^/]+\/)?[^/\\]+$/;
 
 export const nodeModulesPath = `${path.sep}node_modules${path.sep}`;
+
+export const isDependencyPath = (
+	filePath: string | null | undefined,
+) => filePath?.split(path.sep).includes('node_modules') ?? false;

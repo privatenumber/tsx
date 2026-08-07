@@ -1,12 +1,8 @@
 import { fileURLToPath } from 'node:url';
 import { execaNode, type NodeOptions } from 'execa';
-import {
-	isFeatureSupported,
-	moduleRegister,
-	testRunnerGlob,
-	esmLoadReadFile,
-	type Version,
-} from '../../src/utils/node-features.js';
+import { onTestFail, onTestFinish } from 'manten';
+import { createNodeCapabilities } from '../../src/platform/node-capabilities.js';
+import type { Version } from '../../src/utils/node-features.js';
 import { getNode } from './get-node.js';
 
 type Options = {
@@ -27,36 +23,83 @@ const hookPath = new URL('../../dist/esm/index.cjs', import.meta.url).toString()
 
 export const tsx = (
 	options: Options,
-) => execaNode(
-	tsxPath,
-	options.args,
-	{
-		env: {
-			TSX_DISABLE_CACHE: '1',
-			DEBUG: '1',
+) => {
+	const tsxProcess = execaNode(
+		tsxPath,
+		options.args,
+		{
+			env: {
+				TSX_DISABLE_CACHE: '1',
+				DEBUG: '1',
+			},
+			nodePath: options.nodePath,
+			nodeOptions: [],
+			cwd: options.cwd,
+			reject: false,
+			all: true,
 		},
-		nodePath: options.nodePath,
-		nodeOptions: [],
-		cwd: options.cwd,
-		reject: false,
-		all: true,
-	},
-);
+	);
+
+	let result: unknown;
+	let disposed: Promise<void> | undefined;
+	const dispose = () => {
+		disposed ??= (async () => {
+			if (tsxProcess.exitCode === null) {
+				tsxProcess.kill('SIGKILL');
+			}
+			result = await tsxProcess;
+		})();
+		return disposed;
+	};
+
+	let testFailed = false;
+	onTestFail(() => {
+		testFailed = true;
+	});
+	onTestFinish(async () => {
+		await dispose();
+		if (testFailed) {
+			console.log(result);
+		}
+	});
+
+	return tsxProcess;
+};
 
 export const createNode = async (
 	nodeVersion: string,
 ) => {
 	const node = await getNode(nodeVersion);
 	const versionParsed = node.version.split('.').map(Number) as Version;
+	const capabilities = createNodeCapabilities(versionParsed);
 	const supports = {
-		moduleRegister: isFeatureSupported(moduleRegister, versionParsed),
+		moduleRegister: capabilities.moduleApis.register,
 
-		testRunnerGlob: isFeatureSupported(testRunnerGlob, versionParsed),
+		moduleRegisterHooksCjsReload: capabilities.moduleApis.registerHooksCanReloadCjs,
 
-		// https://nodejs.org/docs/latest-v18.x/api/cli.html#--test
-		cliTestFlag: isFeatureSupported([[18, 1, 0]], versionParsed),
+		esmLoadReadFile: capabilities.esm.loadHookCanReadFile,
 
-		cjsInterop: isFeatureSupported(esmLoadReadFile, versionParsed),
+		importMetaPathProperties: capabilities.esm.importMetaPathProperties,
+
+		testRunnerGlob: capabilities.cli.testRunnerGlob,
+
+		cliTestFlag: capabilities.cli.testFlag,
+
+		cjsInterop: capabilities.esm.cjsNamespaceFromLoadHook,
+
+		cjsNamespaceModuleExports: capabilities.esm.cjsNamespaceIncludesModuleExports,
+
+		nativeTypeScript: capabilities.typeScript.nativeTypeScript,
+
+		wasmModules: capabilities.webAssembly.modules,
+
+		requireEsm: capabilities.commonJs.requireEsm,
+
+		requireEsmNoWarning: capabilities.commonJs.requireEsmNoWarning,
+
+		requireEsmExtensionlessMjs: capabilities.commonJs.requireEsmExtensionlessMjs,
+
+		modulePackageMainResolution: capabilities.moduleResolution.packageMainResolution,
 	};
 	const hookFlag = supports.moduleRegister ? '--import' : '--loader';
 
@@ -72,7 +115,7 @@ export const createNode = async (
 			cwdOrOptions?: string | NodeOptions,
 		) => {
 			const isCwd = typeof cwdOrOptions === 'string';
-			return execaNode(
+			const tsxProcess = execaNode(
 				tsxPath,
 				args,
 				{
@@ -96,6 +139,31 @@ export const createNode = async (
 					},
 				},
 			);
+
+			let result: unknown;
+			let disposed: Promise<void> | undefined;
+			const dispose = () => {
+				disposed ??= (async () => {
+					if (tsxProcess.exitCode === null) {
+						tsxProcess.kill('SIGKILL');
+					}
+					result = await tsxProcess;
+				})();
+				return disposed;
+			};
+
+			let testFailed = false;
+			onTestFail(() => {
+				testFailed = true;
+			});
+			onTestFinish(async () => {
+				await dispose();
+				if (testFailed) {
+					console.log(result);
+				}
+			});
+
+			return tsxProcess;
 		},
 
 		cjsPatched: (

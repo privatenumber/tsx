@@ -38,11 +38,11 @@ Run TypeScript code without worrying about configuration!
 
 _tsx_ runs your TypeScript code with modern and sensible defaults, making it user-friendly and especially great for beginners.
 
-### Seamless CJS ↔ ESM imports
+### CJS ↔ ESM interoperability
 
-No need to wonder whether a package is CommonJS or ESM again.
+Load ESM dependencies from CommonJS without `ERR_REQUIRE_ESM` on supported Node.js versions.
 
-If you've encountered the `ERR_REQUIRE_ESM` error in Node, you'll never see it again!
+Node.js module semantics still apply when an ES module imports CommonJS. See the [FAQ](/faq.md#why-is-my-default-import-an-object) for legacy packages with incompatible default exports.
 
 ### Watch mode
 
@@ -158,18 +158,11 @@ If your company uses _tsx_ and would like to support the project, consider [spon
 ## Sponsors
 
 <p align="center">
-	<a href="https://github.com/sponsors/privatenumber/sponsorships?tier_id=416984" target="_blank">
-		<img src="https://cdn.jsdelivr.net/gh/privatenumber/sponsors/sponsorkit/sponsors.svg">
-	</a>
+	<Sponsors />
 	<a class="button sponsor-button mt-10 mx-auto" href="https://github.com/sponsors/privatenumber/sponsorships?tier_id=416984" target="_blank">
 		Become a sponsor
 	</a>
 </p>
-
-<script setup lang="ts">
-import ImageLink from './.vitepress/theme/components/ImageLink.vue';
-import Marquee from './.vitepress/theme/components/Marquee.vue';
-</script>
 
 <style scoped>
 .tsx-before-after {
@@ -202,3 +195,9 @@ import Marquee from './.vitepress/theme/components/Marquee.vue';
 		;
 }
 </style>
+
+<script setup lang="ts">
+import ImageLink from './.vitepress/theme/components/ImageLink.vue';
+import Marquee from './.vitepress/theme/components/Marquee.vue';
+import Sponsors from './.vitepress/theme/components/Sponsors.vue';
+</script>

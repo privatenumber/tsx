@@ -1,21 +1,59 @@
-import { describe } from 'manten';
+import { describe, setProcessTimeout } from 'manten';
 import { createNode } from './utils/tsx';
 import { nodeVersions } from './utils/node-versions';
+import { smoke } from './specs/smoke';
+import { api } from './specs/api';
+import { cli } from './specs/cli';
+import { watch } from './specs/watch';
+import { loaders } from './specs/loaders';
+import { repl } from './specs/repl';
+import { processInteractSpec } from './specs/process-interact';
+import { ptyShellSpec } from './specs/pty-shell';
+import { tsconfig } from './specs/tsconfig';
+import { transformSpec } from './specs/transform';
+import { transformCacheSpec } from './specs/transform-cache';
+import { commonJsModeContracts } from './specs/commonjs-mode-contracts';
+import { nodeCapabilitiesSpec } from './specs/node-capabilities';
+import { versionSensitiveTests } from './specs/version-sensitive';
+import { resolutionPriority } from './specs/resolution-priority';
+import { esmHookResolve } from './specs/esm-hook-resolve';
 
 (async () => {
-	await describe('tsx', async ({ runTestSuite, describe }) => {
-		await runTestSuite(import('./specs/repl'));
-		await runTestSuite(import('./specs/transform'));
+	// Prevent stuck CI runs
+	setProcessTimeout(5 * 60 * 1000);
 
-		for (const nodeVersion of nodeVersions) {
+	await describe('tsx', async () => {
+		await repl();
+		await processInteractSpec();
+		await ptyShellSpec();
+		await transformCacheSpec();
+		await transformSpec();
+		await nodeCapabilitiesSpec();
+		await esmHookResolve();
+
+		const [primaryNodeVersion, ...compatNodeVersions] = nodeVersions;
+		const primaryNode = await createNode(primaryNodeVersion);
+
+		// The primary Node version runs all suites sequentially.
+		// Process-heavy suites (cli signals, watch file watchers, PTY shells)
+		// cause cross-suite interference when run concurrently on CI.
+		await describe(`Node ${primaryNode.version} (full suite)`, async () => {
+			await versionSensitiveTests(primaryNode);
+			await commonJsModeContracts(primaryNode);
+			await smoke(primaryNode);
+			await resolutionPriority(primaryNode);
+			await api(primaryNode);
+			await cli(primaryNode);
+			await watch(primaryNode);
+			await loaders(primaryNode);
+			await tsconfig(primaryNode);
+		});
+
+		// Other Node versions only run version-sensitive tests
+		for (const nodeVersion of compatNodeVersions) {
 			const node = await createNode(nodeVersion);
-			await describe(`Node ${node.version}`, async ({ runTestSuite }) => {
-				await runTestSuite(import('./specs/smoke'), node);
-				await runTestSuite(import('./specs/api'), node);
-				await runTestSuite(import('./specs/cli'), node);
-				await runTestSuite(import('./specs/watch'), node);
-				await runTestSuite(import('./specs/loaders'), node);
-				await runTestSuite(import('./specs/tsconfig'), node);
+			await describe(`Node ${node.version}`, () => {
+				versionSensitiveTests(node);
 			});
 		}
 	});

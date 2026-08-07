@@ -141,7 +141,7 @@ export const files = {
 	import '../json/'
 	`,
 
-	'json/index.json': JSON.stringify({ loaded: 'json' }),
+	'json/index.json': JSON.stringify({ 'loaded-file': 'json' }),
 
 	'cjs/index.cjs': sourcemap.tag`
 	const assert = require('node:assert');
@@ -220,8 +220,6 @@ export const files = {
 		'index.js': 'throw new Error("should not be loaded")',
 	},
 
-	// TODO: test resolution priority for files 'index.tsx` & 'index.tsx.ts` via 'index.tsx'
-
 	'jsx/index.jsx': sourcemap.tag`
 	import assert from 'assert';
 	export const cjsContext = ${cjsContextCheck};
@@ -281,7 +279,13 @@ export const files = {
 				main: './index.js',
 			}),
 			'index.ts': 'throw new Error("should prefer .js over .ts in node_modules")',
-			'index.js': syntaxLowering,
+			'index.js': `
+			// https://github.com/privatenumber/tsx/issues/726
+			if (!require.cache) {
+				throw new Error('require.cache should be defined');
+			}
+			${syntaxLowering}
+			`,
 			'ts.ts': syntaxLowering,
 			'cjs.js': `
 			const _ = exports;

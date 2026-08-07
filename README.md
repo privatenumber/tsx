@@ -11,7 +11,7 @@
 <p align="center">
 TypeScript Execute (tsx): The easiest way to run TypeScript in Node.js
 <br><br>
-<a href="https://tsx.is">Documentation</a>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://tsx.is/getting-started">Getting started →</a>
+<a href="https://tsx.hirok.io">Documentation</a>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://tsx.hirok.io/getting-started">Getting started →</a>
 </p>
 
 <br>

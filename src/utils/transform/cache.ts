@@ -7,8 +7,15 @@ import type { Transformed } from './apply-transformers.js';
 
 const noop = () => {};
 const getTime = () => Math.floor(Date.now() / 1e8);
+const cacheFileNamePattern = /^(\d+)-([^-]+)$/;
 
-class FileCache<ReturnType> extends Map<string, ReturnType> {
+type DiskCacheEntry = {
+	time: number;
+	key: string;
+	fileName: string;
+};
+
+export class FileCache<ReturnType> extends Map<string, ReturnType> {
 	/**
 	 * By using tmpdir, the expectation is for the OS to clean any files
 	 * that haven't been read for a while.
@@ -19,36 +26,93 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 	 * Note on Windows, temp files are not cleaned up automatically.
 	 * https://superuser.com/a/1599897
 	 */
-	cacheDirectory = tmpdir;
+	cacheDirectory: string;
 
 	// Maintained so we can remove it on Windows
-	oldCacheDirectory = path.join(os.tmpdir(), 'tsx');
+	oldCacheDirectory: string;
 
-	cacheFiles: {
-		time: number;
-		key: string;
-		fileName: string;
-	}[];
+	// Full entry list is retained so duplicate files are also expired.
+	diskCacheIndex: Map<string, DiskCacheEntry> | undefined;
 
-	constructor() {
+	diskCacheEntries: DiskCacheEntry[] | undefined;
+
+	constructor(
+		cacheDirectory = tmpdir,
+		oldCacheDirectory = path.join(os.tmpdir(), 'tsx'),
+	) {
 		super();
+		this.cacheDirectory = cacheDirectory;
+		this.oldCacheDirectory = oldCacheDirectory;
+	}
+
+	getDiskCacheIndex() {
+		if (this.diskCacheIndex) {
+			return this.diskCacheIndex;
+		}
 
 		// Handles race condition if multiple tsx instances are running (#22)
 		fs.mkdirSync(this.cacheDirectory, { recursive: true });
 
-		this.cacheFiles = fs.readdirSync(this.cacheDirectory).map((fileName) => {
-			const [time, key] = fileName.split('-');
-			return {
-				time: Number(time),
+		const diskCacheIndex = new Map<string, DiskCacheEntry>();
+		const diskCacheEntries: DiskCacheEntry[] = [];
+		for (const fileName of fs.readdirSync(this.cacheDirectory)) {
+			const match = cacheFileNamePattern.exec(fileName);
+			if (!match) {
+				continue;
+			}
+
+			const time = Number(match[1]);
+			if (!Number.isSafeInteger(time)) {
+				continue;
+			}
+
+			const key = match[2];
+			const entry = {
+				time,
 				key,
 				fileName,
 			};
-		});
+			diskCacheEntries.push(entry);
+
+			const duplicate = diskCacheIndex.get(key);
+			if (!duplicate || duplicate.time < time) {
+				diskCacheIndex.set(key, entry);
+			}
+		}
+		this.diskCacheIndex = diskCacheIndex;
+		this.diskCacheEntries = diskCacheEntries;
 
 		setImmediate(() => {
-			this.expireDiskCache();
-			this.removeOldCacheDirectory();
+			this.expireDiskCache().catch(noop);
+			this.removeOldCacheDirectory().catch(noop);
 		});
+
+		return diskCacheIndex;
+	}
+
+	private removeDiskCacheEntry(entry: DiskCacheEntry) {
+		const entryIndex = this.diskCacheEntries!.indexOf(entry);
+		if (entryIndex !== -1) {
+			this.diskCacheEntries!.splice(entryIndex, 1);
+		}
+
+		if (this.diskCacheIndex!.get(entry.key) === entry) {
+			let replacement: DiskCacheEntry | undefined;
+			for (const remainingEntry of this.diskCacheEntries!) {
+				if (
+					remainingEntry.key === entry.key
+					&& (!replacement || remainingEntry.time > replacement.time)
+				) {
+					replacement = remainingEntry;
+				}
+			}
+
+			if (replacement) {
+				this.diskCacheIndex!.set(entry.key, replacement);
+			} else {
+				this.diskCacheIndex!.delete(entry.key);
+			}
+		}
 	}
 
 	override get(key: string) {
@@ -58,31 +122,23 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 			return memoryCacheHit;
 		}
 
-		const diskCacheHit = this.cacheFiles.find(cache => cache.key === key);
-		if (!diskCacheHit) {
-			return;
+		const diskCacheIndex = this.getDiskCacheIndex();
+		let diskCacheHit = diskCacheIndex.get(key);
+		while (diskCacheHit) {
+			const cacheFilePath = path.join(this.cacheDirectory, diskCacheHit.fileName);
+			const cachedResult = readJsonFile<ReturnType>(cacheFilePath);
+
+			if (cachedResult) {
+				// Load it into memory
+				super.set(key, cachedResult);
+				return cachedResult;
+			}
+
+			// Ignore broken files immediately so an older valid entry can be used.
+			this.removeDiskCacheEntry(diskCacheHit);
+			fs.promises.unlink(cacheFilePath).catch(noop);
+			diskCacheHit = diskCacheIndex.get(key);
 		}
-
-		const cacheFilePath = path.join(this.cacheDirectory, diskCacheHit.fileName);
-		const cachedResult = readJsonFile<ReturnType>(cacheFilePath);
-
-		if (!cachedResult) {
-			// Remove broken cache file
-			fs.promises.unlink(cacheFilePath).then(
-				() => {
-					const index = this.cacheFiles.indexOf(diskCacheHit);
-					this.cacheFiles.splice(index, 1);
-				},
-
-				() => {},
-			);
-			return;
-		}
-
-		// Load it into memory
-		super.set(key, cachedResult);
-
-		return cachedResult;
 	}
 
 	override set(key: string, value: ReturnType) {
@@ -94,25 +150,50 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 			 * and because this level of fidelity wont matter
 			 */
 			const time = getTime();
+			const fileName = `${time}-${key}`;
+			const diskCacheIndex = this.getDiskCacheIndex();
+			const entry = {
+				time,
+				key,
+				fileName,
+			};
 
 			fs.promises.writeFile(
-				path.join(this.cacheDirectory, `${time}-${key}`),
+				path.join(this.cacheDirectory, fileName),
 				JSON.stringify(value),
-			).catch(noop);
+			).then(
+				() => {
+					const previousEntry = diskCacheIndex.get(key);
+					if (previousEntry?.fileName === fileName) {
+						this.removeDiskCacheEntry(previousEntry);
+					}
+					diskCacheIndex.set(key, entry);
+					this.diskCacheEntries!.push(entry);
+				},
+				noop,
+			);
 		}
 
 		return this;
 	}
 
-	expireDiskCache() {
+	async expireDiskCache() {
+		this.getDiskCacheIndex();
 		const time = getTime();
+		const deletions: Promise<void>[] = [];
 
-		for (const cache of this.cacheFiles) {
-			// Remove if older than ~7 days
+		for (const cache of this.diskCacheEntries!) {
 			if ((time - cache.time) > 7) {
-				fs.promises.unlink(path.join(this.cacheDirectory, cache.fileName)).catch(noop);
+				deletions.push(fs.promises.unlink(
+					path.join(this.cacheDirectory, cache.fileName),
+				).then(
+					() => this.removeDiskCacheEntry(cache),
+					noop,
+				));
 			}
 		}
+
+		await Promise.all(deletions);
 	}
 
 	async removeOldCacheDirectory() {

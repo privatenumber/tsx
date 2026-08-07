@@ -1,13 +1,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import Module from 'node:module';
+import { pathToFileURL } from 'node:url';
 import type { TransformOptions } from 'esbuild';
+import { isFileIncluded, type TsconfigResult } from 'get-tsconfig';
 import { transformSync } from '../../utils/transform/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';
 import { isESM } from '../../utils/es-module-lexer.js';
 import { shouldApplySourceMap, inlineSourceMap } from '../../source-map.js';
 import { parent } from '../../utils/ipc/client.js';
-import { fileMatcher } from '../../utils/tsconfig.js';
+import { logCjs as log } from '../../utils/debug.js';
+import { isFeatureSupported, requireEsm } from '../../utils/node-features.js';
+import { getNearestPackageTypeSync } from '../../esm/hook/package-json.js';
 import type { LoaderState } from './types.js';
 
 const typescriptExtensions = [
@@ -29,6 +33,28 @@ const implicitlyResolvableExtensions = [
 	'.tsx',
 	'.jsx',
 ] as const;
+
+const moduleExportsInteropExport = 'module.exports';
+
+// tsx may still transform ESM syntax in explicit CommonJS scopes, but native
+// require(esm) only applies to these module-system candidates.
+// https://github.com/nodejs/node/blob/v24.15.0/doc/api/modules.md#L206-L214
+const isRequireEsmCandidate = (
+	filePath: string,
+) => {
+	const extension = path.extname(filePath);
+	return (
+		extension === '.mjs'
+		|| extension === '.mts'
+		|| (
+			(
+				extension === '.js'
+				|| extension === '.ts'
+			)
+			&& getNearestPackageTypeSync(pathToFileURL(filePath).toString()) !== 'commonjs'
+		)
+	);
+};
 
 const safeSet = <T extends Record<string, unknown>>(
 	object: T,
@@ -75,9 +101,15 @@ const safeSet = <T extends Record<string, unknown>>(
 export const createExtensions = (
 	state: LoaderState,
 	extensions: NodeJS.RequireExtensions,
+	tsconfig: TsconfigResult | undefined,
 	namespace?: string,
 ) => {
 	const defaultLoader = extensions['.js'];
+
+	// Native require(esm) honors the explicit 'module.exports' export.
+	// https://github.com/nodejs/node/pull/55085
+	// https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/cjs/loader.js#L1704-L1706
+	const shouldApplyRequireEsmInterop = isFeatureSupported(requireEsm);
 
 	const transformer = (
 		module: Module,
@@ -96,6 +128,10 @@ export const createExtensions = (
 		if ((searchParams.get('namespace') ?? undefined) !== namespace) {
 			return defaultLoader(module, filePath);
 		}
+
+		log(2, 'load', {
+			filePath,
+		});
 
 		/**
 		 * In new Module(), m.path = path.dirname(module.id) but module.id coming from
@@ -123,6 +159,19 @@ export const createExtensions = (
 		}
 
 		let code = fs.readFileSync(cleanFilePath, 'utf8');
+		const isEsmSyntax = (
+			transformJs
+			&& !cleanFilePath.endsWith('.cjs')
+			&& !cleanFilePath.endsWith('.cts')
+			&& isESM(code)
+		);
+		const tsconfigRaw = (
+			(transformTs || isEsmSyntax)
+			&& tsconfig
+			&& isFileIncluded(tsconfig, cleanFilePath)
+				? tsconfig.config as TransformOptions['tsconfigRaw']
+				: undefined
+		);
 
 		if (cleanFilePath.endsWith('.cjs')) {
 			// Contains native ESM check
@@ -138,13 +187,13 @@ export const createExtensions = (
 			transformTs
 
 			// CommonJS file but uses ESM import/export
-			|| isESM(code)
+			|| isEsmSyntax
 		) {
 			const transformed = transformSync(
 				code,
 				filePath,
 				{
-					tsconfigRaw: fileMatcher?.(cleanFilePath) as TransformOptions['tsconfigRaw'],
+					tsconfigRaw,
 				},
 			);
 
@@ -155,7 +204,35 @@ export const createExtensions = (
 			);
 		}
 
+		log(1, 'loaded', {
+			filePath: cleanFilePath,
+		});
+
 		module._compile(code, cleanFilePath);
+		if (query && Module._cache[cleanFilePath] === module) {
+			Module._cache[filePath] = module;
+			delete Module._cache[cleanFilePath];
+		}
+
+		const { exports } = module;
+		const moduleExportsDescriptor = (
+			shouldApplyRequireEsmInterop
+			&& exports
+			&& (
+				typeof exports === 'object'
+				|| typeof exports === 'function'
+			)
+				? Object.getOwnPropertyDescriptor(exports, moduleExportsInteropExport)
+				: undefined
+		);
+		if (
+			// esbuild emits transformed ESM exports as accessors; CJS object
+			// literal properties are data descriptors and should not be unwrapped.
+			moduleExportsDescriptor?.get
+			&& isRequireEsmCandidate(cleanFilePath)
+		) {
+			module.exports = exports[moduleExportsInteropExport];
+		}
 	};
 
 	/**
@@ -169,7 +246,7 @@ export const createExtensions = (
 	for (const extension of implicitlyResolvableExtensions) {
 		safeSet(extensions, extension, transformer, {
 			/**
-			 * Registeration needs to be enumerable for some 3rd party libraries
+			 * Registration needs to be enumerable for some 3rd party libraries
 			 * https://github.com/gulpjs/rechoir/blob/v0.8.0/index.js#L21 (used by Webpack CLI)
 			 *
 			 * If the extension already exists, inherit its enumerable property

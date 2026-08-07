@@ -10,8 +10,10 @@ const bindHiddenSignalsHandler = (
 	handler: NodeJS.SignalsListener,
 ) => {
 	type RelaySignals = typeof signals[number];
+
+	const hiddenHandlers = new Map<RelaySignals, NodeJS.SignalsListener>();
 	for (const signal of signals) {
-		process.on(signal, (receivedSignal) => {
+		const hiddenHandler = (receivedSignal: NodeJS.Signals) => {
 			handler(receivedSignal);
 
 			/**
@@ -22,7 +24,11 @@ const bindHiddenSignalsHandler = (
 				// eslint-disable-next-line n/no-process-exit
 				process.exit(128 + osConstants.signals[signal]);
 			}
-		});
+		};
+
+		// Prepend so this runs before user handlers.
+		process.prependListener(signal, hiddenHandler);
+		hiddenHandlers.set(signal, hiddenHandler);
 	}
 
 	/**
@@ -32,8 +38,30 @@ const bindHiddenSignalsHandler = (
 
 	process.listenerCount = function (eventName) {
 		let count = Reflect.apply(listenerCount, this, arguments);
-		if (signals.includes(eventName as RelaySignals)) {
-			count -= 1;
+		const hiddenHandler = hiddenHandlers.get(eventName as RelaySignals);
+		const listener = arguments[1] as unknown;
+		const isAggregateCount = (
+			listenerCount.length === 1
+			|| arguments.length < 2
+			|| listener === undefined
+			|| listener === null
+		);
+		if (
+			hiddenHandler
+			&& (
+				isAggregateCount
+				|| listener === hiddenHandler
+			)
+		) {
+			const currentListeners: BaseEventListener[] = Reflect.apply(
+				listeners,
+				this,
+				[eventName],
+			);
+			const hiddenHandlerCount = currentListeners
+				.filter(currentListener => currentListener === hiddenHandler)
+				.length;
+			count -= hiddenHandlerCount;
 		}
 		return count;
 	};
@@ -41,7 +69,9 @@ const bindHiddenSignalsHandler = (
 	process.listeners = function (eventName) {
 		const result: BaseEventListener[] = Reflect.apply(listeners, this, arguments);
 		if (signals.includes(eventName as RelaySignals)) {
-			return result.filter(listener => listener !== handler);
+			return result.filter(
+				listener => listener !== hiddenHandlers.get(eventName as RelaySignals),
+			);
 		}
 		return result;
 	};

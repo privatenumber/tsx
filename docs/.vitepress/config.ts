@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress';
 
 const title = 'tsx';
 const description = 'tsx (TypeScript Execute) - The easiest way to run TypeScript in Node.js';
+const siteUrl = 'https://tsx.hirok.io';
 
 export default defineConfig({
 	lang: 'en-US',
@@ -9,6 +10,10 @@ export default defineConfig({
 	title,
 
 	description,
+
+	sitemap: {
+		hostname: siteUrl,
+	},
 
 	lastUpdated: true,
 
@@ -18,6 +23,39 @@ export default defineConfig({
 
 	metaChunk: true,
 
+	transformPageData(pageData) {
+		if (pageData.isNotFound) {
+			return;
+		}
+
+		const pageUrl = new URL(
+			pageData.relativePath
+				.replace(/(^|\/)index\.md$/, '$1')
+				.replace(/\.md$/, ''),
+			`${siteUrl}/`,
+		).href;
+
+		pageData.frontmatter.head ??= [];
+		pageData.frontmatter.head.push(
+			['link', {
+				rel: 'canonical',
+				href: pageUrl,
+			}],
+			['meta', {
+				property: 'og:title',
+				content: pageData.title,
+			}],
+			['meta', {
+				property: 'og:url',
+				content: pageUrl,
+			}],
+			['meta', {
+				property: 'og:description',
+				content: pageData.description || description,
+			}],
+		);
+	},
+
 	head: [
 		['link', {
 			rel: 'icon',
@@ -25,24 +63,12 @@ export default defineConfig({
 			href: '/logo-mini.svg',
 		}],
 		['meta', {
-			property: 'og:title',
-			content: title,
-		}],
-		['meta', {
 			property: 'og:type',
 			content: 'website',
 		}],
 		['meta', {
 			property: 'og:image',
-			content: 'https://tsx.is/social.png',
-		}],
-		['meta', {
-			property: 'og:url',
-			content: 'https://tsx.is',
-		}],
-		['meta', {
-			property: 'og:description',
-			content: description,
+			content: `${siteUrl}/social.png`,
 		}],
 		['meta', {
 			property: 'og:site_name',

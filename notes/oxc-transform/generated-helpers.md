@@ -1,0 +1,7 @@
+# Generated helpers
+
+The public API exposes `Runtime` and `External` helper modes; inline helpers are not implemented, and `Runtime` is the default ([NAPI modes](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/napi/transform/src/transformer.rs#L706-L750), [loader modes](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/crates/oxc_transformer/src/common/helper_loader.rs#L21-L61)). Runtime mode emits bare imports/requires from `@oxc-project/runtime/helpers/*`, while external mode emits `babelHelpers.*` references ([path construction](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/crates/oxc_transformer/src/common/helper_loader.rs#L295-L338)).
+
+`oxc-transform` does not declare `@oxc-project/runtime` as a runtime dependency ([manifest](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/napi/transform/package.json#L27-L81)). Runtime-mode output therefore requires that package to resolve from the generated module.
+
+Running-Node targets avoid helpers for already-supported syntax, but legacy decorators and resource-management lowering explicitly request `decorate*` and `usingCtx` helpers ([decorators](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/crates/oxc_transformer/src/decorator/legacy/mod.rs#L1120-L1140), [resource management](https://github.com/oxc-project/oxc/blob/c9d1a5b603ccacf21649ad41859ddeacb99e13bb/crates/oxc_transformer/src/es2026/explicit_resource_management.rs#L730-L745)).

@@ -1,54 +1,51 @@
 name: Test
+
 on:
-  push:
-    branches: [master, develop]
   pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Test
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
     timeout-minutes: 10
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
-      - name: Use Node.js
-        uses: actions/setup-node@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version-file: .nvmrc
-
-      - name: Authenticate GitHub registry
-        run: npm set "//npm.pkg.github.com:_authToken=${{ secrets.GH_TOKEN }}"
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: echo "PNPM_STORE=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - uses: actions/cache@v3
-        name: Cache pnpm
-        with:
-          path: ${{ env.PNPM_STORE }}
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: ${{ runner.os }}-pnpm-
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install
 
       - name: Get Node.js cache directory
+        if: runner.os == 'Linux'
+        id: node-cache
         shell: bash
-        run: echo "NVE_CACHE=$(node -p 'require("cachedir")("nve")')" >> $GITHUB_ENV
+        run: echo "path=$(node -p 'require("cachedir")("nve")')" >> "$GITHUB_OUTPUT"
 
       - name: Cache Node.js versions
-        uses: actions/cache@v3
+        if: runner.os == 'Linux'
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
-          path: ${{ env.NVE_CACHE }}
+          path: ${{ steps.node-cache.outputs.path }}
           key: ${{ runner.os }}-nodejs-${{ hashFiles('.nvmrc') }}-${{ hashFiles('tests/utils/node-versions.ts') }}
           restore-keys: ${{ runner.os }}-nodejs-
 

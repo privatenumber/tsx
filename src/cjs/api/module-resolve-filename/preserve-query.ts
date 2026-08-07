@@ -19,6 +19,8 @@ export const preserveQuery = (
 			const pathAndQuery = filePath.split('?');
 			const newFilename = pathAndQuery[0];
 			query = pathAndQuery[1];
+			const parentQuery = new URLSearchParams(query);
+			const parentNamespace = parentQuery.get('namespace');
 
 			/**
 			 * Can't delete the old cache entry because there's an assertion
@@ -31,7 +33,9 @@ export const preserveQuery = (
 			// https://github.com/nodejs/node/blob/v20.15.0/lib/internal/modules/esm/translators.js#L383
 			parent.paths = Module._nodeModulePaths(parent.path);
 
-			Module._cache[newFilename] = parent as NodeModule;
+			if (!parentNamespace) {
+				Module._cache[newFilename] = parent as NodeModule;
+			}
 		}
 
 		if (!query) {
