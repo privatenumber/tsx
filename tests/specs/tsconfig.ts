@@ -232,6 +232,31 @@ export const tsconfig = ({ tsx }: NodeApis) => describe('tsconfig', () => {
 					expect(pTsconfig.failed).toBe(true);
 				});
 
+				test('missing tsconfig errors with a readable message', async () => {
+					const pTsconfig = await tsx(['--tsconfig', 'missing.json', 'index.tsx'], fixture.path);
+					onTestFail((error) => {
+						console.error(error);
+						console.log(pTsconfig);
+					});
+					expect(pTsconfig.failed).toBe(true);
+					expect(pTsconfig.stderr).toMatch('Cannot find tsconfig at path:');
+					// The minified parser source should not be dumped as an unreadable stack trace
+					expect(pTsconfig.stderr).not.toMatch('onObjectBegin');
+					expect(pTsconfig.stdout).toBe('');
+				});
+
+				test('unresolvable tsconfig errors with a readable message', async () => {
+					const pTsconfig = await tsx(['--tsconfig', 'tsconfig-unresolvable.json', 'index.tsx'], fixture.path);
+					onTestFail((error) => {
+						console.error(error);
+						console.log(pTsconfig);
+					});
+					expect(pTsconfig.failed).toBe(true);
+					expect(pTsconfig.stderr).toMatch('Failed to read tsconfig at:');
+					expect(pTsconfig.stderr).not.toMatch('onObjectBegin');
+					expect(pTsconfig.stdout).toBe('');
+				});
+
 				test('custom tsconfig', async () => {
 					const pTsconfigAllowJs = await tsx(['--tsconfig', 'tsconfig-allowJs.json', 'jsx.jsx'], fixture.path);
 					onTestFail((error) => {
