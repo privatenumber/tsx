@@ -10,6 +10,9 @@ const ignoreWarnings = new Set([
 
 	// For JSON modules via https://github.com/nodejs/node/pull/46901
 	'Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.',
+
+	// importAssertions deprecated in favor of importAttributes (Node v22.20.0+)
+	'Use `importAttributes` instead of `importAssertions`',
 ]);
 
 const { emit } = process;
