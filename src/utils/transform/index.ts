@@ -57,22 +57,6 @@ type TransformSyncOptions = TransformOptions & {
 	cjsBanner?: string;
 };
 
-/**
- * The `import.meta` tokens may be separated by whitespace or comments
- * (e.g. @babel/helper-define-polyfill-provider ships
- * `createRequire(import \/*::(_)*\/.meta.url)`), which the plain
- * substring fast-path misses. Over-matching here is harmless: a define
- * that never matches the AST emits nothing.
- *
- * @see https://github.com/babel/babel-polyfills/blob/%40babel/helper-define-polyfill-provider%401.0.0/packages/babel-helper-define-polyfill-provider/src/node/dependencies.ts#L5
- */
-const importMetaSyntax = /import(?:\s|\/\*[\s\S]*?\*\/|\/\/[^\n]*\n)*\.(?:\s|\/\*[\s\S]*?\*\/|\/\/[^\n]*\n)*meta\b/;
-
-const usesImportMeta = (code: string) => (
-	code.includes('import.meta')
-	|| importMetaSyntax.test(code)
-);
-
 // Used by cjs-loader
 export const transformSync = (
 	code: string,
@@ -113,7 +97,7 @@ export const transformSync = (
 		esbuildOptions.format === 'cjs'
 		&& !filePath.endsWith('.cjs')
 		&& !filePath.endsWith('.cts')
-		&& usesImportMeta(code)
+		&& code.includes('import')
 	) {
 		esbuildOptions.define = {
 			...esbuildOptions.define,
