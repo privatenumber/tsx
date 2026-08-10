@@ -2123,6 +2123,19 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 				}));
 				export const loaded = true;
 				`,
+			'require-typescript.cjs': 'console.log(JSON.stringify(require("./module-type/required.ts").default));',
+			'module-type': {
+				'package.json': createPackageJson({ type: 'module' }),
+				'required.ts': `
+					import path from 'node:path';
+
+					export default {
+						directory: import.meta.dirname,
+						filename: import.meta.filename,
+						resolvedDirectory: path.resolve(import.meta.dirname, 'output'),
+					};
+					`,
+			},
 		});
 
 		const directProcess = await node.tsx(['direct.js'], fixture.path);
@@ -2166,6 +2179,18 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 				ownsFilename: false,
 				ownsUrl: true,
 				url: pathToFileURL(requiredFilePath).toString(),
+			});
+		}
+
+		if (node.supports.importMetaPathProperties) {
+			const typescriptProcess = await node.tsx(['require-typescript.cjs'], fixture.path);
+			expect(typescriptProcess.failed).toBe(false);
+			expect(typescriptProcess.stderr).toBe('');
+			const moduleDirectory = fixture.getPath('module-type');
+			expect(JSON.parse(typescriptProcess.stdout)).toEqual({
+				directory: moduleDirectory,
+				filename: fixture.getPath('module-type/required.ts'),
+				resolvedDirectory: path.resolve(moduleDirectory, 'output'),
 			});
 		}
 	});
