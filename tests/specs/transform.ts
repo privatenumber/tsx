@@ -191,6 +191,61 @@ export const transformSpec = () => describe('transform', () => {
 			expect(dynamicImport.code).toMatch('.href).then');
 		});
 
+		// ES modules are always strict, so the transformed CommonJS output has
+		// to declare the mode Node's module wrapper doesn't provide.
+		// https://github.com/privatenumber/tsx/issues/676
+		describe('strict mode', () => {
+			// Sloppy mode substitutes the global object for an undefined `this`
+			const isStrictExpression = '(function () { return this === undefined; })()';
+
+			const requireTransformed = (
+				fileName: string,
+				code: string,
+			) => {
+				const transformed = transformSync(code, fileName, { format: 'cjs' });
+				const fsRequire = createFsRequire(Volume.fromJSON({
+					[`/${fileName}`]: transformed.code,
+				}));
+				return fsRequire(`/${fileName}`) as { isStrict: boolean };
+			};
+
+			test('esm syntax is strict', () => {
+				const loaded = requireTransformed(
+					'file.js',
+					`export const isStrict = ${isStrictExpression};`,
+				);
+
+				expect(loaded.isStrict).toBe(true);
+			});
+
+			test('commonjs syntax stays sloppy', () => {
+				const loaded = requireTransformed(
+					'file.js',
+					`exports.isStrict = ${isStrictExpression};`,
+				);
+
+				expect(loaded.isStrict).toBe(false);
+			});
+
+			test('cts stays sloppy despite esm syntax', () => {
+				const loaded = requireTransformed(
+					'file.cts',
+					`export const isStrict = ${isStrictExpression};`,
+				);
+
+				expect(loaded.isStrict).toBe(false);
+			});
+
+			test('mjs is strict without esm syntax', () => {
+				const loaded = requireTransformed(
+					'file.mjs',
+					`exports.isStrict = ${isStrictExpression};`,
+				);
+
+				expect(loaded.isStrict).toBe(true);
+			});
+		});
+
 		test('sourcemap file', () => {
 			const fileName = 'file.mts';
 			const transformed = transformSync(
