@@ -17,6 +17,7 @@ import { nodeCapabilitiesSpec } from './specs/node-capabilities';
 import { versionSensitiveTests } from './specs/version-sensitive';
 import { resolutionPriority } from './specs/resolution-priority';
 import { esmHookResolve } from './specs/esm-hook-resolve';
+import { dtsConstEnum } from './specs/dts-const-enum';
 
 (async () => {
 	// Prevent stuck CI runs
@@ -42,6 +43,7 @@ import { esmHookResolve } from './specs/esm-hook-resolve';
 			await commonJsModeContracts(primaryNode);
 			await smoke(primaryNode);
 			await resolutionPriority(primaryNode);
+			await dtsConstEnum(primaryNode);
 			await api(primaryNode);
 			await cli(primaryNode);
 			await watch(primaryNode);
