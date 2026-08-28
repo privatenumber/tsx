@@ -15,10 +15,10 @@ const getTime = () => Math.floor(Date.now() / 1e8);
 const getKey = (index: number) => index.toString(16).padStart(40, '0');
 
 export const transformCacheSpec = () => describe('transform cache', async () => {
-	await test('loads with a constrained heap regardless of unrelated cache entries', async () => {
-		const node = await createNode(process.version);
-		const userId = process.geteuid ? process.geteuid() : os.userInfo().username;
-		for (const count of [0, 150_000]) {
+	for (const count of [0, 150_000]) {
+		await test(`loads with a constrained heap and ${count} unrelated cache entries`, async () => {
+			const node = await createNode(process.version);
+			const userId = process.geteuid ? process.geteuid() : os.userInfo().username;
 			await using fixture = await createFixture({
 				'entry.cjs': "import('./probe.mts').then(module => console.log(module.default));",
 				'probe.mts': "const value: string = 'CACHE_OK'; export default value;",
@@ -26,8 +26,16 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 			const cacheDirectory = fixture.getPath(`tsx-${userId}`);
 			await fs.promises.mkdir(cacheDirectory);
 			const time = getTime();
-			for (let index = 0; index < count; index += 1) {
-				fs.writeFileSync(path.join(cacheDirectory, `${time}-${getKey(index)}`), '');
+			// Keep the watchdog responsive without exhausting file descriptors.
+			for (let start = 0; start < count; start += 64) {
+				const end = Math.min(start + 64, count);
+				await Promise.all(Array.from(
+					{ length: end - start },
+					(_, offset) => fs.promises.writeFile(
+						path.join(cacheDirectory, `${time}-${getKey(start + offset)}`),
+						'',
+					),
+				));
 			}
 
 			const result = await node.tsx([
@@ -48,8 +56,8 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 			});
 			expect(result.exitCode).toBe(0);
 			expect(result.stdout).toBe('CACHE_OK');
-		}
-	});
+		});
+	}
 
 	await test('does not create or maintain directories for read-only misses', async () => {
 		await using fixture = await createFixture({
