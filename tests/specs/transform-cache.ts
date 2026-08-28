@@ -51,29 +51,19 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 		}
 	});
 
-	await test('does not access its directory before the first operation', async () => {
+	await test('does not create or maintain directories for read-only misses', async () => {
 		await using fixture = await createFixture({
 			'old-cache/sentinel': '',
 		});
-		const _cache = new FileCache<CacheValue>(
+		const cache = new FileCache<CacheValue>(
 			fixture.getPath('cache'),
 			fixture.getPath('old-cache'),
 		);
 
+		expect(cache.get(getKey(0))).toBeUndefined();
 		await waitForImmediate();
 		expect(await fixture.exists('cache')).toBe(false);
 		expect(await fixture.exists('old-cache/sentinel')).toBe(true);
-	});
-
-	await test('creates its directory on the first operation', async () => {
-		await using fixture = await createFixture();
-		const cache = new FileCache<CacheValue>(
-			fixture.getPath('cache'),
-			fixture.getPath('missing-old-cache'),
-		);
-
-		expect(cache.get(getKey(0))).toBeUndefined();
-		expect(await fixture.exists('cache')).toBe(true);
 	});
 
 	await test('finds a warm entry among many unrelated entries', async () => {
@@ -129,47 +119,125 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 			fixture.getPath('old-cache'),
 		);
 
-		const originalUnlink = fs.promises.unlink;
-		const unlinks: Promise<void>[] = [];
-		fs.promises.unlink = ((...arguments_) => {
-			const unlink = originalUnlink(...arguments_);
-			unlinks.push(unlink);
-			return unlink;
-		}) as typeof fs.promises.unlink;
+		expect(cache.get(key)).toStrictEqual({ value: 'older valid' });
+		await waitForImmediate();
+		expect(await fixture.readFile(`cache/${time}-${key}`, 'utf8')).toBe('invalid JSON');
+	});
+
+	await test('only reads entries in the live retention window', async () => {
+		const time = getTime();
+		await using fixture = await createFixture({
+			[`cache/${time - 7}-${getKey(1)}`]: JSON.stringify({ value: 'live' }),
+			[`cache/${time - 8}-${getKey(2)}`]: JSON.stringify({ value: 'expired' }),
+			[`cache/${time + 1}-${getKey(3)}`]: JSON.stringify({ value: 'future' }),
+			[`cache/${time}-${getKey(4)}`]: 'invalid JSON',
+			[`cache/${time - 8}-${getKey(4)}`]: JSON.stringify({ value: 'expired fallback' }),
+		});
+		const cache = new FileCache<CacheValue>(fixture.getPath('cache'), fixture.getPath('old-cache'));
+
+		expect(cache.get(getKey(1))).toStrictEqual({ value: 'live' });
+		expect(cache.get(getKey(2))).toBeUndefined();
+		expect(cache.get(getKey(3))).toBeUndefined();
+		expect(cache.get(getKey(4))).toBeUndefined();
+	});
+
+	await test('updates the lookup window when the time bucket rolls over', async () => {
+		const time = getTime();
+		await using fixture = await createFixture({
+			[`cache/${time}-${getKey(1)}`]: JSON.stringify({ value: 'current' }),
+			[`cache/${time - 7}-${getKey(2)}`]: JSON.stringify({ value: 'boundary' }),
+			[`cache/${time + 1}-${getKey(3)}`]: JSON.stringify({ value: 'next' }),
+		});
+		const cache = new FileCache<CacheValue>(fixture.getPath('cache'), fixture.getPath('old-cache'));
+		const originalNow = Date.now;
 		try {
-			expect(cache.get(key)).toStrictEqual({ value: 'older valid' });
-			await Promise.all(unlinks);
+			Date.now = () => time * 1e8;
+			expect(cache.get(getKey(2))).toStrictEqual({ value: 'boundary' });
+			expect(cache.get(getKey(3))).toBeUndefined();
+			cache.delete(getKey(2));
+
+			Date.now = () => (time + 1) * 1e8;
+			expect(cache.get(getKey(1))).toStrictEqual({ value: 'current' });
+			expect(cache.get(getKey(2))).toBeUndefined();
+			expect(cache.get(getKey(3))).toStrictEqual({ value: 'next' });
 		} finally {
-			fs.promises.unlink = originalUnlink;
+			Date.now = originalNow;
 		}
 	});
 
-	await test('removes every expired entry without removing fresh entries', async () => {
+	await test('prefers the newest valid entry and retains it in memory', async () => {
 		const time = getTime();
-		const expiredKey = getKey(1);
-		const freshKey = getKey(2);
-		const olderExpiredFile = `${time - 9}-${expiredKey}`;
-		const newerExpiredFile = `${time - 8}-${expiredKey}`;
-		const freshFile = `${time}-${freshKey}`;
+		const key = getKey(1);
 		await using fixture = await createFixture({
-			[`cache/${olderExpiredFile}`]: JSON.stringify({ value: 'older expired' }),
-			[`cache/${newerExpiredFile}`]: JSON.stringify({ value: 'newer expired' }),
-			[`cache/${freshFile}`]: JSON.stringify({ value: 'fresh' }),
+			[`cache/${time - 1}-${key}`]: JSON.stringify({ value: 'older' }),
+			[`cache/${time}-${key}`]: JSON.stringify({ value: 'newest' }),
 		});
-		const cache = new FileCache<CacheValue>(
-			fixture.getPath('cache'),
-			fixture.getPath('old-cache'),
-		);
+		const cache = new FileCache<CacheValue>(fixture.getPath('cache'), fixture.getPath('old-cache'));
 
-		expect(cache.get(expiredKey)).toStrictEqual({ value: 'newer expired' });
-		await cache.expireDiskCache();
-		expect(await fixture.readdir('cache')).toStrictEqual([freshFile]);
-		expect(cache.diskCacheEntries?.map(entry => entry.fileName)).toStrictEqual([freshFile]);
-		await cache.expireDiskCache();
-		expect(await fixture.readdir('cache')).toStrictEqual([freshFile]);
+		const value = cache.get(key);
+		expect(value).toStrictEqual({ value: 'newest' });
+		await fs.promises.unlink(fixture.getPath(`cache/${time}-${key}`));
+		await fs.promises.unlink(fixture.getPath(`cache/${time - 1}-${key}`));
+		expect(cache.get(key)).toBe(value);
+	});
 
-		cache.delete(expiredKey);
-		expect(cache.get(expiredKey)).toBeUndefined();
+	await test('streams every expired duplicate while preserving other entries', async () => {
+		const time = getTime();
+		const files: Record<string, string> = {};
+		const preserved: string[] = [];
+		for (let index = 0; index < 130; index += 1) {
+			const key = getKey(index);
+			files[`cache/${time - 9}-${key}`] = '{}';
+			files[`cache/${time - 8}-${key}`] = '{}';
+			for (const name of [`${time - 7}-${key}`, `${time}-${key}`, `${time + 1}-${key}`, `malformed-${key}`]) {
+				files[`cache/${name}`] = JSON.stringify({ value: 'preserved' });
+				preserved.push(name);
+			}
+		}
+		const unsafeTime = `99999999999999999999-${getKey(0)}`;
+		files[`cache/${unsafeTime}`] = '{}';
+		preserved.push(unsafeTime);
+		// An individual unlink failure must not interrupt the rest of the sweep.
+		const directory = `${time - 8}-directory`;
+		files[`cache/${directory}/sentinel`] = '';
+		preserved.push(directory);
+		await using fixture = await createFixture(files);
+		const cache = new FileCache<CacheValue>(fixture.getPath('cache'), fixture.getPath('old-cache'));
+
+		const keepAlive = setInterval(() => {}, 10);
+		try {
+			await cache.expireDiskCache();
+			const remaining = await fixture.readdir('cache');
+			expect(remaining.sort()).toStrictEqual(preserved.sort());
+			expect(cache.get(getKey(0))).toStrictEqual({ value: 'preserved' });
+		} finally {
+			clearInterval(keepAlive);
+		}
+	});
+
+	await test('shares overlapping sweeps and allows a later sweep', async () => {
+		const time = getTime();
+		await using fixture = await createFixture(Object.fromEntries(Array.from(
+			{ length: 130 },
+			(_, index) => [`cache/${time - 8}-${getKey(index)}`, '{}'],
+		)));
+		const cache = new FileCache<CacheValue>(fixture.getPath('cache'), fixture.getPath('old-cache'));
+
+		const keepAlive = setInterval(() => {}, 10);
+		try {
+			const firstSweep = cache.expireDiskCache();
+			expect(cache.expireDiskCache()).toBe(firstSweep);
+			await firstSweep;
+			expect(await fixture.readdir('cache')).toStrictEqual([]);
+
+			await fs.promises.writeFile(fixture.getPath(`cache/${time - 8}-${getKey(0)}`), '{}');
+			const laterSweep = cache.expireDiskCache();
+			expect(laterSweep).not.toBe(firstSweep);
+			await laterSweep;
+			expect(await fixture.readdir('cache')).toStrictEqual([]);
+		} finally {
+			clearInterval(keepAlive);
+		}
 	});
 
 	await test('initializes safely when expiration is called directly', async () => {
@@ -181,7 +249,7 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 
 		await cache.expireDiskCache();
 		expect(await fixture.exists('cache')).toBe(true);
-		expect(cache.diskCacheEntries).toStrictEqual([]);
+		expect(await fixture.readdir('cache')).toStrictEqual([]);
 	});
 
 	await test('preserves concurrent writes from separate cache instances', async () => {
@@ -190,8 +258,9 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 		const oldCacheDirectory = fixture.getPath('old-cache');
 		const firstCache = new FileCache<CacheValue>(cacheDirectory, oldCacheDirectory);
 		const secondCache = new FileCache<CacheValue>(cacheDirectory, oldCacheDirectory);
-		firstCache.get(getKey(0));
-		secondCache.get(getKey(0));
+		const reader = new FileCache<CacheValue>(cacheDirectory, oldCacheDirectory);
+		expect(reader.get(getKey(1))).toBeUndefined();
+		expect(reader.get(getKey(2))).toBeUndefined();
 
 		const originalWriteFile = fs.promises.writeFile;
 		const writes: Promise<void>[] = [];
@@ -208,10 +277,7 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 		} finally {
 			fs.promises.writeFile = originalWriteFile;
 		}
-		expect(firstCache.diskCacheEntries?.map(entry => entry.key)).toStrictEqual([getKey(1)]);
-		expect(secondCache.diskCacheEntries?.map(entry => entry.key)).toStrictEqual([getKey(2)]);
-
-		const reader = new FileCache<CacheValue>(cacheDirectory, oldCacheDirectory);
+		expect(await fixture.readdir('cache')).toHaveLength(2);
 		expect(reader.get(getKey(1))).toStrictEqual({ value: 'first' });
 		expect(reader.get(getKey(2))).toStrictEqual({ value: 'second' });
 	});
