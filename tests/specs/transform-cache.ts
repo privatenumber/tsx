@@ -15,26 +15,14 @@ const getTime = () => Math.floor(Date.now() / 1e8);
 const getKey = (index: number) => index.toString(16).padStart(40, '0');
 
 export const transformCacheSpec = () => describe('transform cache', async () => {
-	for (const count of [0, 150_000]) {
-		await test(`loads with a constrained heap and ${count} unrelated cache entries`, async () => {
-			const started = performance.now();
-			const progress = (phase: string) => {
-				process.stderr.write(`[transform cache ${count}] ${phase} +${Math.round(performance.now() - started)}ms\n`);
-			};
+	for (const count of [0, 75_000]) {
+		await test(`loads with a 16 MiB heap and ${count} unrelated cache entries`, async () => {
 			const node = await createNode(process.version);
 			const userId = process.geteuid ? process.geteuid() : os.userInfo().username;
-			progress('seed start');
-			const fixture = await createFixture({
+			await using fixture = await createFixture({
 				'entry.cjs': "import('./probe.mts').then(module => console.log(module.default));",
 				'probe.mts': "const value: string = 'CACHE_OK'; export default value;",
 			});
-			await using _cleanup = {
-				[Symbol.asyncDispose]: async () => {
-					progress('cleanup start');
-					await fixture.rm();
-					progress('cleanup complete');
-				},
-			};
 			const cacheDirectory = fixture.getPath(`tsx-${userId}`);
 			await fs.promises.mkdir(cacheDirectory);
 			const time = getTime();
@@ -48,15 +36,10 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 						'',
 					),
 				));
-				if (Math.floor(end / 25_000) > Math.floor(start / 25_000)) {
-					progress(`seeded ${end}`);
-				}
 			}
-			progress('seed complete');
 
-			progress('child start');
-			const child = node.tsx([
-				'--max-old-space-size=32',
+			const result = await node.tsx([
+				'--max-old-space-size=16',
 				fixture.getPath('entry.cjs'),
 			], {
 				env: {
@@ -71,23 +54,6 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 					NODE_PATH: '',
 				},
 			});
-			child.stdout?.once('data', () => progress('child stdout'));
-			child.stderr?.once('data', () => progress('child stderr'));
-			// Retain only the overlap needed to detect CACHE_OK across chunks.
-			let stdoutTail = '';
-			const observeStdout = (chunk: Buffer) => {
-				const output = stdoutTail + chunk.toString();
-				stdoutTail = output.slice(-7);
-				if (output.includes('CACHE_OK')) {
-					progress('child stdout CACHE_OK');
-					child.stdout?.off('data', observeStdout);
-				}
-			};
-			child.stdout?.on('data', observeStdout);
-			child.once('error', () => progress('child error'));
-			child.once('exit', (code, signal) => progress(`child exit code=${code} signal=${signal}`));
-			const result = await child;
-			progress('child complete');
 			expect(result.exitCode).toBe(0);
 			expect(result.stdout).toBe('CACHE_OK');
 		});
