@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { setImmediate as waitForImmediate } from 'node:timers/promises';
 import { readJsonFile } from '../read-json-file.js';
 import { tmpdir } from '../temporary-directory.js';
 import type { Transformed } from './apply-transformers.js';
@@ -29,8 +28,6 @@ export class FileCache<ReturnType> extends Map<string, ReturnType> {
 	oldCacheDirectory: string;
 
 	private initialized = false;
-
-	private expiring: Promise<void> | undefined;
 
 	constructor(
 		cacheDirectory = tmpdir,
@@ -99,15 +96,8 @@ export class FileCache<ReturnType> extends Map<string, ReturnType> {
 		return this;
 	}
 
-	expireDiskCache() {
+	async expireDiskCache() {
 		this.initialize();
-		this.expiring ??= this.expireEntries().finally(() => {
-			this.expiring = undefined;
-		});
-		return this.expiring;
-	}
-
-	private async expireEntries() {
 		const time = getTime();
 		const directory = await fs.promises.opendir(this.cacheDirectory);
 		const deletions: Promise<void>[] = [];
@@ -131,7 +121,6 @@ export class FileCache<ReturnType> extends Map<string, ReturnType> {
 				await Promise.all(deletions);
 				deletions.length = 0;
 				scanned = 0;
-				await waitForImmediate();
 			}
 		}
 
