@@ -127,19 +127,21 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 		});
 		const cache = new FileCache<CacheValue>(fixture.getPath('cache'), fixture.getPath('old-cache'));
 		const originalNow = Date.now;
-		try {
-			Date.now = () => time * 1e8;
-			expect(cache.get(getKey(2))).toStrictEqual({ value: 'boundary' });
-			expect(cache.get(getKey(3))).toBeUndefined();
-			cache.delete(getKey(2));
+		using _restoreDateNow = {
+			[Symbol.dispose]: () => {
+				Date.now = originalNow;
+			},
+		};
 
-			Date.now = () => (time + 1) * 1e8;
-			expect(cache.get(getKey(1))).toStrictEqual({ value: 'current' });
-			expect(cache.get(getKey(2))).toBeUndefined();
-			expect(cache.get(getKey(3))).toStrictEqual({ value: 'next' });
-		} finally {
-			Date.now = originalNow;
-		}
+		Date.now = () => time * 1e8;
+		expect(cache.get(getKey(2))).toStrictEqual({ value: 'boundary' });
+		expect(cache.get(getKey(3))).toBeUndefined();
+		cache.delete(getKey(2));
+
+		Date.now = () => (time + 1) * 1e8;
+		expect(cache.get(getKey(1))).toStrictEqual({ value: 'current' });
+		expect(cache.get(getKey(2))).toBeUndefined();
+		expect(cache.get(getKey(3))).toStrictEqual({ value: 'next' });
 	});
 
 	await test('prefers the newest valid entry and retains it in memory', async () => {
@@ -209,21 +211,15 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 		expect(reader.get(getKey(1))).toBeUndefined();
 		expect(reader.get(getKey(2))).toBeUndefined();
 
-		const originalWriteFile = fs.promises.writeFile;
-		const writes: Promise<void>[] = [];
-		fs.promises.writeFile = ((...arguments_) => {
-			const write = originalWriteFile(...arguments_);
-			writes.push(write);
-			return write;
-		}) as typeof fs.promises.writeFile;
-		try {
-			firstCache.set(getKey(1), { value: 'first' });
-			firstCache.set(getKey(1), { value: 'first' });
-			secondCache.set(getKey(2), { value: 'second' });
-			await Promise.all(writes);
-		} finally {
-			fs.promises.writeFile = originalWriteFile;
-		}
+		const writeFile = spyOn(fs.promises, 'writeFile');
+		using _restoreWriteFile = {
+			[Symbol.dispose]: writeFile.restore,
+		};
+
+		firstCache.set(getKey(1), { value: 'first' });
+		firstCache.set(getKey(1), { value: 'first' });
+		secondCache.set(getKey(2), { value: 'second' });
+		await Promise.all(writeFile.returns);
 		expect(await fixture.readdir('cache')).toHaveLength(2);
 		expect(reader.get(getKey(1))).toStrictEqual({ value: 'first' });
 		expect(reader.get(getKey(2))).toStrictEqual({ value: 'second' });
