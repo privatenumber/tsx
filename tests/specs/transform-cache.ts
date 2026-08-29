@@ -1,7 +1,10 @@
 import fs from 'node:fs';
 import { setImmediate as waitForImmediate } from 'node:timers/promises';
-import { describe, test, expect } from 'manten';
+import {
+	describe, test, expect, onTestFinish,
+} from 'manten';
 import { createFixture } from 'fs-fixture';
+import { spyOn } from 'tinyspy';
 import { FileCache } from '../../src/utils/transform/cache.js';
 
 type CacheValue = {
@@ -18,18 +21,11 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 			fixture.getPath('cache'),
 			fixture.getPath('old-cache'),
 		);
-		const originalReaddirSync = fs.readdirSync;
-		let directoryEnumerations = 0;
-		fs.readdirSync = (() => {
-			directoryEnumerations += 1;
-			return [];
-		}) as typeof fs.readdirSync;
-		try {
-			expect(cache.get(getKey(0))).toBeUndefined();
-			expect(directoryEnumerations).toBe(0);
-		} finally {
-			fs.readdirSync = originalReaddirSync;
-		}
+		const readDirectory = spyOn(fs, 'readdirSync');
+		onTestFinish(readDirectory.restore);
+
+		expect(cache.get(getKey(0))).toBeUndefined();
+		expect(readDirectory.callCount).toBe(0);
 	});
 
 	await test('does not create or maintain directories for read-only misses', async () => {
