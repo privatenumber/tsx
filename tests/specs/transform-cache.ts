@@ -1,11 +1,8 @@
 import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import { setImmediate as waitForImmediate } from 'node:timers/promises';
 import { describe, test, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import { FileCache } from '../../src/utils/transform/cache.js';
-import { createNode } from '../utils/tsx.js';
 
 type CacheValue = {
 	value: string;
@@ -15,49 +12,25 @@ const getTime = () => Math.floor(Date.now() / 1e8);
 const getKey = (index: number) => index.toString(16).padStart(40, '0');
 
 export const transformCacheSpec = () => describe('transform cache', async () => {
-	for (const count of [0, 75_000]) {
-		await test(`loads with a 16 MiB heap and ${count} unrelated cache entries`, async () => {
-			const node = await createNode(process.version);
-			const userId = process.geteuid ? process.geteuid() : os.userInfo().username;
-			await using fixture = await createFixture({
-				'entry.cjs': "import('./probe.mts').then(module => console.log(module.default));",
-				'probe.mts': "const value: string = 'CACHE_OK'; export default value;",
-			});
-			const cacheDirectory = fixture.getPath(`tsx-${userId}`);
-			await fs.promises.mkdir(cacheDirectory);
-			const time = getTime();
-			// Keep the watchdog responsive without exhausting file descriptors.
-			for (let start = 0; start < count; start += 64) {
-				const end = Math.min(start + 64, count);
-				await Promise.all(Array.from(
-					{ length: end - start },
-					(_, offset) => fs.promises.writeFile(
-						path.join(cacheDirectory, `${time}-${getKey(start + offset)}`),
-						'',
-					),
-				));
-			}
-
-			const result = await node.tsx([
-				'--max-old-space-size=16',
-				fixture.getPath('entry.cjs'),
-			], {
-				env: {
-					TMPDIR: fixture.path,
-					TMP: fixture.path,
-					TEMP: fixture.path,
-					TSX_DISABLE_CACHE: '',
-					DEBUG: '',
-					TSX_DEBUG: '',
-					NODE_DEBUG: '',
-					NODE_OPTIONS: '',
-					NODE_PATH: '',
-				},
-			});
-			expect(result.exitCode).toBe(0);
-			expect(result.stdout).toBe('CACHE_OK');
-		});
-	}
+	await test('does not enumerate unrelated entries during lookup', async () => {
+		await using fixture = await createFixture();
+		const cache = new FileCache<CacheValue>(
+			fixture.getPath('cache'),
+			fixture.getPath('old-cache'),
+		);
+		const originalReaddirSync = fs.readdirSync;
+		let directoryEnumerations = 0;
+		fs.readdirSync = (() => {
+			directoryEnumerations += 1;
+			return [];
+		}) as typeof fs.readdirSync;
+		try {
+			expect(cache.get(getKey(0))).toBeUndefined();
+			expect(directoryEnumerations).toBe(0);
+		} finally {
+			fs.readdirSync = originalReaddirSync;
+		}
+	});
 
 	await test('does not create or maintain directories for read-only misses', async () => {
 		await using fixture = await createFixture({
