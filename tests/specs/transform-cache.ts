@@ -212,9 +212,7 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 		expect(reader.get(getKey(2))).toBeUndefined();
 
 		const writeFile = spyOn(fs.promises, 'writeFile');
-		using _restoreWriteFile = {
-			[Symbol.dispose]: writeFile.restore,
-		};
+		onTestFinish(writeFile.restore);
 
 		firstCache.set(getKey(1), { value: 'first' });
 		firstCache.set(getKey(1), { value: 'first' });
