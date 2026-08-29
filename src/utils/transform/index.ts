@@ -54,6 +54,48 @@ const getImportMeta = (
 	url,
 });
 
+const getImportMetaResolve = (
+	url: string,
+) => `(specifier, parentURL = ${JSON.stringify(url)}) => {
+	const {
+		builtinModules,
+		createRequire,
+		_resolveFilename,
+	} = require('node:module');
+	const { fileURLToPath, pathToFileURL } = require('node:url');
+	const { isAbsolute } = require('node:path');
+
+	if (isAbsolute(specifier) && !specifier.startsWith('/')) {
+		return pathToFileURL(specifier).href;
+	}
+
+	if (
+		specifier.startsWith('.')
+		|| specifier.startsWith('/')
+		|| /^[a-zA-Z][a-zA-Z\\d+.-]*:/.test(specifier)
+	) {
+		return new URL(specifier, parentURL).href;
+	}
+
+	const parentRequire = createRequire(parentURL);
+	const resolved = _resolveFilename(
+		specifier,
+		{
+			filename: fileURLToPath(parentURL),
+			paths: parentRequire.resolve.paths(specifier) ?? [],
+		},
+		false,
+		{ conditions: new Set(['node', 'import']) },
+	);
+	return (
+		resolved.startsWith('node:')
+			? resolved
+			: builtinModules.includes(resolved)
+				? 'node:' + resolved
+				: pathToFileURL(resolved).href
+	);
+}`;
+
 type TransformSyncOptions = TransformOptions & {
 	cjsBanner?: string;
 };
@@ -118,8 +160,9 @@ export const transformSync = (
 	) {
 		esbuildOptions.define = {
 			...esbuildOptions.define,
-			'import.meta': JSON.stringify(getImportMeta(filePath, url)),
+			'import.meta': 'module.__tsx_import_meta',
 		};
+		esbuildOptions.banner = `${esbuildOptions.banner ?? ''}module.__tsx_import_meta=${JSON.stringify(getImportMeta(filePath, url))};module.__tsx_import_meta.resolve=${getImportMetaResolve(url)};`;
 	}
 
 	const hash = sha1([

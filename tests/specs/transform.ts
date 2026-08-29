@@ -124,6 +124,7 @@ export const transformSpec = () => describe('transform', () => {
 				`
 				export const meta = import.meta;
 				export const computed = import.meta['url'];
+				export const resolved = import.meta.resolve('./dependency.js');
 				export const destructured = (() => {
 					const { url } = import.meta;
 					return url;
@@ -141,6 +142,7 @@ export const transformSpec = () => describe('transform', () => {
 
 			expect(loaded.meta.url).toMatch(/^file:\/\/\/.*\/file.js$/);
 			expect(loaded.computed).toMatch(/^file:\/\/\/.*\/file.js$/);
+			expect(loaded.resolved).toBe(new URL('dependency.js', loaded.meta.url).href);
 			expect(loaded.destructured).toMatch(/^file:\/\/\/.*\/file.js$/);
 			expect(loaded.urlDescriptor).toStrictEqual({
 				configurable: true,
