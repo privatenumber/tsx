@@ -185,15 +185,10 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 		await using fixture = await createFixture(files);
 		const cache = new FileCache<CacheValue>(fixture.getPath('cache'), fixture.getPath('old-cache'));
 
-		const keepAlive = setInterval(() => {}, 10);
-		try {
-			await cache.expireDiskCache();
-			const remaining = await fixture.readdir('cache');
-			expect(remaining.sort()).toStrictEqual(preserved.sort());
-			expect(cache.get(getKey(0))).toStrictEqual({ value: 'preserved' });
-		} finally {
-			clearInterval(keepAlive);
-		}
+		await cache.expireDiskCache();
+		const remaining = await fixture.readdir('cache');
+		expect(remaining.sort()).toStrictEqual(preserved.sort());
+		expect(cache.get(getKey(0))).toStrictEqual({ value: 'preserved' });
 	});
 
 	await test('shares overlapping sweeps and allows a later sweep', async () => {
@@ -204,21 +199,16 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 		)));
 		const cache = new FileCache<CacheValue>(fixture.getPath('cache'), fixture.getPath('old-cache'));
 
-		const keepAlive = setInterval(() => {}, 10);
-		try {
-			const firstSweep = cache.expireDiskCache();
-			expect(cache.expireDiskCache()).toBe(firstSweep);
-			await firstSweep;
-			expect(await fixture.readdir('cache')).toStrictEqual([]);
+		const firstSweep = cache.expireDiskCache();
+		expect(cache.expireDiskCache()).toBe(firstSweep);
+		await firstSweep;
+		expect(await fixture.readdir('cache')).toStrictEqual([]);
 
-			await fs.promises.writeFile(fixture.getPath(`cache/${time - 8}-${getKey(0)}`), '{}');
-			const laterSweep = cache.expireDiskCache();
-			expect(laterSweep).not.toBe(firstSweep);
-			await laterSweep;
-			expect(await fixture.readdir('cache')).toStrictEqual([]);
-		} finally {
-			clearInterval(keepAlive);
-		}
+		await fs.promises.writeFile(fixture.getPath(`cache/${time - 8}-${getKey(0)}`), '{}');
+		const laterSweep = cache.expireDiskCache();
+		expect(laterSweep).not.toBe(firstSweep);
+		await laterSweep;
+		expect(await fixture.readdir('cache')).toStrictEqual([]);
 	});
 
 	await test('initializes safely when expiration is called directly', async () => {
