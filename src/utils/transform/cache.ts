@@ -7,13 +7,9 @@ import type { Transformed } from './apply-transformers.js';
 
 const noop = () => {};
 const getTime = () => Math.floor(Date.now() / 1e8);
-const cacheFileNamePattern = /^(\d+)-([^-]+)$/;
-
-type DiskCacheEntry = {
-	time: number;
-	key: string;
-	fileName: string;
-};
+const cacheFileNamePattern = /^(\d+)-[^-]+$/;
+const retention = 7;
+const expiryBatchSize = 64;
 
 export class FileCache<ReturnType> extends Map<string, ReturnType> {
 	/**
@@ -31,10 +27,7 @@ export class FileCache<ReturnType> extends Map<string, ReturnType> {
 	// Maintained so we can remove it on Windows
 	oldCacheDirectory: string;
 
-	// Full entry list is retained so duplicate files are also expired.
-	diskCacheIndex: Map<string, DiskCacheEntry> | undefined;
-
-	diskCacheEntries: DiskCacheEntry[] | undefined;
+	private initialized = false;
 
 	constructor(
 		cacheDirectory = tmpdir,
@@ -45,74 +38,19 @@ export class FileCache<ReturnType> extends Map<string, ReturnType> {
 		this.oldCacheDirectory = oldCacheDirectory;
 	}
 
-	getDiskCacheIndex() {
-		if (this.diskCacheIndex) {
-			return this.diskCacheIndex;
+	private initialize() {
+		if (this.initialized) {
+			return;
 		}
 
 		// Handles race condition if multiple tsx instances are running (#22)
 		fs.mkdirSync(this.cacheDirectory, { recursive: true });
-
-		const diskCacheIndex = new Map<string, DiskCacheEntry>();
-		const diskCacheEntries: DiskCacheEntry[] = [];
-		for (const fileName of fs.readdirSync(this.cacheDirectory)) {
-			const match = cacheFileNamePattern.exec(fileName);
-			if (!match) {
-				continue;
-			}
-
-			const time = Number(match[1]);
-			if (!Number.isSafeInteger(time)) {
-				continue;
-			}
-
-			const key = match[2];
-			const entry = {
-				time,
-				key,
-				fileName,
-			};
-			diskCacheEntries.push(entry);
-
-			const duplicate = diskCacheIndex.get(key);
-			if (!duplicate || duplicate.time < time) {
-				diskCacheIndex.set(key, entry);
-			}
-		}
-		this.diskCacheIndex = diskCacheIndex;
-		this.diskCacheEntries = diskCacheEntries;
+		this.initialized = true;
 
 		setImmediate(() => {
 			this.expireDiskCache().catch(noop);
 			this.removeOldCacheDirectory().catch(noop);
-		});
-
-		return diskCacheIndex;
-	}
-
-	private removeDiskCacheEntry(entry: DiskCacheEntry) {
-		const entryIndex = this.diskCacheEntries!.indexOf(entry);
-		if (entryIndex !== -1) {
-			this.diskCacheEntries!.splice(entryIndex, 1);
-		}
-
-		if (this.diskCacheIndex!.get(entry.key) === entry) {
-			let replacement: DiskCacheEntry | undefined;
-			for (const remainingEntry of this.diskCacheEntries!) {
-				if (
-					remainingEntry.key === entry.key
-					&& (!replacement || remainingEntry.time > replacement.time)
-				) {
-					replacement = remainingEntry;
-				}
-			}
-
-			if (replacement) {
-				this.diskCacheIndex!.set(entry.key, replacement);
-			} else {
-				this.diskCacheIndex!.delete(entry.key);
-			}
-		}
+		}).unref();
 	}
 
 	override get(key: string) {
@@ -122,22 +60,18 @@ export class FileCache<ReturnType> extends Map<string, ReturnType> {
 			return memoryCacheHit;
 		}
 
-		const diskCacheIndex = this.getDiskCacheIndex();
-		let diskCacheHit = diskCacheIndex.get(key);
-		while (diskCacheHit) {
-			const cacheFilePath = path.join(this.cacheDirectory, diskCacheHit.fileName);
-			const cachedResult = readJsonFile<ReturnType>(cacheFilePath);
+		// Keep reads independent of cache size; writers own creation and maintenance.
+		const time = getTime();
+		for (let age = 0; age <= retention; age += 1) {
+			const cachedResult = readJsonFile<ReturnType>(
+				path.join(this.cacheDirectory, `${time - age}-${key}`),
+			);
 
 			if (cachedResult) {
-				// Load it into memory
 				super.set(key, cachedResult);
 				return cachedResult;
 			}
-
-			// Ignore broken files immediately so an older valid entry can be used.
-			this.removeDiskCacheEntry(diskCacheHit);
-			fs.promises.unlink(cacheFilePath).catch(noop);
-			diskCacheHit = diskCacheIndex.get(key);
+			// A failed read can race a writer; don't delete it when trying older entries.
 		}
 	}
 
@@ -151,45 +85,42 @@ export class FileCache<ReturnType> extends Map<string, ReturnType> {
 			 */
 			const time = getTime();
 			const fileName = `${time}-${key}`;
-			const diskCacheIndex = this.getDiskCacheIndex();
-			const entry = {
-				time,
-				key,
-				fileName,
-			};
+			this.initialize();
 
 			fs.promises.writeFile(
 				path.join(this.cacheDirectory, fileName),
 				JSON.stringify(value),
-			).then(
-				() => {
-					const previousEntry = diskCacheIndex.get(key);
-					if (previousEntry?.fileName === fileName) {
-						this.removeDiskCacheEntry(previousEntry);
-					}
-					diskCacheIndex.set(key, entry);
-					this.diskCacheEntries!.push(entry);
-				},
-				noop,
-			);
+			).catch(noop);
 		}
 
 		return this;
 	}
 
 	async expireDiskCache() {
-		this.getDiskCacheIndex();
+		this.initialize();
 		const time = getTime();
+		const directory = await fs.promises.opendir(this.cacheDirectory);
 		const deletions: Promise<void>[] = [];
+		let scanned = 0;
 
-		for (const cache of this.diskCacheEntries!) {
-			if ((time - cache.time) > 7) {
-				deletions.push(fs.promises.unlink(
-					path.join(this.cacheDirectory, cache.fileName),
-				).then(
-					() => this.removeDiskCacheEntry(cache),
-					noop,
-				));
+		// The async iterator closes the directory on completion or error.
+		for await (const entry of directory) {
+			const match = cacheFileNamePattern.exec(entry.name);
+			if (match) {
+				const entryTime = Number(match[1]);
+				if (Number.isSafeInteger(entryTime) && time - entryTime > retention) {
+					deletions.push(fs.promises.unlink(
+						path.join(this.cacheDirectory, entry.name),
+					).catch(noop));
+				}
+			}
+
+			// Count all scanned entries, even when no files need deleting.
+			scanned += 1;
+			if (scanned === expiryBatchSize) {
+				await Promise.all(deletions);
+				deletions.length = 0;
+				scanned = 0;
 			}
 		}
 
