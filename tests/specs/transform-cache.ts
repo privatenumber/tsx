@@ -1,11 +1,10 @@
 import fs from 'node:fs';
 import { setImmediate as waitForImmediate } from 'node:timers/promises';
-import {
-	describe, test, expect, onTestFinish,
-} from 'manten';
+import { describe, test, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import { spyOn } from 'tinyspy';
 import { FileCache } from '../../src/utils/transform/cache.js';
+import { disposableSpy } from '../utils/disposable-spy.js';
 
 type CacheValue = {
 	value: string;
@@ -21,8 +20,7 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 			fixture.getPath('cache'),
 			fixture.getPath('old-cache'),
 		);
-		const readDirectory = spyOn(fs, 'readdirSync');
-		onTestFinish(readDirectory.restore);
+		using readDirectory = disposableSpy(spyOn(fs, 'readdirSync'));
 
 		expect(cache.get(getKey(0))).toBeUndefined();
 		expect(readDirectory.callCount).toBe(0);
@@ -126,20 +124,16 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 			[`cache/${time + 1}-${getKey(3)}`]: JSON.stringify({ value: 'next' }),
 		});
 		const cache = new FileCache<CacheValue>(fixture.getPath('cache'), fixture.getPath('old-cache'));
-		const dateNow = spyOn(Date, 'now');
-		try {
-			dateNow.willCall(() => time * 1e8);
-			expect(cache.get(getKey(2))).toStrictEqual({ value: 'boundary' });
-			expect(cache.get(getKey(3))).toBeUndefined();
-			cache.delete(getKey(2));
+		using dateNow = disposableSpy(spyOn(Date, 'now'));
+		dateNow.willCall(() => time * 1e8);
+		expect(cache.get(getKey(2))).toStrictEqual({ value: 'boundary' });
+		expect(cache.get(getKey(3))).toBeUndefined();
+		cache.delete(getKey(2));
 
-			dateNow.willCall(() => (time + 1) * 1e8);
-			expect(cache.get(getKey(1))).toStrictEqual({ value: 'current' });
-			expect(cache.get(getKey(2))).toBeUndefined();
-			expect(cache.get(getKey(3))).toStrictEqual({ value: 'next' });
-		} finally {
-			dateNow.restore();
-		}
+		dateNow.willCall(() => (time + 1) * 1e8);
+		expect(cache.get(getKey(1))).toStrictEqual({ value: 'current' });
+		expect(cache.get(getKey(2))).toBeUndefined();
+		expect(cache.get(getKey(3))).toStrictEqual({ value: 'next' });
 	});
 
 	await test('prefers the newest valid entry and retains it in memory', async () => {
@@ -209,13 +203,12 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 		expect(reader.get(getKey(1))).toBeUndefined();
 		expect(reader.get(getKey(2))).toBeUndefined();
 
-		const writeFile = spyOn(fs.promises, 'writeFile');
-		onTestFinish(writeFile.restore);
+		using writeFileSpy = disposableSpy(spyOn(fs.promises, 'writeFile'));
 
 		firstCache.set(getKey(1), { value: 'first' });
 		firstCache.set(getKey(1), { value: 'first' });
 		secondCache.set(getKey(2), { value: 'second' });
-		await Promise.all(writeFile.returns);
+		await Promise.all(writeFileSpy.returns);
 		expect(await fixture.readdir('cache')).toHaveLength(2);
 		expect(reader.get(getKey(1))).toStrictEqual({ value: 'first' });
 		expect(reader.get(getKey(2))).toStrictEqual({ value: 'second' });
