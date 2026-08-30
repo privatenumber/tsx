@@ -126,22 +126,20 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 			[`cache/${time + 1}-${getKey(3)}`]: JSON.stringify({ value: 'next' }),
 		});
 		const cache = new FileCache<CacheValue>(fixture.getPath('cache'), fixture.getPath('old-cache'));
-		const originalNow = Date.now;
-		using _restoreDateNow = {
-			[Symbol.dispose]: () => {
-				Date.now = originalNow;
-			},
-		};
+		const dateNow = spyOn(Date, 'now');
+		try {
+			dateNow.willCall(() => time * 1e8);
+			expect(cache.get(getKey(2))).toStrictEqual({ value: 'boundary' });
+			expect(cache.get(getKey(3))).toBeUndefined();
+			cache.delete(getKey(2));
 
-		Date.now = () => time * 1e8;
-		expect(cache.get(getKey(2))).toStrictEqual({ value: 'boundary' });
-		expect(cache.get(getKey(3))).toBeUndefined();
-		cache.delete(getKey(2));
-
-		Date.now = () => (time + 1) * 1e8;
-		expect(cache.get(getKey(1))).toStrictEqual({ value: 'current' });
-		expect(cache.get(getKey(2))).toBeUndefined();
-		expect(cache.get(getKey(3))).toStrictEqual({ value: 'next' });
+			dateNow.willCall(() => (time + 1) * 1e8);
+			expect(cache.get(getKey(1))).toStrictEqual({ value: 'current' });
+			expect(cache.get(getKey(2))).toBeUndefined();
+			expect(cache.get(getKey(3))).toStrictEqual({ value: 'next' });
+		} finally {
+			dateNow.restore();
+		}
 	});
 
 	await test('prefers the newest valid entry and retains it in memory', async () => {
