@@ -158,11 +158,12 @@ export const transformSync = (
 		&& !filePath.endsWith('.cts')
 		&& hasImportMeta(code, filePath)
 	) {
+		const importMetaVariable = `__tsx_import_meta_${sha1(url)}`;
 		esbuildOptions.define = {
 			...esbuildOptions.define,
-			'import.meta': 'module.__tsx_import_meta',
+			'import.meta': importMetaVariable,
 		};
-		esbuildOptions.banner = `${esbuildOptions.banner ?? ''}module.__tsx_import_meta=${JSON.stringify(getImportMeta(filePath, url))};module.__tsx_import_meta.resolve=${getImportMetaResolve(url)};`;
+		esbuildOptions.banner = `${esbuildOptions.banner ?? ''}const ${importMetaVariable}=${JSON.stringify(getImportMeta(filePath, url))};${importMetaVariable}.resolve=${getImportMetaResolve(url)};`;
 	}
 
 	const hash = sha1([
