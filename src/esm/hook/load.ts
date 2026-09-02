@@ -18,6 +18,7 @@ import {
 	implicitTsExtensionsPattern,
 } from '../../utils/path-utils.js';
 import { isESM } from '../../utils/es-module-lexer.js';
+import { addDeclaredConstEnums } from '../../utils/dts-const-enum.js';
 import { logEsm as log, debugEnabled } from '../../utils/debug.js';
 import {
 	commonJsExportPreparseSearchParameter,
@@ -429,12 +430,18 @@ export const createLoad = (
 		}
 
 		if (loaded.format === 'module') {
-			const dynamicImportTransformed = transformDynamicImport(filePath, code);
+			const withConstEnums = addDeclaredConstEnums(filePath, code);
+			const source = withConstEnums ?? code;
+
+			const dynamicImportTransformed = transformDynamicImport(filePath, source);
 			if (dynamicImportTransformed) {
 				loaded.source = inlineSourceMap(dynamicImportTransformed);
 				moduleSourceByUrl.set(url, dynamicImportTransformed.code);
 			} else {
-				moduleSourceByUrl.set(url, code);
+				if (withConstEnums) {
+					loaded.source = withConstEnums;
+				}
+				moduleSourceByUrl.set(url, source);
 			}
 		}
 
@@ -580,9 +587,14 @@ export const createLoadSync = (
 		}
 
 		if (loaded.format === 'module') {
-			const dynamicImportTransformed = transformDynamicImport(filePath, code);
+			const withConstEnums = addDeclaredConstEnums(filePath, code);
+			const source = withConstEnums ?? code;
+
+			const dynamicImportTransformed = transformDynamicImport(filePath, source);
 			if (dynamicImportTransformed) {
 				loaded.source = inlineSourceMap(dynamicImportTransformed);
+			} else if (withConstEnums) {
+				loaded.source = withConstEnums;
 			}
 		}
 
