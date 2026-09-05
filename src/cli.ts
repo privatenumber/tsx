@@ -50,7 +50,7 @@ const relaySignals = (
 	 */
 	const waitForSignalFromChild = () => {
 		const p = new Promise<NodeJS.Signals | undefined>((resolve) => {
-			// Aribrary timeout based on flaky tests
+			// Arbitrary timeout based on flaky tests
 			setTimeout(() => resolve(undefined), 30);
 			waitForSignal = resolve;
 		});
@@ -100,7 +100,7 @@ const relaySignals = (
 			const isChildResponsive = await waitForSignalFromChild();
 			if (isChildResponsive !== signal) {
 				// This seems to run before the handler registered at the bottom of this file
-				// Seems the lastest handler is called first
+				// Seems the latest handler is called first
 				childProcess.on('exit', () => {
 					/**
 					 * Even though this may not be a SIGKILL, I've confirmed Ctrl+C on an infinite looping

@@ -137,7 +137,7 @@ export const files = {
 	${preserveName}
 	export const cjsContext = ${cjsContextCheck};
 
-	// Implicit directory import works outside of immedaite CWD child
+	// Implicit directory import works outside of immediate CWD child
 	import '../json/'
 	`,
 
