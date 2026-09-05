@@ -4,7 +4,6 @@ import { describe, test, expect } from 'manten';
 import { createFixture } from 'fs-fixture';
 import { spyOn } from 'tinyspy';
 import { FileCache } from '../../src/utils/transform/cache.js';
-import { disposableSpy } from '../utils/disposable-spy.js';
 
 type CacheValue = {
 	value: string;
@@ -20,7 +19,7 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 			fixture.getPath('cache'),
 			fixture.getPath('old-cache'),
 		);
-		using readDirectory = disposableSpy(spyOn(fs, 'readdirSync'));
+		using readDirectory = spyOn(fs, 'readdirSync');
 
 		expect(cache.get(getKey(0))).toBeUndefined();
 		expect(readDirectory.callCount).toBe(0);
@@ -124,7 +123,7 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 			[`cache/${time + 1}-${getKey(3)}`]: JSON.stringify({ value: 'next' }),
 		});
 		const cache = new FileCache<CacheValue>(fixture.getPath('cache'), fixture.getPath('old-cache'));
-		using dateNow = disposableSpy(spyOn(Date, 'now'));
+		using dateNow = spyOn(Date, 'now');
 		dateNow.willCall(() => time * 1e8);
 		expect(cache.get(getKey(2))).toStrictEqual({ value: 'boundary' });
 		expect(cache.get(getKey(3))).toBeUndefined();
@@ -203,7 +202,7 @@ export const transformCacheSpec = () => describe('transform cache', async () => 
 		expect(reader.get(getKey(1))).toBeUndefined();
 		expect(reader.get(getKey(2))).toBeUndefined();
 
-		using writeFileSpy = disposableSpy(spyOn(fs.promises, 'writeFile'));
+		using writeFileSpy = spyOn(fs.promises, 'writeFile');
 
 		firstCache.set(getKey(1), { value: 'first' });
 		firstCache.set(getKey(1), { value: 'first' });

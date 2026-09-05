@@ -109,7 +109,7 @@
 		"semantic-release": "25.0.6",
 		"skills-npm": "^1.2.0",
 		"strip-ansi": "^7.2.0",
-		"tinyspy": "^4.0.4",
+		"tinyspy": "^4.0.6",
 		"type-fest": "^4.20.1",
 		"type-flag": "^3.0.0",
 		"typescript": "^5.5.2"
