@@ -78,10 +78,31 @@ const bindHiddenSignalsHandler = (
 };
 
 /**
+ * Node's console methods swallow write errors, but only install the listener
+ * that does it when the stream has no 'error' listeners of its own.
+ *
+ * esbuild's synchronous API and module.register() both run in worker threads,
+ * and Node pipes a worker's stdout & stderr into the parent's streams, which
+ * permanently adds an 'error' listener to them. This disables the guard above,
+ * so writing to a closed pipe (e.g. `tsx file.ts | head`) crashes with an
+ * unhandled EPIPE error instead of exiting quietly like Node does.
+ */
+const ignoreEpipe = (stream: NodeJS.WriteStream) => {
+	stream.on('error', (error: NodeJS.ErrnoException) => {
+		if (error.code !== 'EPIPE') {
+			throw error;
+		}
+	});
+};
+
+/**
  * Seems module.register() calls the loader with the same Node arguments
  * which causes this preflight to be loaded in the loader thread
  */
 if (isMainThread) {
+	ignoreEpipe(process.stdout);
+	ignoreEpipe(process.stderr);
+
 	/**
 	 * Hook require() to transform to CJS
 	 *
