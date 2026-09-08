@@ -5,7 +5,7 @@
 	<img width="160" alt="tsx" src=".github/logo-light.svg">
 </picture>
 <br><br>
-<a href="https://npm.im/tsx"><img src="https://badgen.net/npm/v/tsx"></a> <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/dm/tsx"></a>
+<a href="https://npm.im/tsx"><img src="https://badgen.net/npm/v/tsx"></a> <a href="https://npm.im/tsx"><img src="https://badgen.net/npm/dm/tsx"></a> <a href="https://inspect.software/software/privatenumber/tsx"><img src="https://raw.githubusercontent.com/inspect-software/badges/main/v1/p/privatenumber/tsx.svg" alt="inspect.software score badge for privatenumber/tsx" /></a>
 </h1>
 
 <p align="center">
