@@ -57,6 +57,84 @@ const isRequireEsmCandidate = (
 	);
 };
 
+const readParentSource = (
+	filePath: string,
+) => {
+	try {
+		return fs.readFileSync(filePath, 'utf8');
+	} catch {}
+};
+
+const getParentPackageType = (
+	filePath: string,
+) => {
+	try {
+		return getNearestPackageTypeSync(pathToFileURL(filePath).toString());
+	} catch {}
+};
+
+const isCommonJsParent = (
+	filePath: string | undefined,
+) => {
+	if (!filePath) {
+		return false;
+	}
+
+	const extension = path.extname(filePath);
+	if (extension === '.cjs' || extension === '.cts') {
+		return true;
+	}
+
+	if (extension !== '.js' && extension !== '.ts') {
+		return false;
+	}
+
+	const source = readParentSource(filePath);
+	return (
+		source !== undefined
+		&& getParentPackageType(filePath) !== 'module'
+		&& !isESM(source)
+	);
+};
+
+const isEsmParent = (
+	filePath: string | undefined,
+) => {
+	if (!filePath) {
+		return false;
+	}
+
+	const extension = path.extname(filePath);
+	if (extension === '.mjs' || extension === '.mts') {
+		return true;
+	}
+
+	if (extension === '.cjs' || extension === '.cts') {
+		return false;
+	}
+
+	if (extension !== '.js' && extension !== '.ts') {
+		return false;
+	}
+
+	const source = readParentSource(filePath);
+	return (
+		source !== undefined
+		&& (
+			getParentPackageType(filePath) === 'module'
+			|| isESM(source)
+		)
+	);
+};
+
+const isNativeEsmParent = (
+	parentModule: Module | null | undefined,
+) => (
+	isEsmParent(parentModule?.filename)
+	&& parentModule?.filename !== undefined
+	&& Module._cache[parentModule.filename] !== parentModule
+);
+
 const safeSet = <T extends Record<string, unknown>>(
 	object: T,
 	property: keyof T,
@@ -171,6 +249,18 @@ export const createExtensions = (
 			&& !cleanFilePath.endsWith('.cts')
 			&& isESM(code)
 		);
+		if (
+			shouldApplyRequireEsmInterop
+			&& isEsmSyntax
+			&& path.extname(cleanFilePath) === '.mjs'
+			&& isRequireEsmCandidate(cleanFilePath)
+			&& (
+				isCommonJsParent(module.parent?.filename)
+				|| isNativeEsmParent(module.parent)
+			)
+		) {
+			return defaultLoader(module, cleanFilePath);
+		}
 		const tsconfigRaw = (
 			(transformTs || isEsmSyntax)
 			&& tsconfig
