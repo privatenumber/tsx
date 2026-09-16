@@ -17,6 +17,7 @@ import { nodeCapabilitiesSpec } from './specs/node-capabilities';
 import { versionSensitiveTests } from './specs/version-sensitive';
 import { resolutionPriority } from './specs/resolution-priority';
 import { esmHookResolve } from './specs/esm-hook-resolve';
+import { shebangDynamicImport } from './specs/shebang-dynamic-import';
 
 (async () => {
 	// Prevent stuck CI runs
@@ -47,6 +48,7 @@ import { esmHookResolve } from './specs/esm-hook-resolve';
 			await watch(primaryNode);
 			await loaders(primaryNode);
 			await tsconfig(primaryNode);
+			await shebangDynamicImport(primaryNode);
 		});
 
 		// Other Node versions only run version-sensitive tests
