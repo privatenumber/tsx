@@ -14,11 +14,12 @@ if (typeof WebAssembly !== 'undefined') {
 export const parseEsm = (
 	code: string,
 	filename?: string,
-) => (
-	parseWasm
-		? parseWasm(code, filename)
-		: parseJs(code, filename)
-);
+) => {
+	const source = code.startsWith('#!') ? `//${code.slice(2)}` : code;
+	return parseWasm
+		? parseWasm(source, filename)
+		: parseJs(source, filename);
+};
 
 /*
 Previously, this regex was used as a naive ESM catch,
