@@ -11,6 +11,15 @@ const context: ResolveHookContext = {
 	parentURL: undefined,
 };
 
+const createNamespaceContext = (
+	namespace: string,
+	conditions: string[] = ['node', 'import'],
+): ResolveHookContext => ({
+	conditions,
+	importAttributes: {},
+	parentURL: `file:///app/entry.ts?tsx-namespace=${namespace}`,
+});
+
 export const esmHookResolve = () => describe('ESM resolve hook', () => {
 	test('maps Node-provided TypeScript formats without reading package.json', async () => {
 		await using fixture = await createFixture({
@@ -56,6 +65,68 @@ export const esmHookResolve = () => describe('ESM resolve hook', () => {
 		expect(result).toStrictEqual({
 			url,
 			format: 'commonjs',
+		});
+	});
+
+	test('excludes node: builtins and preserves namespace isolation for other URLs', async () => {
+		const namespaceA = 'async-a';
+		const namespaceB = 'async-b';
+		const resolveA = createResolve({
+			...createDefaultData(),
+			namespace: namespaceA,
+		});
+		const resolveB = createResolve({
+			...createDefaultData(),
+			namespace: namespaceB,
+		});
+		const requireContext = createNamespaceContext(
+			namespaceA,
+			['require', 'node', 'node-addons', 'module-sync'],
+		);
+
+		// Node returns a bare builtin with no format in a require context, so the
+		// builtin guard cannot identify it. The node: prefix must.
+		expect(
+			await resolveA('fs', requireContext, () => ({
+				url: 'node:fs',
+				format: undefined,
+			})),
+		).toStrictEqual({
+			url: 'node:fs',
+			format: undefined,
+		});
+
+		const fileUrl = 'file:///app/module.ts';
+		expect(
+			await resolveA(fileUrl, requireContext, () => ({
+				url: fileUrl,
+				format: 'module' as const,
+			})),
+		).toStrictEqual({
+			url: `${fileUrl}?tsx-namespace=${namespaceA}`,
+			format: 'module',
+		});
+
+		// A composed loader can resolve a non-data specifier to a data: URL.
+		// Namespace inheritance must still give each namespace a distinct instance.
+		const dataUrl = 'data:text/javascript,export%20default%201';
+		const [dataA, dataB] = await Promise.all([
+			resolveA('virtual-module', createNamespaceContext(namespaceA), () => ({
+				url: dataUrl,
+				format: 'module' as const,
+			})),
+			resolveB('virtual-module', createNamespaceContext(namespaceB), () => ({
+				url: dataUrl,
+				format: 'module' as const,
+			})),
+		]);
+		expect(dataA).toStrictEqual({
+			url: `${dataUrl}#tsx-namespace=${namespaceA}`,
+			format: 'module',
+		});
+		expect(dataB).toStrictEqual({
+			url: `${dataUrl}#tsx-namespace=${namespaceB}`,
+			format: 'module',
 		});
 	});
 
@@ -129,6 +200,64 @@ export const esmHookResolve = () => describe('ESM resolve hook', () => {
 		expect(result).toStrictEqual({
 			url,
 			format: 'commonjs',
+		});
+	});
+
+	test('excludes node: builtins and preserves namespace isolation in sync hooks', () => {
+		const namespaceA = 'sync-a';
+		const namespaceB = 'sync-b';
+		const resolveA = createResolveSync({
+			...createDefaultData(),
+			namespace: namespaceA,
+		});
+		const resolveB = createResolveSync({
+			...createDefaultData(),
+			namespace: namespaceB,
+		});
+
+		// The global CJS loader routes require contexts to the CJS hook, so the
+		// sync resolve only sees them when that loader is inactive. Namespace
+		// inheritance is context-independent, so an import context exercises it
+		// without mutating the global loader state.
+		expect(
+			resolveA('fs', createNamespaceContext(namespaceA), () => ({
+				url: 'node:fs',
+				format: undefined,
+			})),
+		).toStrictEqual({
+			url: 'node:fs',
+			format: undefined,
+		});
+
+		const fileUrl = 'file:///app/module.ts';
+		expect(
+			resolveA(fileUrl, createNamespaceContext(namespaceA), () => ({
+				url: fileUrl,
+				format: 'module' as const,
+			})),
+		).toStrictEqual({
+			url: `${fileUrl}?tsx-namespace=${namespaceA}`,
+			format: 'module',
+		});
+
+		// A composed loader can resolve a non-data specifier to a data: URL.
+		// Namespace inheritance must still give each namespace a distinct instance.
+		const dataUrl = 'data:text/javascript,export%20default%201';
+		const dataA = resolveA('virtual-module', createNamespaceContext(namespaceA), () => ({
+			url: dataUrl,
+			format: 'module' as const,
+		}));
+		const dataB = resolveB('virtual-module', createNamespaceContext(namespaceB), () => ({
+			url: dataUrl,
+			format: 'module' as const,
+		}));
+		expect(dataA).toStrictEqual({
+			url: `${dataUrl}#tsx-namespace=${namespaceA}`,
+			format: 'module',
+		});
+		expect(dataB).toStrictEqual({
+			url: `${dataUrl}#tsx-namespace=${namespaceB}`,
+			format: 'module',
 		});
 	});
 

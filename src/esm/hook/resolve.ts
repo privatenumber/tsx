@@ -996,7 +996,10 @@ export const createResolve = (
 			resolved: resolution,
 		});
 
-		if (resolution.format === 'builtin') {
+		if (
+			resolution.format === 'builtin'
+			|| resolution.url.startsWith('node:')
+		) {
 			return resolution;
 		}
 
@@ -1173,7 +1176,10 @@ export const createResolveSync = (
 			resolved: resolution,
 		});
 
-		if (resolution.format === 'builtin') {
+		if (
+			resolution.format === 'builtin'
+			|| resolution.url.startsWith('node:')
+		) {
 			return resolution;
 		}
 
