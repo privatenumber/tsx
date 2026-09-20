@@ -12,6 +12,15 @@ Node's CommonJS resolution, cache, extension-handler, and ESM-error behavior.
 
 Node caches CommonJS modules by resolved filename. `_load` checks [`Module._cache[filename]`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/cjs/loader.js#L1250-L1256) before evaluating a module, and modules cached by the ESM loader have dedicated circular-load handling ([`loader.js#L1297-L1308`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/cjs/loader.js#L1297-L1308)).
 
+## `createRequire()` parent identity
+
+`createRequire(filenameOrURL)` builds a synthetic module whose `filename` and `path` drive child resolution ([v24.15.0 `loader.js#L1996-L2049`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/cjs/loader.js#L1996-L2049)). The input form decides where a URL query survives:
+
+- A `file:` URL is converted with `fileURLToPath()`, which drops the URL search from `filename`. Node keeps the full URL in the module's URL key and passes it as `context.parentURL` to synchronous resolve hooks ([`loader.js#L1097-L1104`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/cjs/loader.js#L1097-L1104)), so a native hook still sees the query. The query does not reach `parent.filename`.
+- An absolute path string is used verbatim as `filename`. A query-shaped suffix such as `?namespace=<id>` stays in that string, so a loader that reads `parent.filename` during resolution still sees it.
+
+A loader that reads the query from `parent.filename` rather than from a hook's `parentURL` therefore passes a path suffix rather than a `file:` URL.
+
 ## Extension handlers
 
 Node initializes `Module._extensions` at [`loader.js#L355`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/cjs/loader.js#L355). It selects the longest registered extension ([`findLongestRegisteredExtension`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/cjs/loader.js#L591-L600)) and dispatches to that handler ([`loader.js#L1545-L1553`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/cjs/loader.js#L1545-L1553)).
