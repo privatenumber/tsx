@@ -830,44 +830,33 @@ export const api = (node: NodeApis) => describe('API', () => {
 					].join(String.raw`\n`)));
 				});
 
-				test('requires a CJS dependency from CJS-context .ts under namespace', async () => {
-					// Regression: tsx's CJS resolver appends a
-					// `?namespace=<id>` cache-isolation query to the resolved
-					// file path. The CJS loader runs that path through
-					// pathToFileURL to dispatch via the module customization
-					// hooks, encoding the `?` as `%3F` inside the URL pathname
-					// and re-entering ESM resolve with that URL as the
-					// specifier. Without a guard the encoded segment reached
-					// Node's default resolver and ENOENT'd with
-					// "Cannot find module .../index.cjs?namespace=...".
-					// Reproduces on every supported Node version.
+				test('requires an ESM dependency from a CommonJS-context .ts under tsImport()', async () => {
+					if (!node.supports.requireEsm) {
+						return;
+					}
+
 					await using fixture = await createFixture({
-						'package.json': createPackageJson({ type: 'module' }),
+						'package.json': createPackageJson({ type: 'commonjs' }),
 						'import.mjs': outdent`
 						import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
-						await tsImport('./nested/entry.ts', import.meta.url);
+
+						const configUrl = new URL('./config.ts', import.meta.url).toString();
+						const { value } = await tsImport(configUrl, import.meta.url);
+						console.log('value:', value);
 						`,
-						'nested/package.json': createPackageJson({ name: 'nested' }),
-						'nested/entry.ts': outdent`
-						const { osType } = require('cjs-dep');
-						console.log('type:', typeof osType);
+						'config.ts': outdent`
+						export { value } from './dep.mjs';
 						`,
-						'node_modules/cjs-dep/package.json': createPackageJson({
-							name: 'cjs-dep',
-							main: './index.cjs',
-						}),
-						'node_modules/cjs-dep/index.cjs': outdent`
-						const os = require('node:os');
-						module.exports = { osType: os.type() };
-						`,
+						'dep.mjs': 'export const value = 1;',
 					});
 
-					const { stdout } = await execaNode(fixture.getPath('import.mjs'), [], {
+					const { stdout, stderr } = await execaNode(fixture.getPath('import.mjs'), [], {
 						nodePath: node.path,
 						nodeOptions: [],
 					});
 
-					expect(stdout).toBe('type: string');
+					expect(stderr).toBe('');
+					expect(stdout).toBe('value: 1');
 				});
 
 				test('namespace allows async nested calls without cross contamination', async () => {

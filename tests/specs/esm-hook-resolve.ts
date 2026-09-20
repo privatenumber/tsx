@@ -2,7 +2,7 @@ import type { ResolveHookContext } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { createFixture } from 'fs-fixture';
 import { describe, expect, test } from 'manten';
-import { createDefaultData } from '../../src/esm/hook/initialize.js';
+import { createData, createDefaultData } from '../../src/esm/hook/initialize.js';
 import { createResolve, createResolveSync } from '../../src/esm/hook/resolve.js';
 
 const context: ResolveHookContext = {
@@ -158,5 +158,62 @@ export const esmHookResolve = () => describe('ESM resolve hook', () => {
 			url: `${moduleUrl}?observer=1`,
 			format: 'module',
 		});
+	});
+
+	test('restores a percent-encoded custom CJS bridge namespace', async () => {
+		const namespace = 'a/b';
+		const filePath = '/virtual/dep.mjs';
+		// tsx's CommonJS bridge serializes the namespace into the filename, then
+		// Node's pathToFileURL() encodes the `?` and the existing `%` again.
+		const bridgeUrl = pathToFileURL(
+			`${filePath}?namespace=${encodeURIComponent(namespace)}`,
+		).toString();
+		const nextResult = (specifier: string) => ({
+			url: specifier,
+			format: 'module' as const,
+		});
+		const expected = {
+			url: `${pathToFileURL(filePath)}?tsx-namespace=${encodeURIComponent(namespace)}`,
+			format: 'module',
+		};
+
+		const hookData = createData({
+			namespace,
+			tsconfig: false,
+		});
+		const asyncResult = await createResolve(hookData)(bridgeUrl, context, nextResult);
+		const syncResult = createResolveSync(hookData)(bridgeUrl, context, nextResult);
+
+		expect(asyncResult).toStrictEqual(expected);
+		expect(syncResult).toStrictEqual(expected);
+	});
+
+	test('restores percent-encoded dependency query values from the CJS bridge', async () => {
+		const namespace = 'active';
+		const filePath = '/virtual/dep.mjs';
+		const bridgeUrl = pathToFileURL(
+			`${filePath}?x=a%2Fb&y=a%26b&namespace=${namespace}`,
+		).toString();
+		const nextResult = (specifier: string) => ({
+			url: specifier,
+			format: 'module' as const,
+		});
+		const expected = {
+			url: `${pathToFileURL(filePath)}?x=a%2Fb&y=a%26b&tsx-namespace=${namespace}`,
+			format: 'module',
+		};
+
+		const hookData = createData({
+			namespace,
+			tsconfig: false,
+		});
+		const asyncResult = await createResolve(hookData)(bridgeUrl, context, nextResult);
+		const syncResult = createResolveSync(hookData)(bridgeUrl, context, nextResult);
+
+		expect(asyncResult).toStrictEqual(expected);
+		expect(syncResult).toStrictEqual(expected);
+		// Values must survive as values, not as re-encoded delimiters.
+		expect(new URL(asyncResult.url).searchParams.get('x')).toBe('a/b');
+		expect(new URL(syncResult.url).searchParams.get('y')).toBe('a&b');
 	});
 });
