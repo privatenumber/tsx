@@ -66,7 +66,11 @@ export const moduleRegister: Version[] = [
 // https://github.com/nodejs/node/pull/59929
 // https://github.com/nodejs/node/blob/v24.11.1/lib/internal/modules/esm/load.js#L144-L171
 // https://github.com/nodejs/node/blob/v24.11.1/lib/internal/modules/esm/translators.js#L345-L356
+// Backported to v22.22.3:
+// https://github.com/nodejs/node/blob/v22.22.3/lib/internal/modules/esm/load.js#L148-L175
+// https://github.com/nodejs/node/blob/v22.22.3/lib/internal/modules/esm/translators.js#L331-L362
 export const moduleRegisterHooksCjsReload: Version[] = [
+	[22, 22, 3],
 	[24, 11, 1],
 	[25, 1, 0],
 	[26, 0, 0],

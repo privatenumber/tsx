@@ -26,9 +26,10 @@ import {
 	getQueryWithoutParameters,
 	namespaceQuery,
 	getNamespace,
+	isDataUrl,
 	moduleSourceByUrl,
 } from './utils.js';
-import { data as defaultData, type Data } from './initialize.js';
+import type { Data } from './initialize.js';
 
 const importAttributesProperty = (
 	isFeatureSupported(importAttributes)
@@ -173,9 +174,20 @@ const notifyLoad = (
 	const filePath = url.startsWith(fileUrlPrefix)
 		? getFileLoadContext(url).filePath
 		: undefined;
-	parsedUrl.searchParams.delete('tsx-namespace');
-	parsedUrl.searchParams.delete(commonJsExportPreparseSearchParameter);
-	parsedUrl.searchParams.delete(commonJsVirtualQuerySearchParameter);
+	if (isDataUrl(url)) {
+		if (hookData.namespace) {
+			const namespaceFragment = `${namespaceQuery}${hookData.namespace}`;
+			if (parsedUrl.hash === `#${namespaceFragment}`) {
+				parsedUrl.hash = '';
+			} else if (parsedUrl.hash.endsWith(`&${namespaceFragment}`)) {
+				parsedUrl.hash = parsedUrl.hash.slice(0, -namespaceFragment.length - 1);
+			}
+		}
+	} else {
+		parsedUrl.searchParams.delete('tsx-namespace');
+		parsedUrl.searchParams.delete(commonJsExportPreparseSearchParameter);
+		parsedUrl.searchParams.delete(commonJsVirtualQuerySearchParameter);
+	}
 	if (filePath) {
 		parsedUrl.pathname = new URL(pathToFileURL(filePath)).pathname;
 	}
@@ -202,7 +214,7 @@ const prepareLoad = (
 	}
 
 	const urlNamespace = getNamespace(url);
-	if (hookData.namespace && hookData.namespace !== urlNamespace) {
+	if (hookData.namespace !== urlNamespace) {
 		return false;
 	}
 
@@ -598,5 +610,3 @@ export const createLoadSync = (
 		return result;
 	};
 };
-
-export const load = createLoad(defaultData);

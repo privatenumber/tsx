@@ -27,11 +27,12 @@ If you want to register without affecting the entire runtime environment, you ca
 
 When a namespace is provided, it will return a private `require()` method for you to load files with:
 ```js
+const crypto = require('node:crypto')
 const tsx = require('tsx/cjs/api')
 
 const api = tsx.register({
     // Pass in a unique namespace
-    namespace: Date.now().toString()
+    namespace: crypto.randomUUID()
 })
 
 // Pass in the request and the current file path

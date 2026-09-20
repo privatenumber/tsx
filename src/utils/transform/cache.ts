@@ -7,8 +7,11 @@ import type { Transformed } from './apply-transformers.js';
 
 const noop = () => {};
 const getTime = () => Math.floor(Date.now() / 1e8);
+const cacheFileNamePattern = /^(\d+)-[^-]+$/;
+const retention = 7;
+const expiryBatchSize = 64;
 
-class FileCache<ReturnType> extends Map<string, ReturnType> {
+export class FileCache<ReturnType> extends Map<string, ReturnType> {
 	/**
 	 * By using tmpdir, the expectation is for the OS to clean any files
 	 * that haven't been read for a while.
@@ -19,36 +22,35 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 	 * Note on Windows, temp files are not cleaned up automatically.
 	 * https://superuser.com/a/1599897
 	 */
-	cacheDirectory = tmpdir;
+	cacheDirectory: string;
 
 	// Maintained so we can remove it on Windows
-	oldCacheDirectory = path.join(os.tmpdir(), 'tsx');
+	oldCacheDirectory: string;
 
-	cacheFiles: {
-		time: number;
-		key: string;
-		fileName: string;
-	}[];
+	private initialized = false;
 
-	constructor() {
+	constructor(
+		cacheDirectory = tmpdir,
+		oldCacheDirectory = path.join(os.tmpdir(), 'tsx'),
+	) {
 		super();
+		this.cacheDirectory = cacheDirectory;
+		this.oldCacheDirectory = oldCacheDirectory;
+	}
+
+	private initialize() {
+		if (this.initialized) {
+			return;
+		}
 
 		// Handles race condition if multiple tsx instances are running (#22)
 		fs.mkdirSync(this.cacheDirectory, { recursive: true });
-
-		this.cacheFiles = fs.readdirSync(this.cacheDirectory).map((fileName) => {
-			const [time, key] = fileName.split('-');
-			return {
-				time: Number(time),
-				key,
-				fileName,
-			};
-		});
+		this.initialized = true;
 
 		setImmediate(() => {
-			this.expireDiskCache();
-			this.removeOldCacheDirectory();
-		});
+			this.expireDiskCache().catch(noop);
+			this.removeOldCacheDirectory().catch(noop);
+		}).unref();
 	}
 
 	override get(key: string) {
@@ -58,31 +60,19 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 			return memoryCacheHit;
 		}
 
-		const diskCacheHit = this.cacheFiles.find(cache => cache.key === key);
-		if (!diskCacheHit) {
-			return;
-		}
-
-		const cacheFilePath = path.join(this.cacheDirectory, diskCacheHit.fileName);
-		const cachedResult = readJsonFile<ReturnType>(cacheFilePath);
-
-		if (!cachedResult) {
-			// Remove broken cache file
-			fs.promises.unlink(cacheFilePath).then(
-				() => {
-					const index = this.cacheFiles.indexOf(diskCacheHit);
-					this.cacheFiles.splice(index, 1);
-				},
-
-				() => {},
+		// Keep reads independent of cache size; writers own creation and maintenance.
+		const time = getTime();
+		for (let age = 0; age <= retention; age += 1) {
+			const cachedResult = readJsonFile<ReturnType>(
+				path.join(this.cacheDirectory, `${time - age}-${key}`),
 			);
-			return;
+
+			if (cachedResult) {
+				super.set(key, cachedResult);
+				return cachedResult;
+			}
+			// A failed read can race a writer; don't delete it when trying older entries.
 		}
-
-		// Load it into memory
-		super.set(key, cachedResult);
-
-		return cachedResult;
 	}
 
 	override set(key: string, value: ReturnType) {
@@ -94,9 +84,11 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 			 * and because this level of fidelity wont matter
 			 */
 			const time = getTime();
+			const fileName = `${time}-${key}`;
+			this.initialize();
 
 			fs.promises.writeFile(
-				path.join(this.cacheDirectory, `${time}-${key}`),
+				path.join(this.cacheDirectory, fileName),
 				JSON.stringify(value),
 			).catch(noop);
 		}
@@ -104,15 +96,35 @@ class FileCache<ReturnType> extends Map<string, ReturnType> {
 		return this;
 	}
 
-	expireDiskCache() {
+	async expireDiskCache() {
+		this.initialize();
 		const time = getTime();
+		const directory = await fs.promises.opendir(this.cacheDirectory);
+		const deletions: Promise<void>[] = [];
+		let scanned = 0;
 
-		for (const cache of this.cacheFiles) {
-			// Remove if older than ~7 days
-			if ((time - cache.time) > 7) {
-				fs.promises.unlink(path.join(this.cacheDirectory, cache.fileName)).catch(noop);
+		// The async iterator closes the directory on completion or error.
+		for await (const entry of directory) {
+			const match = cacheFileNamePattern.exec(entry.name);
+			if (match) {
+				const entryTime = Number(match[1]);
+				if (Number.isSafeInteger(entryTime) && time - entryTime > retention) {
+					deletions.push(fs.promises.unlink(
+						path.join(this.cacheDirectory, entry.name),
+					).catch(noop));
+				}
+			}
+
+			// Count all scanned entries, even when no files need deleting.
+			scanned += 1;
+			if (scanned === expiryBatchSize) {
+				await Promise.all(deletions);
+				deletions.length = 0;
+				scanned = 0;
 			}
 		}
+
+		await Promise.all(deletions);
 	}
 
 	async removeOldCacheDirectory() {

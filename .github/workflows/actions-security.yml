@@ -1,0 +1,73 @@
+name: GitHub Actions Security
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+  push:
+    branches: [master]
+    paths:
+      - ".github/workflows/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Validates workflow syntax, expressions, job relationships, and embedded shell.
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install actionlint
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="1.7.12"
+          archive="actionlint_${version}_linux_amd64.tar.gz"
+          expected_sha256="8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
+          install_directory="${RUNNER_TEMP}/actionlint"
+          mkdir -p "$install_directory"
+
+          gh release download "v${version}" \
+            --repo rhysd/actionlint \
+            --pattern "$archive" \
+            --dir "$install_directory"
+
+          cd "$install_directory"
+          printf '%s  %s\n' "$expected_sha256" "$archive" | sha256sum --check
+          tar -xzf "$archive" actionlint
+          echo "$install_directory" >> "$GITHUB_PATH"
+
+      - name: Check workflows
+        run: actionlint -color
+
+  # Audits Actions security, including unsafe inputs, permissions, and action pinning.
+  zizmor:
+    name: zizmor
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Check workflows
+        uses: zizmorcore/zizmor-action@5f14fd08f7cf1cb1609c1e344975f152c7ee938d # v0.5.6
+        with:
+          version: v1.25.2
+          inputs: .github/workflows
+          min-confidence: high
+          min-severity: medium
+          advanced-security: "false"
+          annotations: "true"

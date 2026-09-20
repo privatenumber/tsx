@@ -8,11 +8,15 @@ import { watch } from './specs/watch';
 import { loaders } from './specs/loaders';
 import { repl } from './specs/repl';
 import { processInteractSpec } from './specs/process-interact';
+import { ptyShellSpec } from './specs/pty-shell';
 import { tsconfig } from './specs/tsconfig';
 import { transformSpec } from './specs/transform';
+import { transformCacheSpec } from './specs/transform-cache';
 import { commonJsModeContracts } from './specs/commonjs-mode-contracts';
 import { nodeCapabilitiesSpec } from './specs/node-capabilities';
 import { versionSensitiveTests } from './specs/version-sensitive';
+import { resolutionPriority } from './specs/resolution-priority';
+import { esmHookResolve } from './specs/esm-hook-resolve';
 
 (async () => {
 	// Prevent stuck CI runs
@@ -21,8 +25,11 @@ import { versionSensitiveTests } from './specs/version-sensitive';
 	await describe('tsx', async () => {
 		await repl();
 		await processInteractSpec();
+		await ptyShellSpec();
+		await transformCacheSpec();
 		await transformSpec();
 		await nodeCapabilitiesSpec();
+		await esmHookResolve();
 
 		const [primaryNodeVersion, ...compatNodeVersions] = nodeVersions;
 		const primaryNode = await createNode(primaryNodeVersion);
@@ -34,6 +41,7 @@ import { versionSensitiveTests } from './specs/version-sensitive';
 			await versionSensitiveTests(primaryNode);
 			await commonJsModeContracts(primaryNode);
 			await smoke(primaryNode);
+			await resolutionPriority(primaryNode);
 			await api(primaryNode);
 			await cli(primaryNode);
 			await watch(primaryNode);

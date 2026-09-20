@@ -1,5 +1,6 @@
 import { setTimeout } from 'node:timers/promises';
 import { on, once } from 'node:events';
+import { pathToFileURL } from 'node:url';
 import {
 	describe, test, onFinish, onTestFail, expect,
 } from 'manten';
@@ -206,6 +207,34 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 		});
 	});
 
+	test('doesn\'t load esbuild without --eval or --print', async () => {
+		await using fixture = await createFixture({
+			'block-esbuild.mjs': `
+				export const resolve = (specifier, context, nextResolve) => {
+					if (specifier === 'esbuild') {
+						throw new Error('Unexpected esbuild load');
+					}
+
+					return nextResolve(specifier, context);
+				};
+				`,
+			'index.js': 'console.log("loaded")',
+		});
+
+		const tsxProcess = await tsx(['index.js'], {
+			cwd: fixture.path,
+			nodeOptions: [
+				'--no-warnings',
+				'--experimental-loader',
+				pathToFileURL(fixture.getPath('block-esbuild.mjs')).toString(),
+			],
+		});
+
+		expect(tsxProcess.exitCode).toBe(0);
+		expect(tsxProcess.stdout).toBe('loaded');
+		expect(tsxProcess.stderr).toBe('');
+	});
+
 	if (
 		node.supports.cliTestFlag
 
@@ -243,6 +272,48 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 				expect(tsxProcess.stdout).toMatch('# pass 1\n');
 			}
 			expect(tsxProcess.exitCode).toBe(0);
+		}, 10_000);
+
+		test('maps test locations', async () => {
+			await using fixture = await createFixture({
+				'test.ts': `import assert from 'node:assert/strict'
+import { test } from 'node:test'
+
+test('source-mapped location', () => {
+    assert.ok(false)
+})
+`,
+			});
+
+			const tsxProcess = await tsx([
+				'--test',
+				'test.ts',
+			], fixture.path);
+
+			expect(tsxProcess.exitCode).toBe(1);
+			expect(tsxProcess.all!).toContain('test at test.ts:4:1');
+			expect(tsxProcess.all!).toContain('assert.ok(false)');
+		}, 10_000);
+
+		test('respects disabled test source maps', async () => {
+			await using fixture = await createFixture({
+				'test.ts': `import assert from 'node:assert/strict'
+import { test } from 'node:test'
+
+test('source-mapped location', () => {
+    assert.ok(false)
+})
+`,
+			});
+
+			const tsxProcess = await tsx([
+				'--test',
+				'--no-enable-source-maps',
+				'test.ts',
+			], fixture.path);
+
+			expect(tsxProcess.exitCode).toBe(1);
+			expect(tsxProcess.all!).not.toContain('test at test.ts:4:1');
 		}, 10_000);
 	}
 
@@ -287,6 +358,38 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 			'hidden-signals-handler.js': `
 			console.log('process.listeners().length = ' + process.listeners('SIGINT').length);
 			console.log('process.listenerCount() = ' + process.listenerCount('SIGINT'));
+			`,
+			'graceful-shutdown-once.js': `
+			process.once('SIGINT', async () => {
+				console.log('cleanup: started');
+				await new Promise(resolve => setTimeout(resolve, 100));
+				console.log('cleanup: finished');
+				process.exit(42);
+			});
+			setTimeout(() => {}, 1e5);
+			console.log('READY');
+			`,
+			'hidden-signals-listener-count.js': `
+			const { EventEmitter } = require('node:events');
+			const handler = () => {};
+			const referenceEmitter = new EventEmitter();
+			referenceEmitter.on('SIGINT', handler);
+			process.on('SIGINT', handler);
+			const assertListenerCounts = () => {
+				if (process.rawListeners('SIGINT').length < 2) {
+					setImmediate(assertListenerCounts);
+					return;
+				}
+				console.log('aggregate = ' + process.listenerCount('SIGINT'));
+				console.log('specific = ' + process.listenerCount('SIGINT', handler));
+				console.log(
+					'invalid matches = '
+					+ (process.listenerCount('SIGINT', 'invalid') === referenceEmitter.listenerCount('SIGINT', 'invalid')),
+				);
+				process.removeAllListeners('SIGINT');
+				console.log('after removal = ' + process.listenerCount('SIGINT'));
+			};
+			assertListenerCounts();
 			`,
 		});
 		onFinish(async () => await fixture.rm());
@@ -410,6 +513,61 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 			retry: 3,
 		});
 
+		await test('Async process.once handler completes graceful shutdown', async () => {
+			const tsxProcess = tsx([
+				fixture.getPath('graceful-shutdown-once.js'),
+			]);
+
+			let stdout = '';
+			let tsxProcessResolved: Awaited<typeof tsxProcess> | undefined;
+
+			onTestFail(() => {
+				console.log({
+					tsxProcessResolved,
+					stdout,
+				});
+			});
+
+			// Accumulate stdout; send a single SIGINT once READY is seen.
+			// On Windows this terminates the process unconditionally (no POSIX
+			// signal), so cleanup doesn't run there.
+			tsxProcess.stdout!.setEncoding('utf8');
+			let sentSignal = false;
+			try {
+				for await (const [chunk] of on(tsxProcess.stdout!, 'data', {
+					close: ['end', 'close'],
+					signal: AbortSignal.timeout(10_000),
+				})) {
+					stdout += chunk;
+					if (!sentSignal && stdout.includes('READY')) {
+						sentSignal = true;
+						tsxProcess.kill('SIGINT', {
+							forceKillAfterTimeout: false,
+						});
+					}
+				}
+			} catch (error) {
+				if (!isAbortError(error)) {
+					throw error;
+				}
+			}
+
+			tsxProcessResolved = await tsxProcess;
+
+			if (isWindows) {
+				expect(stdout.trim()).toBe('READY');
+			} else {
+				expect(tsxProcessResolved.exitCode).toBe(42);
+				expectMatchInOrder(stdout, [
+					'cleanup: started',
+					'cleanup: finished',
+				]);
+			}
+		}, {
+			timeout: 10_000,
+			retry: 3,
+		});
+
 		await test('Relay signal handlers are properly hidden', async () => {
 			const tsxProcess = tsx([
 				fixture.getPath('hidden-signals-handler.js'),
@@ -418,6 +576,17 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 			const result = await tsxProcess;
 
 			expect(result.stdout).toBe('process.listeners().length = 0\nprocess.listenerCount() = 0');
+			expect(result.exitCode).toBe(0);
+		});
+
+		await test('Relay signal handler does not affect listenerCount overload', async () => {
+			const tsxProcess = tsx([
+				fixture.getPath('hidden-signals-listener-count.js'),
+			]);
+
+			const result = await tsxProcess;
+
+			expect(result.stdout).toBe('aggregate = 1\nspecific = 1\ninvalid matches = true\nafter removal = 0');
 			expect(result.exitCode).toBe(0);
 		});
 
@@ -476,10 +645,7 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 					'SIGINT PRESS AGAIN\r\n',
 					/EXIT_CODE:\s+200/,
 				]);
-			}, {
-				timeout: 10_000,
-				retry: 3,
-			});
+			}, 10_000);
 
 			await test('Infinite loop', async () => {
 				await using shell = ptyShell();

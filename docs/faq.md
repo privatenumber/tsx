@@ -14,6 +14,14 @@ Instead, consider these questions:
 
 If your question specifically relates to _tsx_, you can use the search feature in the documentation or [ask a question](#ask-a-question).
 
+## Why is my default import an object?
+
+When an ES module imports a CommonJS package, [Node.js provides the package's complete `module.exports` value as the default import](https://nodejs.org/api/esm.html#interoperability-with-commonjs). This works for conventional CommonJS packages, including packages that export a function directly.
+
+Some legacy packages compile `export default` to `exports.default` instead of assigning the value to `module.exports`. In an ES module, that leaves the callable value at `packageDefault.default`. The `esModuleInterop` TypeScript option does not change imports that run as native ES modules.
+
+Prefer a documented named export when the package provides one. Otherwise, report the package's export mismatch to its maintainer. Package authors should publish explicit [`exports`](https://nodejs.org/api/packages.html#exports) entries for CommonJS and ESM consumers, with matching type declarations.
+
 
 ## I found a bug in _tsx_. What should I do?
 
@@ -198,7 +206,7 @@ _tsx_ is recognized by both [Node.js](https://nodejs.org/en/learn/getting-starte
 
 To find more examples of where & how _tsx_ is used, [search on GitHub](https://github.com/search?q=path%3Apackage.json+%22%5C%22tsx%5C%22%3A+%5C%22%22&type=code).
 
-## How does _tsx_ compare to [`ts-node`](https://github.com/TypeStrong/ts-node)?
+## How does _tsx_ compare with [`ts-node`](https://github.com/TypeStrong/ts-node)?
 
 `tsx` and `ts-node` are both tools for running TypeScript in Node.js, each offering different approaches to suit user preferences.
 

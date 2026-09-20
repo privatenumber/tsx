@@ -8,6 +8,7 @@ import {
 	type TransformFailure,
 } from 'esbuild';
 import { sha1 } from '../sha1.js';
+import { parseEsm } from '../es-module-lexer.js';
 import { importMetaPathProperties, isFeatureSupported } from '../node-features.js';
 import {
 	version as transformDynamicImportVersion,
@@ -57,6 +58,22 @@ type TransformSyncOptions = TransformOptions & {
 	cjsBanner?: string;
 };
 
+const hasImportMeta = (
+	code: string,
+	filePath: string,
+) => {
+	if (!code.includes('import')) {
+		return false;
+	}
+
+	try {
+		return parseEsm(code, filePath)[0].some(imported => imported.d === -2);
+	} catch {
+		// Let esbuild report the source syntax error.
+		return true;
+	}
+};
+
 // Used by cjs-loader
 export const transformSync = (
 	code: string,
@@ -94,10 +111,10 @@ export const transformSync = (
 	};
 
 	if (
-		code.includes('import.meta')
-		&& esbuildOptions.format === 'cjs'
+		esbuildOptions.format === 'cjs'
 		&& !filePath.endsWith('.cjs')
 		&& !filePath.endsWith('.cts')
+		&& hasImportMeta(code, filePath)
 	) {
 		esbuildOptions.define = {
 			...esbuildOptions.define,

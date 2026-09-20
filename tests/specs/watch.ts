@@ -3,11 +3,17 @@ import {
 	describe, test, onFinish, onTestFinish, onTestFail, expect, skip,
 } from 'manten';
 import { createFixture } from 'fs-fixture';
-import type { NodeApis } from '../utils/tsx.js';
+import { tsxPath, type NodeApis } from '../utils/tsx.js';
+import { ptyShell, isWindows } from '../utils/pty-shell/index.js';
 import { processInteract } from '../utils/process-interact.js';
 import { createPackageJson } from '../fixtures.js';
 
-export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
+const clearScreenSequence = '\u001Bc';
+const quoteShellArgument = (
+	argument: string,
+) => `'${argument.replaceAll("'", String.raw`'"'"'`)}'`;
+
+export const watch = ({ tsx, path: nodePath }: NodeApis) => describe('watch', async () => {
 	const fixture = await createFixture({
 		// Unnecessary TS to test syntax
 		'log-argv.ts': 'console.log(JSON.stringify(process.argv) as string)',
@@ -63,7 +69,203 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 		expect(all!.startsWith('hello world\n')).toBe(true);
 	}, 10_000);
 
-	await test('suppresses warnings & clear screen', async () => {
+	await test('watches literal paths containing glob characters', async () => {
+		await using fixtureLiteral = await createFixture({
+			'{env}/index.ts': `
+				import value from './[dependency].ts';
+				console.log(value);
+			`,
+			'{env}/[dependency].ts': 'export default "original"',
+		});
+		const tsxProcess = tsx(
+			['watch', '--clear-screen=false', './{env}/index.ts'],
+			fixtureLiteral.path,
+		);
+		await processInteract(
+			tsxProcess.stdout!,
+			[
+				async ({ output }) => {
+					if (output.includes('original')) {
+						await setTimeout(1000);
+						await fixtureLiteral.writeFile(
+							'{env}/[dependency].ts',
+							'export default "updated"',
+						);
+						return true;
+					}
+				},
+				({ output }) => output.includes('updated'),
+			],
+			9000,
+		);
+
+		tsxProcess.kill();
+		const result = await tsxProcess;
+		expect(result.stderr).toBe('');
+	}, 10_000);
+
+	await test('starts with a bang-prefixed literal entry', async () => {
+		await using fixtureBang = await createFixture({
+			'!entry.ts': 'console.log("bang entry")',
+		});
+		const tsxProcess = tsx(
+			['watch', '--clear-screen=false', './!entry.ts'],
+			fixtureBang.path,
+		);
+		await processInteract(
+			tsxProcess.stdout!,
+			[({ output }) => output.includes('bang entry')],
+			5000,
+		);
+
+		tsxProcess.kill();
+		const result = await tsxProcess;
+		expect(result.stderr).toBe('');
+	}, 10_000);
+
+	await test('starts with only negated include patterns', async () => {
+		await using fixtureNegated = await createFixture({
+			'index.ts': 'console.log("negated include")',
+		});
+		const tsxProcess = tsx(
+			[
+				'watch',
+				'--clear-screen=false',
+				'--include=!ignored/**',
+				'index.ts',
+			],
+			fixtureNegated.path,
+		);
+		await processInteract(
+			tsxProcess.stdout!,
+			[({ output }) => output.includes('negated include')],
+			5000,
+		);
+
+		tsxProcess.kill();
+		const result = await tsxProcess;
+		expect(result.stderr).toBe('');
+	}, 10_000);
+
+	await test('runtime dependencies override exact include negations', async () => {
+		await using fixtureDependency = await createFixture({
+			'index.ts': `
+				import value from './dependency.ts';
+				console.log(value);
+			`,
+			'dependency.ts': 'export default "original"',
+		});
+		const tsxProcess = tsx(
+			[
+				'watch',
+				'--clear-screen=false',
+				'--include=!dependency.ts',
+				'index.ts',
+			],
+			fixtureDependency.path,
+		);
+		await processInteract(
+			tsxProcess.stdout!,
+			[
+				async ({ output }) => {
+					if (output.includes('original')) {
+						await setTimeout(1000);
+						await fixtureDependency.writeFile(
+							'dependency.ts',
+							'export default "updated"',
+						);
+						return true;
+					}
+				},
+				({ output }) => output.includes('updated'),
+			],
+			9000,
+		);
+
+		tsxProcess.kill();
+		const result = await tsxProcess;
+		expect(result.stderr).toBe('');
+	}, 10_000);
+
+	await test('deduplicates overlapping literal and include events', async () => {
+		await using fixtureOverlap = await createFixture({
+			'source/index.ts': 'console.log("RUN: original")',
+		});
+		const tsxProcess = tsx(
+			[
+				'watch',
+				'--clear-screen=false',
+				'--include=source/**/*.ts',
+				'source/index.ts',
+			],
+			fixtureOverlap.path,
+		);
+		await processInteract(
+			tsxProcess.stdout!,
+			[
+				async ({ output }) => {
+					if (output.includes('RUN: original')) {
+						await setTimeout(1000);
+						await fixtureOverlap.writeFile(
+							'source/index.ts',
+							'console.log("RUN: updated")',
+						);
+						return true;
+					}
+				},
+				async ({ output }) => {
+					if (output.includes('RUN: updated')) {
+						await setTimeout(300);
+						return true;
+					}
+				},
+			],
+			9000,
+		);
+
+		tsxProcess.kill();
+		const result = await tsxProcess;
+		expect(result.all!.match(/RUN:/g)?.length).toBe(2);
+		expect(result.all!.match(/Rerunning|Restarting/g)?.length).toBe(1);
+	}, 10_000);
+
+	await test('observes include changes made during the initial run', async () => {
+		await using fixtureStartup = await createFixture({
+			'index.js': `
+				const fs = require('node:fs');
+				const state = fs.readFileSync('state.txt', 'utf8');
+				console.log(state);
+				if (state === 'initial') {
+					fs.writeFileSync('state.txt', 'updated');
+				}
+			`,
+			'state.txt': 'initial',
+		});
+		const tsxProcess = tsx(
+			[
+				'watch',
+				'--clear-screen=false',
+				'--include=!state.txt',
+				`--include=${fixtureStartup.getPath('state.txt')}`,
+				'index.js',
+			],
+			fixtureStartup.path,
+		);
+		await processInteract(
+			tsxProcess.stdout!,
+			[
+				({ output }) => output.includes('initial'),
+				({ output }) => output.includes('updated'),
+			],
+			9000,
+		);
+
+		tsxProcess.kill();
+		const result = await tsxProcess;
+		expect(result.stderr).toBe('');
+	}, 10_000);
+
+	await test('suppresses warnings & skips clear screen when stdout is piped', async () => {
 		const tsxProcess = tsx(
 			[
 				'watch',
@@ -89,9 +291,42 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 
 		const { all } = await tsxProcess;
 		expect(all).not.toMatch('Warning');
-		expect(all).toMatch('\u001Bc');
+		expect(all).not.toMatch(clearScreenSequence);
 		expect(all!.startsWith('["')).toBeTruthy();
 	}, 10_000);
+
+	await test('clears screen on rerun when stdout is a TTY', async () => {
+		if (isWindows) {
+			// ConPTY re-renders terminal output, so the raw clear sequence
+			// cannot be asserted reliably on Windows
+			skip('ConPTY transforms escape sequences');
+		}
+
+		await using shell = ptyShell();
+		await shell.waitForPrompt();
+		shell.type([
+			nodePath,
+			tsxPath,
+			'watch',
+			fixture.getPath('log-argv.ts'),
+		].map(quoteShellArgument).join(' '));
+		await shell.waitForLine(/\["/);
+		shell.press('\r');
+
+		// Raw output is needed because waitForLine strips ANSI sequences
+		const pollTimeout = Date.now() + 5000;
+		while (!shell.getOutput().includes(clearScreenSequence)) {
+			if (Date.now() > pollTimeout) {
+				break;
+			}
+			await setTimeout(50);
+		}
+
+		onTestFail(() => {
+			console.log({ output: shell.getOutput() });
+		});
+		expect(shell.getOutput()).toMatch(clearScreenSequence);
+	}, 15_000);
 
 	await test('passes flags', async () => {
 		const tsxProcess = tsx(
@@ -165,6 +400,42 @@ export const watch = ({ tsx }: NodeApis) => describe('watch', async () => {
 		const { all } = await tsxProcess;
 		expect(all).toMatch(/start[\s\S]+end/);
 	}, 10_000);
+
+	await describe('Ctrl + C', async () => {
+		const CtrlC = '\u0003';
+
+		await test('exits with 130 when script already exited (issue #734)', async () => {
+			await using fixtureExited = await createFixture({
+				'index.js': 'console.log("READY")',
+			});
+
+			await using shell = ptyShell();
+
+			onTestFail(() => {
+				console.log({ stdout: shell.getOutput() });
+			});
+
+			await shell.waitForPrompt();
+			// PowerShell needs the call operator to run a quoted command
+			shell.type(`${isWindows ? '& ' : ''}"${nodePath}" "${tsxPath}" watch "${fixtureExited.getPath('index.js')}"`);
+
+			await shell.waitForLine(/READY/);
+
+			// Wait for the child process to exit so the watcher is idle
+			await setTimeout(1000);
+			shell.press(CtrlC);
+
+			await shell.waitForPrompt();
+			shell.type(`echo EXIT_CODE: ${isWindows ? '$LastExitCode' : '$?'}`);
+
+			await shell.waitForPrompt();
+
+			expect(await shell.close()).toMatch(/EXIT_CODE:\s+130/);
+		}, {
+			timeout: 15_000,
+			retry: 3,
+		});
+	});
 
 	await describe('help', () => {
 		test('shows help', async () => {

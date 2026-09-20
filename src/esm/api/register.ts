@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import module from 'node:module';
 import { MessageChannel, type MessagePort } from 'node:worker_threads';
 import type { Message } from '../types.js';
@@ -157,7 +158,7 @@ export const register: Register = (
 	const { port1, port2 } = new MessageChannel();
 	module.register(
 		// Load new copy of loader so it can be registered multiple times
-		`./esm/index.mjs?${Date.now()}`,
+		`./esm/index.mjs?${crypto.randomUUID()}`,
 		{
 			parentURL: import.meta.url,
 			data: {

@@ -256,4 +256,138 @@ export const tsconfig = ({ tsx }: NodeApis) => describe('tsconfig', () => {
 			});
 		});
 	}
+
+	describe('allowJs dependency resolution', () => {
+		// https://github.com/privatenumber/tsx/issues/640
+		test('does not rewrite a missing bare CommonJS dependency', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'commonjs' }),
+				'tsconfig.json': createTsconfig({
+					compilerOptions: { allowJs: true },
+				}),
+				'entry.cts': 'require("dependency");',
+				node_modules: {
+					dependency: {
+						'package.json': createPackageJson({
+							name: 'dependency',
+							main: './index.js',
+						}),
+						'index.js': 'module.exports = require("target");',
+					},
+					'target.js': {
+						'package.json': createPackageJson({
+							name: 'target.js',
+							main: './index.js',
+						}),
+						'index.js': 'console.log("resolved target.js");',
+					},
+				},
+			});
+
+			const process = await tsx(['entry.cts'], fixture.path);
+
+			expect(process.exitCode).toBe(1);
+			expect(process.stderr).toMatch("Cannot find module 'target'");
+		});
+
+		test('does not rewrite a suffixed bare CommonJS dependency', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'commonjs' }),
+				'tsconfig.json': createTsconfig({
+					compilerOptions: { allowJs: true },
+				}),
+				'entry.cts': 'require("dependency");',
+				node_modules: {
+					dependency: {
+						'package.json': createPackageJson({
+							name: 'dependency',
+							main: './index.js',
+						}),
+						'index.js': 'module.exports = require("target.js");',
+					},
+					'target.ts': {
+						'package.json': createPackageJson({
+							name: 'target.ts',
+							main: './index.js',
+						}),
+						'index.js': 'console.log("resolved target.ts");',
+					},
+				},
+			});
+
+			const process = await tsx(['entry.cts'], fixture.path);
+
+			expect(process.exitCode).toBe(1);
+			expect(process.stderr).toMatch("Cannot find module 'target.js'");
+		});
+
+		test('preserves a CommonJS dependency JSON asset', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'commonjs' }),
+				'tsconfig.json': createTsconfig({
+					compilerOptions: { allowJs: true },
+				}),
+				'entry.cts': 'console.log(require("dependency").value);',
+				node_modules: {
+					dependency: {
+						'package.json': createPackageJson({
+							name: 'dependency',
+							main: './index.js',
+						}),
+						'index.js': 'module.exports = require("./metadata.min.json");',
+						'metadata.min.json': JSON.stringify({ value: 'from-json' }),
+						'metadata.min.json.js': 'module.exports = { value: "from-json-wrapper" };',
+					},
+				},
+			});
+
+			const process = await tsx(['entry.cts'], fixture.path);
+
+			expect(process.exitCode).toBe(0);
+			expect(process.stderr).toBe('');
+			expect(process.stdout).toBe('from-json');
+		});
+
+		test('preserves local explicit JSON assets with allowJs', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'commonjs' }),
+				'tsconfig.json': createTsconfig({
+					compilerOptions: { allowJs: true },
+				}),
+				'entry.js': 'console.log(require("./metadata.min.json").value);',
+				'metadata.min.json': JSON.stringify({ value: 'from-json' }),
+				'metadata.min.json.js': 'module.exports = { value: "from-json-wrapper" };',
+			});
+
+			const process = await tsx(['entry.js'], fixture.path);
+
+			expect(process.exitCode).toBe(0);
+			expect(process.stderr).toBe('');
+			expect(process.stdout).toBe('from-json');
+		});
+
+		test('does not append an extension to a missing local bare package', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'commonjs' }),
+				'tsconfig.json': createTsconfig({
+					compilerOptions: { allowJs: true },
+				}),
+				'entry.js': 'require("target");',
+				node_modules: {
+					'target.js': {
+						'package.json': createPackageJson({
+							name: 'target.js',
+							main: './index.js',
+						}),
+						'index.js': 'console.log("resolved target.js");',
+					},
+				},
+			});
+
+			const process = await tsx(['entry.js'], fixture.path);
+
+			expect(process.exitCode).toBe(1);
+			expect(process.stderr).toMatch("Cannot find module 'target'");
+		});
+	});
 });

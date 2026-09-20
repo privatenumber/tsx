@@ -1,0 +1,5 @@
+# Module resolution
+
+Bun 1.3.14 checks the exact path, appends the request-kind extension order, then applies `.js`/`.jsx`/`.mjs` TypeScript substitution ([file loader](https://github.com/oven-sh/bun/blob/0d9b296af33f2b851fcbf4df3e9ec89751734ba4/src/resolver/resolver.zig#L3830-L3894)). Local ESM imports use `.tsx`, `.jsx`, `.mts`, `.ts`, `.mjs`, `.js`, `.cts`, `.cjs`, `.json`; local CommonJS requests use `.tsx`, `.ts`, `.jsx`, `.cts`, `.cjs`, `.js`, `.mjs`, `.mts`, `.json` ([orders](https://github.com/oven-sh/bun/blob/0d9b296af33f2b851fcbf4df3e9ec89751734ba4/src/bundler/options.zig#L1907-L1940)).
+
+Dependencies use separate JavaScript-first ESM/CommonJS orders ([dependency orders](https://github.com/oven-sh/bun/blob/0d9b296af33f2b851fcbf4df3e9ec89751734ba4/src/bundler/options.zig#L1946-L1969)). An existing explicit JSON asset wins, but a missing `asset.json` receives appended candidates such as `asset.json.ts` before `asset.json.js`; `.json` is not substituted to `asset.ts` ([file loader](https://github.com/oven-sh/bun/blob/0d9b296af33f2b851fcbf4df3e9ec89751734ba4/src/resolver/resolver.zig#L3830-L3894)).

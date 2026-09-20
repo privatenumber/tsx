@@ -1,5 +1,6 @@
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { existsSync } from 'node:fs';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import type {
 	ResolveHook,
 	ResolveHookContext,
@@ -8,7 +9,7 @@ import type {
 import type { PackageJson } from 'type-fest';
 import { resolvePathAlias } from 'get-tsconfig';
 import { readJsonFile } from '../../utils/read-json-file.js';
-import { mapTsExtensions } from '../../utils/map-ts-extensions.js';
+import { getExtensionResolution } from '../../utils/extension-resolution.js';
 import type { NodeError } from '../../types.js';
 import {
 	fileUrlPrefix,
@@ -17,22 +18,26 @@ import {
 	isDirectoryPattern,
 	isRelativePath,
 	isFilePath,
+	isDependencyPath,
 } from '../../utils/path-utils.js';
 import type { TsxRequest } from '../types.js';
 import { isGlobalCjsLoaderActive } from '../../utils/cjs-loader-state.js';
 import { esmLoadReadFile, isFeatureSupported } from '../../utils/node-features.js';
 import { logEsm as log, debugEnabled } from '../../utils/debug.js';
+import { getPackageSubpathDirectoryInfo } from './package-subpath.js';
 import {
 	getFormatFromFileUrl,
 	getFormatFromFileUrlSync,
 	namespaceQuery,
 	commonJsExportPreparseQuery,
+	commonJsExportPreparseSearchParameter,
 	commonJsVirtualQuerySearchParameter,
 	getQueryWithoutParameters,
 	getNamespace,
+	isDataUrl,
 	parentImportsCommonJsExports,
 } from './utils.js';
-import { data as defaultData, type Data } from './initialize.js';
+import type { Data } from './initialize.js';
 
 type NextResolve = Parameters<ResolveHook>[2];
 type NextResolveSync = Parameters<ResolveHookSync>[2];
@@ -96,13 +101,162 @@ const isModuleNotFound = (
 	|| code === 'MODULE_NOT_FOUND'
 );
 
+const isDirectoryEntryMiss = (
+	error: unknown,
+) => (
+	error instanceof Error
+	&& (
+		isModuleNotFound((error as NodeError).code)
+		|| (error as NodeError).code === 'ERR_UNSUPPORTED_DIR_IMPORT'
+	)
+);
+
+// Node ESM requires explicit file extensions. tsx retries a missing emitted
+// JavaScript path as source TypeScript only after Node rejects the exact path.
+// https://github.com/nodejs/node/blob/v18.20.8/doc/api/esm.md#L165-L170
+
+const isCommonJsRequireContext = (
+	context: ResolveHookContext,
+) => (
+	context.conditions.includes('require')
+	&& !context.conditions.includes('import')
+);
+
+const getUrlMetadataIndex = (
+	url: string,
+) => {
+	const queryIndex = url.indexOf('?');
+	const fragmentIndex = url.indexOf('#');
+	if (queryIndex === -1) {
+		return fragmentIndex;
+	}
+	if (fragmentIndex === -1) {
+		return queryIndex;
+	}
+	return Math.min(queryIndex, fragmentIndex);
+};
+
+const getSpecifierMetadataIndex = (
+	specifier: string,
+	isCommonJsRequire: boolean,
+) => {
+	if (isCommonJsRequire) {
+		return specifier.indexOf('?');
+	}
+
+	if (
+		!isFilePath(specifier)
+		&& !urlLikeSpecifierPattern.test(specifier)
+	) {
+		return specifier.indexOf('?');
+	}
+
+	return getUrlMetadataIndex(specifier);
+};
+
+const getParentFilePath = (
+	parentURL: string | undefined,
+) => {
+	if (!parentURL?.startsWith(fileUrlPrefix)) {
+		return;
+	}
+
+	return fileURLToPath(new URL(parentURL));
+};
+
+const isTypeScriptParent = (
+	parentURL: string | undefined,
+) => {
+	if (!parentURL) {
+		return false;
+	}
+
+	const parentPath = getParentFilePath(parentURL);
+	if (parentPath) {
+		return tsExtensionsPattern.test(parentPath);
+	}
+
+	const metadataIndex = getUrlMetadataIndex(parentURL);
+	return tsExtensionsPattern.test(
+		metadataIndex === -1
+			? parentURL
+			: parentURL.slice(0, metadataIndex),
+	);
+};
+
+const isParentDependency = (
+	parentURL: string | undefined,
+) => {
+	const parentPath = getParentFilePath(parentURL);
+	return parentPath !== undefined && isDependencyPath(parentPath);
+};
+
+const isImplicitJavaScriptDependency = (
+	fileUrl: string,
+) => (
+	path.extname(new URL(fileUrl).pathname) === '.js'
+	&& isDependencyPath(fileURLToPath(fileUrl))
+);
+
+const resolvesTsExtensions = (
+	parentURL: string | undefined,
+	allowJs: boolean,
+) => (
+	isTypeScriptParent(parentURL)
+
+	// allowJs makes local JavaScript source eligible for TypeScript resolution.
+	// Dependencies preserve published JavaScript and Node's normal resolution.
+	// https://github.com/microsoft/TypeScript-Website/blob/4b665c09b2f57873e6ac0dc9d6d549a5cc61cf9a/packages/tsconfig-reference/copy/en/options/allowJs.md#L3-L39
+	|| (allowJs && !isParentDependency(parentURL))
+);
+
+/**
+ * Maps a candidate specifier to a file path if it can be statted directly.
+ * Returns undefined when existence can't be cheaply determined
+ * (e.g. bare specifiers), in which case the candidate must be probed
+ * via nextResolve()
+ */
+const getProbeFilePath = (
+	candidate: string,
+	parentURL: string | undefined,
+) => {
+	const metadataIndex = getUrlMetadataIndex(candidate);
+	const pathname = metadataIndex === -1 ? candidate : candidate.slice(0, metadataIndex);
+	try {
+		if (pathname.startsWith(fileUrlPrefix)) {
+			return fileURLToPath(pathname);
+		}
+		if (path.isAbsolute(pathname)) {
+			return pathname;
+		}
+		if (isRelativePath(pathname) && parentURL?.startsWith(fileUrlPrefix)) {
+			return fileURLToPath(new URL(pathname, parentURL));
+		}
+	} catch {}
+};
+
+/**
+ * Failed resolutions are expensive: Node constructs an ERR_MODULE_NOT_FOUND
+ * and decorates it with a CommonJS resolution hint, which re-enters the
+ * (tsx-patched) CJS resolver (https://github.com/privatenumber/tsx/issues/809)
+ *
+ * Skip candidates that can be cheaply confirmed to not exist
+ */
+const candidateDoesntExist = (
+	candidate: string,
+	parentURL: string | undefined,
+) => {
+	const filePath = getProbeFilePath(candidate, parentURL);
+	return filePath !== undefined && !existsSync(filePath);
+};
+
 const resolveExtensions = async (
 	url: string,
 	context: ResolveHookContext,
 	nextResolve: NextResolve,
 	throwError?: boolean,
 ) => {
-	const tryPaths = mapTsExtensions(url);
+	const tryPaths = getExtensionResolution(url);
 	log(3, 'resolveExtensions', {
 		url,
 		context,
@@ -115,6 +269,10 @@ const resolveExtensions = async (
 
 	let caughtError: unknown;
 	for (const tsPath of tryPaths) {
+		if (candidateDoesntExist(tsPath, context.parentURL)) {
+			continue;
+		}
+
 		try {
 			return await nextResolve(tsPath, context);
 		} catch (error) {
@@ -131,6 +289,10 @@ const resolveExtensions = async (
 	}
 
 	if (throwError) {
+		if (caughtError === undefined) {
+			// All candidates were skipped; resolve one to produce a real error
+			return nextResolve(tryPaths[0]!, context);
+		}
 		throw caughtError;
 	}
 };
@@ -141,7 +303,7 @@ const resolveExtensionsSync = (
 	nextResolve: NextResolveSync,
 	throwError?: boolean,
 ) => {
-	const tryPaths = mapTsExtensions(url);
+	const tryPaths = getExtensionResolution(url);
 	log(3, 'resolveExtensionsSync', {
 		url,
 		context,
@@ -154,6 +316,10 @@ const resolveExtensionsSync = (
 
 	let caughtError: unknown;
 	for (const tsPath of tryPaths) {
+		if (candidateDoesntExist(tsPath, context.parentURL)) {
+			continue;
+		}
+
 		try {
 			return nextResolve(tsPath, context);
 		} catch (error) {
@@ -170,6 +336,10 @@ const resolveExtensionsSync = (
 	}
 
 	if (throwError) {
+		if (caughtError === undefined) {
+			// All candidates were skipped; resolve one to produce a real error
+			return nextResolve(tryPaths[0]!, context);
+		}
 		throw caughtError;
 	}
 };
@@ -181,33 +351,34 @@ const resolveBase = async (
 	hookData: Data,
 ) => {
 	const allowJs = hookData.parsedTsconfig?.config.compilerOptions?.allowJs ?? false;
+	const resolveTsExtensions = resolvesTsExtensions(context.parentURL, allowJs);
 
 	log(3, 'resolveBase', {
 		specifier,
 		context,
 		specifierStartsWithFileUrl: specifier.startsWith(fileUrlPrefix),
 		isRelativePath: isRelativePath(specifier),
-		tsExtensionsPattern: tsExtensionsPattern.test(context.parentURL!),
+		resolveTsExtensions,
 		allowJs,
 	});
 
 	/**
-	 * Only prioritize TypeScript extensions for file paths (no dependencies)
-	 * TS aliases are pre-resolved so they're file paths
-	 *
-	 * If `allowJs` is set in `tsconfig.json`, then we'll apply the same resolution logic
-	 * to files without a TypeScript extension.
+	 * TypeScript source and local allowJs JavaScript resolve source candidates first.
+	 * Runtime dependencies first delegate their requested path to Node.
 	 */
 	if (
 		(
 			specifier.startsWith(fileUrlPrefix)
 			|| isRelativePath(specifier)
-		) && (
-			tsExtensionsPattern.test(context.parentURL!)
-			|| allowJs
 		)
+		&& resolveTsExtensions
 	) {
-		const resolved = await resolveExtensions(specifier, context, nextResolve);
+		const resolved = await resolveExtensions(
+			specifier,
+			context,
+			nextResolve,
+			undefined,
+		);
 		log(3, 'resolveBase resolved', {
 			specifier,
 			context,
@@ -232,7 +403,12 @@ const resolveBase = async (
 				// Resolving .js -> .ts in exports/imports map
 				const errorPath = getMissingPathFromNotFound(nodeError);
 				if (errorPath) {
-					const resolved = await resolveExtensions(errorPath, context, nextResolve);
+					const resolved = await resolveExtensions(
+						errorPath,
+						context,
+						nextResolve,
+						undefined,
+					);
 					if (resolved) {
 						return resolved;
 					}
@@ -251,13 +427,14 @@ const resolveBaseSync = (
 	hookData: Data,
 ) => {
 	const allowJs = hookData.parsedTsconfig?.config.compilerOptions?.allowJs ?? false;
+	const resolveTsExtensions = resolvesTsExtensions(context.parentURL, allowJs);
 
 	log(3, 'resolveBaseSync', {
 		specifier,
 		context,
 		specifierStartsWithFileUrl: specifier.startsWith(fileUrlPrefix),
 		isRelativePath: isRelativePath(specifier),
-		tsExtensionsPattern: tsExtensionsPattern.test(context.parentURL!),
+		resolveTsExtensions,
 		allowJs,
 	});
 
@@ -265,12 +442,15 @@ const resolveBaseSync = (
 		(
 			specifier.startsWith(fileUrlPrefix)
 			|| isRelativePath(specifier)
-		) && (
-			tsExtensionsPattern.test(context.parentURL!)
-			|| allowJs
 		)
+		&& resolveTsExtensions
 	) {
-		const resolved = resolveExtensionsSync(specifier, context, nextResolve);
+		const resolved = resolveExtensionsSync(
+			specifier,
+			context,
+			nextResolve,
+			undefined,
+		);
 		log(3, 'resolveBaseSync resolved', {
 			specifier,
 			context,
@@ -295,7 +475,12 @@ const resolveBaseSync = (
 				// Resolving .js -> .ts in exports/imports map
 				const errorPath = getMissingPathFromNotFound(nodeError);
 				if (errorPath) {
-					const resolved = resolveExtensionsSync(errorPath, context, nextResolve);
+					const resolved = resolveExtensionsSync(
+						errorPath,
+						context,
+						nextResolve,
+						undefined,
+					);
 					if (resolved) {
 						return resolved;
 					}
@@ -349,19 +534,49 @@ const resolveDirectory = async (
 			if (nodeError.code === 'ERR_UNSUPPORTED_DIR_IMPORT') {
 				const errorPath = getMissingPathFromNotFound(nodeError);
 				if (errorPath) {
-					try {
-						return (await resolveExtensions(
-							`${errorPath}/index`,
-							context,
-							nextResolve,
-							true,
-						))!;
-					} catch (_error) {
-						const __error = _error as Error;
-						const { message } = __error;
-						__error.message = __error.message.replace(`${'/index'.replace('/', path.sep)}'`, "'");
-						__error.stack = __error.stack!.replace(message, __error.message);
-						throw __error;
+					if (specifier.startsWith('#')) {
+						throw error;
+					}
+
+					const packageSubpath = getPackageSubpathDirectoryInfo(specifier, errorPath);
+					if (packageSubpath?.kind === 'root-exports') {
+						throw error;
+					}
+
+					if (packageSubpath?.mainUrl) {
+						try {
+							// Preserve Node's exact package main before tsx's extension fallback.
+							return await nextResolve(packageSubpath.mainUrl, context);
+						} catch (mainError) {
+							if (!isDirectoryEntryMiss(mainError)) {
+								throw mainError;
+							}
+						}
+
+						try {
+							return await resolveDirectory(
+								packageSubpath.mainUrl,
+								context,
+								nextResolve,
+								hookData,
+							);
+						} catch (mainError) {
+							if (!isDirectoryEntryMiss(mainError)) {
+								throw mainError;
+							}
+
+							// The legacy package fallback tries the directory index when "main" misses.
+						}
+					}
+
+					const indexUrl = `${errorPath}/index`;
+					const indexResolved = await resolveExtensions(
+						indexUrl,
+						context,
+						nextResolve,
+					);
+					if (indexResolved) {
+						return indexResolved;
 					}
 				}
 			}
@@ -387,17 +602,43 @@ const resolveDirectorySync = (
 	}
 
 	if (isDirectoryPattern.test(specifier)) {
+		// On Node's sync hooks, a CommonJS require() inside a dependency reaches
+		// this hook. A bare specifier with a trailing slash (e.g. `process/`) is a
+		// package, not a relative directory, so defer to resolveBaseSync, which
+		// lets Node resolve the package while retrying TypeScript extensions.
+		// https://github.com/privatenumber/tsx/issues/800
+		const isCjsRequire = isCommonJsRequireContext(context);
+		if (isCjsRequire && !isFilePath(specifier)) {
+			return resolveBaseSync(specifier, context, nextResolve, hookData);
+		}
+
 		const urlParsed = new URL(specifier, context.parentURL);
 
 		// If directory, can be index.js, index.ts, etc.
 		urlParsed.pathname = path.join(urlParsed.pathname, 'index');
 
-		return resolveExtensionsSync(
-			urlParsed.toString(),
+		if (!isCjsRequire) {
+			return resolveExtensionsSync(
+				urlParsed.toString(),
+				context,
+				nextResolve,
+				true,
+			)!;
+		}
+
+		// Node's CommonJS resolver rejects file:// URLs, so resolve the implicit
+		// index from a filesystem path. Fall back to Node's directory resolution
+		// (package.json "main") via resolveBaseSync when no index file exists.
+		//
+		// This prefers the index over "main", matching tsx's CommonJS loader
+		// (which prioritizes index.ts). Native Node resolves "main" first.
+		const indexResolved = resolveExtensionsSync(
+			fileURLToPath(urlParsed),
 			context,
 			nextResolve,
-			true,
-		)!;
+			false,
+		);
+		return indexResolved ?? resolveBaseSync(specifier, context, nextResolve, hookData);
 	}
 
 	try {
@@ -413,19 +654,49 @@ const resolveDirectorySync = (
 			if (nodeError.code === 'ERR_UNSUPPORTED_DIR_IMPORT') {
 				const errorPath = getMissingPathFromNotFound(nodeError);
 				if (errorPath) {
-					try {
-						return resolveExtensionsSync(
-							`${errorPath}/index`,
-							context,
-							nextResolve,
-							true,
-						)!;
-					} catch (_error) {
-						const __error = _error as Error;
-						const { message } = __error;
-						__error.message = __error.message.replace(`${'/index'.replace('/', path.sep)}'`, "'");
-						__error.stack = __error.stack!.replace(message, __error.message);
-						throw __error;
+					if (specifier.startsWith('#')) {
+						throw error;
+					}
+
+					const packageSubpath = getPackageSubpathDirectoryInfo(specifier, errorPath);
+					if (packageSubpath?.kind === 'root-exports') {
+						throw error;
+					}
+
+					if (packageSubpath?.mainUrl) {
+						try {
+							// Preserve Node's exact package main before tsx's extension fallback.
+							return nextResolve(packageSubpath.mainUrl, context);
+						} catch (mainError) {
+							if (!isDirectoryEntryMiss(mainError)) {
+								throw mainError;
+							}
+						}
+
+						try {
+							return resolveDirectorySync(
+								packageSubpath.mainUrl,
+								context,
+								nextResolve,
+								hookData,
+							);
+						} catch (mainError) {
+							if (!isDirectoryEntryMiss(mainError)) {
+								throw mainError;
+							}
+
+							// The legacy package fallback tries the directory index when "main" misses.
+						}
+					}
+
+					const indexUrl = `${errorPath}/index`;
+					const indexResolved = resolveExtensionsSync(
+						indexUrl,
+						context,
+						nextResolve,
+					);
+					if (indexResolved) {
+						return indexResolved;
 					}
 				}
 			}
@@ -448,14 +719,14 @@ const resolveTsPaths = async (
 
 		tsconfigPathAliasSpecifier,
 		tsconfig: hookData.parsedTsconfig,
-		fromNodeModules: context.parentURL?.includes('/node_modules/'),
+		fromNodeModules: isParentDependency(context.parentURL),
 	});
 	if (
 		// Bare specifier or TS path alias (e.g. `ns:foo`)
 		tsconfigPathAliasSpecifier
 		// TS path alias
 		&& hookData.parsedTsconfig
-		&& !context.parentURL?.includes('/node_modules/')
+		&& !isParentDependency(context.parentURL)
 	) {
 		const possiblePaths = resolvePathAlias(hookData.parsedTsconfig, specifier);
 		log(3, 'resolveTsPaths', {
@@ -489,14 +760,14 @@ const resolveTsPathsSync = (
 
 		tsconfigPathAliasSpecifier,
 		tsconfig: hookData.parsedTsconfig,
-		fromNodeModules: context.parentURL?.includes('/node_modules/'),
+		fromNodeModules: isParentDependency(context.parentURL),
 	});
 	if (
 		// Bare specifier or TS path alias (e.g. `ns:foo`)
 		tsconfigPathAliasSpecifier
 		// TS path alias
 		&& hookData.parsedTsconfig
-		&& !context.parentURL?.includes('/node_modules/')
+		&& !isParentDependency(context.parentURL)
 	) {
 		const possiblePaths = resolvePathAlias(hookData.parsedTsconfig, specifier);
 		log(3, 'resolveTsPathsSync', {
@@ -519,17 +790,42 @@ const resolveTsPathsSync = (
 
 const tsxProtocol = 'tsx://';
 
-const isCommonJsRequireContext = (
-	context: ResolveHookContext,
-) => (
-	context.conditions.includes('require')
-	&& !context.conditions.includes('import')
-);
-
 const addQuery = (
 	url: string,
 	query: string,
-) => `${url}${url.includes('?') ? '&' : '?'}${query}`;
+) => {
+	const fragmentIndex = url.indexOf('#');
+	const urlWithoutFragment = fragmentIndex === -1 ? url : url.slice(0, fragmentIndex);
+	const fragment = fragmentIndex === -1 ? '' : url.slice(fragmentIndex);
+	return `${urlWithoutFragment}${urlWithoutFragment.includes('?') ? '&' : '?'}${query}${fragment}`;
+};
+
+const addNamespace = (
+	url: string,
+	namespace: string,
+) => {
+	if (!isDataUrl(url)) {
+		return addQuery(url, `${namespaceQuery}${namespace}`);
+	}
+
+	return `${url}${url.includes('#') ? '&' : '#'}${namespaceQuery}${namespace}`;
+};
+
+const mergeUrlMetadata = (
+	url: string,
+	metadata: string,
+) => {
+	const metadataFragmentIndex = metadata.indexOf('#');
+	const query = metadata[0] === '?'
+		? metadata.slice(1, metadataFragmentIndex === -1 ? undefined : metadataFragmentIndex)
+		: '';
+	const requestFragment = metadataFragmentIndex === -1 ? '' : metadata.slice(metadataFragmentIndex);
+	const urlFragmentIndex = url.indexOf('#');
+	const urlWithoutFragment = urlFragmentIndex === -1 ? url : url.slice(0, urlFragmentIndex);
+	const urlFragment = urlFragmentIndex === -1 ? '' : url.slice(urlFragmentIndex);
+	const urlWithQuery = query ? addQuery(urlWithoutFragment, query) : urlWithoutFragment;
+	return new URL(`${urlWithQuery}${requestFragment || urlFragment}`).toString();
+};
 
 // When tsx's CJS resolver (preserve-query.ts) returns a path with a
 // `?namespace=<id>` cache-isolation query appended, the CJS loader feeds
@@ -612,10 +908,10 @@ export const createResolve = (
 			context.parentURL = cleanedParentURL;
 		}
 
-		let requestNamespace = getNamespace(specifier) ?? (
-			// Inherit namespace from parent
-			context.parentURL && getNamespace(context.parentURL)
-		);
+		const parentNamespace = context.parentURL && getNamespace(context.parentURL);
+		let requestNamespace = isDataUrl(specifier)
+			? parentNamespace
+			: getNamespace(specifier) ?? parentNamespace;
 
 		if (hookData.namespace) {
 			let tsImportRequest: TsxRequest | undefined;
@@ -641,9 +937,25 @@ export const createResolve = (
 			}
 		}
 
-		const [cleanSpecifier, query] = specifier.split('?');
+		if (isDataUrl(specifier)) {
+			const resolved = await nextResolve(specifier, context);
+			if (!hookData.namespace) {
+				return resolved;
+			}
+			return {
+				...resolved,
+				url: addNamespace(resolved.url, hookData.namespace),
+			};
+		}
 
-		const resolved = await resolveTsPaths(
+		const metadataIndex = getSpecifierMetadataIndex(
+			specifier,
+			isCommonJsRequireContext(context),
+		);
+		const cleanSpecifier = metadataIndex === -1 ? specifier : specifier.slice(0, metadataIndex);
+		const urlMetadata = metadataIndex === -1 ? '' : specifier.slice(metadataIndex);
+
+		const resolution = await resolveTsPaths(
 			cleanSpecifier,
 			context,
 			nextResolve,
@@ -651,32 +963,40 @@ export const createResolve = (
 		);
 
 		log(2, 'nextResolve', {
-			resolved,
+			resolved: resolution,
 		});
 
-		if (resolved.format === 'builtin') {
-			return resolved;
+		if (resolution.format === 'builtin') {
+			return resolution;
 		}
 
-		// For TypeScript extensions that Node can't detect the format of
-		if (
-			(
+		// A composed loader may reuse this result for a later request.
+		const resolved = { ...resolution };
+
+		// Filter out data: (sourcemaps)
+		if (resolved.url.startsWith(fileUrlPrefix)) {
+			// Node already determined the module type to compute these formats.
+			if (resolved.format === 'module-typescript') {
+				resolved.format = 'module';
+			} else if (resolved.format === 'commonjs-typescript') {
+				resolved.format = 'commonjs';
+			} else if (
 				!resolved.format
-				|| resolved.format === 'commonjs-typescript'
-				|| resolved.format === 'module-typescript'
-			)
-			// Filter out data: (sourcemaps)
-			&& resolved.url.startsWith(fileUrlPrefix)
-		) {
-			resolved.format = await getFormatFromFileUrl(resolved.url);
-			log(2, 'getFormatFromFileUrl', {
-				resolved,
-				format: resolved.format,
-			});
+				&& !isImplicitJavaScriptDependency(resolved.url)
+			) {
+				// Node detects ESM syntax for typeless dependency JavaScript during load.
+				// https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/esm/get_format.js#L181-L191
+				// Older Node versions and typeless .ts can return no format.
+				resolved.format = await getFormatFromFileUrl(resolved.url);
+				log(2, 'getFormatFromFileUrl', {
+					resolved,
+					format: resolved.format,
+				});
+			}
 		}
 
-		if (query) {
-			resolved.url += `?${query}`;
+		if (urlMetadata) {
+			resolved.url = mergeUrlMetadata(resolved.url, urlMetadata);
 		}
 
 		// Node 18's CJS ESM translator ignores loader-provided source and
@@ -690,7 +1010,7 @@ export const createResolve = (
 			&& resolved.format === 'commonjs'
 			&& implicitTsExtensionsPattern.test(resolved.url)
 			&& (
-				context.parentURL.includes(commonJsExportPreparseQuery)
+				new URL(context.parentURL).searchParams.has(commonJsExportPreparseSearchParameter)
 				|| parentImportsCommonJsExports(context.parentURL, specifier, supportsEsmLoadReadFile)
 			)
 		);
@@ -698,9 +1018,9 @@ export const createResolve = (
 		// Inherit namespace
 		if (
 			requestNamespace
-			&& !resolved.url.includes(namespaceQuery)
+			&& getNamespace(resolved.url) === undefined
 		) {
-			resolved.url = addQuery(resolved.url, `${namespaceQuery}${requestNamespace}`);
+			resolved.url = addNamespace(resolved.url, requestNamespace);
 		}
 
 		if (shouldLoadForCommonJsExportPreparse) {
@@ -763,10 +1083,10 @@ export const createResolveSync = (
 			context.parentURL = cleanedParentURL;
 		}
 
-		let requestNamespace = getNamespace(specifier) ?? (
-			// Inherit namespace from parent
-			context.parentURL && getNamespace(context.parentURL)
-		);
+		const parentNamespace = context.parentURL && getNamespace(context.parentURL);
+		let requestNamespace = isDataUrl(specifier)
+			? parentNamespace
+			: getNamespace(specifier) ?? parentNamespace;
 
 		if (hookData.namespace) {
 			let tsImportRequest: TsxRequest | undefined;
@@ -792,9 +1112,25 @@ export const createResolveSync = (
 			}
 		}
 
-		const [cleanSpecifier, query] = specifier.split('?');
+		if (isDataUrl(specifier)) {
+			const resolved = nextResolve(specifier, context);
+			if (!hookData.namespace) {
+				return resolved;
+			}
+			return {
+				...resolved,
+				url: addNamespace(resolved.url, hookData.namespace),
+			};
+		}
 
-		const resolved = resolveTsPathsSync(
+		const metadataIndex = getSpecifierMetadataIndex(
+			specifier,
+			isCommonJsRequireContext(context),
+		);
+		const cleanSpecifier = metadataIndex === -1 ? specifier : specifier.slice(0, metadataIndex);
+		const urlMetadata = metadataIndex === -1 ? '' : specifier.slice(metadataIndex);
+
+		const resolution = resolveTsPathsSync(
 			cleanSpecifier,
 			context,
 			nextResolve,
@@ -802,40 +1138,48 @@ export const createResolveSync = (
 		);
 
 		log(2, 'nextResolve', {
-			resolved,
+			resolved: resolution,
 		});
 
-		if (resolved.format === 'builtin') {
-			return resolved;
+		if (resolution.format === 'builtin') {
+			return resolution;
 		}
 
-		// For TypeScript extensions that Node can't detect the format of
-		if (
-			(
+		// A composed loader may reuse this result for a later request.
+		const resolved = { ...resolution };
+
+		// Filter out data: (sourcemaps)
+		if (resolved.url.startsWith(fileUrlPrefix)) {
+			// Node already determined the module type to compute these formats.
+			if (resolved.format === 'module-typescript') {
+				resolved.format = 'module';
+			} else if (resolved.format === 'commonjs-typescript') {
+				resolved.format = 'commonjs';
+			} else if (
 				!resolved.format
-				|| resolved.format === 'commonjs-typescript'
-				|| resolved.format === 'module-typescript'
-			)
-			// Filter out data: (sourcemaps)
-			&& resolved.url.startsWith(fileUrlPrefix)
-		) {
-			resolved.format = getFormatFromFileUrlSync(resolved.url);
-			log(2, 'getFormatFromFileUrlSync', {
-				resolved,
-				format: resolved.format,
-			});
+				&& !isImplicitJavaScriptDependency(resolved.url)
+			) {
+				// Node detects ESM syntax for typeless dependency JavaScript during load.
+				// https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/esm/get_format.js#L181-L191
+				// Older Node versions and typeless .ts can return no format.
+				resolved.format = getFormatFromFileUrlSync(resolved.url);
+				log(2, 'getFormatFromFileUrlSync', {
+					resolved,
+					format: resolved.format,
+				});
+			}
 		}
 
-		if (query) {
-			resolved.url += `?${query}`;
+		if (urlMetadata) {
+			resolved.url = mergeUrlMetadata(resolved.url, urlMetadata);
 		}
 
 		// Inherit namespace
 		if (
 			requestNamespace
-			&& !resolved.url.includes(namespaceQuery)
+			&& getNamespace(resolved.url) === undefined
 		) {
-			resolved.url = addQuery(resolved.url, `${namespaceQuery}${requestNamespace}`);
+			resolved.url = addNamespace(resolved.url, requestNamespace);
 		}
 
 		resolved.url = preserveCommonJsQueryIdentity(
@@ -869,5 +1213,3 @@ export const createResolveSync = (
 		return result;
 	};
 };
-
-export const resolve = createResolve(defaultData);

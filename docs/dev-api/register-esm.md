@@ -22,11 +22,12 @@ If you want to register without affecting the entire runtime environment, you ca
 When a namespace is provided, it will return a private `import()` method for you to load files with:
 
 ```js
+import crypto from 'node:crypto'
 import { register } from 'tsx/esm/api'
 
 const api = register({
     // Pass in a unique namespace
-    namespace: Date.now().toString()
+    namespace: crypto.randomUUID()
 })
 
 // Pass in the request and the current file path

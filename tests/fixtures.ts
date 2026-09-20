@@ -220,8 +220,6 @@ export const files = {
 		'index.js': 'throw new Error("should not be loaded")',
 	},
 
-	// TODO: test resolution priority for files 'index.tsx` & 'index.tsx.ts` via 'index.tsx'
-
 	'jsx/index.jsx': sourcemap.tag`
 	import assert from 'assert';
 	export const cjsContext = ${cjsContextCheck};

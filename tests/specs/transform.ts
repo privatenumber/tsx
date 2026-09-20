@@ -100,6 +100,25 @@ export const transformSpec = () => describe('transform', () => {
 			expect(transformed.code).not.toContain('import_meta');
 		});
 
+		test('shims import.meta when tokens are split by comments or newlines', () => {
+			const transformed = transformSync(
+				outdent`
+				export const commented = import /*::(_)*/.meta.url;
+				export const newlined = import
+					.meta.url;
+				`,
+				'file.js',
+				{ format: 'cjs' },
+			);
+
+			const loaded = createFsRequire(Volume.fromJSON({
+				'/file.js': transformed.code,
+			}))('/file.js');
+
+			expect(loaded.commented).toMatch(/^file:\/\/\/.*\/file.js$/);
+			expect(loaded.newlined).toMatch(/^file:\/\/\/.*\/file.js$/);
+		});
+
 		test('supports import.meta object access', () => {
 			const transformed = transformSync(
 				`

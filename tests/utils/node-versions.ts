@@ -15,7 +15,7 @@ export const nodeVersions = [
 			? [
 				latestMajor('26.1.0'),
 				latestMajor('25.9.0'),
-				latestMajor('22.22.2'),
+				latestMajor('22.22.3'),
 				latestMajor('21.7.3'),
 				latestMajor('20.20.2'),
 				latestMajor('18.20.8'),

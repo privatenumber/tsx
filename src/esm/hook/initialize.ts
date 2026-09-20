@@ -10,12 +10,21 @@ type Data = InitializationOptions & {
 	parsedTsconfig: TsconfigResult | undefined;
 };
 
-export const data: Data = {
+export type { Data };
+
+/**
+ * Empty hook state, filled in by `initialize()`/`globalPreload()`. Must be
+ * instantiated by the hook entry module (`src/esm/index.ts`) rather than
+ * shared as a module-level singleton: the async `module.register()` path
+ * registers a cache-busted copy of the entry per registration, and only the
+ * entry module is re-evaluated per copy. State in any other module can be
+ * hoisted into a bundler chunk shared across all copies, making every
+ * registration mutate the same object (#806).
+ */
+export const createDefaultData = (): Data => ({
 	active: true,
 	parsedTsconfig: undefined,
-};
-
-export type { Data };
+});
 
 export const createData = (
 	options?: InitializationOptions & {
@@ -38,7 +47,9 @@ export const createData = (
 	return hookData;
 };
 
-export const initialize: InitializeHook = async (
+export const createInitialize = (
+	data: Data,
+): InitializeHook => async (
 	options?: InitializationOptions,
 ) => {
 	if (!options) {
@@ -61,7 +72,9 @@ export const initialize: InitializeHook = async (
 type GlobalPreloadHook = () => string;
 
 // Replaced by `initialize` in Node v20.6.0, v18.19.0
-export const globalPreload: GlobalPreloadHook = () => {
+export const createGlobalPreload = (
+	data: Data,
+): GlobalPreloadHook => () => {
 	data.parsedTsconfig = loadTsconfig(process.env.TSX_TSCONFIG_PATH);
 	return 'process.setSourceMapsEnabled(true);';
 };

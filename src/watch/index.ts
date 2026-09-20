@@ -2,8 +2,10 @@ import type { ChildProcess } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { constants as osConstants } from 'node:os';
 import path from 'node:path';
+import fs from 'node:fs';
 import { command } from 'cleye';
-import { watch } from 'chokidar';
+import { FSWatcher } from 'chokidar';
+import isGlob from 'is-glob';
 import { lightMagenta, lightGreen, yellow } from 'kolorist';
 import { run } from '../run.js';
 import {
@@ -78,6 +80,70 @@ export const watchCommand = command({
 
 	let runProcess: ChildProcess | undefined;
 	let exiting = false;
+	const cwd = process.cwd();
+	const canonicalPathCache = new Map<string, {
+		path: string;
+		expiration: NodeJS.Timeout;
+	}>();
+	const getEventKey = (
+		event: string,
+		filePath: string,
+	) => {
+		const absolutePath = path.resolve(filePath);
+		const cachedPath = canonicalPathCache.get(absolutePath);
+		if (event === 'add' || event === 'addDir' || event === 'unlink' || event === 'unlinkDir') {
+			if (cachedPath) {
+				clearTimeout(cachedPath.expiration);
+				canonicalPathCache.delete(absolutePath);
+			}
+		} else if (cachedPath) {
+			return `${event}:${cachedPath.path}`;
+		}
+
+		let pathKey: string;
+		try {
+			// Event handlers need a synchronous key before either watcher reports
+			// the same change; cache removes the syscall from later events.
+			pathKey = fs.realpathSync.native(absolutePath);
+		} catch {
+			// Removed paths cannot be resolved and retain their emitted spelling.
+			pathKey = absolutePath;
+		}
+		const cacheRecord = {
+			path: pathKey,
+			expiration: setTimeout(() => {
+				if (canonicalPathCache.get(absolutePath) === cacheRecord) {
+					canonicalPathCache.delete(absolutePath);
+				}
+			}, 1000),
+		};
+		cacheRecord.expiration.unref();
+		canonicalPathCache.set(absolutePath, cacheRecord);
+		return `${event}:${pathKey}`;
+	};
+	const literalWatchPaths = argv._.map(filePath => path.resolve(filePath));
+	let literalWatcher: FSWatcher;
+	let dependencyOverrideWatcher: FSWatcher | undefined;
+	let watchersReady = false;
+	const recentWatchEvents = new Map<string, {
+		source: 'include' | 'literal';
+		expiration: NodeJS.Timeout;
+	}>();
+	const getPathKey = (filePath: string) => {
+		const absolutePath = path.resolve(filePath);
+		return process.platform === 'win32' ? absolutePath.toLowerCase() : absolutePath;
+	};
+	const exactNegatedIncludes = new Set<string>();
+	for (const includePattern of options.include) {
+		if (includePattern.startsWith('!')) {
+			const negatedPattern = includePattern.slice(1);
+			if (!isGlob(negatedPattern)) {
+				exactNegatedIncludes.add(getPathKey(negatedPattern));
+			}
+		} else if (!isGlob(includePattern)) {
+			exactNegatedIncludes.delete(getPathKey(includePattern));
+		}
+	}
 
 	const server = await createIpcServer();
 
@@ -98,7 +164,20 @@ export const watchCommand = command({
 			);
 
 			if (path.isAbsolute(dependencyPath)) {
-				watcher.add(dependencyPath);
+				if (exactNegatedIncludes.has(getPathKey(dependencyPath))) {
+					if (!dependencyOverrideWatcher) {
+						dependencyOverrideWatcher = new FSWatcher({
+							...watchOptions,
+							disableGlobbing: true,
+						});
+						dependencyOverrideWatcher.on('all', (event, filePath) => {
+							handleWatchEvent('literal', event, filePath);
+						});
+					}
+					dependencyOverrideWatcher.add(dependencyPath);
+				} else {
+					literalWatcher.add(dependencyPath);
+				}
 			}
 		}
 	});
@@ -159,15 +238,15 @@ export const watchCommand = command({
 				log(reason, yellow('Rerunning...'));
 			}
 
-			if (options.clearScreen) {
+			// Only clear terminals; control sequences corrupt piped output
+			// https://github.com/privatenumber/tsx/issues/184
+			if (options.clearScreen && process.stdout.isTTY) {
 				process.stdout.write(clearScreen);
 			}
 		}
 
 		runProcess = spawnProcess();
 	}, 100);
-
-	reRun();
 
 	const relaySignal = (signal: NodeJS.Signals) => {
 		// Disable further spawns
@@ -191,8 +270,10 @@ export const watchCommand = command({
 				() => {},
 			);
 		} else {
+			// Exit with 128 + signal number, as done by Node.js & POSIX shells
+			// https://nodejs.org/api/process.html#exit-codes
 			// eslint-disable-next-line n/no-process-exit
-			process.exit(osConstants.signals[signal]);
+			process.exit(128 + osConstants.signals[signal]);
 		}
 	};
 
@@ -207,29 +288,84 @@ export const watchCommand = command({
 	 *
 	 * As an alternative, we watch cwd and all run-time dependencies
 	 */
-	const watcher = watch(
-		[
-			...argv._,
-			...options.include,
+	const watchOptions = {
+		cwd,
+		ignoreInitial: true,
+		ignored: [
+			// Hidden directories like .git
+			'**/.*/**',
+
+			// Hidden files (e.g. logs or temp files)
+			'**/.*',
+
+			// 3rd party packages
+			'**/{node_modules,bower_components,vendor}/**',
+
+			...options.exclude,
 		],
-		{
-			cwd: process.cwd(),
-			ignoreInitial: true,
-			ignored: [
-				// Hidden directories like .git
-				'**/.*/**',
+		ignorePermissionErrors: true,
+	};
+	const handleWatchEvent = (
+		source: 'include' | 'literal',
+		event: string,
+		filePath: string,
+	) => {
+		if (!watchersReady) {
+			return;
+		}
 
-				// Hidden files (e.g. logs or temp files)
-				'**/.*',
+		const eventKey = getEventKey(event, filePath);
+		const recentEvent = recentWatchEvents.get(eventKey);
+		if (
+			recentEvent
+			&& recentEvent.source !== source
+		) {
+			clearTimeout(recentEvent.expiration);
+			recentWatchEvents.delete(eventKey);
+			return;
+		}
+		if (recentEvent) {
+			clearTimeout(recentEvent.expiration);
+		}
+		const eventRecord = {
+			source,
+			expiration: setTimeout(() => {
+				if (recentWatchEvents.get(eventKey) === eventRecord) {
+					recentWatchEvents.delete(eventKey);
+				}
+			}, 1000),
+		};
+		eventRecord.expiration.unref();
+		recentWatchEvents.set(eventKey, eventRecord);
+		reRun(event, filePath);
+	};
+	literalWatcher = new FSWatcher({
+		...watchOptions,
+		disableGlobbing: true,
+	});
+	literalWatcher.on('all', (event, filePath) => {
+		handleWatchEvent('literal', event, filePath);
+	});
+	const waitForReady = (watcher: FSWatcher) => new Promise<void>((resolve) => {
+		watcher.once('ready', resolve);
+	});
+	const watcherReadyPromises = [waitForReady(literalWatcher)];
+	literalWatcher.add(literalWatchPaths);
+	if (options.include.some(includePattern => !includePattern.startsWith('!'))) {
+		const includeWatcher = new FSWatcher(watchOptions);
+		includeWatcher.on('all', (event, filePath) => {
+			handleWatchEvent('include', event, filePath);
+		});
+		watcherReadyPromises.push(waitForReady(includeWatcher));
+		includeWatcher.add(options.include);
+	}
 
-				// 3rd party packages
-				'**/{node_modules,bower_components,vendor}/**',
-
-				...options.exclude,
-			],
-			ignorePermissionErrors: true,
-		},
-	).on('all', reRun);
+	await Promise.all(watcherReadyPromises);
+	literalWatcher.add(options.include.filter(
+		includePattern => includePattern.startsWith('!'),
+	));
+	watchersReady = true;
+	runProcess = spawnProcess();
 
 	// On "Return" key
 	process.stdin.on('data', () => reRun('Return key'));
