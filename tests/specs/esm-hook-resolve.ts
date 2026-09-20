@@ -11,13 +11,19 @@ const context: ResolveHookContext = {
 	parentURL: undefined,
 };
 
+// The resolver calls `fileURLToPath()` on the parent URL, which rejects
+// drive-less file URLs on Windows. `pathToFileURL()` resolves the path
+// absolutely, so Windows gets the drive letter it requires.
+const entryFileUrl = pathToFileURL('/app/entry.ts').toString();
+const moduleFileUrl = pathToFileURL('/app/module.ts').toString();
+
 const createNamespaceContext = (
 	namespace: string,
 	conditions: string[] = ['node', 'import'],
 ): ResolveHookContext => ({
 	conditions,
 	importAttributes: {},
-	parentURL: `file:///app/entry.ts?tsx-namespace=${namespace}`,
+	parentURL: `${entryFileUrl}?tsx-namespace=${namespace}`,
 });
 
 export const esmHookResolve = () => describe('ESM resolve hook', () => {
@@ -96,14 +102,13 @@ export const esmHookResolve = () => describe('ESM resolve hook', () => {
 			format: undefined,
 		});
 
-		const fileUrl = 'file:///app/module.ts';
 		expect(
-			await resolveA(fileUrl, requireContext, () => ({
-				url: fileUrl,
+			await resolveA(moduleFileUrl, requireContext, () => ({
+				url: moduleFileUrl,
 				format: 'module' as const,
 			})),
 		).toStrictEqual({
-			url: `${fileUrl}?tsx-namespace=${namespaceA}`,
+			url: `${moduleFileUrl}?tsx-namespace=${namespaceA}`,
 			format: 'module',
 		});
 
@@ -229,14 +234,13 @@ export const esmHookResolve = () => describe('ESM resolve hook', () => {
 			format: undefined,
 		});
 
-		const fileUrl = 'file:///app/module.ts';
 		expect(
-			resolveA(fileUrl, createNamespaceContext(namespaceA), () => ({
-				url: fileUrl,
+			resolveA(moduleFileUrl, createNamespaceContext(namespaceA), () => ({
+				url: moduleFileUrl,
 				format: 'module' as const,
 			})),
 		).toStrictEqual({
-			url: `${fileUrl}?tsx-namespace=${namespaceA}`,
+			url: `${moduleFileUrl}?tsx-namespace=${namespaceA}`,
 			format: 'module',
 		});
 
