@@ -216,4 +216,55 @@ export const esmHookResolve = () => describe('ESM resolve hook', () => {
 		expect(new URL(asyncResult.url).searchParams.get('x')).toBe('a/b');
 		expect(new URL(syncResult.url).searchParams.get('y')).toBe('a&b');
 	});
+
+	test('leaves a literal percent-encoded question mark path unchanged under a namespace', async () => {
+		const hookData = createData({
+			namespace: 'active',
+			tsconfig: false,
+		});
+		// A real filename may contain `?`, which pathToFileURL() encodes as `%3F`.
+		// Only the bridge's `?namespace=` suffix may be restored, so an active
+		// namespace must not rewrite this path.
+		const literalUrl = pathToFileURL('/virtual/file?name.ts').toString();
+		const resolvedSpecifiers: string[] = [];
+		const nextResult = (specifier: string) => {
+			resolvedSpecifiers.push(specifier);
+			return {
+				url: specifier,
+				format: 'module' as const,
+			};
+		};
+
+		const asyncResult = await createResolve(hookData)(literalUrl, context, nextResult);
+		const syncResult = createResolveSync(hookData)(literalUrl, context, nextResult);
+
+		expect(resolvedSpecifiers).toStrictEqual([literalUrl, literalUrl]);
+		expect(asyncResult.url).toBe(literalUrl);
+		expect(syncResult.url).toBe(literalUrl);
+	});
+
+	test('leaves a percent-encoded bridge suffix from another namespace unchanged', async () => {
+		const hookData = createData({
+			namespace: 'active',
+			tsconfig: false,
+		});
+		// The suffix matches the bridge shape but belongs to a different
+		// tsImport() namespace, so it must be left for the owning hook.
+		const foreignBridgeUrl = pathToFileURL('/virtual/dep.mjs?namespace=other').toString();
+		const resolvedSpecifiers: string[] = [];
+		const nextResult = (specifier: string) => {
+			resolvedSpecifiers.push(specifier);
+			return {
+				url: specifier,
+				format: 'module' as const,
+			};
+		};
+
+		const asyncResult = await createResolve(hookData)(foreignBridgeUrl, context, nextResult);
+		const syncResult = createResolveSync(hookData)(foreignBridgeUrl, context, nextResult);
+
+		expect(resolvedSpecifiers).toStrictEqual([foreignBridgeUrl, foreignBridgeUrl]);
+		expect(asyncResult.url).toBe(foreignBridgeUrl);
+		expect(syncResult.url).toBe(foreignBridgeUrl);
+	});
 });
