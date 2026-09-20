@@ -859,6 +859,150 @@ export const api = (node: NodeApis) => describe('API', () => {
 					expect(stdout).toBe('value: 1');
 				});
 
+				test('CommonJS .ts and .js inputs expose require.cache and require.extensions', async () => {
+					await using fixture = await createFixture({
+						// CommonJS package so Node classifies the .ts and .js inputs as CommonJS.
+						'package.json': createPackageJson({}),
+						// The child needs transformation (enum), so a successful require
+						// proves the tsx namespace propagated into child resolution.
+						'child.ts': outdent`
+						enum Mode {
+							Value = 'child-transformed',
+						}
+						export const childValue: string = Mode.Value;
+						`,
+						'probe.ts': outdent`
+						const child = require('./child.ts');
+						export const cacheType = typeof require.cache;
+						export const extensionsType = typeof require.extensions;
+						export const resolveType = typeof require.resolve;
+						export const childValue: string = child.childValue;
+						export const filename: string = __filename;
+						`,
+						'probe.js': outdent`
+						const child = require('./child.ts');
+						export const cacheType = typeof require.cache;
+						export const extensionsType = typeof require.extensions;
+						export const resolveType = typeof require.resolve;
+						export const childValue = child.childValue;
+						export const filename = __filename;
+						`,
+						'import.mjs': outdent`
+						import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+						import { pathToFileURL } from 'node:url';
+
+						const commonjsTypeScript = await tsImport(pathToFileURL('./probe.ts').toString(), import.meta.url);
+						const commonjs = await tsImport(pathToFileURL('./probe.js').toString(), import.meta.url);
+						console.log(JSON.stringify({
+							commonjsTypeScript: {
+								cacheType: commonjsTypeScript.cacheType,
+								extensionsType: commonjsTypeScript.extensionsType,
+								resolveType: commonjsTypeScript.resolveType,
+								childValue: commonjsTypeScript.childValue,
+								filename: commonjsTypeScript.filename,
+							},
+							commonjs: {
+								cacheType: commonjs.cacheType,
+								extensionsType: commonjs.extensionsType,
+								resolveType: commonjs.resolveType,
+								childValue: commonjs.childValue,
+								filename: commonjs.filename,
+							},
+						}));
+						`,
+					});
+
+					const { stdout } = await execaNode('./import.mjs', [], {
+						cwd: fixture.path,
+						nodePath: node.path,
+						nodeOptions: [],
+					});
+
+					const expectedRequireSurface = {
+						cacheType: 'object',
+						extensionsType: 'object',
+						resolveType: 'function',
+						childValue: 'child-transformed',
+					};
+					expect(JSON.parse(stdout)).toEqual({
+						commonjsTypeScript: {
+							...expectedRequireSurface,
+							filename: fixture.getPath('probe.ts'),
+						},
+						commonjs: {
+							...expectedRequireSurface,
+							filename: fixture.getPath('probe.js'),
+						},
+					});
+				});
+
+				if (node.supports.moduleRegisterHooksCjsReload) {
+					test('commonjs-typescript source from a composed registerHooks hook exposes require.cache and require.extensions', async () => {
+						await using fixture = await createFixture({
+							'package.json': createPackageJson({}),
+							'child.ts': outdent`
+							enum Mode {
+								Value = 'child-transformed',
+							}
+							export const childValue: string = Mode.Value;
+							`,
+							'probe.ts': outdent`
+							export const cacheType = typeof require.cache;
+							export const extensionsType = typeof require.extensions;
+							let childValue: string;
+							try {
+								childValue = require('./child.ts').childValue;
+							} catch {
+								childValue = 'child-require-failed';
+							}
+							export { childValue };
+							`,
+							'import.mjs': outdent`
+							import module from 'node:module';
+							import { readFileSync } from 'node:fs';
+							import { fileURLToPath, pathToFileURL } from 'node:url';
+							import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+
+							// Registered before tsx, so tsx's load hook delegates to this
+							// one, which supplies commonjs-typescript source without a
+							// responseURL.
+							module.registerHooks({
+								load(url, context, nextLoad) {
+									const filePath = url.startsWith('file:') ? fileURLToPath(url) : url;
+									if (filePath.endsWith('probe.ts')) {
+										return {
+											format: 'commonjs-typescript',
+											source: readFileSync(filePath, 'utf8'),
+											shortCircuit: true,
+										};
+									}
+									return nextLoad(url, context);
+								},
+							});
+
+							const result = await tsImport(pathToFileURL('./probe.ts').toString(), import.meta.url);
+							console.log(JSON.stringify({
+								cacheType: result.cacheType,
+								extensionsType: result.extensionsType,
+								childValue: result.childValue,
+							}));
+							`,
+						});
+
+						const { stdout } = await execaNode('./import.mjs', [], {
+							cwd: fixture.path,
+							nodePath: node.path,
+							nodeOptions: [],
+						});
+
+						expect(JSON.parse(stdout)).toEqual({
+							cacheType: 'object',
+							extensionsType: 'object',
+							childValue: 'child-transformed',
+						});
+					});
+				}
+
 				test('namespace allows async nested calls without cross contamination', async () => {
 					await using fixture = await createFixture({
 						'package.json': createPackageJson({ type: 'module' }),
