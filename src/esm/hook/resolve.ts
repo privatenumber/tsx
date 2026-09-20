@@ -29,6 +29,7 @@ import {
 	getFormatFromFileUrl,
 	getFormatFromFileUrlSync,
 	namespaceQuery,
+	namespaceSearchParameter,
 	commonJsExportPreparseQuery,
 	commonJsExportPreparseSearchParameter,
 	commonJsVirtualQuerySearchParameter,
@@ -827,6 +828,61 @@ const mergeUrlMetadata = (
 	return new URL(`${urlWithQuery}${requestFragment || urlFragment}`).toString();
 };
 
+/**
+ * Node 24 dispatches `require()` of an ES module through the module
+ * customization hooks. tsx's CommonJS bridge appends a `?namespace=<id>`
+ * cache-isolation suffix to the resolved CommonJS filename, and Node turns that
+ * filename back into a URL with `pathToFileURL()`, which percent-encodes the
+ * `?` into the pathname. Restore the encoded bridge suffix as the namespace
+ * query so the module resolves as the namespaced file instead of a literal
+ * `...%3Fnamespace=<id>` path.
+ * https://github.com/privatenumber/tsx/issues/801
+ */
+const restoreCjsBridgeNamespace = (
+	url: string,
+	namespace: string | undefined,
+) => {
+	if (namespace === undefined) {
+		return url;
+	}
+
+	const fileUrl = new URL(url);
+
+	// tsx's own CommonJS virtual URLs carry this marker and are already shaped
+	// for the load hook, so leave them untouched.
+	if (fileUrl.searchParams.has(commonJsVirtualQuerySearchParameter)) {
+		return url;
+	}
+
+	// A literal `?` in a pathname is also percent-encoded, so only treat the
+	// trailing encoded query as the bridge artifact when it decodes to this
+	// loader's namespace.
+	const bridgeIndex = fileUrl.pathname.toLowerCase().lastIndexOf('%3f');
+	if (bridgeIndex === -1) {
+		return url;
+	}
+
+	const encodedQuery = fileUrl.pathname.slice(bridgeIndex + 3);
+	if (encodedQuery.includes('/')) {
+		return url;
+	}
+
+	// `pathToFileURL()` percent-encodes the `%` in the already-encoded query
+	// tsx's CommonJS bridge wrote (`namespace=a%2Fb` becomes
+	// `namespace=a%252Fb`). Reverse only that producer-added `%25` layer;
+	// `URLSearchParams` decodes the recovered query values itself.
+	const bridgeSearchParams = new URLSearchParams(encodedQuery.replaceAll('%25', '%'));
+	if (bridgeSearchParams.get('namespace') !== namespace) {
+		return url;
+	}
+
+	bridgeSearchParams.delete('namespace');
+	bridgeSearchParams.set(namespaceSearchParameter, namespace);
+	fileUrl.pathname = fileUrl.pathname.slice(0, bridgeIndex);
+	fileUrl.search = bridgeSearchParams.toString();
+	return fileUrl.toString();
+};
+
 const preserveCommonJsQueryIdentity = (
 	url: string,
 	format: string | null | undefined,
@@ -872,6 +928,14 @@ export const createResolve = (
 			|| specifier.startsWith('node:')
 		) {
 			return nextResolve(specifier, context);
+		}
+
+		if (specifier.startsWith(fileUrlPrefix)) {
+			specifier = restoreCjsBridgeNamespace(specifier, hookData.namespace);
+		}
+		const { parentURL } = context;
+		if (parentURL?.startsWith(fileUrlPrefix)) {
+			context.parentURL = restoreCjsBridgeNamespace(parentURL, hookData.namespace);
 		}
 
 		const parentNamespace = context.parentURL && getNamespace(context.parentURL);
@@ -1041,6 +1105,14 @@ export const createResolveSync = (
 			|| (isCommonJsRequireContext(context) && isGlobalCjsLoaderActive())
 		) {
 			return nextResolve(specifier, context);
+		}
+
+		if (specifier.startsWith(fileUrlPrefix)) {
+			specifier = restoreCjsBridgeNamespace(specifier, hookData.namespace);
+		}
+		const { parentURL } = context;
+		if (parentURL?.startsWith(fileUrlPrefix)) {
+			context.parentURL = restoreCjsBridgeNamespace(parentURL, hookData.namespace);
 		}
 
 		const parentNamespace = context.parentURL && getNamespace(context.parentURL);

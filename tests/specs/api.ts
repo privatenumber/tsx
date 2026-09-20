@@ -830,6 +830,35 @@ export const api = (node: NodeApis) => describe('API', () => {
 					].join(String.raw`\n`)));
 				});
 
+				test('requires an ESM dependency from a CommonJS-context .ts under tsImport()', async () => {
+					if (!node.supports.requireEsm) {
+						return;
+					}
+
+					await using fixture = await createFixture({
+						'package.json': createPackageJson({ type: 'commonjs' }),
+						'import.mjs': outdent`
+						import { tsImport } from ${JSON.stringify(tsxEsmApiPath)};
+
+						const configUrl = new URL('./config.ts', import.meta.url).toString();
+						const { value } = await tsImport(configUrl, import.meta.url);
+						console.log('value:', value);
+						`,
+						'config.ts': outdent`
+						export { value } from './dep.mjs';
+						`,
+						'dep.mjs': 'export const value = 1;',
+					});
+
+					const { stdout, stderr } = await execaNode(fixture.getPath('import.mjs'), [], {
+						nodePath: node.path,
+						nodeOptions: [],
+					});
+
+					expect(stderr).toBe('');
+					expect(stdout).toBe('value: 1');
+				});
+
 				test('namespace allows async nested calls without cross contamination', async () => {
 					await using fixture = await createFixture({
 						'package.json': createPackageJson({ type: 'module' }),
