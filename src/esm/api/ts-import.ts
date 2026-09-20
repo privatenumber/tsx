@@ -65,7 +65,7 @@ const tsImport = (
 };
 
 /**
- * Considered implmenting import.meta.resolve(), but natively, it doesn't seem to actully
+ * Considered implementing import.meta.resolve(), but natively, it doesn't seem to actually
  * resolve relative file paths.
  *
  * For example, this doesn't throw: import.meta.resolve('./missing-file')
