@@ -34,6 +34,11 @@ const flags = {
 		description: 'Clearing the screen on rerun',
 		default: true,
 	},
+	killTimeout: {
+		type: Number,
+		description: 'Milliseconds until process is forcibly killed',
+		default: 5000
+	},
 	// Deprecated
 	ignore: {
 		type: [String],
@@ -70,6 +75,7 @@ export const watchCommand = command({
 		noCache: argv.flags.noCache,
 		tsconfigPath: argv.flags.tsconfig,
 		clearScreen: argv.flags.clearScreen,
+		killTimeout: argv.flags.killTimeout,
 		include: argv.flags.include,
 		exclude: [
 			...argv.flags.ignore,
@@ -195,7 +201,6 @@ export const watchCommand = command({
 	const killProcess = async (
 		childProcess: ChildProcess,
 		signal: NodeJS.Signals = 'SIGTERM',
-		forceKillOnTimeout = 5000,
 	) => {
 		let exited = false;
 		const waitForExit = new Promise<number | null>((resolve) => {
@@ -211,10 +216,10 @@ export const watchCommand = command({
 
 		setTimeout(() => {
 			if (!exited) {
-				log(yellow(`Process didn't exit in ${Math.floor(forceKillOnTimeout / 1000)}s. Force killing...`));
+				log(yellow(`Process didn't exit in ${Math.floor(options.killTimeout / 1000)}s. Force killing...`));
 				childProcess.kill('SIGKILL');
 			}
-		}, forceKillOnTimeout);
+		}, options.killTimeout);
 
 		return await waitForExit;
 	};
