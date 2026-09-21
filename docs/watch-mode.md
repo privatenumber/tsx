@@ -50,4 +50,5 @@ tsx watch --exclude "./data/**/*" ./file.ts
 ## Tips
 
 - Press <kbd>Return</kbd> to manually rerun the script.
+- Send `SIGHUP` signal to manually trigger a reload (e.g., `kill -HUP <pid>`).
 - Use `--clear-screen=false` to prevent the screen from clearing on rerun.
