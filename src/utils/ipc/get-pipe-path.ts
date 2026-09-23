@@ -6,7 +6,7 @@ export const getPipePath = (processId: number) => {
 	const pipePath = path.join(tmpdir, `${processId}.pipe`);
 	return (
 		isWindows
-			? `\\\\?\\pipe\\${pipePath}`
+			? `\\\\?\\pipe\\LOCAL\\${pipePath}` // LOCAL makes it AppContainer-compatible
 			: pipePath
 	);
 };
