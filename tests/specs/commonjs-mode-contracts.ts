@@ -194,6 +194,129 @@ export const commonJsModeContracts = (node: NodeApis) => describe('CommonJS mode
 		}
 	});
 
+	// A file written with ESM syntax is always strict, and the module that
+	// happens to import it cannot change that. tsx transforms these files to
+	// CommonJS, whose wrapper is sloppy, so the mode has to be restored.
+	// https://github.com/privatenumber/tsx/issues/676
+	describe('strict mode', () => {
+		// Sloppy mode substitutes the global object for an undefined `this`,
+		// and silently creates a global instead of throwing on an assignment
+		// to an undeclared binding.
+		const reportMode = outdent`
+		let assignedUndeclared = true;
+		try {
+			undeclaredBinding = 1;
+		} catch {
+			assignedUndeclared = false;
+		}
+
+		console.log(JSON.stringify({
+			isStrict: (function () { return this === undefined; })(),
+			assignedUndeclared,
+		}));
+		`;
+
+		const strictExpectation = {
+			isStrict: true,
+			assignedUndeclared: false,
+		};
+
+		test('module imported by a CommonJS-classified file is strict', async () => {
+			for (const { label, packageJson } of commonJsModes) {
+				await using fixture = await createFixture({
+					'package.json': createPackageJson(packageJson),
+					'index.ts': outdent`
+						import './imported.ts';
+					`,
+					'imported.ts': outdent`
+						export const marker = 'imported';
+
+						${reportMode}
+					`,
+				});
+
+				const result = await node.tsx(['index.ts'], fixture.path);
+				onTestFail(() => {
+					console.log(label, result);
+				});
+
+				expect(result.failed).toBe(false);
+				expect(JSON.parse(result.stdout)).toEqual(strictExpectation);
+			}
+		});
+
+		test('esm syntax entrypoint is strict', async () => {
+			for (const { label, packageJson } of commonJsModes) {
+				await using fixture = await createFixture({
+					'package.json': createPackageJson(packageJson),
+					'index.ts': outdent`
+						export const marker = 'entry';
+
+						${reportMode}
+					`,
+				});
+
+				const result = await node.tsx(['index.ts'], fixture.path);
+				onTestFail(() => {
+					console.log(label, result);
+				});
+
+				expect(result.failed).toBe(false);
+				expect(JSON.parse(result.stdout)).toEqual(strictExpectation);
+			}
+		});
+
+		test('CommonJS entrypoint stays sloppy', async () => {
+			for (const { label, packageJson } of commonJsModes) {
+				await using fixture = await createFixture({
+					'package.json': createPackageJson(packageJson),
+					'index.ts': outdent`
+						module.exports = require('./dep.cjs');
+
+						${reportMode}
+					`,
+					'dep.cjs': 'module.exports = { loaded: true };',
+				});
+
+				const result = await node.tsx(['index.ts'], fixture.path);
+				onTestFail(() => {
+					console.log(label, result);
+				});
+
+				expect(result.failed).toBe(false);
+				expect(JSON.parse(result.stdout)).toEqual({
+					isStrict: false,
+					assignedUndeclared: true,
+				});
+			}
+		});
+
+		test('required .cjs dependency stays sloppy', async () => {
+			for (const { label, packageJson } of commonJsModes) {
+				await using fixture = await createFixture({
+					'package.json': createPackageJson(packageJson),
+					'index.ts': outdent`
+						export const marker = 'entry';
+
+						require('./dep.cjs');
+					`,
+					'dep.cjs': reportMode,
+				});
+
+				const result = await node.tsx(['index.ts'], fixture.path);
+				onTestFail(() => {
+					console.log(label, result);
+				});
+
+				expect(result.failed).toBe(false);
+				expect(JSON.parse(result.stdout)).toEqual({
+					isStrict: false,
+					assignedUndeclared: true,
+				});
+			}
+		});
+	});
+
 	// tsx is intentionally more lenient than Node for ambiguous-`type` and
 	// explicit `"commonjs"` packages: a `.js`/`.ts` file that mixes ESM
 	// `import`/`export` syntax with explicit `require()` calls still runs,
