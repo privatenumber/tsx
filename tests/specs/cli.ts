@@ -1,5 +1,6 @@
 import { setTimeout } from 'node:timers/promises';
 import { on, once } from 'node:events';
+import { spawn } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import {
 	describe, test, onFinish, onTestFail, expect,
@@ -233,6 +234,38 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 		expect(tsxProcess.exitCode).toBe(0);
 		expect(tsxProcess.stdout).toBe('loaded');
 		expect(tsxProcess.stderr).toBe('');
+	});
+
+	test('exits quietly when stdout is closed early', async () => {
+		await using fixture = await createFixture({
+			'flood.ts': 'for (let i = 0; i < 100_000; i += 1) { console.log(String(i) as string); }',
+		});
+
+		// Not using the tsx helper because execa needs to own stdout to buffer it
+		const tsxProcess = spawn(node.path, [tsxPath, 'flood.ts'], {
+			cwd: fixture.path,
+			stdio: ['ignore', 'pipe', 'pipe'],
+			env: {
+				...process.env,
+				TSX_DISABLE_CACHE: '1',
+			},
+		});
+
+		// Closes the read end mid-write, like piping into `head -1`
+		tsxProcess.stdout.once('data', () => tsxProcess.stdout.destroy());
+
+		let stderr = '';
+		tsxProcess.stderr.setEncoding('utf8');
+		tsxProcess.stderr.on('data', (chunk: string) => {
+			stderr += chunk;
+		});
+
+		const exitCode = await new Promise<number | null>((resolve) => {
+			tsxProcess.on('close', resolve);
+		});
+
+		expect(stderr).toBe('');
+		expect(exitCode).toBe(0);
 	});
 
 	if (
