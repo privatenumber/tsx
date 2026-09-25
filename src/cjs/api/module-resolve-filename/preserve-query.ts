@@ -57,9 +57,12 @@ export const preserveQuery = (
 			resolved: string,
 			restOfArgsLength: number,
 		) => {
+			const query = urlSearchParamsStringify(searchParams);
+
 			// Only add query back if it's a file path (not a core Node module)
 			if (
-				path.isAbsolute(resolved)
+				query
+				&& path.isAbsolute(resolved)
 
 				// These two have native loaders which don't support queries
 				&& !resolved.endsWith('.json')
@@ -73,11 +76,10 @@ export const preserveQuery = (
 					// Only the CJS lexer doesn't pass in the rest of the arguments
 					// https://github.com/nodejs/node/blob/v20.15.0/lib/internal/modules/esm/translators.js#L415
 					restOfArgsLength === 0
-					// eslint-disable-next-line unicorn/error-message
-					&& isFromCjsLexer(new Error())
+					&& isFromCjsLexer()
 				)
 			) {
-				resolved += urlSearchParamsStringify(searchParams);
+				resolved += query;
 			}
 
 			return resolved;

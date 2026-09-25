@@ -278,6 +278,46 @@ export const api = (node: NodeApis) => describe('API', () => {
 
 				expect(stdout).toBe('foo bar json file.ts\ntsx\njsx\ndir\nasync');
 			});
+
+			test('resolving does not format stack traces', async () => {
+				await using fixture = await createFixture({
+					'require.cjs': outdent`
+					const Module = require('node:module');
+					const { register } = require(${JSON.stringify(tsxCjsApiPath)});
+
+					let formatCount = 0;
+					const prepareStackTrace = (_error, callSites) => {
+						formatCount += 1;
+						return 'formatted';
+					};
+					Error.prepareStackTrace = prepareStackTrace;
+					Error.stackTraceLimit = 7;
+
+					// Resolve with two arguments, like require-in-the-middle
+					const originalRequire = Module.prototype.require;
+					Module.prototype.require = function (id) {
+						Module._resolveFilename(id, this);
+						return originalRequire.apply(this, arguments);
+					};
+
+					register();
+					console.log(require('./file').message);
+
+					const api = register({ namespace: 'abcd' });
+					console.log(api.require('./file1', __filename).message);
+
+					console.log(formatCount, Error.prepareStackTrace === prepareStackTrace, Error.stackTraceLimit);
+					`,
+					...tsFiles,
+				});
+
+				const { stdout } = await execaNode(fixture.getPath('require.cjs'), [], {
+					nodePath: node.path,
+					nodeOptions: [],
+				});
+
+				expect(stdout).toBe('foo bar json file.ts\nfoo bar json file1.ts\n0 true 7');
+			});
 		});
 
 		describe('tsx.require()', () => {
