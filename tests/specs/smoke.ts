@@ -50,6 +50,67 @@ const getSmokeOutput = (stdout: string) => {
 };
 
 export const smoke = ({ tsx, supports }: NodeApis) => describe('Smoke', () => {
+	if (supports.requireEsm) {
+		test('CJS require(esm) shares the native ESM module instance', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'module' }),
+				'entry.mjs': `
+					import { createRequire } from 'node:module';
+
+					const require = createRequire(import.meta.url);
+					const required = require('./identity.mjs');
+
+					import('./identity.mjs').then(imported => {
+						console.log(JSON.stringify({
+							sameSingleton: required.singleton === imported.singleton,
+							requiredEvaluationCount: required.evaluationCount,
+							importedEvaluationCount: imported.evaluationCount,
+						}));
+					});
+					`,
+				'identity.mjs': `
+					export const singleton = {};
+					export const evaluationCount = (globalThis.__issue838EvaluationCount ??= 0) + 1;
+					globalThis.__issue838EvaluationCount = evaluationCount;
+					`,
+			});
+
+			const process = await tsx(['entry.mjs'], fixture.path);
+
+			expect(process.exitCode).toBe(0);
+			expect(process.stderr).toBe('');
+			expect(JSON.parse(process.stdout)).toEqual({
+				sameSingleton: true,
+				requiredEvaluationCount: 1,
+				importedEvaluationCount: 1,
+			});
+		});
+	}
+
+	if (supports.requireEsm) {
+		test('does not infer ESM from an unreadable synthetic parent', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'module' }),
+				'entry.mjs': `
+					import { createRequire } from 'node:module';
+
+					const require = createRequire(new URL('./synthetic.js', import.meta.url));
+					const required = require('./identity.mjs');
+					console.log(JSON.stringify({ cjsContext: required.cjsContext }));
+					`,
+				'identity.mjs': `
+					export const cjsContext = typeof require !== 'undefined';
+					`,
+			});
+
+			const process = await tsx(['entry.mjs'], fixture.path);
+
+			expect(process.exitCode).toBe(0);
+			expect(process.stderr).toBe('');
+			expect(JSON.parse(process.stdout)).toEqual({ cjsContext: true });
+		});
+	}
+
 	// 'commonjs' excluded — tested by commonjs-mode-contracts.ts instead
 	for (const packageType of [undefined, 'module'] as const) {
 		const isCommonJs = packageType !== 'module';
