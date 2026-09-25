@@ -122,8 +122,15 @@ export const transformSpec = () => describe('transform', () => {
 		test('supports import.meta object access', () => {
 			const transformed = transformSync(
 				`
+				const module = { local: true };
 				export const meta = import.meta;
 				export const computed = import.meta['url'];
+				export const resolved = import.meta.resolve('./dependency.js');
+				export const resolvedQuery = import.meta.resolve('./dependency.js?query');
+				export const resolvedAbsolute = import.meta.resolve('/dependency.js');
+				export const resolvedBareBuiltin = import.meta.resolve('fs');
+				export const resolvedProtocolBuiltin = import.meta.resolve('node:fs');
+				export const local = module.local;
 				export const destructured = (() => {
 					const { url } = import.meta;
 					return url;
@@ -141,6 +148,12 @@ export const transformSpec = () => describe('transform', () => {
 
 			expect(loaded.meta.url).toMatch(/^file:\/\/\/.*\/file.js$/);
 			expect(loaded.computed).toMatch(/^file:\/\/\/.*\/file.js$/);
+			expect(loaded.resolved).toBe(new URL('dependency.js', loaded.meta.url).href);
+			expect(loaded.resolvedQuery).toBe(new URL('dependency.js?query', loaded.meta.url).href);
+			expect(loaded.resolvedAbsolute).toBe('file:///dependency.js');
+			expect(loaded.resolvedBareBuiltin).toBe('node:fs');
+			expect(loaded.resolvedProtocolBuiltin).toBe('node:fs');
+			expect(loaded.local).toBe(true);
 			expect(loaded.destructured).toMatch(/^file:\/\/\/.*\/file.js$/);
 			expect(loaded.urlDescriptor).toStrictEqual({
 				configurable: true,
