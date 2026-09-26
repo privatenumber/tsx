@@ -592,6 +592,48 @@ export const watch = ({ tsx, path: nodePath }: NodeApis) => describe('watch', as
 
 			await tsxProcess;
 		}, 10_000);
+
+		test('ignores pnpm dependency realpaths outside cwd', async () => {
+			const dependencyPath = 'node_modules/.pnpm/pnpm-dep@1.0.0/node_modules/pnpm-dep';
+			const dependencyFile = `${dependencyPath}/index.js`;
+
+			// Mock the dependency files
+			await using fixturePnpm = await createFixture({
+				[dependencyFile]: 'module.exports = "dependency";',
+				'packages/app/index.js': `
+					console.log(require('pnpm-dep'));
+					setInterval(() => {}, 1000);
+				`.trim(),
+				'packages/app/node_modules/pnpm-dep': ({ getPath, symlink }) => symlink(
+					getPath(dependencyPath),
+					'junction',
+				),
+			});
+			const appPath = fixturePnpm.getPath('packages/app');
+
+			// Start tsx
+			const tsxProcess = tsx(
+				['watch', '--clear-screen=false', 'index.js'],
+				appPath,
+			);
+
+			// Monitor healthy startup
+			await processInteract(
+				tsxProcess.stdout!,
+				[({ output }) => output.includes('dependency\n')],
+				5000,
+			);
+
+			// Rewrite the node_modules dependency
+			await setTimeout(1000);
+			await fixturePnpm.writeFile(dependencyFile, 'module.exports = "updated";');
+			await setTimeout(2000);
+			tsxProcess.kill();
+
+			// Make sure tsx has not restarted
+			const { all } = await tsxProcess;
+			expect(all).not.toMatch('Restarting...');
+		}, 10_000);
 	});
 
 	await test('strips internal watch flags from child argv', async () => {
