@@ -58,19 +58,54 @@ type TransformSyncOptions = TransformOptions & {
 	cjsBanner?: string;
 };
 
-const hasImportMeta = (
+/**
+ * ES modules are always strict, but Node compiles the transformed output inside
+ * a sloppy CommonJS wrapper. The directive opens the banner's IIFE so the module
+ * keeps the mode it was authored against.
+ * https://tc39.es/ecma262/#sec-strict-mode-code
+ */
+const useStrictDirective = '"use strict";';
+
+const commonJsExtensions = ['.cjs', '.cts'];
+const esmExtensions = ['.mjs', '.mts'];
+
+/**
+ * `isEsm` mirrors Node's module syntax detection, plus `.mjs` & `.mts`, which
+ * are ES modules regardless of the syntax they contain. `.cjs` & `.cts` are
+ * CommonJS on the same terms, so they're not parsed at all.
+ *
+ * Both facts are read from one parse because the lexer already runs on every
+ * CommonJS transform.
+ */
+const parseModuleSyntax = (
 	code: string,
 	filePath: string,
 ) => {
-	if (!code.includes('import')) {
-		return false;
+	if (commonJsExtensions.some(extension => filePath.endsWith(extension))) {
+		return;
+	}
+
+	const isEsmExtension = esmExtensions.some(extension => filePath.endsWith(extension));
+
+	if (!code.includes('import') && !code.includes('export')) {
+		return {
+			isEsm: isEsmExtension,
+			hasImportMeta: false,
+		};
 	}
 
 	try {
-		return parseEsm(code, filePath)[0].some(imported => imported.d === -2);
+		const parsed = parseEsm(code, filePath);
+		return {
+			isEsm: isEsmExtension || parsed[3],
+			hasImportMeta: parsed[0].some(imported => imported.d === -2),
+		};
 	} catch {
 		// Let esbuild report the source syntax error.
-		return true;
+		return {
+			isEsm: true,
+			hasImportMeta: true,
+		};
 	}
 };
 
@@ -97,11 +132,18 @@ export const transformSync = (
 		cjsBanner,
 		...extendOptionsWithoutCjsBanner
 	} = extendOptions ?? {};
+
+	const moduleSyntax = (
+		(extendOptionsWithoutCjsBanner.format ?? 'cjs') === 'cjs'
+			? parseModuleSyntax(code, filePath)
+			: undefined
+	);
+
 	const esbuildOptions: TransformOptions = {
 		...cacheConfig,
 		format: 'cjs',
 		sourcefile: filePath,
-		banner: `__filename=${JSON.stringify(filePath)};(()=>{${cjsBanner ?? ''}`,
+		banner: `__filename=${JSON.stringify(filePath)};(()=>{${moduleSyntax?.isEsm ? useStrictDirective : ''}${cjsBanner ?? ''}`,
 		footer: '})()',
 
 		// CJS Annotations for Node. Used by ESM loader for CJS interop
@@ -110,12 +152,7 @@ export const transformSync = (
 		...extendOptionsWithoutCjsBanner,
 	};
 
-	if (
-		esbuildOptions.format === 'cjs'
-		&& !filePath.endsWith('.cjs')
-		&& !filePath.endsWith('.cts')
-		&& hasImportMeta(code, filePath)
-	) {
+	if (moduleSyntax?.hasImportMeta) {
 		esbuildOptions.define = {
 			...esbuildOptions.define,
 			'import.meta': JSON.stringify(getImportMeta(filePath, url)),
