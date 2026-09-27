@@ -24,6 +24,7 @@ import type { TsxRequest } from '../types.js';
 import { isGlobalCjsLoaderActive } from '../../utils/cjs-loader-state.js';
 import { esmLoadReadFile, isFeatureSupported } from '../../utils/node-features.js';
 import { logEsm as log, debugEnabled } from '../../utils/debug.js';
+import { getOutputDirectorySourcePath } from '../../utils/output-directory-source.js';
 import { getPackageSubpathDirectoryInfo } from './package-subpath.js';
 import {
 	getFormatFromFileUrl,
@@ -350,12 +351,105 @@ const resolveExtensionsSync = (
 	}
 };
 
+const toFilePath = (
+	urlOrPath: string,
+) => {
+	if (urlOrPath.startsWith(fileUrlPrefix)) {
+		return fileURLToPath(urlOrPath);
+	}
+
+	if (path.isAbsolute(urlOrPath)) {
+		return urlOrPath;
+	}
+};
+
+/**
+ * Like TypeScript, package imports (#) targeting outDir resolve to the rootDir
+ * source first, so a stale build isn't loaded
+ */
+const resolveOutputDirectorySource = async (
+	specifier: string,
+	context: ResolveHookContext,
+	nextResolve: NextResolve,
+	hookData: Data,
+) => {
+	if (!specifier.startsWith('#')) {
+		return;
+	}
+
+	const tsconfig = getImporterTsconfig(context.parentURL, hookData);
+	if (!tsconfig) {
+		return;
+	}
+
+	let targetUrl: string | undefined;
+	try {
+		const resolved = await nextResolve(specifier, context);
+		targetUrl = resolved.url;
+	} catch (error) {
+		const nodeError = error as NodeError;
+		if (!isModuleNotFound(nodeError.code)) {
+			return;
+		}
+		targetUrl = getMissingPathFromNotFound(nodeError);
+	}
+
+	const targetPath = targetUrl && toFilePath(targetUrl);
+	const sourcePath = targetPath && getOutputDirectorySourcePath(tsconfig, targetPath);
+	if (sourcePath) {
+		return resolveExtensions(pathToFileURL(sourcePath).toString(), context, nextResolve);
+	}
+};
+
+const resolveOutputDirectorySourceSync = (
+	specifier: string,
+	context: ResolveHookContext,
+	nextResolve: NextResolveSync,
+	hookData: Data,
+) => {
+	if (!specifier.startsWith('#')) {
+		return;
+	}
+
+	const tsconfig = getImporterTsconfig(context.parentURL, hookData);
+	if (!tsconfig) {
+		return;
+	}
+
+	let targetUrl: string | undefined;
+	try {
+		targetUrl = nextResolve(specifier, context).url;
+	} catch (error) {
+		const nodeError = error as NodeError;
+		if (!isModuleNotFound(nodeError.code)) {
+			return;
+		}
+		targetUrl = getMissingPathFromNotFound(nodeError);
+	}
+
+	const targetPath = targetUrl && toFilePath(targetUrl);
+	const sourcePath = targetPath && getOutputDirectorySourcePath(tsconfig, targetPath);
+	if (sourcePath) {
+		return resolveExtensionsSync(pathToFileURL(sourcePath).toString(), context, nextResolve);
+	}
+};
+
 const resolveBase = async (
 	specifier: string,
 	context: ResolveHookContext,
 	nextResolve: NextResolve,
 	hookData: Data,
 ) => {
+	const outputDirectorySource = await resolveOutputDirectorySource(
+		specifier,
+		context,
+		nextResolve,
+		hookData,
+	);
+	if (outputDirectorySource) {
+		return outputDirectorySource;
+	}
+
 	const importerTsconfig = getImporterTsconfig(context.parentURL, hookData);
 	const allowJs = importerTsconfig?.config.compilerOptions?.allowJs ?? false;
 	const resolveTsExtensions = resolvesTsExtensions(context.parentURL, allowJs);
@@ -433,6 +527,16 @@ const resolveBaseSync = (
 	nextResolve: NextResolveSync,
 	hookData: Data,
 ) => {
+	const outputDirectorySource = resolveOutputDirectorySourceSync(
+		specifier,
+		context,
+		nextResolve,
+		hookData,
+	);
+	if (outputDirectorySource) {
+		return outputDirectorySource;
+	}
+
 	const importerTsconfig = getImporterTsconfig(context.parentURL, hookData);
 	const allowJs = importerTsconfig?.config.compilerOptions?.allowJs ?? false;
 	const resolveTsExtensions = resolvesTsExtensions(context.parentURL, allowJs);

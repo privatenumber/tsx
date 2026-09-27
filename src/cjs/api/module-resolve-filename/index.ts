@@ -14,6 +14,7 @@ import { createImplicitResolver } from './resolve-implicit-extensions.js';
 import { interopCjsExports } from './interop-cjs-exports.js';
 import { createTsExtensionResolver } from './resolve-ts-extensions.js';
 import { preserveQuery } from './preserve-query.js';
+import { resolveOutputDirectorySource } from './resolve-output-directory-source.js';
 
 const resolveTsPaths = (
 	request: string,
@@ -116,7 +117,8 @@ export const createResolveFilename = (
 	nextResolveSimple = createImplicitResolver(nextResolveSimple);
 
 	const resolved = appendQuery(
-		resolveTsPaths(cleanRequest, parent, nextResolveSimple, tsconfig),
+		resolveOutputDirectorySource(cleanRequest, tsconfig, nextResolveSimple)
+		?? resolveTsPaths(cleanRequest, parent, nextResolveSimple, tsconfig),
 		restOfArgs.length,
 	);
 

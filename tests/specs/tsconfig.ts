@@ -489,4 +489,63 @@ export const tsconfig = ({ tsx }: NodeApis) => describe('tsconfig', () => {
 			});
 		}
 	});
+
+	// Like TypeScript, package imports targeting outDir resolve to the rootDir source
+	// https://github.com/privatenumber/tsx/issues/714
+	describe('package imports from outDir', () => {
+		for (const packageType of [undefined, 'module'] as const) {
+			describe(`package type: ${packageType ?? 'undefined'}`, () => {
+				const createProject = (files?: Record<string, string>) => createFixture({
+					'package.json': createPackageJson({
+						...(packageType ? { type: packageType } : {}),
+						imports: {
+							'#~/*': './dist/*',
+						},
+					}),
+					'tsconfig.json': createTsconfig({
+						compilerOptions: {
+							rootDir: './src',
+							outDir: './dist',
+						},
+					}),
+					'src/main.ts': `
+					import { value } from '#~/example/example.js';
+					console.log(value);
+					`,
+					'src/example/example.ts': 'export const value = "from source";',
+					...files,
+				});
+
+				test('resolves to rootDir source', async () => {
+					await using fixture = await createProject();
+
+					const process = await tsx(['src/main.ts'], fixture.path);
+					onTestFail(() => {
+						console.log(process);
+					});
+
+					expect(process.stderr).toBe('');
+					expect(process.stdout).toBe('from source');
+				});
+
+				test('prefers rootDir source over compiled outDir file', async () => {
+					await using fixture = await createProject({
+						'dist/example/example.js': (
+							packageType === 'module'
+								? 'export const value = "from stale build";'
+								: 'exports.value = "from stale build";'
+						),
+					});
+
+					const process = await tsx(['src/main.ts'], fixture.path);
+					onTestFail(() => {
+						console.log(process);
+					});
+
+					expect(process.stderr).toBe('');
+					expect(process.stdout).toBe('from source');
+				});
+			});
+		}
+	});
 });
