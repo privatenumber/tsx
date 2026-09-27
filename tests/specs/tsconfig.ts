@@ -486,6 +486,99 @@ export const tsconfig = ({ tsx }: NodeApis) => describe('tsconfig', () => {
 					expect(process.stderr).toBe('');
 					expect(process.stdout).toBe('dep label');
 				});
+
+				// Importers not included by the tsconfig keep resolving its path aliases
+				const createProject = () => createFixture({
+					'package.json': createPackageJson(packageType ? { type: packageType } : {}),
+					'tsconfig.json': createTsconfig({
+						compilerOptions: {
+							paths: {
+								'~/*': ['./lib/*'],
+							},
+						},
+						include: ['src'],
+					}),
+					// Side-effect modules to only observe resolution
+					'lib/required.ts': 'console.log("required");',
+					'lib/imported.ts': 'console.log("imported");',
+					'scripts/seed.ts': 'import "~/imported";',
+				});
+
+				test('--eval resolves path aliases', async () => {
+					await using fixture = await createProject();
+
+					const process = await tsx([
+						'--eval',
+						'require("~/required"); import("~/imported");',
+					], fixture.path);
+					onTestFail(() => {
+						console.log(process);
+					});
+
+					expect(process.stderr).toBe('');
+					expect(process.stdout).toBe('required\nimported');
+				});
+
+				test('stdin resolves path aliases', async () => {
+					await using fixture = await createProject();
+
+					const process = await tsx([], {
+						cwd: fixture.path,
+						input: 'import "~/imported";',
+					});
+					onTestFail(() => {
+						console.log(process);
+					});
+
+					expect(process.stderr).toBe('');
+					expect(process.stdout).toBe('imported');
+				});
+
+				test('script outside include resolves path aliases', async () => {
+					await using fixture = await createProject();
+
+					const process = await tsx(['scripts/seed.ts'], fixture.path);
+					onTestFail(() => {
+						console.log(process);
+					});
+
+					expect(process.stderr).toBe('');
+					expect(process.stdout).toBe('imported');
+				});
+
+				test('explicit tsconfig applies over nearer tsconfig', async () => {
+					await using fixture = await createFixture({
+						'package.json': createPackageJson(packageType ? { type: packageType } : {}),
+						'tsconfig.custom.json': createTsconfig({
+							compilerOptions: {
+								jsxFactory: 'Array',
+								jsxFragmentFactory: 'null',
+								paths: {
+									'~/*': ['./lib/*'],
+								},
+							},
+						}),
+						'lib/imported.ts': 'console.log("imported");',
+						sub: {
+							'tsconfig.json': createTsconfig({}),
+							'index.tsx': `
+							import '~/imported';
+							console.log(JSON.stringify(<div>JSX</div>));
+							`,
+						},
+					});
+
+					const process = await tsx(
+						['--tsconfig', 'tsconfig.custom.json', 'sub/index.tsx'],
+						fixture.path,
+					);
+					onTestFail(() => {
+						console.log(process);
+					});
+
+					expect(process.stderr).toBe('');
+					expect(process.stdout).toBe('imported\n["div",null,"JSX"]');
+				});
 			});
 		}
 	});
@@ -535,6 +628,35 @@ export const tsconfig = ({ tsx }: NodeApis) => describe('tsconfig', () => {
 								? 'export const value = "from stale build";'
 								: 'exports.value = "from stale build";'
 						),
+					});
+
+					const process = await tsx(['src/main.ts'], fixture.path);
+					onTestFail(() => {
+						console.log(process);
+					});
+
+					expect(process.stderr).toBe('');
+					expect(process.stdout).toBe('from source');
+				});
+
+				test('uses tsconfig directory without rootDir', async () => {
+					await using fixture = await createFixture({
+						'package.json': createPackageJson({
+							...(packageType ? { type: packageType } : {}),
+							imports: {
+								'#~/*': './dist/src/*',
+							},
+						}),
+						'tsconfig.json': createTsconfig({
+							compilerOptions: {
+								outDir: './dist',
+							},
+						}),
+						'src/main.ts': `
+						import { value } from '#~/example/example.js';
+						console.log(value);
+						`,
+						'src/example/example.ts': 'export const value = "from source";',
 					});
 
 					const process = await tsx(['src/main.ts'], fixture.path);
