@@ -24,6 +24,7 @@ import type { TsxRequest } from '../types.js';
 import { isGlobalCjsLoaderActive } from '../../utils/cjs-loader-state.js';
 import { esmLoadReadFile, isFeatureSupported } from '../../utils/node-features.js';
 import { logEsm as log, debugEnabled } from '../../utils/debug.js';
+import { getOutputDirectorySourcePath } from '../../utils/output-directory-source.js';
 import { getPackageSubpathDirectoryInfo } from './package-subpath.js';
 import {
 	getFormatFromFileUrl,
@@ -164,6 +165,11 @@ const getParentFilePath = (
 
 	return fileURLToPath(new URL(parentURL));
 };
+
+const getImporterTsconfig = (
+	parentURL: string | undefined,
+	hookData: Data,
+) => hookData.tsconfigLookup.resolve(getParentFilePath(parentURL));
 
 const isTypeScriptParent = (
 	parentURL: string | undefined,
@@ -345,13 +351,109 @@ const resolveExtensionsSync = (
 	}
 };
 
+const toFilePath = (
+	urlOrPath: string,
+) => {
+	if (urlOrPath.startsWith(fileUrlPrefix)) {
+		return fileURLToPath(urlOrPath);
+	}
+
+	if (path.isAbsolute(urlOrPath)) {
+		return urlOrPath;
+	}
+};
+
+/**
+ * Like TypeScript, package imports (#) targeting outDir resolve to the rootDir
+ * source first, so a stale build isn't loaded
+ */
+const resolveOutputDirectorySource = async (
+	specifier: string,
+	context: ResolveHookContext,
+	nextResolve: NextResolve,
+	hookData: Data,
+) => {
+	if (!specifier.startsWith('#')) {
+		return;
+	}
+
+	const importerPath = getParentFilePath(context.parentURL);
+	const tsconfig = hookData.tsconfigLookup.resolve(importerPath);
+	if (!importerPath || !tsconfig) {
+		return;
+	}
+
+	let targetUrl: string | undefined;
+	try {
+		const resolved = await nextResolve(specifier, context);
+		targetUrl = resolved.url;
+	} catch (error) {
+		const nodeError = error as NodeError;
+		if (!isModuleNotFound(nodeError.code)) {
+			return;
+		}
+		targetUrl = getMissingPathFromNotFound(nodeError);
+	}
+
+	const targetPath = targetUrl && toFilePath(targetUrl);
+	const sourcePath = targetPath && getOutputDirectorySourcePath(tsconfig, targetPath, importerPath);
+	if (sourcePath) {
+		return resolveExtensions(pathToFileURL(sourcePath).toString(), context, nextResolve);
+	}
+};
+
+const resolveOutputDirectorySourceSync = (
+	specifier: string,
+	context: ResolveHookContext,
+	nextResolve: NextResolveSync,
+	hookData: Data,
+) => {
+	if (!specifier.startsWith('#')) {
+		return;
+	}
+
+	const importerPath = getParentFilePath(context.parentURL);
+	const tsconfig = hookData.tsconfigLookup.resolve(importerPath);
+	if (!importerPath || !tsconfig) {
+		return;
+	}
+
+	let targetUrl: string | undefined;
+	try {
+		targetUrl = nextResolve(specifier, context).url;
+	} catch (error) {
+		const nodeError = error as NodeError;
+		if (!isModuleNotFound(nodeError.code)) {
+			return;
+		}
+		targetUrl = getMissingPathFromNotFound(nodeError);
+	}
+
+	const targetPath = targetUrl && toFilePath(targetUrl);
+	const sourcePath = targetPath && getOutputDirectorySourcePath(tsconfig, targetPath, importerPath);
+	if (sourcePath) {
+		return resolveExtensionsSync(pathToFileURL(sourcePath).toString(), context, nextResolve);
+	}
+};
+
 const resolveBase = async (
 	specifier: string,
 	context: ResolveHookContext,
 	nextResolve: NextResolve,
 	hookData: Data,
 ) => {
-	const allowJs = hookData.parsedTsconfig?.config.compilerOptions?.allowJs ?? false;
+	const outputDirectorySource = await resolveOutputDirectorySource(
+		specifier,
+		context,
+		nextResolve,
+		hookData,
+	);
+	if (outputDirectorySource) {
+		return outputDirectorySource;
+	}
+
+	const importerTsconfig = getImporterTsconfig(context.parentURL, hookData);
+	const allowJs = importerTsconfig?.config.compilerOptions?.allowJs ?? false;
 	const resolveTsExtensions = resolvesTsExtensions(context.parentURL, allowJs);
 
 	log(3, 'resolveBase', {
@@ -427,7 +529,18 @@ const resolveBaseSync = (
 	nextResolve: NextResolveSync,
 	hookData: Data,
 ) => {
-	const allowJs = hookData.parsedTsconfig?.config.compilerOptions?.allowJs ?? false;
+	const outputDirectorySource = resolveOutputDirectorySourceSync(
+		specifier,
+		context,
+		nextResolve,
+		hookData,
+	);
+	if (outputDirectorySource) {
+		return outputDirectorySource;
+	}
+
+	const importerTsconfig = getImporterTsconfig(context.parentURL, hookData);
+	const allowJs = importerTsconfig?.config.compilerOptions?.allowJs ?? false;
 	const resolveTsExtensions = resolvesTsExtensions(context.parentURL, allowJs);
 
 	log(3, 'resolveBaseSync', {
@@ -719,17 +832,17 @@ const resolveTsPaths = async (
 		context,
 
 		tsconfigPathAliasSpecifier,
-		tsconfig: hookData.parsedTsconfig,
 		fromNodeModules: isParentDependency(context.parentURL),
 	});
+	const tsconfig = getImporterTsconfig(context.parentURL, hookData);
 	if (
 		// Bare specifier or TS path alias (e.g. `ns:foo`)
 		tsconfigPathAliasSpecifier
 		// TS path alias
-		&& hookData.parsedTsconfig
+		&& tsconfig
 		&& !isParentDependency(context.parentURL)
 	) {
-		const possiblePaths = resolvePathAlias(hookData.parsedTsconfig, specifier);
+		const possiblePaths = resolvePathAlias(tsconfig, specifier);
 		log(3, 'resolveTsPaths', {
 			possiblePaths,
 		});
@@ -760,17 +873,17 @@ const resolveTsPathsSync = (
 		context,
 
 		tsconfigPathAliasSpecifier,
-		tsconfig: hookData.parsedTsconfig,
 		fromNodeModules: isParentDependency(context.parentURL),
 	});
+	const tsconfig = getImporterTsconfig(context.parentURL, hookData);
 	if (
 		// Bare specifier or TS path alias (e.g. `ns:foo`)
 		tsconfigPathAliasSpecifier
 		// TS path alias
-		&& hookData.parsedTsconfig
+		&& tsconfig
 		&& !isParentDependency(context.parentURL)
 	) {
-		const possiblePaths = resolvePathAlias(hookData.parsedTsconfig, specifier);
+		const possiblePaths = resolvePathAlias(tsconfig, specifier);
 		log(3, 'resolveTsPathsSync', {
 			possiblePaths,
 		});
