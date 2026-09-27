@@ -390,4 +390,103 @@ export const tsconfig = ({ tsx }: NodeApis) => describe('tsconfig', () => {
 			expect(process.stderr).toMatch("Cannot find module 'target'");
 		});
 	});
+
+	// Each file uses the tsconfig that owns it, like the TypeScript language server
+	// https://github.com/privatenumber/tsx/issues/696
+	describe('per-file tsconfig', () => {
+		for (const packageType of [undefined, 'module'] as const) {
+			describe(`package type: ${packageType ?? 'undefined'}`, () => {
+				const createWorkspace = () => createFixture({
+					packages: {
+						app: {
+							'package.json': createPackageJson(packageType ? { type: packageType } : {}),
+							'tsconfig.json': createTsconfig({
+								compilerOptions: {
+									jsxFactory: 'Array',
+									jsxFragmentFactory: 'null',
+									paths: {
+										'~/*': ['./lib/*'],
+									},
+								},
+							}),
+							'own-jsx.tsx': 'console.log(JSON.stringify(<div>JSX</div>));',
+							'dep-jsx.ts': `
+							import { value } from 'dep';
+							console.log(value);
+							`,
+							'dep-alias.ts': `
+							import { label } from 'dep/alias';
+							console.log(label);
+							`,
+
+							// Same alias as the dependency, pointing to a different file
+							'lib/label.ts': 'export const label = "app label";',
+							'node_modules/dep': ({ symlink }) => symlink('../../dep'),
+						},
+						dep: {
+							'package.json': createPackageJson({
+								name: 'dep',
+								...(packageType ? { type: packageType } : {}),
+								exports: {
+									'.': './index.tsx',
+									'./alias': './alias.ts',
+								},
+							}),
+							'tsconfig.json': createTsconfig({
+								compilerOptions: {
+									jsxFactory: 'depJsx',
+									jsxFragmentFactory: 'null',
+									paths: {
+										'~/*': ['./lib/*'],
+									},
+								},
+							}),
+							'index.tsx': `
+							const depJsx = (tag: string, _props: unknown, ...children: unknown[]) => ({ tag, children });
+							export const value = JSON.stringify(<div>JSX</div>);
+							`,
+							'alias.ts': "export { label } from '~/label';",
+							'lib/label.ts': 'export const label = "dep label";',
+						},
+					},
+				});
+
+				test('dependency compiles with its own tsconfig', async () => {
+					await using fixture = await createWorkspace();
+
+					const process = await tsx(['dep-jsx.ts'], fixture.getPath('packages/app'));
+					onTestFail(() => {
+						console.log(process);
+					});
+
+					expect(process.stderr).toBe('');
+					expect(process.stdout).toBe('{"tag":"div","children":["JSX"]}');
+				});
+
+				test('entry tsconfig applies when run from a directory without tsconfig', async () => {
+					await using fixture = await createWorkspace();
+
+					const process = await tsx(['packages/app/own-jsx.tsx'], fixture.path);
+					onTestFail(() => {
+						console.log(process);
+					});
+
+					expect(process.stderr).toBe('');
+					expect(process.stdout).toBe('["div",null,"JSX"]');
+				});
+
+				test('dependency path alias resolves with its own tsconfig', async () => {
+					await using fixture = await createWorkspace();
+
+					const process = await tsx(['dep-alias.ts'], fixture.getPath('packages/app'));
+					onTestFail(() => {
+						console.log(process);
+					});
+
+					expect(process.stderr).toBe('');
+					expect(process.stdout).toBe('dep label');
+				});
+			});
+		}
+	});
 });

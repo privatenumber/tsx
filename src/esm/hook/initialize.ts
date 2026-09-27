@@ -1,13 +1,12 @@
 import type { InitializeHook } from 'node:module';
-import type { TsconfigResult } from 'get-tsconfig';
 import type { InitializationOptions } from '../api/register.js';
 import type { Message } from '../types.js';
-import { loadTsconfig } from '../../utils/tsconfig.js';
+import { createTsconfigLookup, type TsconfigLookup } from '../../utils/tsconfig.js';
 
 type Data = InitializationOptions & {
 	active: boolean;
 	onImport?: (url: string) => void;
-	parsedTsconfig: TsconfigResult | undefined;
+	tsconfigLookup: TsconfigLookup;
 };
 
 export type { Data };
@@ -23,7 +22,7 @@ export type { Data };
  */
 export const createDefaultData = (): Data => ({
 	active: true,
-	parsedTsconfig: undefined,
+	tsconfigLookup: createTsconfigLookup(false),
 });
 
 export const createData = (
@@ -35,14 +34,10 @@ export const createData = (
 		active: true,
 		namespace: options?.namespace,
 		onImport: options?.onImport,
-		parsedTsconfig: undefined,
+		tsconfigLookup: createTsconfigLookup(options?.tsconfig ?? process.env.TSX_TSCONFIG_PATH),
 		port: options?.port,
 		tsconfig: options?.tsconfig,
 	};
-
-	if (options?.tsconfig !== false) {
-		hookData.parsedTsconfig = loadTsconfig(options?.tsconfig ?? process.env.TSX_TSCONFIG_PATH);
-	}
 
 	return hookData;
 };
@@ -75,6 +70,6 @@ type GlobalPreloadHook = () => string;
 export const createGlobalPreload = (
 	data: Data,
 ): GlobalPreloadHook => () => {
-	data.parsedTsconfig = loadTsconfig(process.env.TSX_TSCONFIG_PATH);
+	data.tsconfigLookup = createTsconfigLookup(process.env.TSX_TSCONFIG_PATH);
 	return 'process.setSourceMapsEnabled(true);';
 };

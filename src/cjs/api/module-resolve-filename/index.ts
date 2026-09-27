@@ -1,6 +1,7 @@
 import Module from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { resolvePathAlias, type TsconfigResult } from 'get-tsconfig';
+import type { TsconfigLookup } from '../../../utils/tsconfig.js';
 import {
 	isFilePath,
 	fileUrlPrefix,
@@ -49,7 +50,7 @@ const resolveTsPaths = (
 export const createResolveFilename = (
 	state: LoaderState,
 	nextResolve: ResolveFilename,
-	tsconfig: TsconfigResult | undefined,
+	tsconfigLookup: TsconfigLookup,
 	namespace?: string,
 ): ResolveFilename => (
 	request,
@@ -86,6 +87,7 @@ export const createResolveFilename = (
 	);
 
 	const isDependency = isDependencyPath(parent?.filename);
+	const tsconfig = tsconfigLookup.resolve(parent?.filename ?? undefined);
 	const resolveBareSpecifiers = Boolean(
 		// Namespaced tsx.require() resolves its entire graph as TypeScript.
 		namespace

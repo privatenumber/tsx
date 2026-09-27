@@ -3,7 +3,6 @@ import path from 'node:path';
 import Module from 'node:module';
 import { pathToFileURL } from 'node:url';
 import type { TransformOptions } from 'esbuild';
-import { isFileIncluded, type TsconfigResult } from 'get-tsconfig';
 import { transformSync } from '../../utils/transform/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';
 import { isESM } from '../../utils/es-module-lexer.js';
@@ -12,6 +11,7 @@ import { parent } from '../../utils/ipc/client.js';
 import { logCjs as log } from '../../utils/debug.js';
 import { isFeatureSupported, requireEsm } from '../../utils/node-features.js';
 import { getNearestPackageTypeSync } from '../../esm/hook/package-json.js';
+import type { TsconfigLookup } from '../../utils/tsconfig.js';
 import type { LoaderState } from './types.js';
 
 const typescriptExtensions = [
@@ -102,7 +102,7 @@ const safeSet = <T extends Record<string, unknown>>(
 export const createExtensions = (
 	state: LoaderState,
 	extensions: NodeJS.RequireExtensions,
-	tsconfig: TsconfigResult | undefined,
+	tsconfigLookup: TsconfigLookup,
 	namespace?: string,
 ) => {
 	const defaultLoader = extensions['.js'];
@@ -173,9 +173,7 @@ export const createExtensions = (
 		);
 		const tsconfigRaw = (
 			(transformTs || isEsmSyntax)
-			&& tsconfig
-			&& isFileIncluded(tsconfig, cleanFilePath)
-				? tsconfig.config as TransformOptions['tsconfigRaw']
+				? tsconfigLookup.compile(cleanFilePath)?.config as TransformOptions['tsconfigRaw']
 				: undefined
 		);
 

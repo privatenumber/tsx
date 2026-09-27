@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs';
 import type { LoadHook, LoadHookSync } from 'node:module';
 import { readFile } from 'node:fs/promises';
 import type { TransformOptions } from 'esbuild';
-import { isFileIncluded } from 'get-tsconfig';
 import { transform, transformEsmSync, transformSync } from '../../utils/transform/index.js';
 import { transformDynamicImport } from '../../utils/transform/transform-dynamic-import.js';
 import { inlineSourceMap } from '../../source-map.js';
@@ -63,11 +62,7 @@ const commonJsInternalQueryParameters = [
 const getTsconfigRaw = (
 	filePath: string,
 	hookData: Data,
-) => (
-	hookData.parsedTsconfig && isFileIncluded(hookData.parsedTsconfig, filePath)
-		? hookData.parsedTsconfig.config as TransformOptions['tsconfigRaw']
-		: undefined
-);
+) => hookData.tsconfigLookup.compile(filePath)?.config as TransformOptions['tsconfigRaw'];
 
 // Node's CJS-from-load-hook bridge supplies a reduced require without
 // cache/extensions. Rebuild the normal require surface when Node evaluates the

@@ -165,6 +165,11 @@ const getParentFilePath = (
 	return fileURLToPath(new URL(parentURL));
 };
 
+const getImporterTsconfig = (
+	parentURL: string | undefined,
+	hookData: Data,
+) => hookData.tsconfigLookup.resolve(getParentFilePath(parentURL));
+
 const isTypeScriptParent = (
 	parentURL: string | undefined,
 ) => {
@@ -351,7 +356,8 @@ const resolveBase = async (
 	nextResolve: NextResolve,
 	hookData: Data,
 ) => {
-	const allowJs = hookData.parsedTsconfig?.config.compilerOptions?.allowJs ?? false;
+	const importerTsconfig = getImporterTsconfig(context.parentURL, hookData);
+	const allowJs = importerTsconfig?.config.compilerOptions?.allowJs ?? false;
 	const resolveTsExtensions = resolvesTsExtensions(context.parentURL, allowJs);
 
 	log(3, 'resolveBase', {
@@ -427,7 +433,8 @@ const resolveBaseSync = (
 	nextResolve: NextResolveSync,
 	hookData: Data,
 ) => {
-	const allowJs = hookData.parsedTsconfig?.config.compilerOptions?.allowJs ?? false;
+	const importerTsconfig = getImporterTsconfig(context.parentURL, hookData);
+	const allowJs = importerTsconfig?.config.compilerOptions?.allowJs ?? false;
 	const resolveTsExtensions = resolvesTsExtensions(context.parentURL, allowJs);
 
 	log(3, 'resolveBaseSync', {
@@ -719,17 +726,17 @@ const resolveTsPaths = async (
 		context,
 
 		tsconfigPathAliasSpecifier,
-		tsconfig: hookData.parsedTsconfig,
 		fromNodeModules: isParentDependency(context.parentURL),
 	});
+	const tsconfig = getImporterTsconfig(context.parentURL, hookData);
 	if (
 		// Bare specifier or TS path alias (e.g. `ns:foo`)
 		tsconfigPathAliasSpecifier
 		// TS path alias
-		&& hookData.parsedTsconfig
+		&& tsconfig
 		&& !isParentDependency(context.parentURL)
 	) {
-		const possiblePaths = resolvePathAlias(hookData.parsedTsconfig, specifier);
+		const possiblePaths = resolvePathAlias(tsconfig, specifier);
 		log(3, 'resolveTsPaths', {
 			possiblePaths,
 		});
@@ -760,17 +767,17 @@ const resolveTsPathsSync = (
 		context,
 
 		tsconfigPathAliasSpecifier,
-		tsconfig: hookData.parsedTsconfig,
 		fromNodeModules: isParentDependency(context.parentURL),
 	});
+	const tsconfig = getImporterTsconfig(context.parentURL, hookData);
 	if (
 		// Bare specifier or TS path alias (e.g. `ns:foo`)
 		tsconfigPathAliasSpecifier
 		// TS path alias
-		&& hookData.parsedTsconfig
+		&& tsconfig
 		&& !isParentDependency(context.parentURL)
 	) {
-		const possiblePaths = resolvePathAlias(hookData.parsedTsconfig, specifier);
+		const possiblePaths = resolvePathAlias(tsconfig, specifier);
 		log(3, 'resolveTsPathsSync', {
 			possiblePaths,
 		});

@@ -1,7 +1,7 @@
 import Module from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadTsconfig } from '../../utils/tsconfig.js';
+import { createTsconfigLookup } from '../../utils/tsconfig.js';
 import { urlSearchParamsStringify } from '../../utils/url-search-params-stringify.js';
 import { fileUrlPrefix } from '../../utils/path-utils.js';
 import { activateGlobalCjsLoader } from '../../utils/cjs-loader-state.js';
@@ -68,7 +68,7 @@ export const register: Register = (
 		enabled: true,
 	};
 
-	const tsconfig = loadTsconfig(process.env.TSX_TSCONFIG_PATH);
+	const tsconfigLookup = createTsconfigLookup(process.env.TSX_TSCONFIG_PATH);
 
 	// register
 	process.setSourceMapsEnabled(true);
@@ -77,7 +77,7 @@ export const register: Register = (
 	const resolveFilename = createResolveFilename(
 		state,
 		originalResolveFilename,
-		tsconfig,
+		tsconfigLookup,
 		options?.namespace,
 	);
 	Module._resolveFilename = resolveFilename;
@@ -85,7 +85,7 @@ export const register: Register = (
 	const unregisterExtensions = createExtensions(
 		state,
 		Module._extensions,
-		tsconfig,
+		tsconfigLookup,
 		options?.namespace,
 	);
 	const unregisterGlobalCjsLoader = (
