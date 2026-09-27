@@ -377,8 +377,9 @@ const resolveOutputDirectorySource = async (
 		return;
 	}
 
-	const tsconfig = getImporterTsconfig(context.parentURL, hookData);
-	if (!tsconfig) {
+	const importerPath = getParentFilePath(context.parentURL);
+	const tsconfig = hookData.tsconfigLookup.resolve(importerPath);
+	if (!importerPath || !tsconfig) {
 		return;
 	}
 
@@ -395,7 +396,7 @@ const resolveOutputDirectorySource = async (
 	}
 
 	const targetPath = targetUrl && toFilePath(targetUrl);
-	const sourcePath = targetPath && getOutputDirectorySourcePath(tsconfig, targetPath);
+	const sourcePath = targetPath && getOutputDirectorySourcePath(tsconfig, targetPath, importerPath);
 	if (sourcePath) {
 		return resolveExtensions(pathToFileURL(sourcePath).toString(), context, nextResolve);
 	}
@@ -411,8 +412,9 @@ const resolveOutputDirectorySourceSync = (
 		return;
 	}
 
-	const tsconfig = getImporterTsconfig(context.parentURL, hookData);
-	if (!tsconfig) {
+	const importerPath = getParentFilePath(context.parentURL);
+	const tsconfig = hookData.tsconfigLookup.resolve(importerPath);
+	if (!importerPath || !tsconfig) {
 		return;
 	}
 
@@ -428,7 +430,7 @@ const resolveOutputDirectorySourceSync = (
 	}
 
 	const targetPath = targetUrl && toFilePath(targetUrl);
-	const sourcePath = targetPath && getOutputDirectorySourcePath(tsconfig, targetPath);
+	const sourcePath = targetPath && getOutputDirectorySourcePath(tsconfig, targetPath, importerPath);
 	if (sourcePath) {
 		return resolveExtensionsSync(pathToFileURL(sourcePath).toString(), context, nextResolve);
 	}

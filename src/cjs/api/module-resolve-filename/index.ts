@@ -117,7 +117,7 @@ export const createResolveFilename = (
 	nextResolveSimple = createImplicitResolver(nextResolveSimple);
 
 	const resolved = appendQuery(
-		resolveOutputDirectorySource(cleanRequest, tsconfig, nextResolveSimple)
+		resolveOutputDirectorySource(cleanRequest, parent?.filename, tsconfig, nextResolveSimple)
 		?? resolveTsPaths(cleanRequest, parent, nextResolveSimple, tsconfig),
 		restOfArgs.length,
 	);

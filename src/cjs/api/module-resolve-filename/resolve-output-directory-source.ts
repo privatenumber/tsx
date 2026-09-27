@@ -9,10 +9,11 @@ import type { SimpleResolve } from '../types.js';
  */
 export const resolveOutputDirectorySource = (
 	request: string,
+	importerPath: string | null | undefined,
 	tsconfig: TsconfigResult | undefined,
 	resolve: SimpleResolve,
 ) => {
-	if (!tsconfig || !request.startsWith('#')) {
+	if (!importerPath || !tsconfig || !request.startsWith('#')) {
 		return;
 	}
 
@@ -27,7 +28,7 @@ export const resolveOutputDirectorySource = (
 		targetPath = nodeError.message.match(/^Cannot find module '([^']+)'/)?.[1];
 	}
 
-	const sourcePath = targetPath && getOutputDirectorySourcePath(tsconfig, targetPath);
+	const sourcePath = targetPath && getOutputDirectorySourcePath(tsconfig, targetPath, importerPath);
 	if (!sourcePath) {
 		return;
 	}
