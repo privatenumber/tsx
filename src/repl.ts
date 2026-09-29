@@ -17,7 +17,9 @@ const { eval: defaultEval } = nodeRepl;
 
 const preEval: REPLEval = async function (code, context, filename, callback) {
 	const transformed = await transform(
-		code,
+		nodeRepl.replMode === repl.REPL_MODE_STRICT
+			? `'use strict';${code}`
+			: code,
 		filename,
 		{
 			loader: 'ts',

@@ -116,4 +116,51 @@ export const repl = () => describe('REPL', () => {
 
 		tsxProcess.kill();
 	}, 10_000);
+
+	test('keeps sloppy-mode octal literals in the default REPL', async () => {
+		const tsxProcess = tsx({
+			args: ['--interactive'],
+		});
+
+		await processInteract(
+			tsxProcess.stdout!,
+			[
+				({ chunk }) => {
+					if (chunk.includes('> ')) {
+						tsxProcess.stdin!.write('01\r');
+						return true;
+					}
+				},
+				({ output }) => output.includes('> 1'),
+			],
+			5000,
+		);
+
+		tsxProcess.kill();
+	}, 10_000);
+
+	test('respects NODE_REPL_MODE=strict when transpiling REPL input', async () => {
+		const tsxProcess = tsx({
+			args: ['--interactive'],
+			env: {
+				NODE_REPL_MODE: 'strict',
+			},
+		});
+
+		await processInteract(
+			tsxProcess.stdout!,
+			[
+				({ chunk }) => {
+					if (chunk.includes('> ')) {
+						tsxProcess.stdin!.write('01\r');
+						return true;
+					}
+				},
+				({ output }) => output.includes('SyntaxError: Octal literals are not allowed in strict mode'),
+			],
+			5000,
+		);
+
+		tsxProcess.kill();
+	}, 10_000);
 });

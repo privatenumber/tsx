@@ -9,6 +9,7 @@ type Options = {
 	args: string[];
 	nodePath?: string;
 	cwd?: string;
+	env?: NodeJS.ProcessEnv;
 };
 
 export const tsxPath = fileURLToPath(new URL('../../dist/cli.mjs', import.meta.url).toString());
@@ -30,6 +31,7 @@ export const tsx = (
 			env: {
 				TSX_DISABLE_CACHE: '1',
 				DEBUG: '1',
+				...options.env,
 			},
 			nodePath: options.nodePath,
 			nodeOptions: [],

@@ -5,8 +5,14 @@ const patchEval = (nodeRepl: REPLServer) => {
 	const { eval: defaultEval } = nodeRepl;
 	const preEval: REPLEval = async function (code, context, filename, callback) {
 		try {
+			// esbuild parses REPL input as a script, so sloppy-only syntax such as
+			// octal literals is rewritten (01 → 1) unless the source is strict.
+			// Node's strict REPL (NODE_REPL_MODE=strict) does not insert a
+			// directive into this string, so add one before transforming.
 			const transformed = await transform(
-				code,
+				nodeRepl.replMode === repl.REPL_MODE_STRICT
+					? `'use strict';${code}`
+					: code,
 				{
 					sourcefile: filename,
 					loader: 'ts',
