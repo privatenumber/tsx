@@ -195,6 +195,28 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 			expect(tsxProcess.stderr).toBe('');
 		});
 
+		test('top-level await runs as ESM without --input-type', async () => {
+			const tsxProcess = await tsx([
+				'--eval',
+				'const value: number = await Promise.resolve(1); console.log(value, typeof require)',
+			]);
+
+			expect(tsxProcess.exitCode).toBe(0);
+			expect(tsxProcess.stdout).toBe('1 undefined');
+			expect(tsxProcess.stderr).toBe('');
+		});
+
+		test('--input-type=commonjs keeps rejecting top-level await', async () => {
+			const tsxProcess = await tsx([
+				'--input-type=commonjs',
+				'--eval',
+				'await Promise.resolve(1)',
+			]);
+
+			expect(tsxProcess.exitCode).toBe(1);
+			expect(tsxProcess.stderr).toMatch('Top-level await is currently not supported with the "cjs" output format');
+		});
+
 		test('--print', async () => {
 			const tsxProcess = await tsx([
 				'--print',

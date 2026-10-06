@@ -206,16 +206,42 @@ cli({
 
 		// Lazy-loaded; most runs don't use --eval/--print
 		const { transformSync: esbuildTransformSync } = await import('esbuild');
-		const transformed = esbuildTransformSync(
+		const transformEval = (format: 'esm' | 'cjs') => esbuildTransformSync(
 			evalCode,
 			{
 				loader: 'default',
 				sourcefile: '/eval.ts',
-				format: inputType === 'module' ? 'esm' : 'cjs',
+				format,
 			},
-		);
+		).code;
 
-		argvsToRun.unshift(`--${evalType}`, transformed.code);
+		let transformedCode: string;
+		if (inputType === 'module') {
+			transformedCode = transformEval('esm');
+		} else {
+			try {
+				transformedCode = transformEval('cjs');
+			} catch (cjsError) {
+				// Without --input-type, Node runs eval input that only parses as
+				// ESM (e.g. top-level await) as a module via syntax detection.
+				// https://nodejs.org/api/packages.html#syntax-detection
+				// esbuild can't emit such input as CommonJS, so fall back to ESM
+				// and pass --input-type=module so every Node version agrees.
+				if (inputType !== undefined) {
+					throw cjsError;
+				}
+
+				try {
+					transformedCode = transformEval('esm');
+				} catch {
+					throw cjsError;
+				}
+
+				argvsToRun.unshift('--input-type=module');
+			}
+		}
+
+		argvsToRun.unshift(`--${evalType}`, transformedCode);
 	}
 
 	// Default --test glob to find TypeScript files
