@@ -287,7 +287,7 @@ export const createExtensions = (
 	/**
 	 * Loaders for extensions .cjs, .cts, & .mts don't need to be
 	 * registered because they're explicitly specified. And unknown
-	 * extensions (incl .cjs) fallsback to using the '.js' loader:
+	 * extensions (incl .cjs) falls back to using the '.js' loader:
 	 * https://github.com/nodejs/node/blob/v18.4.0/lib/internal/modules/cjs/loader.js#L430
 	 *
 	 * That said, it's actually ".js" and ".mjs" that get special treatment
