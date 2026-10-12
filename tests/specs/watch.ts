@@ -104,6 +104,59 @@ export const watch = ({ tsx, path: nodePath }: NodeApis) => describe('watch', as
 		expect(result.stderr).toBe('');
 	}, 10_000);
 
+	/**
+	 * Re-announced dependencies are deduplicated, so a dependency that goes away
+	 * has to be forgotten for its replacement to be watched again
+	 * https://github.com/privatenumber/tsx/issues/855
+	 */
+	await test('keeps watching a dependency that is deleted and recreated', async () => {
+		await using fixtureRecreate = await createFixture({
+			'package.json': createPackageJson({
+				type: 'module',
+			}),
+			'index.js': `
+				const { value } = await import('./value.js').catch(() => ({ value: 'gone' }));
+				console.log(value);
+				`,
+			'value.js': 'export const value = \'first\';',
+		});
+		const tsxProcess = tsx(
+			['watch', '--clear-screen=false', 'index.js'],
+			fixtureRecreate.path,
+		);
+		await processInteract(
+			tsxProcess.stdout!,
+			[
+				async ({ output }) => {
+					if (output.includes('first\n')) {
+						await setTimeout(1000);
+						await fixtureRecreate.rm('value.js');
+						return true;
+					}
+				},
+				async ({ output }) => {
+					if (output.includes('gone\n')) {
+						await setTimeout(1000);
+						await fixtureRecreate.writeFile('value.js', 'export const value = \'second\';');
+						return true;
+					}
+				},
+				async ({ output }) => {
+					if (output.includes('second\n')) {
+						await setTimeout(1000);
+						await fixtureRecreate.writeFile('value.js', 'export const value = \'third\';');
+						return true;
+					}
+				},
+				({ output }) => output.includes('third\n'),
+			],
+			20_000,
+		);
+
+		tsxProcess.kill();
+		await tsxProcess;
+	}, 25_000);
+
 	await test('starts with a bang-prefixed literal entry', async () => {
 		await using fixtureBang = await createFixture({
 			'!entry.ts': 'console.log("bang entry")',

@@ -18,6 +18,7 @@ import {
 	debounce,
 	log,
 } from './utils.js';
+import { trackWatchedPaths } from './watched-paths.js';
 
 const flags = {
 	noCache: {
@@ -122,8 +123,8 @@ export const watchCommand = command({
 		return `${event}:${pathKey}`;
 	};
 	const literalWatchPaths = argv._.map(filePath => path.resolve(filePath));
-	let literalWatcher: FSWatcher;
-	let dependencyOverrideWatcher: FSWatcher | undefined;
+	let addLiteralWatchPath: ReturnType<typeof trackWatchedPaths>;
+	let addDependencyOverrideWatchPath: ReturnType<typeof trackWatchedPaths> | undefined;
 	let watchersReady = false;
 	const recentWatchEvents = new Map<string, {
 		source: 'include' | 'literal';
@@ -165,18 +166,22 @@ export const watchCommand = command({
 
 			if (path.isAbsolute(dependencyPath)) {
 				if (exactNegatedIncludes.has(getPathKey(dependencyPath))) {
-					if (!dependencyOverrideWatcher) {
-						dependencyOverrideWatcher = new FSWatcher({
+					if (!addDependencyOverrideWatchPath) {
+						const dependencyOverrideWatcher = new FSWatcher({
 							...watchOptions,
 							disableGlobbing: true,
 						});
 						dependencyOverrideWatcher.on('all', (event, filePath) => {
 							handleWatchEvent('literal', event, filePath);
 						});
+						addDependencyOverrideWatchPath = trackWatchedPaths(
+							dependencyOverrideWatcher,
+							getPathKey,
+						);
 					}
-					dependencyOverrideWatcher.add(dependencyPath);
+					addDependencyOverrideWatchPath(dependencyPath);
 				} else {
-					literalWatcher.add(dependencyPath);
+					addLiteralWatchPath(dependencyPath);
 				}
 			}
 		}
@@ -339,10 +344,11 @@ export const watchCommand = command({
 		recentWatchEvents.set(eventKey, eventRecord);
 		reRun(event, filePath);
 	};
-	literalWatcher = new FSWatcher({
+	const literalWatcher = new FSWatcher({
 		...watchOptions,
 		disableGlobbing: true,
 	});
+	addLiteralWatchPath = trackWatchedPaths(literalWatcher, getPathKey);
 	literalWatcher.on('all', (event, filePath) => {
 		handleWatchEvent('literal', event, filePath);
 	});
@@ -350,7 +356,7 @@ export const watchCommand = command({
 		watcher.once('ready', resolve);
 	});
 	const watcherReadyPromises = [waitForReady(literalWatcher)];
-	literalWatcher.add(literalWatchPaths);
+	addLiteralWatchPath(literalWatchPaths);
 	if (options.include.some(includePattern => !includePattern.startsWith('!'))) {
 		const includeWatcher = new FSWatcher(watchOptions);
 		includeWatcher.on('all', (event, filePath) => {
