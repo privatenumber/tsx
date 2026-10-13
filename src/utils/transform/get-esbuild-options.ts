@@ -40,8 +40,12 @@ export const cacheConfig = {
 	 *
 	 * minifySyntax is disabled because it does some tree-shaking
 	 * eg. unused try-catch error variable
+	 *
+	 * Disabled under V8 coverage because single-line output makes
+	 * coverage tools (c8, v8-to-istanbul) misreport lines & branches
+	 * https://github.com/privatenumber/tsx/issues/857
 	 */
-	minifyWhitespace: true,
+	minifyWhitespace: !process.env.NODE_V8_COVERAGE,
 
 	/**
 	 * esbuild renames variables even if minification is not enabled

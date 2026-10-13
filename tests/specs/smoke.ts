@@ -38,6 +38,23 @@ const hasCoverageSourcesContent = async (
 	));
 };
 
+const getCoverageLineLengths = async (
+	coverageDirectory: string,
+	fileName: string,
+) => {
+	const fileNames = await fs.readdir(coverageDirectory);
+	for (const file of fileNames) {
+		const coverage = JSON.parse(
+			await fs.readFile(path.join(coverageDirectory, file), 'utf8'),
+		);
+		const sourceMapCache = coverage['source-map-cache'] as Record<string, { lineLengths: number[] }> | undefined;
+		const entry = Object.entries(sourceMapCache ?? {}).find(([url]) => url.endsWith(fileName));
+		if (entry) {
+			return entry[1].lineLengths;
+		}
+	}
+};
+
 const getSmokeOutput = (stdout: string) => {
 	const output = stdout.split('\n').find(line => line.includes('"import.meta.url"'));
 	if (!output) {
@@ -582,6 +599,40 @@ export const smoke = ({ tsx, supports }: NodeApis) => describe('Smoke', () => {
 				const coverageDirectory = fixture.getPath('coverage');
 				const coverageSourceMapCache = await hasCoverageSourcesContent(coverageDirectory);
 				expect(coverageSourceMapCache).toBe(true);
+			});
+
+			test('preserves line structure under V8 coverage', async () => {
+				const source = outdent`
+				export function classify(value: number): string {
+					if (value < 0) {
+						return 'negative';
+					}
+					return 'positive';
+				}
+
+				console.log(classify(1));
+				`;
+
+				await using fixture = await createFixture({
+					'package.json': createPackageJson(packageType ? { type: packageType } : {}),
+					'index.ts': source,
+				});
+
+				const p = await tsx(['index.ts'], {
+					cwd: fixture.path,
+					env: {
+						NODE_V8_COVERAGE: 'coverage',
+					},
+				});
+
+				onTestFail(() => {
+					console.log(p);
+				});
+				expect(p.failed).toBe(false);
+
+				const lineLengths = await getCoverageLineLengths(fixture.getPath('coverage'), 'index.ts');
+				expect(lineLengths).toBeDefined();
+				expect(lineLengths!.length).toBeGreaterThanOrEqual(source.split('\n').length);
 			});
 
 			test('resolve package exports', async () => {
