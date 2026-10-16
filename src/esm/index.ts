@@ -9,17 +9,25 @@ import { createLoad } from './hook/load.js';
 import { createResolve } from './hook/resolve.js';
 
 // Loaded via --import flag
+//
+// Copies registered as chained async hooks (see register()) carry the
+// `tsx-chained` query and must not auto-register: they only provide
+// resolve/load for downstream nextResolve() chaining.
+const isChainedAsyncHook = new URL(import.meta.url).searchParams.has('tsx-chained');
 if (
-	(
-		isFeatureSupported(moduleRegisterHooksCjsReload)
-		// Keep user Worker preloads active; only skip Node's internal loader
-		// thread, where async module.register() preloads can evaluate tsx itself.
-		// https://github.com/nodejs/node/blob/v26.0.0/doc/api/worker_threads.md#worker_threadsisinternalthread
-		&& !workerThreads.isInternalThread
-	)
-	|| (
-		isFeatureSupported(moduleRegister)
-		&& workerThreads.isMainThread
+	!isChainedAsyncHook
+	&& (
+		(
+			isFeatureSupported(moduleRegisterHooksCjsReload)
+			// Keep user Worker preloads active; only skip Node's internal loader
+			// thread, where async module.register() preloads can evaluate tsx itself.
+			// https://github.com/nodejs/node/blob/v26.0.0/doc/api/worker_threads.md#worker_threadsisinternalthread
+			&& !workerThreads.isInternalThread
+		)
+		|| (
+			isFeatureSupported(moduleRegister)
+			&& workerThreads.isMainThread
+		)
 	)
 ) {
 	register();
@@ -35,5 +43,24 @@ const data = createDefaultData();
 
 export const initialize = createInitialize(data);
 export const globalPreload = createGlobalPreload(data);
-export const load = createLoad(data);
-export const resolve = createResolve(data);
+
+// Chained async hook copies (see register()) only provide resolve for
+// downstream nextResolve() chaining. They must not provide load: module
+// loading stays on the sync hooks to avoid double-transformation and
+// format-detection conflicts.
+// https://github.com/privatenumber/tsx/issues/853
+export const load = isChainedAsyncHook ? undefined : createLoad(data);
+
+const baseResolve = createResolve(data);
+export const resolve = (
+	...args: Parameters<typeof baseResolve>
+) => {
+	// The tsx:// protocol (scoped tsImport() requests) is owned by the sync
+	// hooks; passing it through here avoids double-processing the namespace
+	// handshake.
+	if (isChainedAsyncHook && args[0].startsWith('tsx://')) {
+		const nextResolve = args[2];
+		return nextResolve(args[0], args[1]);
+	}
+	return baseResolve(...args);
+};

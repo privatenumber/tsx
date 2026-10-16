@@ -137,9 +137,50 @@ export const register: Register = (
 			resolve: createResolveSync(hookData),
 		});
 
+		// Node does not chain downstream async module.register() hooks through
+		// sync registerHooks(): a downstream hook's nextResolve() bypasses the
+		// sync hooks entirely. Register an async copy of the hooks so downstream
+		// hooks (e.g. import-in-the-middle) get tsx's TypeScript resolution
+		// through nextResolve(), as in tsx <= 4.21.0.
+		// https://github.com/privatenumber/tsx/issues/853
+		const { port1, port2 } = new MessageChannel();
+		// The hook entry is at dist/esm/index.mjs. Compute the specifier
+		// relative to this module's bundled location: the ESM build emits a
+		// shared chunk at dist/, while the CJS build is at dist/esm/api/.
+		// (import.meta.url is polyfilled from __filename in the CJS build.)
+		const chainedHookSpecifier = import.meta.url.includes('/esm/api/')
+			? `../index.mjs?tsx-chained=${crypto.randomUUID()}`
+			: `./esm/index.mjs?tsx-chained=${crypto.randomUUID()}`;
+		module.register(
+			// Load new copy of the hook entry so it can be registered multiple
+			// times. The `tsx-chained` query tells the entry to skip
+			// auto-registration (it only provides hooks for chaining).
+			chainedHookSpecifier,
+			{
+				parentURL: import.meta.url,
+				data: {
+					port: port2,
+					namespace: options?.namespace,
+					tsconfig: options?.tsconfig,
+				} satisfies InitializationOptions,
+				transferList: [port2],
+			},
+		);
+
 		const unregister = (async () => {
 			hookData.active = false;
 			registeredHooks.deregister();
+
+			port1.postMessage('deactivate');
+			await new Promise<void>((resolve) => {
+				const onDeactivated = (message: Message) => {
+					if (message.type === 'deactivated') {
+						port1.off('message', onDeactivated);
+						resolve();
+					}
+				};
+				port1.on('message', onDeactivated);
+			});
 
 			if (sourceMapsEnabled === false) {
 				process.setSourceMapsEnabled(false);
