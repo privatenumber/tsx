@@ -463,6 +463,31 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 			expect(process.stdout).toBe('ts-main');
 		});
 
+		// https://github.com/privatenumber/tsx/issues/480
+		test('sync ESM hook resolves a trailing-slash dependency directory to one module URL', async () => {
+			await using fixture = await createFixture({
+				'package.json': createPackageJson({ type: 'module' }),
+				'entry.ts': `
+					const withSlash = await import('dependency/subpath/');
+					const withoutSlash = await import('dependency/subpath');
+					const resolved = import.meta.resolve('dependency/subpath/');
+
+					console.log(withSlash === withoutSlash, resolved.endsWith('/dependency/subpath/index.js'));
+					`,
+				'node_modules/dependency': {
+					'package.json': '{}',
+					'subpath/index.js': 'exports.source = "index";',
+				},
+			});
+
+			// Without realpath, Node keeps the resolved URL as written
+			const process = await node.tsx(['--preserve-symlinks', 'entry.ts'], fixture.path);
+
+			expect(process.stderr).toBe('');
+			expect(process.exitCode).toBe(0);
+			expect(process.stdout).toBe('true true');
+		});
+
 		await test('watch reruns when imported TypeScript file changes', async () => {
 			await using fixture = await createFixture({
 				'package.json': createPackageJson({ type: 'commonjs' }),
@@ -935,6 +960,77 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 		expect(tsxProcess.exitCode).toBe(nativeProcess.exitCode);
 		expect(tsxProcess.stderr).toBe(nativeProcess.stderr);
 		expect(JSON.parse(tsxProcess.stdout)).toEqual(nativeOutcome);
+	});
+
+	// https://github.com/privatenumber/tsx/issues/480
+	test('resolves a trailing-slash dependency directory inside node_modules', async () => {
+		const entrySource = `
+			const resolved = import.meta.resolve('dependency/subpath/');
+			const imported = await import('dependency/subpath/').then(
+				() => 'resolved',
+				error => ({ code: error.code, url: error.url }),
+			);
+
+			console.log(JSON.stringify({ resolved, imported }));
+			`;
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.mjs': entrySource,
+			'entry.ts': entrySource,
+			node_modules: {
+				dependency: {
+					'package.json': '{}',
+					'subpath/file.js': '',
+				},
+			},
+		});
+
+		const nativeProcess = await execaNode(fixture.getPath('entry.mjs'), {
+			nodePath: node.path,
+			cwd: fixture.path,
+			reject: false,
+		});
+		const tsxProcess = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(nativeProcess.exitCode).toBe(0);
+		expect(nativeProcess.stderr).toBe('');
+		const nativeOutcome = JSON.parse(nativeProcess.stdout);
+		const directoryUrl = pathToFileURL(fixture.getPath('node_modules/dependency/subpath/')).toString();
+		expect(nativeOutcome).toEqual({
+			resolved: directoryUrl,
+			imported: {
+				code: 'ERR_UNSUPPORTED_DIR_IMPORT',
+				url: directoryUrl,
+			},
+		});
+		expect(tsxProcess.exitCode).toBe(nativeProcess.exitCode);
+		expect(tsxProcess.stderr).toBe(nativeProcess.stderr);
+		expect(JSON.parse(tsxProcess.stdout)).toEqual(nativeOutcome);
+	});
+
+	// https://github.com/privatenumber/tsx/issues/480
+	test('resolves a trailing-slash dependency directory like its slashless form', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.ts': `
+				const withSlash = await import('dependency/subpath/');
+				const withoutSlash = await import('dependency/subpath');
+
+				console.log(withSlash.source, withSlash === withoutSlash);
+				`,
+			node_modules: {
+				dependency: {
+					'package.json': '{}',
+					'subpath/index.js': 'exports.source = "index";',
+				},
+			},
+		});
+
+		const process = await node.tsx(['entry.ts'], fixture.path);
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('index true');
 	});
 
 	// Regression guards for https://github.com/privatenumber/tsx/issues/761 and #737:

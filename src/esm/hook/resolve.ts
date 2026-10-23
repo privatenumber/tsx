@@ -46,7 +46,7 @@ type NextResolveSync = Parameters<ResolveHookSync>[2];
 const supportsEsmLoadReadFile = isFeatureSupported(esmLoadReadFile);
 const urlLikeSpecifierPattern = /^(?:[a-z][\d+.a-z-]*:\/\/|data:|file:|node:)/i;
 
-const isTsconfigPathAliasSpecifier = (
+const isBareSpecifier = (
 	specifier: string,
 ) => (
 	!isFilePath(specifier)
@@ -508,7 +508,13 @@ const resolveDirectory = async (
 		specifier += '/';
 	}
 
-	if (isDirectoryPattern.test(specifier)) {
+	if (
+		isDirectoryPattern.test(specifier)
+
+		// A bare specifier with a trailing slash (e.g. `pkg/dir/`) is a package
+		// directory, not a relative directory, so it resolves below like `pkg/dir`
+		&& !isBareSpecifier(specifier)
+	) {
 		const urlParsed = new URL(specifier, context.parentURL);
 
 		// If directory, can be index.js, index.ts, etc.
@@ -570,7 +576,8 @@ const resolveDirectory = async (
 						}
 					}
 
-					const indexUrl = `${errorPath}/index`;
+					// A trailing-slash request (e.g. `pkg/dir/`) reports the directory with its slash
+					const indexUrl = `${errorPath.replace(/\/$/, '')}/index`;
 					const indexResolved = await resolveExtensions(
 						indexUrl,
 						context,
@@ -602,7 +609,13 @@ const resolveDirectorySync = (
 		specifier += '/';
 	}
 
-	if (isDirectoryPattern.test(specifier)) {
+	if (
+		isDirectoryPattern.test(specifier)
+
+		// In ESM, a bare specifier with a trailing slash (e.g. `pkg/dir/`) is a
+		// package directory, not a relative directory, so it resolves below like `pkg/dir`
+		&& (isCommonJsRequireContext(context) || !isBareSpecifier(specifier))
+	) {
 		// On Node's sync hooks, a CommonJS require() inside a dependency reaches
 		// this hook. A bare specifier with a trailing slash (e.g. `process/`) is a
 		// package, not a relative directory, so defer to resolveBaseSync, which
@@ -690,7 +703,8 @@ const resolveDirectorySync = (
 						}
 					}
 
-					const indexUrl = `${errorPath}/index`;
+					// A trailing-slash request (e.g. `pkg/dir/`) reports the directory with its slash
+					const indexUrl = `${errorPath.replace(/\/$/, '')}/index`;
 					const indexResolved = resolveExtensionsSync(
 						indexUrl,
 						context,
@@ -713,7 +727,7 @@ const resolveTsPaths = async (
 	nextResolve: NextResolve,
 	hookData: Data,
 ) => {
-	const tsconfigPathAliasSpecifier = isTsconfigPathAliasSpecifier(specifier);
+	const tsconfigPathAliasSpecifier = isBareSpecifier(specifier);
 	log(3, 'resolveTsPaths', {
 		specifier,
 		context,
@@ -754,7 +768,7 @@ const resolveTsPathsSync = (
 	nextResolve: NextResolveSync,
 	hookData: Data,
 ) => {
-	const tsconfigPathAliasSpecifier = isTsconfigPathAliasSpecifier(specifier);
+	const tsconfigPathAliasSpecifier = isBareSpecifier(specifier);
 	log(3, 'resolveTsPathsSync', {
 		specifier,
 		context,
