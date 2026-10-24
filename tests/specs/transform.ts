@@ -191,6 +191,17 @@ export const transformSpec = () => describe('transform', () => {
 			expect(dynamicImport.code).toMatch('.href).then');
 		});
 
+		test('dynamic import with shebang', () => {
+			// Regression: shebang containing "import" derailed the lexer (#842)
+			const dynamicImport = transformSync(
+				'#!/usr/bin/env -S node --import tsx\nasync function load() { return import(\'./dep.js\') }',
+				'file.js',
+				{ format: 'cjs' },
+			);
+
+			expect(dynamicImport.code).toMatch('./dep.js").then');
+		});
+
 		test('sourcemap file', () => {
 			const fileName = 'file.mts';
 			const transformed = transformSync(

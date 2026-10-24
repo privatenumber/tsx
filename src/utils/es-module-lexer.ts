@@ -14,11 +14,18 @@ if (typeof WebAssembly !== 'undefined') {
 export const parseEsm = (
 	code: string,
 	filename?: string,
-) => (
-	parseWasm
-		? parseWasm(code, filename)
-		: parseJs(code, filename)
-);
+) => {
+	// Replace shebang with a line comment so the lexer doesn't mistake
+	// words like "import" inside `#!/usr/bin/env -S node --import tsx` as
+	// import declarations. Both sequences are 2 bytes, so all character
+	// offsets returned by the lexer remain valid against the original source.
+	const normalizedCode = code.startsWith('#!') ? `//${code.slice(2)}` : code;
+	return (
+		parseWasm
+			? parseWasm(normalizedCode, filename)
+			: parseJs(normalizedCode, filename)
+	);
+};
 
 /*
 Previously, this regex was used as a naive ESM catch,
