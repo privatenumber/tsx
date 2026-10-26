@@ -118,6 +118,115 @@ const waitForSignalRelay = async (
 
 export const cli = (node: NodeApis) => describe('CLI', () => {
 	const { tsx } = node;
+	test('runs a TypeScript-named symlink to a JavaScript entry with an unknown extension', async () => {
+		await using fixture = await createFixture({
+			'package.json': '{}',
+			'index.txt': 'console.log("706-ok")',
+			'index.ts': ({ symlink }) => symlink('./index.txt'),
+		});
+		const result = await tsx(['index.ts'], fixture.path);
+		expect(result.exitCode).toBe(0);
+		expect(result.stdout).toBe('706-ok');
+		expect(result.stderr).toBe('');
+	});
+
+	for (const type of [undefined, 'commonjs', 'module']) {
+		test(`runs a TypeScript symlink entry in a ${type ?? 'typeless'} package`, async () => {
+			await using fixture = await createFixture({
+				'package.json': JSON.stringify({ type }),
+				'index.txt': 'const message: string = "706-ts"; console.log(message)',
+				'index.ts': ({ symlink }) => symlink('./index.txt'),
+			});
+			const result = await tsx(['index.ts'], fixture.path);
+			expect(result.exitCode).toBe(0);
+			expect(result.stdout).toBe('706-ts');
+			expect(result.stderr).toBe('');
+		});
+	}
+
+	test('keeps the realpath package, relative imports and CommonJS identity of a symlink entry', async () => {
+		await using fixture = await createFixture({
+			'package.json': '{ "type": "module" }',
+			'index.ts': ({ symlink }) => symlink('./real/index.txt'),
+			'real/package.json': '{ "type": "commonjs" }',
+			'real/child.js': 'module.exports = "real-child"',
+			'real/index.txt': `
+				const child: string = require('./child.js');
+				console.log(JSON.stringify({
+					filename: __filename,
+					child,
+					main: require.main === module,
+					cached: require.cache[__filename] === module,
+					self: require('./index.txt') === module.exports,
+				}));
+			`,
+		});
+		const result = await tsx(['index.ts'], fixture.path);
+		expect(result.exitCode).toBe(0);
+		expect(JSON.parse(result.stdout)).toStrictEqual({
+			filename: fixture.getPath('real/index.txt'),
+			child: 'real-child',
+			main: true,
+			cached: true,
+			self: true,
+		});
+		expect(result.stderr).toBe('');
+	});
+
+	test('keeps the realpath package and relative imports of an ESM symlink entry', async () => {
+		await using fixture = await createFixture({
+			'package.json': '{ "type": "commonjs" }',
+			'index.ts': ({ symlink }) => symlink('./real/index.txt'),
+			'real/package.json': '{ "type": "module" }',
+			'real/child.ts': 'export const child = "real-child"',
+			'real/index.txt': `
+				import { child } from './child.ts';
+				const message: string = child;
+				console.log(JSON.stringify([import.meta.url, message, typeof require]));
+			`,
+		});
+		const result = await tsx(['index.ts'], fixture.path);
+		expect(result.exitCode).toBe(0);
+		expect(JSON.parse(result.stdout)).toStrictEqual([
+			pathToFileURL(fixture.getPath('real/index.txt')).toString(),
+			'real-child',
+			'undefined',
+		]);
+		expect(result.stderr).toBe('');
+	});
+
+	for (const flag of ['--preserve-symlinks', '--preserve-symlinks-main']) {
+		test(`honors ${flag} for a symlink entry`, async () => {
+			await using fixture = await createFixture({
+				'package.json': '{ "type": "commonjs" }',
+				'index.ts': ({ symlink }) => symlink('./real/index.txt'),
+				'child.js': 'module.exports = "link-child"',
+				'real/child.js': 'module.exports = "real-child"',
+				'real/index.txt': 'console.log(JSON.stringify([__filename, require("./child.js")]))',
+			});
+			const result = await tsx([flag, 'index.ts'], fixture.path);
+			const preserveMain = flag === '--preserve-symlinks-main';
+			expect(result.exitCode).toBe(0);
+			expect(JSON.parse(result.stdout)).toStrictEqual([
+				fixture.getPath(preserveMain ? 'index.ts' : 'real/index.txt'),
+				preserveMain ? 'link-child' : 'real-child',
+			]);
+			expect(result.stderr).toBe('');
+		});
+	}
+
+	test('does not treat ordinary unknown-extension imports as TypeScript', async () => {
+		await using fixture = await createFixture({
+			'package.json': '{ "type": "module" }',
+			'index.ts': 'import "./dependency.txt"',
+			'dependency.txt': 'console.log("must-not-load")',
+		});
+		const result = await tsx(['index.ts'], fixture.path);
+		expect(result.exitCode).toBe(1);
+		expect(result.stdout).toBe('');
+		expect(result.stderr).toMatch('ERR_UNKNOWN_FILE_EXTENSION');
+	});
+
 	describe('argv', async () => {
 		const fixture = await createFixture({
 			// Unnecessary TS to test syntax

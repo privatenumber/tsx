@@ -33,6 +33,7 @@ export const createData = (
 ): Data => {
 	const hookData: Data = {
 		active: true,
+		entryPath: options?.entryPath,
 		namespace: options?.namespace,
 		onImport: options?.onImport,
 		parsedTsconfig: undefined,

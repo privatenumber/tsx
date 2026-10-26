@@ -1,11 +1,38 @@
 import path from 'node:path';
+import { realpathSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { parseEsm } from '../../utils/es-module-lexer.js';
 import { tsExtensions } from '../../utils/path-utils.js';
 import { getPackageType, getPackageTypeSync } from './package-json.js';
 
-export const getFormatFromFileUrl = (fileUrl: string) => {
+// Node resolves the main symlink before invoking the ESM resolver. Recover
+// only an explicitly TypeScript-named entry, leaving its canonical URL intact.
+export const getTypeScriptEntryExtension = (
+	fileUrl: string,
+	entryPath: string | undefined,
+) => {
+	if (!entryPath || !fileUrl.startsWith('file://')) {
+		return;
+	}
+
+	const extension = path.extname(entryPath);
+	if (
+		!tsExtensions.includes(extension)
+		|| ['.js', '.mjs', '.cjs', '.json', '.node', '.wasm', ...tsExtensions].includes(path.extname(fileURLToPath(fileUrl)))
+	) {
+		return;
+	}
+
+	try {
+		if (realpathSync(entryPath) === fileURLToPath(fileUrl)) {
+			return extension;
+		}
+	} catch {}
+};
+
+export const getFormatFromFileUrl = (fileUrl: string, entryExtension?: string) => {
 	const { pathname } = new URL(fileUrl);
-	const extension = path.extname(pathname);
+	const extension = entryExtension ?? path.extname(pathname);
 	if (extension === '.mts' || extension === '.mjs') {
 		return 'module';
 	}
@@ -18,9 +45,9 @@ export const getFormatFromFileUrl = (fileUrl: string) => {
 	}
 };
 
-export const getFormatFromFileUrlSync = (fileUrl: string) => {
+export const getFormatFromFileUrlSync = (fileUrl: string, entryExtension?: string) => {
 	const { pathname } = new URL(fileUrl);
-	const extension = path.extname(pathname);
+	const extension = entryExtension ?? path.extname(pathname);
 	if (extension === '.mts' || extension === '.mjs') {
 		return 'module';
 	}

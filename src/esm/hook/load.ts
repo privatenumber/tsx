@@ -26,6 +26,7 @@ import {
 	getQueryWithoutParameters,
 	namespaceQuery,
 	getNamespace,
+	getTypeScriptEntryExtension,
 	isDataUrl,
 	moduleSourceByUrl,
 } from './utils.js';
@@ -59,6 +60,16 @@ const commonJsInternalQueryParameters = [
 	`${commonJsExportPreparseSearchParameter}=`,
 	`${commonJsVirtualQuerySearchParameter}=`,
 ];
+
+const getEntryLoader = (
+	url: string,
+	entryPath: string | undefined,
+): TransformOptions['loader'] => {
+	const extension = getTypeScriptEntryExtension(url, entryPath);
+	if (extension) {
+		return extension === '.tsx' || extension === '.jsx' ? extension.slice(1) as 'tsx' | 'jsx' : 'ts';
+	}
+};
 
 const getTsconfigRaw = (
 	filePath: string,
@@ -307,6 +318,13 @@ export const createLoad = (
 			fileUrl?.searchParams.has(commonJsExportPreparseSearchParameter) === true
 		);
 		const loadedFormat = loaded.format as string | undefined;
+		const entryLoader = (
+			isCommonJsFormat(loadedFormat)
+			|| loadedFormat === 'module'
+			|| isModuleTypeScriptFormat(loadedFormat)
+		)
+			? getEntryLoader(url, hookData.entryPath)
+			: undefined;
 		const cleanImportMetaUrl = fileUrl ? new URL(pathToFileURL(filePath)) : undefined;
 		if (cleanImportMetaUrl && fileUrl) {
 			cleanImportMetaUrl.search = getSearchWithoutParameters(
@@ -341,6 +359,7 @@ export const createLoad = (
 								define: {
 									'import.meta.url': JSON.stringify(cleanImportMetaUrl!.toString()),
 								},
+								loader: entryLoader ?? 'default',
 								tsconfigRaw: getTsconfigRaw(filePath, hookData),
 							},
 						);
@@ -382,6 +401,7 @@ export const createLoad = (
 								? getCjsRequireBanner(filePath, urlNamespace)
 								: undefined
 						),
+						loader: entryLoader ?? 'default',
 						tsconfigRaw: getTsconfigRaw(filePath, hookData),
 					},
 				);
@@ -413,6 +433,7 @@ export const createLoad = (
 				code,
 				filePath,
 				{
+					loader: entryLoader ?? 'default',
 					tsconfigRaw: getTsconfigRaw(filePath, hookData),
 				},
 			);
@@ -428,12 +449,14 @@ export const createLoad = (
 			// Support named imports in JSON modules
 			shouldTransformJson
 			|| isModuleTypeScriptFormat(loadedFormat)
+			|| (loadedFormat === 'module' && entryLoader)
 			|| tsExtensionsPattern.test(url)
 		) {
 			const transformed = await transform(
 				code,
 				filePath,
 				{
+					loader: entryLoader ?? 'default',
 					tsconfigRaw: getTsconfigRaw(filePath, hookData),
 				},
 			);
@@ -511,6 +534,13 @@ export const createLoadSync = (
 		});
 
 		const loadedFormat = loaded.format as string | undefined;
+		const entryLoader = (
+			isCommonJsFormat(loadedFormat)
+			|| loadedFormat === 'module'
+			|| isModuleTypeScriptFormat(loadedFormat)
+		)
+			? getEntryLoader(url, hookData.entryPath)
+			: undefined;
 
 		if (
 			isCommonJsFormat(loadedFormat)
@@ -541,6 +571,7 @@ export const createLoadSync = (
 								? getCjsRequireBanner(filePath, urlNamespace)
 								: undefined
 						),
+						loader: entryLoader ?? 'default',
 						tsconfigRaw: getTsconfigRaw(filePath, hookData),
 					},
 				);
@@ -584,6 +615,7 @@ export const createLoadSync = (
 							? getCjsRequireBanner(filePath, urlNamespace)
 							: undefined
 					),
+					loader: entryLoader ?? 'default',
 					tsconfigRaw: getTsconfigRaw(filePath, hookData),
 				},
 			);
@@ -600,12 +632,14 @@ export const createLoadSync = (
 			// Support named imports in JSON modules
 			shouldTransformJson
 			|| isModuleTypeScriptFormat(loadedFormat)
+			|| (loadedFormat === 'module' && entryLoader)
 			|| tsExtensionsPattern.test(url)
 		) {
 			const transformed = transformEsmSync(
 				code,
 				filePath,
 				{
+					loader: entryLoader ?? 'default',
 					tsconfigRaw: getTsconfigRaw(filePath, hookData),
 				},
 			);

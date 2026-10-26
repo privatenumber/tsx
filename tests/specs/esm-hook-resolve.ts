@@ -1,9 +1,13 @@
 import type { ResolveHookContext } from 'node:module';
+import fs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
 import { pathToFileURL } from 'node:url';
+import { spyOn } from 'tinyspy';
 import { createFixture } from 'fs-fixture';
 import { describe, expect, test } from 'manten';
-import { createData, createDefaultData } from '../../src/esm/hook/initialize.js';
+import { createData, createDefaultData, createInitialize } from '../../src/esm/hook/initialize.js';
 import { createResolve, createResolveSync } from '../../src/esm/hook/resolve.js';
+import { createLoad, createLoadSync } from '../../src/esm/hook/load.js';
 
 const context: ResolveHookContext = {
 	conditions: ['node', 'import'],
@@ -26,7 +30,146 @@ const createNamespaceContext = (
 	parentURL: `${entryFileUrl}?tsx-namespace=${namespace}`,
 });
 
-export const esmHookResolve = () => describe('ESM resolve hook', () => {
+export const esmHookResolve = () => describe('ESM resolve hook', async () => {
+	await test('preserves the entry path in isolated registration data', async () => {
+		const first = createDefaultData();
+		await createInitialize(first)({
+			entryPath: 'first.ts',
+			tsconfig: false,
+		});
+		const second = createData({
+			entryPath: 'second.ts',
+			tsconfig: false,
+		});
+		const empty = createData({ tsconfig: false });
+		expect(first.entryPath).toBe('first.ts');
+		expect(second.entryPath).toBe('second.ts');
+		expect(empty.entryPath).toBeUndefined();
+	});
+
+	for (const [name, createResolver] of [
+		['async', createResolve],
+		['sync', createResolveSync],
+	] as const) {
+		await test(`${name} recovers a TypeScript entry extension without changing its realpath`, async () => {
+			await using fixture = await createFixture({
+				'package.json': '{ "type": "module" }',
+				'real/package.json': '{ "type": "commonjs" }',
+				'real/entry.txt': '',
+			});
+			const entryPath = fixture.getPath('entry.ts');
+			const targetPath = fixture.getPath('real/entry.txt');
+			const targetUrl = pathToFileURL(targetPath).toString();
+			const originalArgv = process.argv;
+			const originalRealpath = fs.realpathSync;
+			using realpath = spyOn(fs, 'realpathSync');
+			realpath.willCall((filePath, ...options) => (
+				filePath === entryPath ? targetPath : originalRealpath(filePath, ...options)
+			));
+			syncBuiltinESMExports();
+			process.argv = [process.execPath];
+			try {
+				const resolve = createResolver(createData({
+					entryPath,
+					tsconfig: false,
+				}));
+				const resolution = {
+					url: targetUrl,
+					format: undefined,
+				};
+				expect(await resolve(targetUrl, context, () => resolution)).toStrictEqual({
+					url: targetUrl,
+					format: 'commonjs',
+				});
+				expect(resolution.format).toBeUndefined();
+				expect(await resolve(targetUrl, {
+					...context,
+					parentURL: entryFileUrl,
+				}, () => resolution)).toStrictEqual(resolution);
+				expect(await resolve(targetUrl, context, () => ({
+					url: targetUrl,
+					format: 'json',
+				}))).toStrictEqual({
+					url: targetUrl,
+					format: 'json',
+				});
+			} finally {
+				process.argv = originalArgv;
+				realpath.restore();
+				syncBuiltinESMExports();
+			}
+		});
+	}
+
+	for (const [name, createLoader] of [
+		['async', createLoad],
+		['sync', createLoadSync],
+	] as const) {
+		await test(`${name} preserves a composed CommonJS source for a TypeScript symlink entry`, async () => {
+			await using fixture = await createFixture({
+				'package.json': '{}',
+				'target.txt': 'throw new Error("disk source must not replace provider source")',
+			});
+			const entryPath = fixture.getPath('entry.ts');
+			const targetPath = fixture.getPath('target.txt');
+			const targetUrl = pathToFileURL(targetPath).toString();
+			const originalArgv = process.argv;
+			const originalRealpath = fs.realpathSync;
+			using realpath = spyOn(fs, 'realpathSync');
+			realpath.willCall((filePath, ...options) => (
+				filePath === entryPath ? targetPath : originalRealpath(filePath, ...options)
+			));
+			syncBuiltinESMExports();
+			process.argv = [process.execPath];
+			try {
+				const load = createLoader(createData({
+					entryPath,
+					tsconfig: false,
+				}));
+				const moduleResult = await load(targetUrl, {
+					format: 'module',
+					conditions: ['import'],
+					importAttributes: {},
+				}, () => ({
+					format: 'module',
+					source: 'const value: number = 706; export default value;',
+				}));
+				expect(moduleResult.format).toBe('module');
+				expect(moduleResult.source).not.toContain(': number');
+				const provided = {
+					format: 'commonjs',
+					source: 'module.exports = __filename;',
+					shortCircuit: true,
+				};
+				expect(await load(targetUrl, {
+					format: 'commonjs',
+					conditions: ['import'],
+					importAttributes: {},
+				}, () => provided)).toStrictEqual(provided);
+				const json = {
+					format: 'json',
+					source: '{"marker":"provider-json"}',
+					shortCircuit: true,
+				};
+				expect(await load(targetUrl, {
+					format: 'json',
+					importAttributes: { type: 'json' },
+					conditions: ['require'],
+				}, () => json)).toStrictEqual(json);
+				const jsonImport = await load(targetUrl, {
+					format: 'json',
+					conditions: ['import'],
+					importAttributes: { type: 'json' },
+				}, () => ({ ...json }));
+				expect(jsonImport.format).toBe('module');
+			} finally {
+				process.argv = originalArgv;
+				realpath.restore();
+				syncBuiltinESMExports();
+			}
+		});
+	}
+
 	test('maps Node-provided TypeScript formats without reading package.json', async () => {
 		await using fixture = await createFixture({
 			'package.json': '{ invalid',

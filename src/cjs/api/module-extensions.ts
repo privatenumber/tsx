@@ -12,6 +12,7 @@ import { parent } from '../../utils/ipc/client.js';
 import { logCjs as log } from '../../utils/debug.js';
 import { isFeatureSupported, requireEsm } from '../../utils/node-features.js';
 import { getNearestPackageTypeSync } from '../../esm/hook/package-json.js';
+import { getTypeScriptEntryExtension } from '../../esm/hook/utils.js';
 import type { LoaderState } from './types.js';
 
 const typescriptExtensions = [
@@ -158,7 +159,18 @@ export const createExtensions = (
 			});
 		}
 
-		const transformTs = typescriptExtensions.some(extension => cleanFilePath.endsWith(extension));
+		// Node's async CJS translator can pre-create the main module with a path id.
+		const entryExtension = module.id === '.' || module === process.mainModule
+			? getTypeScriptEntryExtension(pathToFileURL(cleanFilePath).toString(), process.argv[1])
+			: undefined;
+		let entryLoader: TransformOptions['loader'];
+		if (entryExtension) {
+			entryLoader = entryExtension === '.tsx' || entryExtension === '.jsx'
+				? entryExtension.slice(1) as 'tsx' | 'jsx'
+				: 'ts';
+		}
+		const transformTs = Boolean(entryExtension)
+			|| typescriptExtensions.some(extension => cleanFilePath.endsWith(extension));
 		const transformJs = transformExtensions.some(extension => cleanFilePath.endsWith(extension));
 		if (!transformTs && !transformJs) {
 			return defaultLoader(module, cleanFilePath);
@@ -200,6 +212,7 @@ export const createExtensions = (
 					code,
 					filePath,
 					{
+						loader: entryLoader ?? 'default',
 						tsconfigRaw,
 					},
 				);

@@ -15,6 +15,7 @@ export type InitializationOptions = {
 	namespace?: string;
 	port?: MessagePort;
 	tsconfig?: TsconfigOptions;
+	entryPath?: string;
 };
 
 export type RegisterOptions = {
@@ -125,9 +126,12 @@ export const register: Register = (
 
 	const { sourceMapsEnabled } = process;
 	process.setSourceMapsEnabled(true);
+	// Async loader workers do not inherit the application's argv.
+	const entryPath = process.argv[1];
 
 	if (supportsRegisterHooks) {
 		const hookData = createData({
+			entryPath,
 			namespace: options?.namespace,
 			onImport: options?.onImport,
 			tsconfig: options?.tsconfig,
@@ -161,6 +165,7 @@ export const register: Register = (
 		{
 			parentURL: import.meta.url,
 			data: {
+				entryPath,
 				port: port2,
 				namespace: options?.namespace,
 				tsconfig: options?.tsconfig,

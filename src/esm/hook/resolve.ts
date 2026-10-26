@@ -28,6 +28,7 @@ import { getPackageSubpathDirectoryInfo } from './package-subpath.js';
 import {
 	getFormatFromFileUrl,
 	getFormatFromFileUrlSync,
+	getTypeScriptEntryExtension,
 	namespaceQuery,
 	namespaceSearchParameter,
 	commonJsExportPreparseQuery,
@@ -1021,6 +1022,12 @@ export const createResolve = (
 				// https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/esm/get_format.js#L181-L191
 				// Older Node versions and typeless .ts can return no format.
 				resolved.format = await getFormatFromFileUrl(resolved.url);
+				if (!resolved.format && !context.parentURL) {
+					resolved.format = await getFormatFromFileUrl(
+						resolved.url,
+						getTypeScriptEntryExtension(resolved.url, hookData.entryPath),
+					);
+				}
 				log(2, 'getFormatFromFileUrl', {
 					resolved,
 					format: resolved.format,
@@ -1201,6 +1208,12 @@ export const createResolveSync = (
 				// https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/esm/get_format.js#L181-L191
 				// Older Node versions and typeless .ts can return no format.
 				resolved.format = getFormatFromFileUrlSync(resolved.url);
+				if (!resolved.format && !context.parentURL) {
+					resolved.format = getFormatFromFileUrlSync(
+						resolved.url,
+						getTypeScriptEntryExtension(resolved.url, hookData.entryPath),
+					);
+				}
 				log(2, 'getFormatFromFileUrlSync', {
 					resolved,
 					format: resolved.format,
