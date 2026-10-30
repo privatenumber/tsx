@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type {
 	ResolveHook,
@@ -249,6 +249,27 @@ const candidateDoesntExist = (
 ) => {
 	const filePath = getProbeFilePath(candidate, parentURL);
 	return filePath !== undefined && !existsSync(filePath);
+};
+
+const getDirectoryImportUrl = (
+	nodeError: NodeError,
+	specifier: string,
+	parentURL: string | undefined,
+) => {
+	if (nodeError.code === 'ERR_UNSUPPORTED_DIR_IMPORT') {
+		return getMissingPathFromNotFound(nodeError);
+	}
+
+	// Yarn PnP's loader rejects a directory import with ERR_MODULE_NOT_FOUND
+	// and no URL, so check whether the file specifier is a directory
+	// https://github.com/yarnpkg/berry/issues/6284
+	const directoryPath = getProbeFilePath(specifier, parentURL);
+	if (
+		directoryPath !== undefined
+		&& statSync(directoryPath, { throwIfNoEntry: false })?.isDirectory()
+	) {
+		return pathToFileURL(directoryPath).toString();
+	}
 };
 
 const resolveExtensions = async (
@@ -532,8 +553,8 @@ const resolveDirectory = async (
 				error,
 			});
 			const nodeError = error as NodeError;
-			if (nodeError.code === 'ERR_UNSUPPORTED_DIR_IMPORT') {
-				const errorPath = getMissingPathFromNotFound(nodeError);
+			if (isDirectoryEntryMiss(nodeError)) {
+				const errorPath = getDirectoryImportUrl(nodeError, specifier, context.parentURL);
 				if (errorPath) {
 					if (specifier.startsWith('#')) {
 						throw error;
@@ -652,8 +673,8 @@ const resolveDirectorySync = (
 				error,
 			});
 			const nodeError = error as NodeError;
-			if (nodeError.code === 'ERR_UNSUPPORTED_DIR_IMPORT') {
-				const errorPath = getMissingPathFromNotFound(nodeError);
+			if (isDirectoryEntryMiss(nodeError)) {
+				const errorPath = getDirectoryImportUrl(nodeError, specifier, context.parentURL);
 				if (errorPath) {
 					if (specifier.startsWith('#')) {
 						throw error;

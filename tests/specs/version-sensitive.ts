@@ -1032,6 +1032,54 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 		expect(process.stdout).toBe('true');
 	});
 
+	// Yarn PnP rejects a directory import with ERR_MODULE_NOT_FOUND and no URL,
+	// instead of Node's ERR_UNSUPPORTED_DIR_IMPORT.
+	// https://github.com/privatenumber/tsx/issues/439
+	test('resolves directory imports through a PnP-shaped ESM loader', async () => {
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'entry.ts': `
+				import { value } from './directory';
+
+				console.log(value);
+				`,
+			'directory/index.ts': 'export const value: string = "directory-index";',
+			'pnp-loader.mjs': `
+				import { statSync } from 'node:fs';
+				import { fileURLToPath } from 'node:url';
+
+				export const resolve = async (specifier, context, nextResolve) => {
+					if (!specifier.startsWith('.')) {
+						return nextResolve(specifier, context);
+					}
+
+					const url = new URL(specifier, context.parentURL);
+					if (statSync(url, { throwIfNoEntry: false })?.isFile()) {
+						return {
+							shortCircuit: true,
+							url: url.href,
+						};
+					}
+
+					const error = new Error(\`Qualified path resolution failed: \${fileURLToPath(url)}\`);
+					error.code = 'ERR_MODULE_NOT_FOUND';
+					throw error;
+				};
+				`,
+		});
+
+		const process = await node.tsx(['entry.ts'], {
+			cwd: fixture.path,
+			env: {
+				NODE_OPTIONS: `--no-warnings --experimental-loader ${pathToFileURL(fixture.getPath('pnp-loader.mjs')).toString()}`,
+			},
+		});
+
+		expect(process.exitCode).toBe(0);
+		expect(process.stderr).toBe('');
+		expect(process.stdout).toBe('directory-index');
+	});
+
 	if (node.supports.moduleRegister) {
 		// Node 20.6-20.10 throws before falling back to read the child source.
 		// https://github.com/nodejs/node/pull/50825
