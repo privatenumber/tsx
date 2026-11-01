@@ -37,6 +37,7 @@ import {
 	getNamespace,
 	isDataUrl,
 	parentImportsCommonJsExports,
+	isTypelessEsmJavaScript,
 } from './utils.js';
 import type { Data } from './initialize.js';
 
@@ -1038,14 +1039,25 @@ export const createResolve = (
 		// namespace imports so Node preparses the transformed CJS export annotation.
 		// https://github.com/nodejs/node/blob/v18.20.8/lib/internal/modules/esm/translators.js#L183-L190
 		// https://github.com/nodejs/node/blob/v22.22.2/lib/internal/modules/esm/translators.js#L182-L190
-		const shouldLoadForCommonJsExportPreparse = (
+		// Typeless ESM-syntax `.js` needs the same hint: Node otherwise preparses
+		// the original ESM source and finds no CommonJS exports (#867). The sync
+		// hooks always transform it, so only the source-capable async path needs this.
+		const isImplicitTs = implicitTsExtensionsPattern.test(resolved.url);
+		const shouldLoadForCommonJsExportPreparse = Boolean(
 			context.parentURL
 			&& resolved.format === 'commonjs'
-			&& implicitTsExtensionsPattern.test(resolved.url)
+			&& (
+				isImplicitTs
+				|| (
+					supportsEsmLoadReadFile
+					&& path.extname(new URL(resolved.url).pathname) === '.js'
+				)
+			)
 			&& (
 				new URL(context.parentURL).searchParams.has(commonJsExportPreparseSearchParameter)
 				|| parentImportsCommonJsExports(context.parentURL, specifier, supportsEsmLoadReadFile)
 			)
+			&& (isImplicitTs || await isTypelessEsmJavaScript(resolved.url)),
 		);
 
 		// Inherit namespace

@@ -976,6 +976,44 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 			expect(stderr).toBe('');
 			expect(stdout).toBe('hello world from esm hello world from esm');
 		});
+
+		// https://github.com/privatenumber/tsx/issues/867
+		// The async module.register() path left typeless local ESM-syntax .js as
+		// untransformed CommonJS, so Node preparsed no named exports.
+		test('imports named exports from typeless ESM-syntax .js', async () => {
+			await using fixture = await createFixture({
+				'helper.js': 'export const value = 42;',
+				'entry.mjs': `
+					import * as namespace from './helper.js';
+					import { value } from './helper.js';
+
+					console.log(value, namespace.value);
+					`,
+			});
+
+			const nativeProcess = await execaNode(fixture.getPath('entry.mjs'), {
+				nodePath: node.path,
+				cwd: fixture.path,
+				reject: false,
+			});
+			expect(nativeProcess.exitCode).toBe(0);
+			expect(nativeProcess.stdout).toBe('42 42');
+
+			const tsxProcess = await node.tsx(['entry.mjs'], fixture.path);
+			expect(tsxProcess.exitCode).toBe(0);
+			expect(tsxProcess.stderr).toBe('');
+			expect(tsxProcess.stdout).toBe('42 42');
+
+			const esmHookProcess = await execaNode(fixture.getPath('entry.mjs'), {
+				nodePath: node.path,
+				nodeOptions: ['--import', tsxEsmPath],
+				cwd: fixture.path,
+				reject: false,
+			});
+			expect(esmHookProcess.exitCode).toBe(0);
+			expect(esmHookProcess.stderr).toBe('');
+			expect(esmHookProcess.stdout).toBe('42 42');
+		});
 	}
 
 	// #338: Yarn PnP exposed this CommonJS loader source boundary.
