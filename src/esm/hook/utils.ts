@@ -1,7 +1,8 @@
 import path from 'node:path';
-import { parseEsm } from '../../utils/es-module-lexer.js';
+import { readFile } from 'node:fs/promises';
+import { parseEsm, isESM } from '../../utils/es-module-lexer.js';
 import { tsExtensions } from '../../utils/path-utils.js';
-import { getPackageType, getPackageTypeSync } from './package-json.js';
+import { getNearestPackageType, getPackageType, getPackageTypeSync } from './package-json.js';
 
 export const getFormatFromFileUrl = (fileUrl: string) => {
 	const { pathname } = new URL(fileUrl);
@@ -102,6 +103,26 @@ const getCommonJsImportBinding = (
 			? 'named'
 			: undefined
 	);
+};
+
+// Node detects ESM syntax in `.js` only when the package omits "type".
+// tsx still classifies these files as CommonJS, so their named exports are
+// only visible through the transformed CJS export annotation.
+export const isTypelessEsmJavaScript = async (
+	fileUrl: string,
+) => {
+	if (await getNearestPackageType(fileUrl)) {
+		return false;
+	}
+
+	const url = new URL(fileUrl);
+	url.search = '';
+	url.hash = '';
+	try {
+		return isESM(await readFile(url, 'utf8'));
+	} catch {
+		return false;
+	}
 };
 
 export const parentImportsCommonJsExports = (

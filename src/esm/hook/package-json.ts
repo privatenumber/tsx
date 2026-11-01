@@ -123,6 +123,13 @@ export const getPackageTypeSync = (
 	return packageJson?.type ?? 'commonjs';
 };
 
+export const getNearestPackageType = async (
+	filePath: string,
+) => {
+	const packageJson = await findPackageJson(filePath);
+	return packageJson?.type;
+};
+
 export const getNearestPackageTypeSync = (
 	filePath: string,
 ) => {
