@@ -6,6 +6,7 @@ import { outdent } from 'outdent';
 import {
 	tsxCjsPath,
 	tsxCjsApiPath,
+	tsxCjsApiEsmPath,
 	tsxEsmPath,
 	tsxEsmApiPath,
 	tsxEsmApiCjsPath,
@@ -408,6 +409,24 @@ export const api = (node: NodeApis) => describe('API', () => {
 				});
 
 				expect(stdout).toBe('hello world');
+			});
+
+			test('resolve works when imported from ESM', async () => {
+				await using fixture = await createFixture({
+					'package.json': createPackageJson({ type: 'module' }),
+					'resolve.mjs': outdent`
+					import { require as tsxRequire } from ${JSON.stringify(tsxCjsApiEsmPath)};
+					const resolved = tsxRequire.resolve('node:fs', import.meta.url);
+					console.log(resolved);
+					`,
+				});
+
+				const { stdout } = await execaNode(fixture.getPath('resolve.mjs'), [], {
+					nodePath: node.path,
+					nodeOptions: [],
+				});
+
+				expect(stdout).toBe('node:fs');
 			});
 		});
 	});
