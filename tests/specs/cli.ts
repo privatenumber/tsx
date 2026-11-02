@@ -315,6 +315,38 @@ test('source-mapped location', () => {
 			expect(tsxProcess.exitCode).toBe(1);
 			expect(tsxProcess.all!).not.toContain('test at test.ts:4:1');
 		}, 10_000);
+
+		if (node.supports.testRunnerGlob) {
+			test('discovers hyphenated -test names and skips unrelated suffixes', async () => {
+				const makeTest = (name: string) => `
+import { test } from 'node:test';
+test(${JSON.stringify(name)}, () => {});
+`;
+				await using fixture = await createFixture({
+					'a.test.ts': makeTest('dot'),
+					'a-test.ts': makeTest('hyphen'),
+					'a_test.ts': makeTest('underscore'),
+					'a1test.ts': makeTest('digit'),
+					'aZtest.ts': makeTest('upper'),
+					'axtest.ts': makeTest('letter'),
+					'atest.ts': makeTest('nosep'),
+				});
+
+				const tsxProcess = await tsx(
+					['--test', '--test-reporter=tap'],
+					fixture.path,
+				);
+
+				expect(tsxProcess.exitCode).toBe(0);
+				expect(tsxProcess.stdout).toContain('# pass 3');
+				expect(tsxProcess.stdout).toMatch(/# tests 3\b/);
+				expect(tsxProcess.stdout).toContain('hyphen');
+				expect(tsxProcess.stdout).not.toContain('digit');
+				expect(tsxProcess.stdout).not.toContain('upper');
+				expect(tsxProcess.stdout).not.toContain('letter');
+				expect(tsxProcess.stdout).not.toContain('nosep');
+			}, 10_000);
+		}
 	}
 
 	describe('Signals', async () => {
