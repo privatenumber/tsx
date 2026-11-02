@@ -135,9 +135,21 @@ export const register: Register = (
 				parameters.set('namespace', options.namespace);
 			}
 
+			// Build a parent Module from fromFile. The free CJS `module` binding is
+			// undefined when this file is loaded through the ESM `tsx/cjs/api` export.
+			const parentFilename = (
+				(typeof fromFile === 'string' && fromFile.startsWith(fileUrlPrefix))
+				|| fromFile instanceof URL
+			)
+				? fileURLToPath(fromFile)
+				: String(fromFile);
+			const parent = new Module(parentFilename);
+			parent.filename = parentFilename;
+			parent.paths = Module._nodeModulePaths(path.dirname(parentFilename));
+
 			return resolveFilename(
 				request + urlSearchParamsStringify(parameters),
-				module,
+				parent,
 				false,
 				resolveOptions,
 			);
