@@ -224,7 +224,9 @@ cli({
 		&& interceptedFlags.test
 		&& firstArgs.length === 0
 	) {
-		argvsToRun.push('**/{test,test/**/*,test-*,*[.-_]test}.?(c|m)@(t|j)s');
+		// Character class must be [-._] (literal hyphen). [.-_] is a range from
+		// "." to "_" and skips "-", so a-test.ts is missed while a1test.ts matches.
+		argvsToRun.push('**/{test,test/**/*,test-*,*[-._]test}.?(c|m)@(t|j)s');
 	}
 
 	if (interceptedFlags.test) {
