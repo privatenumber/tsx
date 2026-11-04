@@ -56,3 +56,12 @@ It will automatically recognize test files with TypeScript extensions:
 - `**/test-*.?[cm][jt]s`
 - `**/test.?[cm][jt]s`
 - `**/test/**/*.?[cm][jt]s`
+
+::: details Node.js v20 and below
+
+Older Node.js versions only find JavaScript test files automatically. Pass TypeScript test files explicitly:
+
+```sh
+tsx --test ./file.test.ts
+```
+:::
