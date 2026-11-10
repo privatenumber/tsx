@@ -224,7 +224,10 @@ cli({
 		&& interceptedFlags.test
 		&& firstArgs.length === 0
 	) {
-		argvsToRun.push('**/{test,test/**/*,test-*,*[.-_]test}.?(c|m)@(t|j)s');
+		// The `-` must stay last in the character class so it's a literal
+		// separator rather than the start of a range, which would also
+		// match `a1test.ts` and skip `a-test.ts`.
+		argvsToRun.push('**/{test,test/**/*,test-*,*[._-]test}.?(c|m)@(t|j)s');
 	}
 
 	if (interceptedFlags.test) {

@@ -274,6 +274,42 @@ export const cli = (node: NodeApis) => describe('CLI', () => {
 			expect(tsxProcess.exitCode).toBe(0);
 		}, 10_000);
 
+		test('Node.js test runner: default glob covers the documented suffixes', async () => {
+			if (!node.supports.testRunnerGlob) {
+				return;
+			}
+
+			const testFile = (name: string) => `
+import { test } from 'node:test';
+
+test('${name}', () => {});
+`;
+
+			await using fixture = await createFixture({
+				'a.test.ts': testFile('a.test.ts'),
+				'a-test.ts': testFile('a-test.ts'),
+				'a_test.ts': testFile('a_test.ts'),
+				'a1test.ts': testFile('a1test.ts'),
+				'axtest.ts': testFile('axtest.ts'),
+				'atest.ts': testFile('atest.ts'),
+			});
+
+			const tsxProcess = await tsx(
+				[
+					'--test',
+					'--test-reporter=tap',
+				],
+				fixture.path,
+			);
+
+			expect(tsxProcess.exitCode).toBe(0);
+			expect(tsxProcess.stdout).toContain('a-test.ts');
+			expect(tsxProcess.stdout).toContain('a.test.ts');
+			expect(tsxProcess.stdout).toContain('a_test.ts');
+			expect(tsxProcess.stdout).not.toContain('a1test.ts');
+			expect(tsxProcess.stdout).not.toContain('axtest.ts');
+		}, 10_000);
+
 		test('maps test locations', async () => {
 			await using fixture = await createFixture({
 				'test.ts': `import assert from 'node:assert/strict'
