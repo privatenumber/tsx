@@ -13,6 +13,7 @@ import { tsconfig } from './specs/tsconfig';
 import { transformSpec } from './specs/transform';
 import { transformCacheSpec } from './specs/transform-cache';
 import { commonJsModeContracts } from './specs/commonjs-mode-contracts';
+import { cjsInteropEsmPackage } from './specs/cjs-interop-esm-package';
 import { nodeCapabilitiesSpec } from './specs/node-capabilities';
 import { versionSensitiveTests } from './specs/version-sensitive';
 import { resolutionPriority } from './specs/resolution-priority';
@@ -42,6 +43,7 @@ import { apiDeclarations } from './specs/api-declarations';
 		await describe(`Node ${primaryNode.version} (full suite)`, async () => {
 			await versionSensitiveTests(primaryNode);
 			await commonJsModeContracts(primaryNode);
+			await cjsInteropEsmPackage(primaryNode);
 			await smoke(primaryNode);
 			await resolutionPriority(primaryNode);
 			await api(primaryNode);

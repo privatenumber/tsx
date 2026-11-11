@@ -3,6 +3,7 @@ import Module from 'node:module';
 import { urlSearchParamsStringify } from '../../../utils/url-search-params-stringify.js';
 import { isFromCjsLexer } from './is-from-cjs-lexer.js';
 import { getOriginalFilePath } from './interop-cjs-exports.js';
+import { commonJsExportPreparseSearchParameter } from '../../../esm/hook/utils.js';
 
 export const preserveQuery = (
 	request: string,
@@ -48,6 +49,11 @@ export const preserveQuery = (
 		if (parentNamespace) {
 			searchParams.append('namespace', parentNamespace);
 		}
+
+		const parentPreparse = parentQuery.get(commonJsExportPreparseSearchParameter);
+		if (parentPreparse) {
+			searchParams.set(commonJsExportPreparseSearchParameter, parentPreparse);
+		}
 	}
 
 	return [
@@ -75,6 +81,7 @@ export const preserveQuery = (
 					restOfArgsLength === 0
 					// eslint-disable-next-line unicorn/error-message
 					&& isFromCjsLexer(new Error())
+					&& !searchParams.has(commonJsExportPreparseSearchParameter)
 				)
 			) {
 				resolved += urlSearchParamsStringify(searchParams);

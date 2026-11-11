@@ -37,6 +37,7 @@ import {
 	getNamespace,
 	isDataUrl,
 	parentImportsCommonJsExports,
+	parentRequiresCommonJsExportPreparse,
 } from './utils.js';
 import type { Data } from './initialize.js';
 
@@ -1043,7 +1044,7 @@ export const createResolve = (
 			&& resolved.format === 'commonjs'
 			&& implicitTsExtensionsPattern.test(resolved.url)
 			&& (
-				new URL(context.parentURL).searchParams.has(commonJsExportPreparseSearchParameter)
+				parentRequiresCommonJsExportPreparse(context.parentURL)
 				|| parentImportsCommonJsExports(context.parentURL, specifier, supportsEsmLoadReadFile)
 			)
 		);
@@ -1212,6 +1213,16 @@ export const createResolveSync = (
 			resolved.url = mergeUrlMetadata(resolved.url, urlMetadata);
 		}
 
+		const shouldLoadForCommonJsExportPreparse = (
+			context.parentURL
+			&& resolved.format === 'commonjs'
+			&& implicitTsExtensionsPattern.test(resolved.url)
+			&& (
+				parentRequiresCommonJsExportPreparse(context.parentURL)
+				|| parentImportsCommonJsExports(context.parentURL, specifier, supportsEsmLoadReadFile)
+			)
+		);
+
 		// Inherit namespace
 		if (
 			requestNamespace
@@ -1220,11 +1231,17 @@ export const createResolveSync = (
 			resolved.url = addNamespace(resolved.url, requestNamespace);
 		}
 
-		resolved.url = preserveCommonJsQueryIdentity(
-			resolved.url,
-			resolved.format,
-			requestNamespace,
-		);
+		if (shouldLoadForCommonJsExportPreparse) {
+			resolved.url = addQuery(resolved.url, commonJsExportPreparseQuery);
+		}
+
+		if (requestNamespace || shouldLoadForCommonJsExportPreparse) {
+			resolved.url = preserveCommonJsQueryIdentity(
+				resolved.url,
+				resolved.format,
+				requestNamespace,
+			);
+		}
 
 		return resolved;
 	};
