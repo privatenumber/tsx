@@ -31,7 +31,6 @@ import {
 	namespaceQuery,
 	namespaceSearchParameter,
 	commonJsExportPreparseQuery,
-	commonJsExportPreparseSearchParameter,
 	commonJsVirtualQuerySearchParameter,
 	getQueryWithoutParameters,
 	getNamespace,

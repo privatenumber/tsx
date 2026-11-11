@@ -9,29 +9,35 @@ import {
 } from '../fixtures.js';
 
 // https://github.com/privatenumber/tsx/issues/614
+// https://github.com/ufr-scf/tsx-missing-export
 export const cjsInteropEsmPackage = (node: NodeApis) => describe('CJS interop from ESM package', () => {
 	test('named imports via tsconfig paths from type module package', async () => {
 		await using fixture = await createFixture({
-			'package.json': createPackageJson({ type: 'module' }),
-			'tsconfig.json': createTsconfig({
-				compilerOptions: {
-					baseUrl: '.',
-					paths: {
-						'@shared': ['./lib/shared/index.ts'],
-						'@shared/*': ['./lib/shared/*'],
+			backend: {
+				'package.json': createPackageJson({ type: 'module' }),
+				'tsconfig.json': createTsconfig({
+					include: ['src/**/*.ts'],
+					compilerOptions: {
+						rootDir: './src',
+						paths: {
+							'@/shared': ['../shared/src/index.ts'],
+							'@/shared/*': ['../shared/src/*'],
+						},
 					},
+				}),
+				src: {
+					'index.ts': `
+						import { magicNumber, Permission } from '@/shared';
+
+						const permission: Permission = Permission.Read;
+
+						console.log('Hello World', magicNumber);
+					`,
 				},
-			}),
-			'index.ts': `
-				import { magicNumber, Permission } from '@shared';
-
-				const permission: Permission = Permission.Read;
-
-				console.log(magicNumber, permission);
-			`,
-			lib: {
-				shared: {
-					'index.ts': 'export * from "./permission.ts";',
+			},
+			shared: {
+				src: {
+					'index.ts': 'export * from "./permission";',
 					'permission.ts': `
 						export enum Permission {
 							Read = 'Read',
@@ -44,7 +50,7 @@ export const cjsInteropEsmPackage = (node: NodeApis) => describe('CJS interop fr
 			},
 		});
 
-		const result = await node.tsx(['index.ts'], fixture.path);
+		const result = await node.tsx(['src/index.ts'], fixture.getPath('backend'));
 		onTestFail(() => {
 			console.log(result);
 		});
@@ -57,7 +63,7 @@ export const cjsInteropEsmPackage = (node: NodeApis) => describe('CJS interop fr
 		}).toEqual({
 			failed: false,
 			exitCode: 0,
-			stdout: '42 Read',
+			stdout: 'Hello World 42',
 			stderr: '',
 		});
 	});

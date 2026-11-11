@@ -555,10 +555,13 @@ export const createLoadSync = (
 					return loaded;
 				}
 
+				const commonJsInternalSearch = fileUrl
+					? getSearchWithoutParameters(fileUrl.search, commonJsInternalQueryParameters)
+					: '';
 				const shouldUseDataResponseUrl = Boolean(
 					urlNamespace
 					|| shouldPreparseCommonJsExports
-					|| (fileUrl && getSearchWithoutParameters(fileUrl.search, commonJsInternalQueryParameters)),
+					|| commonJsInternalSearch,
 				);
 				// Node only preserves CJS globals/cache when it re-enters Module._load,
 				// and skips module hooks on that path.

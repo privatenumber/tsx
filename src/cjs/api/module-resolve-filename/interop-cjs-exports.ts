@@ -1,35 +1,22 @@
 import Module from 'node:module';
 
-const dataJavascriptMime = 'data:text/javascript';
-
-const readFilePathMetadata = (
-	search: string,
-) => new URLSearchParams(search).get('filePath') ?? undefined;
-
 export const getOriginalFilePath = (
 	request: string,
 ) => {
-	if (!request.startsWith(dataJavascriptMime)) {
+	if (!request.startsWith('data:text/javascript,')) {
 		return;
 	}
 
-	const fragmentIndex = request.indexOf('#');
-	if (fragmentIndex !== -1) {
-		const filePath = readFilePathMetadata(request.slice(fragmentIndex + 1));
-		if (filePath) {
-			return filePath;
-		}
-	}
-
-	// Metadata is appended after the payload. Use the last occurrence so an encoded
-	// payload cannot be mistaken for the real filePath query on newer Node versions.
-	const filePathParam = '?filePath=';
-	const filePathIndex = request.lastIndexOf(filePathParam);
-	if (filePathIndex === -1) {
+	const queryIndex = request.indexOf('?');
+	if (queryIndex === -1) {
 		return;
 	}
 
-	return readFilePathMetadata(request.slice(filePathIndex + 1));
+	const searchParams = new URLSearchParams(request.slice(queryIndex + 1));
+	const filePath = searchParams.get('filePath');
+	if (filePath) {
+		return filePath;
+	}
 };
 
 export const interopCjsExports = (

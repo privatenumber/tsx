@@ -1,9 +1,9 @@
 import path from 'node:path';
 import Module from 'node:module';
 import { urlSearchParamsStringify } from '../../../utils/url-search-params-stringify.js';
+import { commonJsExportPreparseSearchParameter } from '../../../esm/hook/utils.js';
 import { isFromCjsLexer } from './is-from-cjs-lexer.js';
 import { getOriginalFilePath } from './interop-cjs-exports.js';
-import { commonJsExportPreparseSearchParameter } from '../../../esm/hook/utils.js';
 
 export const preserveQuery = (
 	request: string,
