@@ -40,6 +40,24 @@ export const commonJsExportPreparseQuery = `${commonJsExportPreparseSearchParame
 export const commonJsVirtualQuerySearchParameter = 'tsx-commonjs-virtual-query';
 export const moduleSourceByUrl = new Map<string, string>();
 
+export const parentRequiresCommonJsExportPreparse = (
+	parentUrl: string | undefined,
+) => {
+	if (!parentUrl) {
+		return false;
+	}
+
+	if (parentUrl.includes(commonJsExportPreparseSearchParameter)) {
+		return true;
+	}
+
+	try {
+		return new URL(parentUrl).searchParams.has(commonJsExportPreparseSearchParameter);
+	} catch {
+		return false;
+	}
+};
+
 const dataUrlPattern = /^data:/i;
 
 export const isDataUrl = (
