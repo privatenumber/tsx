@@ -2,7 +2,6 @@ import crypto from 'node:crypto';
 import module from 'node:module';
 import { MessageChannel, type MessagePort } from 'node:worker_threads';
 import type { Message } from '../types.js';
-import type { RequiredProperty } from '../../types.js';
 import { isFeatureSupported, moduleRegisterHooksCjsReload } from '../../utils/node-features.js';
 import { interopCjsExports } from '../../cjs/api/module-resolve-filename/interop-cjs-exports.js';
 import { createData } from '../hook/initialize.js';
@@ -32,7 +31,7 @@ export type NamespacedUnregister = Unregister & {
 };
 
 export type Register = {
-	(options: RequiredProperty<RegisterOptions, 'namespace'>): NamespacedUnregister;
+	(options: RegisterOptions & { namespace: string }): NamespacedUnregister;
 	(options?: RegisterOptions): Unregister;
 };
 

@@ -1,5 +1,21 @@
 <template>
 	<div class="mb-8">
+		<div>
+			<h4 class="text-base font-semibold">Premium sponsors</h4>
+		</div>
+		<a
+			href="https://www.code4japan.org/"
+			target="_blank"
+			rel="noopener"
+		>
+			<div class="my-4 bg-white">
+				<img
+					src="/logos/code-for-japan.webp"
+					alt="Code for Japan"
+					class="object-cover"
+				>
+			</div>
+		</a>
 		<a
 			href="https://github.com/sponsors/privatenumber/sponsorships?pay_prorated=false&tier_id=388346"
 			target="_blank"

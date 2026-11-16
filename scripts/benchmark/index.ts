@@ -12,6 +12,7 @@ import { resolveTsx, type TsxImplementation } from './utils/resolve-tsx.js';
 import { resolveNode, type NodeBinary } from './utils/resolve-node.js';
 import { runOnce, type RunResult } from './utils/run.js';
 import { mean, standardDeviation, linearFit } from './utils/stats.js';
+import { disposeAll } from './utils/dispose-all.js';
 
 const specifierStyles: SpecifierStyle[] = ['ts', 'js', 'extensionless'];
 const scaleCounts = [10, 100, 300, 1000];
@@ -228,11 +229,7 @@ for (const scenario of selectedScenarios) {
 	const fixtures = await Promise.all(moduleCounts.map(
 		moduleCount => createFixture(scenario.build(moduleCount, specifier)),
 	));
-	await using _scenarioFixtures = {
-		[Symbol.asyncDispose]: async () => {
-			await Promise.all(fixtures.map(fixture => fixture.rm()));
-		},
-	};
+	await using _scenarioFixtures = disposeAll(fixtures);
 
 	for (const node of nodeBinaries) {
 		if (

@@ -1499,6 +1499,28 @@ export const versionSensitiveTests = (node: NodeApis) => describe('Version-sensi
 		expect(tsxProcess.stdout).toBe('literal-question');
 	});
 
+	test('file URL imports preserve literal question marks', async () => {
+		if (process.platform === 'win32') {
+			skip('Windows paths cannot contain literal question marks');
+		}
+
+		await using fixture = await createFixture({
+			'package.json': createPackageJson({ type: 'module' }),
+			'import.mts': `
+				import { pathToFileURL } from 'node:url';
+
+				await import(pathToFileURL('./file?name.ts').toString());
+				`,
+			'file?name.ts': 'console.log("literal-question");',
+		});
+
+		const tsxProcess = await node.tsx(['import.mts'], fixture.path);
+
+		expect(tsxProcess.failed).toBe(false);
+		expect(tsxProcess.stderr).toBe('');
+		expect(tsxProcess.stdout).toBe('literal-question');
+	});
+
 	// https://github.com/privatenumber/tsx/issues/750
 	test('tsImport imports data URLs', async () => {
 		if (!node.supports.moduleRegister) {

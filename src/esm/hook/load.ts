@@ -69,6 +69,23 @@ const getTsconfigRaw = (
 		: undefined
 );
 
+// Node's CJS-from-load-hook bridge supplies a reduced require without
+// cache/extensions. Rebuild the normal require surface when Node evaluates the
+// transformed source itself instead of re-entering Module._load.
+// https://github.com/nodejs/node/blob/v26.1.0/lib/internal/modules/esm/translators.js#L110-L186
+const getCjsRequireBanner = (
+	filePath: string,
+	namespace?: string,
+) => {
+	// The parent filename must carry the namespace so child require() calls
+	// resolve through the namespaced CJS loader. A file URL drops the query
+	// (fileURLToPath strips it), so pass a path when a namespace is required.
+	const parentPath = namespace
+		? `${filePath}?namespace=${encodeURIComponent(namespace)}`
+		: pathToFileURL(filePath).toString();
+	return `require = require("node:module").createRequire(${JSON.stringify(parentPath)});`;
+};
+
 const getFilePathFromVirtualQuery = (
 	fileUrl: URL,
 ) => {
@@ -362,7 +379,7 @@ export const createLoad = (
 					{
 						cjsBanner: (
 							shouldUseDataResponseUrl
-								? `require = require("node:module").createRequire(${JSON.stringify(pathToFileURL(filePath).toString())});`
+								? getCjsRequireBanner(filePath, urlNamespace)
 								: undefined
 						),
 						tsconfigRaw: getTsconfigRaw(filePath, hookData),
@@ -505,18 +522,29 @@ export const createLoadSync = (
 
 			// if the file extension is .js, only transform if using esm syntax
 			if (loadedFormat === 'commonjs-typescript' || !filePath.endsWith('.js') || isESM(code)) {
-				const transformed = transformSync(
-					code,
-					getTransformPath(filePath, fileUrl),
-					{
-						tsconfigRaw: getTsconfigRaw(filePath, hookData),
-					},
-				);
-
 				// Node only preserves CJS globals/cache when it re-enters Module._load,
 				// and skips module hooks on that path.
 				// https://github.com/nodejs/node/blob/v26.1.0/lib/internal/modules/esm/translators.js#L335-L352
 				const shouldReloadByCJSLoader = !urlNamespace && isGlobalCjsLoaderActive();
+				const transformed = transformSync(
+					code,
+					getTransformPath(filePath, fileUrl),
+					{
+						// A namespaced import keeps the source tsx provides instead of
+						// re-entering Module._load, so Node evaluates it with a reduced
+						// bridge require that lacks cache/extensions. tsImport() pairs
+						// the namespace with a CJS loader that resolves the TypeScript
+						// children through the banner; standalone register({ namespace })
+						// does not register that loader.
+						cjsBanner: (
+							urlNamespace
+								? getCjsRequireBanner(filePath, urlNamespace)
+								: undefined
+						),
+						tsconfigRaw: getTsconfigRaw(filePath, hookData),
+					},
+				);
+
 				const filePathWithQuery = getFilePathWithQuery(filePath, fileUrl, urlNamespace);
 
 				loaded.format = 'commonjs';
@@ -543,10 +571,19 @@ export const createLoadSync = (
 		const shouldTransformJson = loadedFormat === 'json' && !isCommonJsRequireContext(context);
 
 		if (loadedFormat === 'commonjs-typescript') {
+			// A composed hook can supply commonjs-typescript source without a
+			// file: responseURL, so the namespaced case reaches this fallback too.
+			// Node's bridge require is reduced when it evaluates provided source,
+			// so rebuild the surface for a namespaced import.
 			const transformed = transformSync(
 				code,
 				filePath,
 				{
+					cjsBanner: (
+						urlNamespace
+							? getCjsRequireBanner(filePath, urlNamespace)
+							: undefined
+					),
 					tsconfigRaw: getTsconfigRaw(filePath, hookData),
 				},
 			);

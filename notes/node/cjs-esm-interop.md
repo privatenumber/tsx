@@ -31,6 +31,15 @@ Node's synthetic `default` export for a CommonJS module is always the complete `
 
 The load hook receives import-attributes context and reads CJS source at the boundary ([v20.11.0 `load.js#L113-L145`](https://github.com/nodejs/node/blob/v20.11.0/lib/internal/modules/esm/load.js#L113-L145)). The translator then preparses CJS before namespace creation and evaluates via `CJSModule._load` ([v20.11.0 `translators.js#L190-L203`](https://github.com/nodejs/node/blob/v20.11.0/lib/internal/modules/esm/translators.js#L190-L203)).
 
+### Load-hook CJS evaluation
+
+At v24.15.0 the translator chooses between two evaluation paths ([`translators.js#L341`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/esm/translators.js#L341)):
+
+- **`loadCJSModuleWithModuleLoad`** re-enters `Module._load`, so the module receives the authentic `require` built by `makeRequireFunction` ([v24.15.0 `translators.js#L322`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/esm/translators.js#L322)). This path runs when the load result sets `shouldBeReloadedByCJSLoader` ([CJS reload support](./module-hooks.md#cjs-reload-support)).
+- **`loadCJSModule`** compiles the supplied source inline and evaluates it with a reduced `require` that defines only `resolve` and `main` ([`translators.js#L109`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/esm/translators.js#L109), [`#L168`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/esm/translators.js#L168), [`#L183`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/esm/translators.js#L183)). It omits `cache` and `extensions`, which `makeRequireFunction` sets to `Module._cache` and `Module._extensions` ([`helpers.js#L200-L202`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/helpers.js#L200-L202)).
+
+The reduced `require` re-resolves each child request through `Module._resolveFilename` and passes the result to the ESM loader as `pathToFileURL(filename)` ([`translators.js#L138`](https://github.com/nodejs/node/blob/v24.15.0/lib/internal/modules/esm/translators.js#L138)). A filename that already carries a query suffix, such as `dep.mjs?namespace=<id>`, therefore reaches ESM resolution with the `?` percent-encoded into the pathname (`dep.mjs%3Fnamespace=<id>`).
+
 ## CJS requiring ESM
 
 | Node behavior | Evidence | Verified releases or window |

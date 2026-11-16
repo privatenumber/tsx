@@ -3,5 +3,3 @@ export type NodeError = Error & {
 	url?: string;
 	path?: string;
 };
-
-export type RequiredProperty<Type, Keys extends keyof Type> = Type & { [P in Keys]-?: Type[P] };

@@ -2,26 +2,28 @@ import { PassThrough } from 'node:stream';
 import { describe, expect, test } from 'manten';
 import { processInteract } from '../utils/process-interact.js';
 
+const createPassThrough = () => {
+	const stdout = new PassThrough();
+	return Object.assign(stdout, {
+		[Symbol.dispose]: () => stdout.destroy(),
+	});
+};
+
 export const processInteractSpec = () => describe('processInteract', () => {
 	test('matches accumulated output across chunks', async () => {
-		const stdout = new PassThrough();
+		using stdout = createPassThrough();
+		const interaction = processInteract(
+			stdout,
+			[
+				({ output }) => output.includes('hello world'),
+			],
+			1000,
+		);
 
-		try {
-			const interaction = processInteract(
-				stdout,
-				[
-					({ output }) => output.includes('hello world'),
-				],
-				1000,
-			);
+		stdout.write('hello ');
+		stdout.write('world');
 
-			stdout.write('hello ');
-			stdout.write('world');
-
-			await interaction;
-		} finally {
-			stdout.destroy();
-		}
+		await interaction;
 	});
 
 	test('matches consecutive output actions from one chunk', async () => {

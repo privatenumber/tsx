@@ -19,7 +19,6 @@ export const tsxEsmApiPath = new URL('../../dist/esm/api/index.mjs', import.meta
 export const tsxEsmApiCjsPath = fileURLToPath(new URL('../../dist/esm/api/index.cjs', import.meta.url).toString());
 
 const cjsPatchPath = fileURLToPath(new URL('../../dist/cjs/index.cjs', import.meta.url).toString());
-const hookPath = new URL('../../dist/esm/index.cjs', import.meta.url).toString();
 
 export const tsx = (
 	options: Options,
@@ -181,7 +180,7 @@ export const createNode = async (
 		) => execaNode(args[0], args.slice(1), {
 			cwd,
 			nodePath: node.path,
-			nodeOptions: [hookFlag, hookPath],
+			nodeOptions: [hookFlag, tsxEsmPath],
 		}),
 	};
 };

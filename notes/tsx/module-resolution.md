@@ -57,6 +57,10 @@ Dependency classification must inspect `new URL(parentURL).pathname`, not a subs
 
 `tsImport()` isolates each registration with a namespace. File URLs carry that namespace in their query, while `data:` URLs carry it in a trailing fragment parameter so Node does not include the metadata in the data payload. Data URLs bypass file-oriented resolver logic because their payload can contain query and directory-like text. The trailing marker is removed only when it matches the active registration, leaving user fragments opaque. It lets absolute TypeScript imports from a `data:` module retain the registration namespace ([Node contract](../node/data-url-modules.md), [resolver](../../src/esm/hook/resolve.ts), [lookup](../../src/esm/hook/utils.ts)).
 
+The CommonJS bridge appends `?namespace=<id>` to a resolved filename for cache isolation ([preserve-query](../../src/cjs/api/module-resolve-filename/preserve-query.ts)). When `require(esm)` hands that filename back to ESM resolution, `pathToFileURL()` encodes the `?` into the pathname (`dep.mjs%3Fnamespace=<id>`), which Node's default resolver reads as a literal filename ([Node contract](../node/cjs-esm-interop.md#load-hook-cjs-evaluation)). The resolver restores that encoded suffix to a real namespace query before resolution ([restoreCjsBridgeNamespace](../../src/esm/hook/resolve.ts#L841-L884)). It reverses only the `%25` layer `pathToFileURL()` added to the already-encoded query, then parses with `URLSearchParams`, and rewrites the pathname only when the recovered `namespace` matches the active registration. Foreign namespaces, percent-encoded `?` pathnames that do not decode to the active namespace, directory crossings, and marked virtual-query URLs are left untouched. A literal filename whose suffix decodes to the active namespace is indistinguishable from bridge metadata and is rewritten.
+
+Namespace inheritance excludes builtins on either `format === 'builtin'` or a `node:` URL prefix ([resolver](../../src/esm/hook/resolve.ts#L999-L1004)). In a `require` context a bare builtin resolves through the CommonJS path with no format and a `node:` URL ([Node contract](../node/module-hooks.md#resolve-result-shape)), so the prefix check is what catches it. Excluding every non-`file:` URL instead would drop namespace inheritance for composed `data:` resolutions, which must still isolate per registration.
+
 ## Required test matrix
 
 Before changing resolver code, cover each policy row through every execution boundary:
@@ -70,6 +74,11 @@ Before changing resolver code, cover each policy row through every execution bou
 7. Dependency subpaths with conditional root exports, package imports, scoped nested mains, an exact main before extension fallbacks, a missing main that falls through to index, a main directory, and an all-miss native-error comparison.
 8. A relative dependency directory beneath root exports, so the package-subpath boundary cannot block ordinary index fallback.
 9. A namespaced `tsImport()` graph containing base64 and raw `data:` modules, an opaque user fragment, and an absolute TypeScript child across async and sync hooks.
+10. An active-namespace resolver given a literal percent-encoded `?` pathname and a bridge-shaped suffix with a foreign namespace, across async and sync hooks, so the active-namespace match is exercised rather than a no-namespace early return.
+11. A composed `load` hook that supplies `commonjs-typescript` source without a `responseURL`, so the fallback path is exercised directly rather than inferred from disk loading.
+12. Synthetic file URLs built from OS-native absolute paths (`pathToFileURL('/...')`), so the resolver's `fileURLToPath()` accepts them on Windows as well as POSIX.
+13. The CJS bridge end-to-end: a CommonJS-context `.ts` under `tsImport()` re-exporting from an `.mjs` child ([api.ts](../../tests/specs/api.ts)); and, at the resolver boundary, custom encoded namespaces and dependency query values round-tripping with a stubbed downstream resolver ([esm-hook-resolve.ts](../../tests/specs/esm-hook-resolve.ts)).
+14. `require.cache` and `require.extensions` present on a namespaced CommonJS module whose child requires transformation, including the composed `commonjs-typescript` fallback ([api.ts](../../tests/specs/api.ts)).
 
 ## Non-goals
 

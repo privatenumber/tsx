@@ -2,7 +2,6 @@ import Module from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadTsconfig } from '../../utils/tsconfig.js';
-import type { RequiredProperty } from '../../types.js';
 import { urlSearchParamsStringify } from '../../utils/url-search-params-stringify.js';
 import { fileUrlPrefix } from '../../utils/path-utils.js';
 import { activateGlobalCjsLoader } from '../../utils/cjs-loader-state.js';
@@ -57,7 +56,7 @@ export type NamespacedUnregister = Unregister & {
 };
 
 export type Register = {
-	(options: RequiredProperty<RegisterOptions, 'namespace'>): NamespacedUnregister;
+	(options: RegisterOptions & { namespace: string }): NamespacedUnregister;
 	(options?: RegisterOptions): Unregister;
 };
 
