@@ -688,7 +688,7 @@ export const api = (node: NodeApis) => describe('API', () => {
 						expect(stderr).toMatch('Cannot resolve tsconfig at path');
 					});
 
-					test('fallsback to env var', async () => {
+					test('falls back to env var', async () => {
 						await using fixture = await createFixture({
 							'package.json': createPackageJson({ type: 'module' }),
 							'tsconfig.json': createTsconfig({
