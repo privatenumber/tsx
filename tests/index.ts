@@ -18,6 +18,7 @@ import { versionSensitiveTests } from './specs/version-sensitive';
 import { resolutionPriority } from './specs/resolution-priority';
 import { esmHookResolve } from './specs/esm-hook-resolve';
 import { apiDeclarations } from './specs/api-declarations';
+import { distSourceMap } from './specs/dist-source-map';
 
 (async () => {
 	// Prevent stuck CI runs
@@ -32,6 +33,7 @@ import { apiDeclarations } from './specs/api-declarations';
 		await nodeCapabilitiesSpec();
 		await esmHookResolve();
 		await apiDeclarations();
+		await distSourceMap();
 
 		const [primaryNodeVersion, ...compatNodeVersions] = nodeVersions;
 		const primaryNode = await createNode(primaryNodeVersion);
