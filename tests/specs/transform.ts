@@ -1,3 +1,6 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, test, expect } from 'manten';
 import { createFsRequire } from 'fs-require';
 import { createFixture } from 'fs-fixture';
@@ -266,5 +269,20 @@ export const transformSpec = () => describe('transform', () => {
 				expect(map.names).toStrictEqual(['named']);
 			}
 		});
+	});
+
+	test('built dist files do not contain a line-anchored sourceMappingURL comment', async () => {
+		const distDirectory = fileURLToPath(new URL('../../dist', import.meta.url));
+		const entries = await fs.readdir(distDirectory, { recursive: true });
+		const jsFiles = entries.filter(
+			entry => entry.endsWith('.cjs') || entry.endsWith('.mjs'),
+		);
+
+		expect(jsFiles.length).toBeGreaterThan(0);
+
+		for (const file of jsFiles) {
+			const content = await fs.readFile(path.join(distDirectory, file), 'utf8');
+			expect(content).not.toMatch(/^\s*\/\/[#@]\s*sourceMappingURL=/m);
+		}
 	});
 });
