@@ -1,6 +1,8 @@
 import type { Transformed } from './utils/transform/apply-transformers.js';
 
-const inlineSourceMapPrefix = '\n//# sourceMappingURL=data:application/json;base64,';
+// Avoid emitting a literal `//# sourceMappingURL=` line in minified bundles,
+// which source-map parsers (e.g. convert-source-map) misread as a real comment.
+const inlineSourceMapPrefix = ['\n//#', 'sourceMappingURL=data:application/json;base64,'].join(' ');
 
 // TODO: Build this logic into inlineSourceMap
 // If undefined, assume sourcemap is enabled
